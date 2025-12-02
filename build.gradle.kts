@@ -1,7 +1,9 @@
+import org.jetbrains.kotlin.builtins.StandardNames.FqNames.target
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     val kotlinVersion = "2.0.10"
+    val spotlessVersion = "6.25.0"
 
     id("org.springframework.boot") version "3.5.8"
     id("io.spring.dependency-management") version "1.1.6"
@@ -9,6 +11,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("kapt") version kotlinVersion
+    id("com.diffplug.spotless") version spotlessVersion
     idea
 }
 
@@ -19,7 +22,9 @@ val bouncyCastleVersion = "1.78"
 val awsSdkVersion = "2.27.0"
 val springDocVersion = "2.6.0"
 val kotestVersion = "5.9.1"
+val kotestExtensionsVersion = "1.3.0"
 val mockkVersion = "1.13.10"
+val ktlintVersion = "1.5.0"
 
 group = "com.yapp2app"
 version = "0.0.1"
@@ -69,10 +74,30 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-    testImplementation("io.kotest:kotest-extensions-spring:$kotestVersion")
+    testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestExtensionsVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
 }
 
+spotless {
+    kotlin {
+        target("src/**/*.kt")
+        ktlint(ktlintVersion)
+            .editorConfigOverride(
+                mapOf(
+                    "max_line_length" to "120",
+                    "indent_size" to "4",
+                    "insert_final_newline" to "true",
+                    "ktlint_standard_no-wildcard-imports" to "disabled",
+                ),
+            )
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktlint(ktlintVersion)
+    }
+}
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
@@ -83,4 +108,8 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.jar {
+    enabled = false
 }
