@@ -9,5 +9,4 @@ class YappApp2SeverApplicationTests {
     @Test
     fun contextLoads() {
     }
-
 }
