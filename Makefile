@@ -37,7 +37,8 @@ build:
 
 run:
 	@echo "$(GREEN)Running with profile: $(SPRING_PROFILES)$(NC)"
-	$(GRADLE) bootRun --args="--server.port=$(PORT) $(if $(SPRING_PROFILES),--spring.profiles.active=$(SPRING_PROFILES)) $(EXTRA_ARGS)";
+	@unset SPRING_PROFILES; \
+	$(GRADLE) bootRun --args="--server.port=$(PORT) $(if $(SPRING_PROFILES),--spring.profiles.active=$(SPRING_PROFILES)) $(EXTRA_ARGS)"
 
 start:
 	@echo "$(GREEN)Starting with profile: $(SPRING_PROFILES)$(NC)"
@@ -50,6 +51,7 @@ start:
 	fi; \
 	echo "Starting $$JAR..."; \
 	echo "Logging to $(LOG_FILE)"; \
+	unset SPRING_PROFILES; \
 	nohup java -jar "$$JAR" \
 		--server.port=$(PORT) \
 		$(if $(SPRING_PROFILES),--spring.profiles.active=$(SPRING_PROFILES)) \
