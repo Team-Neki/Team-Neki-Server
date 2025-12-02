@@ -39,3 +39,4 @@ out/
 ### Kotlin ###
 .kotlin
 *.log
+.h2

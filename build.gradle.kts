@@ -10,6 +10,7 @@ plugins {
 
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
+    kotlin("plugin.jpa") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     id("com.diffplug.spotless") version spotlessVersion
     idea
@@ -69,6 +70,15 @@ dependencies {
 
     // OpenAPI/Swagger (SpringFox는 deprecated, SpringDoc만 사용)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
+
+    // jpa
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    runtimeOnly("com.h2database:h2")
+    runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
+
+    // flyway (DB schema migratino)
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-mysql")
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")

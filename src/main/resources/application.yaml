@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: Yapp_APP_2_Sever
+  profiles:
+    active: local
+  jpa:
+    open-in-view: false
