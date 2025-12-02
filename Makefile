@@ -1,4 +1,4 @@
-.PHONY: help compile build run start restart test format clean
+.PHONY: help compile build run start stop restart test format clean
 
 .DEFAULT_GOAL := help
 
