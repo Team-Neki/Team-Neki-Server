@@ -116,6 +116,14 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+tasks.processResources {
+    filesMatching("application.yaml") {
+        filter<org.apache.tools.ant.filters.ReplaceTokens>(
+            "tokens" to mapOf("version" to project.version.toString()),
+        )
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

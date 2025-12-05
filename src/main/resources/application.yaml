@@ -1,3 +1,8 @@
+app:
+  version: @version@
+  server:
+    url: ${APP_SERVER_URL:http://localhost:8080}
+
 spring:
   application:
     name: Yapp_APP_2_Sever
