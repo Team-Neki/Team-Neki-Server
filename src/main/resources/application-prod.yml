@@ -1,0 +1,26 @@
+# Production Environment Configuration
+spring:
+  profiles:
+    active: prod
+
+# Server Configuration
+server:
+  port: 8080
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.yapp2app: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

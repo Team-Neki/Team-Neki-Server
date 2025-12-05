@@ -1,0 +1,26 @@
+# Staging Environment Configuration
+spring:
+  profiles:
+    active: staging
+
+# Server Configuration
+server:
+  port: 8080
+
+# Logging (more verbose for debugging)
+logging:
+  level:
+    root: INFO
+    com.yapp2app: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Actuator (expose more endpoints for debugging)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env
+  endpoint:
+    health:
+      show-details: always

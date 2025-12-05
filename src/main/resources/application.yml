@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: Yapp_APP_2_Sever
+
+# Actuator Health Check
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    defaults:
+      enabled: true

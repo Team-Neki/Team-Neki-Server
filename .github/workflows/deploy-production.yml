@@ -1,0 +1,175 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DOCKER_IMAGE_NAME: yapp-app-2-server
+  DOCKER_TAG: prod-${{ github.sha }}
+  BLUE_PORT: 9080
+  GREEN_PORT: 9081
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }} .
+          docker tag ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }} ${{ env.DOCKER_IMAGE_NAME }}:latest-prod
+
+      - name: Save Docker image to tar
+        run: |
+          docker save ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }} | gzip > app-image.tar.gz
+
+      - name: Copy Docker image to on-premise server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_SSH_PORT }}
+          source: "app-image.tar.gz"
+          target: "/tmp/deploy"
+
+      - name: Blue-Green Deploy to on-premise server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_HOST }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+          port: ${{ secrets.PROD_SERVER_SSH_PORT }}
+          script: |
+            # Load Docker image
+            docker load < /tmp/deploy/app-image.tar.gz
+
+            # Determine current active container (Blue or Green)
+            if docker ps --format '{{.Names}}' | grep -q "^yapp-app-prod-blue$"; then
+              CURRENT_COLOR="blue"
+              NEW_COLOR="green"
+              CURRENT_PORT=${{ env.BLUE_PORT }}
+              NEW_PORT=${{ env.GREEN_PORT }}
+            else
+              CURRENT_COLOR="green"
+              NEW_COLOR="blue"
+              CURRENT_PORT=${{ env.GREEN_PORT }}
+              NEW_PORT=${{ env.BLUE_PORT }}
+            fi
+
+            echo "Current active: $CURRENT_COLOR (port: $CURRENT_PORT)"
+            echo "Deploying to: $NEW_COLOR (port: $NEW_PORT)"
+
+            # Stop and remove new color container if exists
+            docker stop yapp-app-prod-$NEW_COLOR 2>/dev/null || true
+            docker rm yapp-app-prod-$NEW_COLOR 2>/dev/null || true
+
+            # Run new container on different internal port
+            docker run -d \
+              --name yapp-app-prod-$NEW_COLOR \
+              --restart unless-stopped \
+              -p $NEW_PORT:8080 \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              ${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}
+
+            # Health check for new container
+            echo "Waiting for new container to start..."
+            sleep 10
+
+            NEW_CONTAINER_HEALTHY=false
+            for i in {1..30}; do
+              if curl -f http://localhost:$NEW_PORT/actuator/health > /dev/null 2>&1; then
+                echo "✅ New container ($NEW_COLOR) is healthy on port $NEW_PORT!"
+                NEW_CONTAINER_HEALTHY=true
+                break
+              fi
+              echo "Attempt $i: New container not ready yet..."
+              sleep 2
+            done
+
+            if [ "$NEW_CONTAINER_HEALTHY" = false ]; then
+              echo "❌ Health check failed! Rolling back..."
+              docker logs yapp-app-prod-$NEW_COLOR --tail 50
+              docker stop yapp-app-prod-$NEW_COLOR
+              docker rm yapp-app-prod-$NEW_COLOR
+              exit 1
+            fi
+
+            # Update Nginx upstream to point to new container
+            # Nginx is running in Docker, so update the mounted config file
+            echo "Updating Nginx configuration to route to $NEW_COLOR (port $NEW_PORT)..."
+            cat > ~/project/nginx/production-upstream.conf <<EOF
+            upstream production_backend {
+                server ${{ secrets.SERVER_PRIVATE_IP }}:$NEW_PORT;
+            }
+            EOF
+
+            # Test Nginx configuration in Docker container
+            docker exec darren-nginx nginx -t
+            if [ $? -ne 0 ]; then
+              echo "❌ Nginx configuration test failed! Rolling back..."
+              docker stop yapp-app-prod-$NEW_COLOR
+              docker rm yapp-app-prod-$NEW_COLOR
+              # Restore old configuration
+              cat > ~/project/nginx/production-upstream.conf <<EOF
+            upstream production_backend {
+                server ${{ secrets.SERVER_PRIVATE_IP }}:$CURRENT_PORT;
+            }
+            EOF
+              exit 1
+            fi
+
+            # Reload Nginx in Docker container (zero-downtime)
+            docker exec darren-nginx nginx -s reload
+            echo "Nginx reloaded successfully"
+
+            # Wait a bit to ensure traffic is routed to new container
+            sleep 5
+
+            # Stop old container
+            if [ -n "$CURRENT_COLOR" ] && docker ps -a --format '{{.Names}}' | grep -q "^yapp-app-prod-$CURRENT_COLOR$"; then
+              echo "Stopping old container ($CURRENT_COLOR)..."
+              docker stop yapp-app-prod-$CURRENT_COLOR || true
+              docker rm yapp-app-prod-$CURRENT_COLOR || true
+            fi
+
+            # Clean up
+            rm -f /tmp/deploy/app-image.tar.gz
+
+            # Remove old images (keep last 3)
+            docker images ${{ env.DOCKER_IMAGE_NAME }} --format "{{.ID}} {{.Tag}}" | \
+              grep "prod-" | \
+              tail -n +4 | \
+              awk '{print $1}' | \
+              xargs -r docker rmi || true
+
+            echo "🚀 Deployment completed! Active container: $NEW_COLOR on port $NEW_PORT"
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Production deployment successful!"
+          else
+            echo "❌ Production deployment failed!"
+          fi
