@@ -78,10 +78,10 @@ class SwaggerConfig(
     }
 }
 
-private fun Operation.withSecurity(isSecured: Boolean, schemaName: String): Operation = apply {
+private fun Operation.withSecurity(isSecured: Boolean, schemeName: String): Operation = apply {
     security(
         if (isSecured) {
-            listOf(SecurityRequirement().addList(schemaName))
+            listOf(SecurityRequirement().addList(schemeName))
         } else {
             emptyList()
         },
