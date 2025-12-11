@@ -91,8 +91,3 @@ format:
 clean:
 	@echo "cleaning project..."
 	$(GRADLE) clean
-
-clear-h2:
-	@echo "Removing local H2 files at .h2/ ..."; \
-	rm -rf .h2 || true; \
-	echo "Done."
