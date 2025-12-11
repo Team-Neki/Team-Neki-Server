@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:14
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin1234
+      POSTGRES_DB: yapp
+    ports:
+      - "5432:5432"
+    networks:
+      - yapp-net
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+
+networks:
+  yapp-net:
+    name: yapp-net

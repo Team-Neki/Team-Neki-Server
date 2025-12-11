@@ -10,6 +10,7 @@ plugins {
 
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
+    kotlin("plugin.jpa") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     id("com.diffplug.spotless") version spotlessVersion
     idea
@@ -70,12 +71,22 @@ dependencies {
     // OpenAPI/Swagger (SpringFox는 deprecated, SpringDoc만 사용)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
 
+    // r2dbc
+    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+    testImplementation("io.projectreactor:reactor-test")
+
+    // flyway (DB schema migration)
+    implementation("org.flywaydb:flyway-core")
+    implementation("org.flywaydb:flyway-database-postgresql")
+
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestExtensionsVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
+    runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("org.postgresql:r2dbc-postgresql")
 }
 
 spotless {
