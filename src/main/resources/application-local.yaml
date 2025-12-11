@@ -10,6 +10,15 @@ spring:
       connection-timeout: 20000
       idle-timeout: 300000
       max-lifetime: 1200000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+    open-in-view: false
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -18,3 +27,8 @@ spring:
 logging:
   level:
     org.flywaydb: info
+
+app:
+  auth:
+    tokenSecret: 9a1c7805bb074f31f9b36fa510d0c743a557aa44f9b5b1cd6dbb7f8905b067c8
+    tokenExpiry: 7776000000 #3?

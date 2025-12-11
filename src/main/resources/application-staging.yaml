@@ -21,3 +21,8 @@ spring:
 logging:
   level:
     org.flywaydb: info
+
+app:
+  auth:
+    tokenSecret: 9a1c7805bb074f31f9b36fa510d0c743a557aa44f9b5b1cd6dbb7f8905b067c8
+    tokenExpiry: 7776000000 #3?

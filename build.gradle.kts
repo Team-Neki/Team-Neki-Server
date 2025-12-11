@@ -71,9 +71,8 @@ dependencies {
     // OpenAPI/Swagger (SpringFox는 deprecated, SpringDoc만 사용)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
 
-    // r2dbc
-    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-    testImplementation("io.projectreactor:reactor-test")
+    // JPA
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
     // flyway (DB schema migration)
     implementation("org.flywaydb:flyway-core")
@@ -86,7 +85,6 @@ dependencies {
     testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestExtensionsVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     runtimeOnly("org.postgresql:postgresql")
-    runtimeOnly("org.postgresql:r2dbc-postgresql")
 }
 
 spotless {
