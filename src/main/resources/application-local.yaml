@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:h2:file:./.h2/devdb;MODE=MariaDB
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/yapp
+    username: admin
+    password: admin1234
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
       minimum-idle: 1
@@ -11,24 +11,10 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
   flyway:
-    enabled: false
+    enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-        show_sql: true
-        format_sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
 
 logging:
   level:
     org.flywaydb: info
-    org.hibernate.SQL: info
-    org.hibernate.orm.jdbc.bind: warn

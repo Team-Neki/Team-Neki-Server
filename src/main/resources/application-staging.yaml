@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:commerce-user}
-    username: ${DB_USERNAME:admin}
-    password: ${DB_PASSWORD:admin1234}
-    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:yapp}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
@@ -17,19 +17,7 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     out-of-order: false
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MariaDBDialect
-        show_sql: false
-        format_sql: false
-        order_inserts: true
-        order_updates: true
 
 logging:
   level:
     org.flywaydb: info
-    org.hibernate.SQL: info
-    org.hibernate.orm.jdbc.bind: warn

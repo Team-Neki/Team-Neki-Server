@@ -39,4 +39,4 @@ out/
 ### Kotlin ###
 .kotlin
 *.log
-.h2
+postgres_data/
