@@ -33,6 +33,7 @@ class DocumentSecurityConfig (
     @Order(1)
     fun apiSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http
+            .securityMatcher("/api/**")
             .csrf { it.disable() }
             .cors { /* CORS 설정 */ }
             .authorizeHttpRequests {

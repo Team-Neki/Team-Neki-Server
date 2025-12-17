@@ -1,7 +1,7 @@
-package com.yapp2app.user.application.repository
+package com.yapp2app.auth.application.repository
 
-import com.yapp2app.user.domain.entity.User
-import com.yapp2app.user.domain.enums.ProviderType
+import com.yapp2app.auth.domain.entity.User
+import com.yapp2app.auth.domain.enums.ProviderType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

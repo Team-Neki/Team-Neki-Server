@@ -1,4 +1,4 @@
-package com.yapp2app.user.api.dto
+package com.yapp2app.auth.api.dto
 
 /**
  * fileName       : AuthDto

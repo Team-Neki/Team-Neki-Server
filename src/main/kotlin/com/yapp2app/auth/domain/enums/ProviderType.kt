@@ -1,4 +1,4 @@
-package com.yapp2app.user.domain.enums
+package com.yapp2app.auth.domain.enums
 
 enum class ProviderType {
     APPLE,

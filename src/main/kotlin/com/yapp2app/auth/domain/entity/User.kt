@@ -1,7 +1,7 @@
-package com.yapp2app.user.domain.entity
+package com.yapp2app.auth.domain.entity
 
-import com.yapp2app.user.domain.enums.ProviderType
-import com.yapp2app.user.domain.enums.RoleType
+import com.yapp2app.auth.domain.enums.ProviderType
+import com.yapp2app.auth.domain.enums.RoleType
 import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp

@@ -1,7 +1,7 @@
 package com.yapp2app.common.security.token
 
-import com.yapp2app.user.domain.entity.User
-import com.yapp2app.user.domain.enums.ProviderType
+import com.yapp2app.auth.domain.entity.User
+import com.yapp2app.auth.domain.enums.ProviderType
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
