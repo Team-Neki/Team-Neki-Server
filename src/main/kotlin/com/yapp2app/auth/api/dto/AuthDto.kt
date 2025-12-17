@@ -15,10 +15,7 @@ package com.yapp2app.auth.api.dto
 /**
  * 카카오 OIDC 로그인
  */
-data class KakaoOIDCLoginRequest(
-    val idToken: String
-)
-
+data class KakaoOIDCLoginRequest(val idToken: String)
 
 // ====================================================================================================
 // Response DTOs
@@ -27,7 +24,4 @@ data class KakaoOIDCLoginRequest(
 /**
  * JWT 토큰 반환
  */
-data class TokenResponse(
-    val accessToken: String,
-    val refreshToken: String
-)
+data class TokenResponse(val accessToken: String, val refreshToken: String)

@@ -30,62 +30,59 @@ import java.util.function.Consumer
 class ExceptionHandler {
 
     @ExceptionHandler(BusinessException::class)
-    fun businessExceptionHandler (
-        ex : BusinessException
-    ) : ResponseEntity<ExceptionMsg> {
+    fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {
         val temp = ResponseEntity(
             ExceptionMsg(
                 code = ex.resultCode.code,
                 message = ex.resultCode.message,
                 success = false,
-                errors = emptyList()
+                errors = emptyList(),
             ),
-            HttpStatus.BAD_REQUEST
+            HttpStatus.BAD_REQUEST,
         )
         return temp
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun methodValidExceptionHandler (
-        ex : MethodArgumentNotValidException
-    ) : ResponseEntity<ExceptionMsg> {
+    fun methodValidExceptionHandler(ex: MethodArgumentNotValidException): ResponseEntity<ExceptionMsg> {
         val errors: MutableList<FieldErrorDetail> = ArrayList<FieldErrorDetail>()
-        ex.bindingResult.allErrors.forEach(Consumer { error : ObjectError ->
-            errors.add(
-                FieldErrorDetail(
-                    field = (error as FieldError).field,
-                    message = error.defaultMessage ?: "Invalid Params"
+        ex.bindingResult.allErrors.forEach(
+            Consumer { error: ObjectError ->
+                errors.add(
+                    FieldErrorDetail(
+                        field = (error as FieldError).field,
+                        message = error.defaultMessage ?: "Invalid Params",
+                    ),
                 )
-            )
-        })
+            },
+        )
 
         return ResponseEntity(
             ExceptionMsg(
                 code = ResultCode.INVALID_PARAMETER.code,
                 message = errors.get(0).message,
                 success = false,
-                errors = errors
+                errors = errors,
             ),
-            HttpStatus.BAD_REQUEST
+            HttpStatus.BAD_REQUEST,
         )
     }
 
-
     @ExceptionHandler(HttpMessageNotReadableException::class)
-    fun handleHttpMessageNotReadableExceptionHandler (
+    fun handleHttpMessageNotReadableExceptionHandler(
         ex: HttpMessageNotReadableException,
-        request: WebRequest
+        request: WebRequest,
     ): ResponseEntity<ExceptionMsg> {
         val rootCause = ex.cause
 
-        val errors : MutableList<FieldErrorDetail> = ArrayList<FieldErrorDetail>()
+        val errors: MutableList<FieldErrorDetail> = ArrayList<FieldErrorDetail>()
         if (rootCause is InvalidFormatException) {
             for (reference in rootCause.path) {
                 errors.add(
                     FieldErrorDetail(
                         field = reference.fieldName,
-                        message = "[" + reference.fieldName + "] 가 타입이 알맞지 않습니다."
-                    )
+                        message = "[" + reference.fieldName + "] 가 타입이 알맞지 않습니다.",
+                    ),
                 )
             }
         } else if (rootCause is JsonMappingException) {
@@ -93,63 +90,66 @@ class ExceptionHandler {
                 errors.add(
                     FieldErrorDetail(
                         field = reference.fieldName,
-                        message = "[" + reference.fieldName + "] 가 누락되었습니다."
-                    )
+                        message = "[" + reference.fieldName + "] 가 누락되었습니다.",
+                    ),
                 )
             }
         } else {
             errors.add(
                 FieldErrorDetail(
                     field = "",
-                    message = rootCause?.message?:"에러 발생"
-                ))
+                    message = rootCause?.message ?: "에러 발생",
+                ),
+            )
         }
         return ResponseEntity(
             ExceptionMsg(
                 code = ResultCode.INVALID_PARAMETER.code,
                 message = ResultCode.INVALID_PARAMETER.message,
                 success = false,
-                errors = errors
+                errors = errors,
             ),
-            HttpStatus.BAD_REQUEST
+            HttpStatus.BAD_REQUEST,
         )
     }
 
     @ExceptionHandler(MissingServletRequestParameterException::class)
-    fun handleMissingServletRequestParameterExceptionHandler (
+    fun handleMissingServletRequestParameterExceptionHandler(
         ex: MissingServletRequestParameterException,
-        request: WebRequest
-    ): ResponseEntity<ExceptionMsg> {
-        return ResponseEntity(
-            ExceptionMsg(
-                code = ResultCode.INVALID_PARAMETER.code,
-                message = ResultCode.INVALID_PARAMETER.message,
-                success = false,
-                errors = listOf(FieldErrorDetail(
+        request: WebRequest,
+    ): ResponseEntity<ExceptionMsg> = ResponseEntity(
+        ExceptionMsg(
+            code = ResultCode.INVALID_PARAMETER.code,
+            message = ResultCode.INVALID_PARAMETER.message,
+            success = false,
+            errors = listOf(
+                FieldErrorDetail(
                     field = ex.parameterName,
-                    message = ex.message
-                ))
+                    message = ex.message,
+                ),
             ),
-            HttpStatus.BAD_REQUEST
-        )
-    }
+        ),
+        HttpStatus.BAD_REQUEST,
+    )
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     @ResponseStatus(HttpStatus.OK)
-    fun handleTypeMismatchHandler (ex: MethodArgumentTypeMismatchException): ResponseEntity<ExceptionMsg> {
-        return if (ex.requiredType?.isEnum == true) {
+    fun handleTypeMismatchHandler(ex: MethodArgumentTypeMismatchException): ResponseEntity<ExceptionMsg> =
+        if (ex.requiredType?.isEnum == true) {
             val enumValues = ex.requiredType!!.enumConstants?.joinToString(", ")
             ResponseEntity(
                 ExceptionMsg(
                     code = ResultCode.INVALID_PARAMETER.code,
                     message = ResultCode.INVALID_PARAMETER.message,
                     success = false,
-                    errors = listOf(FieldErrorDetail(
-                        field = ex.name,
-                        message = enumValues.toString()
-                    ))
+                    errors = listOf(
+                        FieldErrorDetail(
+                            field = ex.name,
+                            message = enumValues.toString(),
+                        ),
+                    ),
                 ),
-                HttpStatus.BAD_REQUEST
+                HttpStatus.BAD_REQUEST,
             )
         } else {
             ResponseEntity(
@@ -157,14 +157,14 @@ class ExceptionHandler {
                     code = ResultCode.INVALID_PARAMETER.code,
                     message = ResultCode.INVALID_PARAMETER.message,
                     success = false,
-                    errors = listOf(FieldErrorDetail(
-                        field = ex.name,
-                        message = "Invalid value for parameter '${ex.name}'"
-                    ))
+                    errors = listOf(
+                        FieldErrorDetail(
+                            field = ex.name,
+                            message = "Invalid value for parameter '${ex.name}'",
+                        ),
+                    ),
                 ),
-                HttpStatus.BAD_REQUEST
+                HttpStatus.BAD_REQUEST,
             )
         }
-    }
-
 }

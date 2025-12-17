@@ -1,9 +1,9 @@
 package com.yapp2app.common.security.token
 
-import com.yapp2app.common.security.properties.AppProperties
 import com.yapp2app.auth.domain.entity.User
 import com.yapp2app.auth.domain.enums.ProviderType
 import com.yapp2app.auth.domain.enums.RoleType
+import com.yapp2app.common.security.properties.AppProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys

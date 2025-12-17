@@ -1,8 +1,8 @@
 package com.yapp2app.auth.api.controller
 
-import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.auth.api.dto.KakaoOIDCLoginRequest
 import com.yapp2app.auth.api.dto.TokenResponse
+import com.yapp2app.common.api.dto.BaseResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -29,9 +29,6 @@ class AuthController {
         ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
     )
     @PostMapping("/kakao/oidc")
-    fun kakaoLoginWithOIDC(
-        @RequestBody request: KakaoOIDCLoginRequest
-    ): BaseResponse<TokenResponse> {
-        return BaseResponse(data=TokenResponse("OK", "OK"))
-    }
+    fun kakaoLoginWithOIDC(@RequestBody request: KakaoOIDCLoginRequest): BaseResponse<TokenResponse> =
+        BaseResponse(data = TokenResponse("OK", "OK"))
 }

@@ -14,9 +14,9 @@ import org.springframework.security.web.SecurityFilterChain
  */
 @Configuration
 @EnableWebSecurity
-class DocumentSecurityConfig (
+class DocumentSecurityConfig(
     private val authTokenProvider: AuthTokenProvider,
-    private val appProperties: AppProperties
+    private val appProperties: AppProperties,
 ) {
 
     @Bean
@@ -31,15 +31,13 @@ class DocumentSecurityConfig (
 
     @Bean
     @Order(1)
-    fun apiSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
-        http
-            .securityMatcher("/api/**")
-            .csrf { it.disable() }
-            .cors { /* CORS 설정 */ }
-            .authorizeHttpRequests {
-                it.requestMatchers("/api/auth/**").permitAll()
-                it.anyRequest().authenticated()
-            }
-            .build()
-
+    fun apiSecurityFilterChain(http: HttpSecurity): SecurityFilterChain = http
+        .securityMatcher("/api/**")
+        .csrf { it.disable() }
+        .cors { /* CORS 설정 */ }
+        .authorizeHttpRequests {
+            it.requestMatchers("/api/auth/**").permitAll()
+            it.anyRequest().authenticated()
+        }
+        .build()
 }

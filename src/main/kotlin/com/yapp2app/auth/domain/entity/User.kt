@@ -8,7 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "users")
+@Table(name = "TB_USERS")
 class User(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
