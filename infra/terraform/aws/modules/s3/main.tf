@@ -16,7 +16,7 @@ locals {
       block_public_policy     = true
       ignore_public_acls      = true
       restrict_public_buckets = true
-      enable_versioning       = true
+      enable_versioning       = false
       enable_lifecycle        = false
     }
     archive = {
