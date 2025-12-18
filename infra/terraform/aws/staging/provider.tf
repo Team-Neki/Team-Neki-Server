@@ -19,7 +19,7 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region  = var.aws_region
   profile = "yapp"
 
   default_tags {

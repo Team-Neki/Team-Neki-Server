@@ -2,7 +2,7 @@
 locals {
   preset_configs = {
     public = {
-      acl                     = "public-read"  # 읽기만 public, 쓰기는 policy로 제어
+      acl                     = "public-read" # 읽기만 public, 쓰기는 policy로 제어
       block_public_acls       = false
       block_public_policy     = false
       ignore_public_acls      = false
