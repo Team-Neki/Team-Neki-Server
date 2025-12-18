@@ -1,5 +1,7 @@
-package com.yapp2app.common.security.config
+package com.yapp2app.auth.infra.security.config
 
+import com.yapp2app.auth.infra.security.properties.AppProperties
+import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -12,7 +14,10 @@ import org.springframework.security.web.SecurityFilterChain
  */
 @Configuration
 @EnableWebSecurity
-class DocumentSecurityConfig {
+class DocumentSecurityConfig(
+    private val authTokenProvider: AuthTokenProvider,
+    private val appProperties: AppProperties,
+) {
 
     @Bean
     @Order(0)
@@ -23,4 +28,16 @@ class DocumentSecurityConfig {
             .logout { it.disable() }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
             .build()
+
+    @Bean
+    @Order(1)
+    fun apiSecurityFilterChain(http: HttpSecurity): SecurityFilterChain = http
+        .securityMatcher("/api/**")
+        .csrf { it.disable() }
+        .cors { /* CORS 설정 */ }
+        .authorizeHttpRequests {
+            it.requestMatchers("/api/auth/**").permitAll()
+            it.anyRequest().authenticated()
+        }
+        .build()
 }
