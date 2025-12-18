@@ -11,8 +11,15 @@ variable "public_images_bucket_name" {
 }
 
 variable "allowed_origins" {
-  description = "List of allowed origins for CORS (on-premise server domains/IPs)"
+  description = "List of allowed origins for CORS (browser access)"
   type        = list(string)
-  default     = ["*"] # Update with specific on-premise server domain/IP
-  # Example: ["https://your-onpremise-domain.com", "http://xxx.xxx.xxx.xxx"]
+  default     = ["*"] # Update with specific frontend domains
+  # Example: ["https://your-frontend.com", "http://localhost:3000"]
+}
+
+variable "allowed_server_ips" {
+  description = "List of allowed IP addresses for upload operations"
+  type        = list(string)
+  default     = ["*"] # Update with specific on-premise server IPs
+  # Example: ["203.0.113.0/24", "198.51.100.5"]
 }

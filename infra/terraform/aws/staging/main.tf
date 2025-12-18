@@ -4,7 +4,7 @@ module "public_images" {
 
   bucket_name = var.public_images_bucket_name
   environment = "staging"
-  preset      = "public"  # public/private/archive 중 선택
+  preset      = "public" # public/private/archive 중 선택
 
   # on-premise & browser 접근용 CORS 설정
   cors_rules = [
@@ -29,8 +29,8 @@ module "public_images" {
         Resource  = "arn:aws:s3:::${var.public_images_bucket_name}/*"
       },
       {
-        Sid    = "AllowUploadFromSpecificOrigin"
-        Effect = "Allow"
+        Sid       = "AllowUploadFromSpecificOrigin"
+        Effect    = "Allow"
         Principal = "*"
         Action = [
           "s3:PutObject",
@@ -39,7 +39,7 @@ module "public_images" {
         Resource = "arn:aws:s3:::${var.public_images_bucket_name}/*"
         Condition = {
           StringLike = {
-            "aws:Referer" = var.allowed_origins
+            "aws:SourceIp" = var.allowed_server_ips
           }
         }
       }
