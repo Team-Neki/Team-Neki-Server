@@ -1,4 +1,4 @@
-package com.yapp2app.common.security.token
+package com.yapp2app.auth.infra.security.token
 
 import com.yapp2app.auth.domain.entity.User
 import com.yapp2app.auth.domain.enums.ProviderType

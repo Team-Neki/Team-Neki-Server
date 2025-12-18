@@ -1,6 +1,6 @@
 package com.yapp2app
 
-import com.yapp2app.common.security.properties.AppProperties
+import com.yapp2app.auth.infra.security.properties.AppProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication

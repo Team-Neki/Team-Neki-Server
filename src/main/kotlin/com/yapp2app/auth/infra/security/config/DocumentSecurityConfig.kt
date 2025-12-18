@@ -1,7 +1,7 @@
-package com.yapp2app.common.security.config
+package com.yapp2app.auth.infra.security.config
 
-import com.yapp2app.common.security.properties.AppProperties
-import com.yapp2app.common.security.token.AuthTokenProvider
+import com.yapp2app.auth.infra.security.properties.AppProperties
+import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order

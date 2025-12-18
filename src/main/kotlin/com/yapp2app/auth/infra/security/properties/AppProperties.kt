@@ -1,4 +1,4 @@
-package com.yapp2app.common.security.properties
+package com.yapp2app.auth.infra.security.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
