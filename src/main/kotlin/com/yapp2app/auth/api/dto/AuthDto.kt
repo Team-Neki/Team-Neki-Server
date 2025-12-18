@@ -4,7 +4,7 @@ package com.yapp2app.auth.api.dto
  * fileName       : AuthDto
  * author         : darren
  * date           : 2025. 12. 12. 13:20
- * description    :
+ * description    : auth 도메인과 관련된 Request/Response DTO
 
  */
 

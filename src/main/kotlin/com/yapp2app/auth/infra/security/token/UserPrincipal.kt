@@ -1,7 +1,7 @@
 package com.yapp2app.auth.infra.security.token
 
-import com.yapp2app.auth.domain.entity.User
-import com.yapp2app.auth.domain.enums.ProviderType
+import com.yapp2app.user.domain.entity.User
+import com.yapp2app.user.domain.enums.ProviderType
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
@@ -9,6 +9,12 @@ import org.springframework.security.oauth2.core.oidc.OidcUserInfo
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.security.oauth2.core.user.OAuth2User
 
+/**
+ * fileName       : UserPrincipal
+ * author         : darren
+ * date           : 2025. 12. 18. 18:45
+ * description    : 로그인한 사용자의 인증 정보를 담는 클래스
+ */
 class UserPrincipal(
     @get:JvmName("name")
     val name: String,

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
  * fileName       : AuthController
  * author         : darren
  * date           : 2025. 12. 12. 13:18
- * description    :
+ * description    : 인증/인가 관련 API
  */
 @Tag(name = "AuthController", description = "인증/인가 API")
 @RequestMapping("/api/auth")

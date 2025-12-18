@@ -1,8 +1,8 @@
 package com.yapp2app.auth.infra.security.token
 
-import com.yapp2app.auth.domain.entity.User
-import com.yapp2app.auth.domain.enums.ProviderType
-import com.yapp2app.auth.domain.enums.RoleType
+import com.yapp2app.user.domain.entity.User
+import com.yapp2app.user.domain.enums.ProviderType
+import com.yapp2app.user.domain.enums.RoleType
 import com.yapp2app.auth.infra.security.properties.AppProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -15,6 +15,12 @@ import java.time.Instant
 import java.util.Date
 import javax.crypto.SecretKey
 
+/**
+ * fileName       : AuthTokenProvider
+ * author         : darren
+ * date           : 2025. 12. 18. 18:45
+ * description    : JWT 토큰 제공 클래스
+ */
 @Component
 class AuthTokenProvider(private val appProperties: AppProperties) {
 

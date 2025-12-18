@@ -1,4 +1,4 @@
-package com.yapp2app.auth.domain.enums
+package com.yapp2app.user.domain.enums
 
 enum class RoleType(val role: String, val roleName: String) {
     USER("ROLE_USER", "일반"),

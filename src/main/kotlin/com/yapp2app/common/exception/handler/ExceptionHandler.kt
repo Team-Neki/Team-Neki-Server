@@ -24,7 +24,7 @@ import java.util.function.Consumer
  * fileName       : ExceptionHandler
  * author         : darren
  * date           : 2025. 12. 12. 13:27
- * description    :
+ * description    : 예외 전역처리 클래스
  */
 @RestControllerAdvice
 class ExceptionHandler {
