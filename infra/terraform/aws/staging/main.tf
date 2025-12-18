@@ -1,10 +1,10 @@
 # Public Images Bucket
-module "public_images" {
+module "object_storage" {
   source = "../modules/s3"
 
-  bucket_name = var.public_images_bucket_name
+  bucket_name = var.bucket_name
   environment = "staging"
-  preset      = "public" # public/private/archive 중 선택
+  preset      = "private" # public/private/archive 중 선택
 
   # on-premise & browser 접근용 CORS 설정
   cors_rules = [
@@ -22,21 +22,15 @@ module "public_images" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "PublicRead"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "arn:aws:s3:::${var.public_images_bucket_name}/*"
-      },
-      {
-        Sid       = "AllowUploadFromSpecificOrigin"
+        Sid       = "AllowBackendAccess"
         Effect    = "Allow"
         Principal = "*"
         Action = [
+          "s3:GetObject",
           "s3:PutObject",
-          "s3:PutObjectAcl"
+          "s3:DeleteObject"
         ]
-        Resource = "arn:aws:s3:::${var.public_images_bucket_name}/*"
+        Resource = "arn:aws:s3:::${var.bucket_name}/*"
         Condition = {
           StringLike = {
             "aws:SourceIp" = var.allowed_server_ips

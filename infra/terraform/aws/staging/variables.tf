@@ -4,10 +4,10 @@ variable "aws_region" {
   default     = "ap-northeast-2"
 }
 
-variable "public_images_bucket_name" {
-  description = "Name of the public images S3 bucket"
+variable "bucket_name" {
+  description = "Name of the S3 bucket"
   type        = string
-  default     = "yapp-public-images-staging"
+  default     = "yapp-storage-staging"
 }
 
 variable "allowed_origins" {
