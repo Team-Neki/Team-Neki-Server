@@ -1,5 +1,6 @@
 package com.yapp2app.common.infra.media.s3
 
+import com.yapp2app.auth.infra.security.properties.AppProperties
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -15,30 +16,33 @@ import software.amazon.awssdk.services.s3.model.PutBucketCorsRequest
  * fileName       : S3BucketInitializer
  * author         : koo
  * date           : 2025. 12. 22.
- * description    : S3 버킷 초기화 (CORS 설정 등)
+ * description    : 로컬 테스트용 S3 버킷 초기화 (CORS 설정 등)
+ *                  CORS 허용 origin은 application-local.yaml의 app.cors.allowed-origins에서 관리 (SSOT)
  */
 @Component
 @Profile("local") // local 환경에서만 실행
-class S3BucketInitializer(private val s3Client: S3Client, private val props: S3Properties) {
+class S3InMemoryBucketInitializer(
+    private val s3Client: S3Client,
+    private val s3Props: S3Properties,
+    private val appProps: AppProperties,
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     @PostConstruct
     fun initializeBucket() {
         // LocalStack 환경이 아니면 실행하지 않음
-        if (props.endpoint == null) {
+        if (s3Props.endpoint == null) {
             log.info("Skipping S3 bucket initialization (not LocalStack environment)")
             return
         }
 
         try {
-            // 버킷 존재 여부 확인
             checkBucketExists()
 
-            // CORS 설정 적용
             configureCors()
 
-            log.info("S3 bucket '${props.bucket}' initialized successfully with CORS configuration")
+            log.info("S3 bucket '${s3Props.bucket}' initialized successfully with CORS configuration")
         } catch (e: Exception) {
             log.error("Failed to initialize S3 bucket: ${e.message}", e)
         }
@@ -46,24 +50,24 @@ class S3BucketInitializer(private val s3Client: S3Client, private val props: S3P
 
     private fun checkBucketExists() {
         try {
-            s3Client.headBucket(HeadBucketRequest.builder().bucket(props.bucket).build())
-            log.info("Bucket '${props.bucket}' exists")
+            s3Client.headBucket(HeadBucketRequest.builder().bucket(s3Props.bucket).build())
+            log.info("Bucket '${s3Props.bucket}' exists")
         } catch (e: NoSuchBucketException) {
-            log.warn("Bucket '${props.bucket}' does not exist. Please create it first.")
+            log.warn("Bucket '${s3Props.bucket}' does not exist. Please create it first.")
             throw e
         }
     }
 
     private fun configureCors() {
+        val allowedOrigins = appProps.cors.allowedOrigins
+
+        if (allowedOrigins.isEmpty()) {
+            log.warn("No CORS origins configured in app.cors.allowed-origins")
+            return
+        }
+
         val corsRule = CORSRule.builder()
-            .allowedOrigins(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://localhost:63342",
-                "http://127.0.0.1:3000",
-                "http://127.0.0.1:5173",
-                "http://127.0.0.1:63342",
-            )
+            .allowedOrigins(allowedOrigins)
             .allowedMethods("GET", "PUT", "POST", "DELETE", "HEAD")
             .allowedHeaders("*")
             .exposeHeaders(
@@ -81,11 +85,11 @@ class S3BucketInitializer(private val s3Client: S3Client, private val props: S3P
 
         s3Client.putBucketCors(
             PutBucketCorsRequest.builder()
-                .bucket(props.bucket)
+                .bucket(s3Props.bucket)
                 .corsConfiguration(corsConfiguration)
                 .build(),
         )
 
-        log.info("CORS configuration applied to bucket '${props.bucket}'")
+        log.info("CORS configuration applied to bucket '${s3Props.bucket}' with origins: $allowedOrigins")
     }
 }
