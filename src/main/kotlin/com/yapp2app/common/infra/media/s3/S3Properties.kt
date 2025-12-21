@@ -1,7 +1,5 @@
 package com.yapp2app.common.infra.media.s3
 
-import jakarta.annotation.PostConstruct
-import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 /**
@@ -18,12 +16,4 @@ data class S3Properties(
     val bucket: String,
     val endpoint: String? = null,
     val baseUrl: String = "",
-) {
-
-    private val logger = LoggerFactory.getLogger(this::class.java)
-
-    @PostConstruct
-    fun init() {
-        logger.info("S3 Properties: $this")
-    }
-}
+)
