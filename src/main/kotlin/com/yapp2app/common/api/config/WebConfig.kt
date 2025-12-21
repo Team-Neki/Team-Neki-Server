@@ -1,4 +1,4 @@
-package com.yapp2app.common.infra.config
+package com.yapp2app.common.api.config
 
 import com.yapp2app.auth.infra.security.properties.AppProperties
 import org.springframework.context.annotation.Bean
@@ -11,7 +11,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
  * fileName       : WebConfig
  * author         : koo
  * date           : 2025. 12. 22.
- * description    : Web 관련 설정 (CORS, Interceptor 등)
+ * description    : Web/API 계층 설정 (CORS, Interceptor 등)
+ *                  Presentation Layer 관심사
  */
 @Configuration
 class WebConfig(private val appProperties: AppProperties) {
