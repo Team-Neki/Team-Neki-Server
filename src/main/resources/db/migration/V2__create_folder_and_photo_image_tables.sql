@@ -1,0 +1,41 @@
+-- Create folder table
+CREATE TABLE TB_FOLDER (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT uk_folder_user_name UNIQUE (user_id, name)
+);
+
+-- Add comments for folder table
+COMMENT ON TABLE TB_FOLDER IS '사용자 사진 폴더 테이블';
+COMMENT ON COLUMN TB_FOLDER.id IS '폴더 고유 ID';
+COMMENT ON COLUMN TB_FOLDER.user_id IS '사용자 ID';
+COMMENT ON COLUMN TB_FOLDER.name IS '폴더 이름';
+COMMENT ON COLUMN TB_FOLDER.created_at IS '생성일시';
+COMMENT ON COLUMN TB_FOLDER.updated_at IS '수정일시';
+
+-- Create photo_image table
+CREATE TABLE TB_PHOTO_IMAGE (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    file_id VARCHAR(64) NOT NULL UNIQUE,
+    folder_id BIGINT,
+    status VARCHAR(30) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_photo_image_folder FOREIGN KEY (folder_id) REFERENCES TB_FOLDER(id)
+);
+
+-- Add comments for photo_image table
+COMMENT ON TABLE TB_PHOTO_IMAGE IS '사용자 사진 이미지 테이블';
+COMMENT ON COLUMN TB_PHOTO_IMAGE.id IS '사진 고유 ID';
+COMMENT ON COLUMN TB_PHOTO_IMAGE.user_id IS '사용자 ID';
+COMMENT ON COLUMN TB_PHOTO_IMAGE.file_id IS '파일 고유 ID (S3 키 등)';
+COMMENT ON COLUMN TB_PHOTO_IMAGE.folder_id IS '폴더 ID (nullable, 폴더 삭제 시 NULL)';
+COMMENT ON COLUMN TB_PHOTO_IMAGE.status IS '업로드 상태 (INITIATED, UPLOADED, VERIFIED, FAILED)';
+COMMENT ON COLUMN TB_PHOTO_IMAGE.created_at IS '생성일시';
+COMMENT ON COLUMN TB_PHOTO_IMAGE.updated_at IS '수정일시';
