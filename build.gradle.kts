@@ -22,6 +22,7 @@ val nimbusVersion = "9.37.3"
 val bouncyCastleVersion = "1.78"
 val awsSdkVersion = "2.27.0"
 val springDocVersion = "2.6.0"
+val jasyptVersion = "3.0.5"
 val kotestVersion = "5.9.1"
 val kotestExtensionsVersion = "1.3.0"
 val mockkVersion = "1.13.10"
@@ -70,6 +71,9 @@ dependencies {
 
     // OpenAPI/Swagger (SpringFox는 deprecated, SpringDoc만 사용)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
+
+    // Jasypt (암호화)
+    implementation("com.github.ulisesbocchio:jasypt-spring-boot-starter:$jasyptVersion")
 
     // JPA
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
