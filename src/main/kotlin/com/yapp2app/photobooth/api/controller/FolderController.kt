@@ -14,6 +14,7 @@ import com.yapp2app.photobooth.application.usecase.CreateFolderUseCase
 import com.yapp2app.photobooth.application.usecase.DeleteFolderUseCase
 import com.yapp2app.photobooth.application.usecase.GetFoldersUseCase
 import com.yapp2app.photobooth.application.usecase.UpdateFolderUseCase
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -32,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController
  * date           : 2025. 12. 23. 오후 7:58
  * description    : Folder aggregate에 대한 api endpoint
  */
-@Tag(name = "folder")
+@Tag(name = "folder", description = "폴더 API")
 @RestController
 @RequestMapping("/api/folders")
 class FolderController(
@@ -42,6 +43,10 @@ class FolderController(
     private val updateFolderUseCase: UpdateFolderUseCase,
 ) {
 
+    @Operation(
+        summary = "폴더 생성 API",
+        description = "폴더를 생성합니다.",
+    )
     @PostMapping
     fun createFolder(
         @AuthenticationPrincipal userId: Long,
@@ -52,6 +57,10 @@ class FolderController(
         return BaseResponse()
     }
 
+    @Operation(
+        summary = "폴더 목록 조회 API",
+        description = "폴더 목록을 조회합니다.",
+    )
     @GetMapping
     fun getAllFolder(@AuthenticationPrincipal userId: Long): BaseResponse<GetAllFolderResponse> {
         val result = getFoldersUseCase.execute(GetFoldersCommand(userId))
@@ -68,6 +77,10 @@ class FolderController(
         )
     }
 
+    @Operation(
+        summary = "폴더 삭제 API",
+        description = "단건 폴더 삭제를 합니다.",
+    )
     @DeleteMapping("/{folderId}")
     fun deleteFolder(@AuthenticationPrincipal userId: Long, @PathVariable folderId: Long): BaseResponse<Any> {
         deleteFolderUseCase.execute(DeleteFolderCommand(userId, folderId))
@@ -75,6 +88,10 @@ class FolderController(
         return BaseResponse()
     }
 
+    @Operation(
+        summary = "폴더 선택 삭제 API",
+        description = "여러 개의 폴더를 선택하여 삭제합니다.",
+    )
     @DeleteMapping
     fun deleteFolders(
         @AuthenticationPrincipal userId: Long,
@@ -85,6 +102,10 @@ class FolderController(
         return BaseResponse()
     }
 
+    @Operation(
+        summary = "폴더 갱신 API",
+        description = "폴더 정보를 갱신합니다.",
+    )
     @PatchMapping("/{folderId}")
     fun updateFolder(
         @AuthenticationPrincipal userId: Long,
