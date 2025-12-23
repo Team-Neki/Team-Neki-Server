@@ -28,7 +28,17 @@ logging:
   level:
     org.flywaydb: info
 
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD}
+
 app:
   auth:
     tokenSecret: 9a1c7805bb074f31f9b36fa510d0c743a557aa44f9b5b1cd6dbb7f8905b067c8
     tokenExpiry: 7776000000 #3?
+
+oauth:
+  kakao:
+    clientSecret: ENC(1HUUOTxg+nG/WC8QYY+YViuX4UcOcuErIX7e3+lE/zaEl9XX9Ov7wBvtTO65++sm)
+  apple:
+    key: test
