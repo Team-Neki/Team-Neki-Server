@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:yapp}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ENC(YNvqilacnoClUTWxMzIG4W263G+FkYDwDDE5J0ROYstCHWLQQYQmZMv/oZwNkAYUtifcP1eD9Pk=)
+    username: ENC(ZYb+Td5Ux5JKCzm158iutkwroIVZDEgj)
+    password: ENC(vPrOOgMIoX35A2KCltYgtDfXNNp4Iwsm)
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -22,7 +22,11 @@ logging:
   level:
     org.flywaydb: info
 
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD}
+
 app:
   auth:
-    tokenSecret: 9a1c7805bb074f31f9b36fa510d0c743a557aa44f9b5b1cd6dbb7f8905b067c8
+    tokenSecret: ENC(fwio9QxamJbCUa+r8KpWV+jCKzVj/PKIe+WHsDNisJiECdRdGxmNJGoN6CZ7rgtwcJqRGrNK6z1B+0zHrvgxBbtCFK3rvfOz46Htx5kWqhw=)
     tokenExpiry: 7776000000 #3?
