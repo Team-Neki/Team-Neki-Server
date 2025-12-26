@@ -8,9 +8,7 @@ import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
 @ActiveProfiles("test")
-class JasyptTest (
-    @Autowired private val jasyptStringEncryptor: StringEncryptor
-) {
+class JasyptTest(@Autowired private val jasyptStringEncryptor: StringEncryptor) {
 
     @Test
     fun jasyptGeneratTest() {
