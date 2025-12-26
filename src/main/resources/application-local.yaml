@@ -45,6 +45,12 @@ app:
       - http://localhost:63342
       - http://127.0.0.1:63342
 
+oauth:
+  kakao:
+    clientSecret: ENC(Vp5cuoxNfJO1pGq+8yfNExw5D+3fCiixp0IxFCzheBPZt/t13sm9I0x8S7jOhq59VFb3HXthgc8egBqf9TpJg0TBO8sJqfHvBdlc5z+xSUc=)
+  apple:
+    key: test
+
 aws:
   s3:
     access-key: test

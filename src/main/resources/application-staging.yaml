@@ -33,6 +33,6 @@ app:
 
 oauth:
   kakao:
-    clientSecret: ENC(1HUUOTxg+nG/WC8QYY+YViuX4UcOcuErIX7e3+lE/zaEl9XX9Ov7wBvtTO65++sm)
+    clientSecret: ENC(Vp5cuoxNfJO1pGq+8yfNExw5D+3fCiixp0IxFCzheBPZt/t13sm9I0x8S7jOhq59VFb3HXthgc8egBqf9TpJg0TBO8sJqfHvBdlc5z+xSUc=)
   apple:
     key: test
