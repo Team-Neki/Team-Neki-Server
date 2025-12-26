@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+    open-in-view: false
+  flyway:
+    enabled: false
+
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD}
+
+app:
+  auth:
+    tokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
+    tokenExpiry: 7776000000

@@ -28,9 +28,13 @@ logging:
   level:
     org.flywaydb: info
 
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD}
+
 app:
   auth:
-    tokenSecret: 9a1c7805bb074f31f9b36fa510d0c743a557aa44f9b5b1cd6dbb7f8905b067c8
+    tokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
     tokenExpiry: 7776000000 #3?
   cors:
     allowed-origins:
