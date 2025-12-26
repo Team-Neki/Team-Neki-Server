@@ -25,11 +25,12 @@ class JasyptConfig {
         val config = SimpleStringPBEConfig()
 
         config.password = encryptKey
-        config.algorithm = "PBEWithMD5AndDES"
+        config.algorithm = "PBEWithHmacSHA512AndAES_256"
         config.setKeyObtentionIterations("1000")
         config.setPoolSize("1")
         config.providerName = "SunJCE"
         config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator")
+        config.setIvGeneratorClassName("org.jasypt.iv.RandomIvGenerator")
         config.stringOutputType = "base64"
 
         encryptor.setConfig(config)

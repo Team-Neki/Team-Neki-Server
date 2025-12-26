@@ -68,6 +68,7 @@ dependencies {
 
     // AWS SDK V2 (V1은 deprecated)
     implementation("software.amazon.awssdk:aws-core:$awsSdkVersion")
+    implementation("software.amazon.awssdk:s3:$awsSdkVersion")
 
     // OpenAPI/Swagger (SpringFox는 deprecated, SpringDoc만 사용)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
@@ -88,6 +89,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestExtensionsVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
+    testRuntimeOnly("com.h2database:h2")
     runtimeOnly("org.postgresql:postgresql")
 }
 

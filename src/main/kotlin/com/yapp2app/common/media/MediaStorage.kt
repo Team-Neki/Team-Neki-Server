@@ -1,0 +1,18 @@
+package com.yapp2app.common.media
+
+/**
+ * fileName       : MediaStorage
+ * author         : koo
+ * date           : 2025. 12. 19. 오전 2:41
+ * description    : 이미지 저장을 위한 인터페이스 (port)
+ */
+interface MediaStorage {
+
+    fun deleteByKey(key: String)
+
+    fun findByKey(key: String): String
+
+    fun findAll(prefix: String): List<MediaRef>
+
+    fun generatePresignedUrl(key: String, contentType: String, expirationMinutes: Long = 10): String
+}

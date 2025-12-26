@@ -14,6 +14,25 @@ services:
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
 
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    restart: always
+    environment:
+      SERVICES: s3
+      DEBUG: 1
+      AWS_DEFAULT_REGION: ap-northeast-2
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    ports:
+      - "4566:4566"
+    networks:
+      - yapp-net
+    volumes:
+      - ./localstack_data:/var/lib/localstack
+      - ./infra/localstack:/etc/localstack/init/ready.d
+      - /var/run/docker.sock:/var/run/docker.sock
+
 networks:
   yapp-net:
     name: yapp-net

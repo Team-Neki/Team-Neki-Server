@@ -15,3 +15,11 @@ spring:
       - org.springframework.boot.autoconfigure.r2dbc.R2dbcTransactionManagerAutoConfiguration
 springdoc:
   override-with-generic-response: false
+
+aws:
+  s3:
+    access-key: ${AWS_S3_ACCESS_KEY:}
+    secret-key: ${AWS_S3_SECRET_KEY:}
+    region: ${AWS_S3_REGION:ap-northeast-2}
+    bucket: ${AWS_S3_BUCKET:}
+    base-url: ${AWS_S3_BASE_URL:}

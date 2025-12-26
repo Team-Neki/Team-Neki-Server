@@ -1,25 +1,26 @@
 package com.yapp2app
 
-import com.yapp2app.common.util.JasyptUtil
+import org.jasypt.encryption.StringEncryptor
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 
-class JasyptTest {
+@SpringBootTest
+@ActiveProfiles("test")
+class JasyptTest(@Autowired private val jasyptStringEncryptor: StringEncryptor) {
 
     @Test
     fun jasyptGeneratTest() {
-        val encryptKey = "" // 암호화 키 (환경변수로 관리 권장)
-
         println("=== Jasypt 암호화 유틸리티 ===")
         println()
 
-        // 카카오 설정 암호화
+        // 기타 암호화할 값
         val text = "test_text"
-
-        println("test 암호화:")
-        val encryptedClientId = JasyptUtil.encrypt(text, encryptKey)
+        val encryptedText = jasyptStringEncryptor.encrypt(text)
         println("   원본: $text")
-        println("   암호화: $encryptedClientId")
-        println("   복호화: ${JasyptUtil.decrypt(encryptedClientId, encryptKey)}")
+        println("   암호화: ENC($encryptedText)")
+        println("   복호화: ${jasyptStringEncryptor.decrypt(encryptedText)}")
         println()
     }
 }
