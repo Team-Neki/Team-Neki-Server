@@ -34,5 +34,5 @@ jasypt:
 
 app:
   auth:
-    tokenSecret: ENC(fwio9QxamJbCUa+r8KpWV+jCKzVj/PKIe+WHsDNisJiECdRdGxmNJGoN6CZ7rgtwcJqRGrNK6z1B+0zHrvgxBbtCFK3rvfOz46Htx5kWqhw=)
+    tokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
     tokenExpiry: 7776000000 #3?

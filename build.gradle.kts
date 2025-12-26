@@ -88,6 +88,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestExtensionsVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
+    testRuntimeOnly("com.h2database:h2")
     runtimeOnly("org.postgresql:postgresql")
 }
 
