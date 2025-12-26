@@ -32,3 +32,20 @@ app:
   auth:
     tokenSecret: 9a1c7805bb074f31f9b36fa510d0c743a557aa44f9b5b1cd6dbb7f8905b067c8
     tokenExpiry: 7776000000 #3?
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://127.0.0.1:3000
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+      - http://localhost:63342
+      - http://127.0.0.1:63342
+
+aws:
+  s3:
+    access-key: test
+    secret-key: test
+    region: ap-northeast-2
+    bucket: yapp-local
+    endpoint: http://localhost:4566
+    base-url: http://localhost:4566/yapp-local
