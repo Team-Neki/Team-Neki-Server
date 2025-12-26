@@ -68,6 +68,7 @@ dependencies {
 
     // AWS SDK V2 (V1은 deprecated)
     implementation("software.amazon.awssdk:aws-core:$awsSdkVersion")
+    implementation("software.amazon.awssdk:s3:$awsSdkVersion")
 
     // OpenAPI/Swagger (SpringFox는 deprecated, SpringDoc만 사용)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")

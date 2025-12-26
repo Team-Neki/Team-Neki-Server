@@ -1,0 +1,30 @@
+package com.yapp2app.common.media
+
+/**
+ * fileName       : MediaType
+ * author         : koo
+ * date           : 2025. 12. 19. 오전 2:41
+ * description    : 이미지 저장 type
+ */
+enum class MediaType(val prefix: String) {
+
+    /**
+     * 사용자 프로필
+     */
+    USER_PROFILE("user-profiles"),
+
+    /**
+     * 인생네컷
+     */
+    PHOTO_BOOTH("photo-booth"),
+
+    /**
+     * 확장성을 고려한 첨부 이미지
+     */
+    ATTACHMENT("attachments"),
+
+    /**
+     * presigned나 업로드 검증, 변환 전 원본 등
+     */
+    TEMP("temp"),
+}
