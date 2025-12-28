@@ -1,4 +1,4 @@
-package com.yapp2app.photobooth.api.response
+package com.yapp2app.photo.api.dto
 
 /**
  * fileName       : PhotoBoothResponse

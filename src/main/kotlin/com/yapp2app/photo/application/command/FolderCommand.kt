@@ -1,4 +1,4 @@
-package com.yapp2app.photobooth.application.command
+package com.yapp2app.photo.application.command
 
 /**
  * fileName       : FolderCommand

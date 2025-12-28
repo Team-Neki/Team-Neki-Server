@@ -1,8 +1,8 @@
-package com.yapp2app.photobooth.infra.persist
+package com.yapp2app.photo.infra.persist
 
-import com.yapp2app.photobooth.application.port.FolderRepositoryPort
-import com.yapp2app.photobooth.domain.entity.Folder
-import com.yapp2app.photobooth.infra.persist.jpa.JpaFolderRepository
+import com.yapp2app.photo.application.port.FolderRepositoryPort
+import com.yapp2app.photo.domain.entity.Folder
+import com.yapp2app.photo.infra.persist.jpa.JpaFolderRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 

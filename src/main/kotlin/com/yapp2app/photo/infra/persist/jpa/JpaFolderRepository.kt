@@ -1,6 +1,6 @@
-package com.yapp2app.photobooth.infra.persist.jpa
+package com.yapp2app.photo.infra.persist.jpa
 
-import com.yapp2app.photobooth.domain.entity.Folder
+import com.yapp2app.photo.domain.entity.Folder
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

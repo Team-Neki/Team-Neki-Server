@@ -1,6 +1,6 @@
-package com.yapp2app.photobooth.application.port
+package com.yapp2app.photo.application.port
 
-import com.yapp2app.photobooth.domain.entity.Folder
+import com.yapp2app.photo.domain.entity.Folder
 
 /**
  * fileName       : FolderRepositoryPort

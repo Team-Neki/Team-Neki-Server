@@ -1,9 +1,9 @@
-package com.yapp2app.photobooth.application.usecase
+package com.yapp2app.photo.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.photobooth.application.command.GetFoldersCommand
-import com.yapp2app.photobooth.application.port.FolderRepositoryPort
-import com.yapp2app.photobooth.application.result.GetFoldersResult
+import com.yapp2app.photo.application.command.GetFoldersCommand
+import com.yapp2app.photo.application.port.FolderRepositoryPort
+import com.yapp2app.photo.application.result.GetFoldersResult
 import org.springframework.transaction.annotation.Transactional
 
 /**

@@ -1,8 +1,8 @@
-package com.yapp2app.photobooth.application.usecase
+package com.yapp2app.photo.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.photobooth.application.command.UpdateFolderCommand
-import com.yapp2app.photobooth.application.port.FolderRepositoryPort
+import com.yapp2app.photo.application.command.UpdateFolderCommand
+import com.yapp2app.photo.application.port.FolderRepositoryPort
 import org.springframework.transaction.annotation.Transactional
 
 /**

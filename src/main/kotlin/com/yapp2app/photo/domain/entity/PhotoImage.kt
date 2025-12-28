@@ -1,4 +1,4 @@
-package com.yapp2app.photobooth.domain.entity
+package com.yapp2app.photo.domain.entity
 
 import com.yapp2app.common.domain.BaseTimeEntity
 import jakarta.persistence.Column

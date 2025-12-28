@@ -1,4 +1,4 @@
-package com.yapp2app.photobooth.application.result
+package com.yapp2app.photo.application.result
 
 /**
  * fileName       : GetFoldersResult
