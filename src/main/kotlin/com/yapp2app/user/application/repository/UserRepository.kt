@@ -12,4 +12,6 @@ import org.springframework.data.jpa.repository.JpaRepository
  */
 interface UserRepository : JpaRepository<User, Long> {
     fun findByEmailAndProviderType(email: String, providerType: ProviderType): User?
+
+    fun existsByEmailAndProviderType(email: String, providerType: ProviderType): Boolean
 }
