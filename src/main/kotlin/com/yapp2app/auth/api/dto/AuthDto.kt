@@ -17,6 +17,8 @@ package com.yapp2app.auth.api.dto
  */
 data class KakaoOIDCLoginRequest(val idToken: String)
 
+data class LoginRequest(val email: String, val password: String)
+
 // ====================================================================================================
 // Response DTOs
 // ====================================================================================================
