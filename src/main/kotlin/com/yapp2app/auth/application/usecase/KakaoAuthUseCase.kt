@@ -1,9 +1,12 @@
 package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.yapp2app.auth.application.command.CreateTokenCommand
+import com.yapp2app.auth.application.helper.KakaoOauthHelper
 import com.yapp2app.auth.application.result.GetKakaoTokenResult
+import com.yapp2app.auth.infra.KakaoOauthClient
+import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.properties.OauthProperties
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
@@ -15,10 +18,35 @@ import org.springframework.web.client.RestClient
  * description    : 카카오 auth usecase
  */
 @UseCase
-class KakaoAuthUseCase(var oauthProperties: OauthProperties) {
-    private val restClient = RestClient.create()
+class KakaoAuthUseCase(
+    private val oauthProperties: OauthProperties,
+    private val kakaoOauthClient: KakaoOauthClient,
+    private val restClient: RestClient,
+    private val kakaoOauthHelper: KakaoOauthHelper,
+) {
 
     /**
+     * 1. 카카오 공개키 조회
+     * 2. oauthInfoResult 값 여부에 따라 회원가입/로그인 처리
+     * 3. accessToken, refreshToken 반환
+     */
+    fun execute(command: CreateTokenCommand) {
+        // 카카오 공개 키 가져오기
+        val oidcPublicKeysResult = kakaoOauthClient.getOIDCPublicKey()
+
+        // ID Token 검증 및 Claims 추출
+        val oauthInfoResult = kakaoOauthHelper.getOauthInfoByIdToken(
+            idToken = command.idToken,
+            publicKeys = oidcPublicKeysResult,
+        )
+
+        print(oauthInfoResult)
+        // User 테이블 내 oauthInfoResult 값이 없으면 회원가입 있으면 Token 반환
+    }
+
+    /**
+     * [TEST 용도]
+     * idToken값을 APP 없이 추출하기 위한 코드
      * 카카오 인가 코드를 사용하여 액세스 토큰을 획득합니다.
      *
      * @param code 카카오 인증 서버에서 발급받은 인가 코드
