@@ -5,8 +5,8 @@ import com.yapp2app.photo.api.converter.FolderCommandConverter
 import com.yapp2app.photo.api.converter.FolderResultConverter
 import com.yapp2app.photo.api.dto.CreateFolderRequest
 import com.yapp2app.photo.api.dto.DeleteFoldersRequest
-import com.yapp2app.photo.api.dto.UpdateFolderRequest
 import com.yapp2app.photo.api.dto.GetAllFolderResponse
+import com.yapp2app.photo.api.dto.UpdateFolderRequest
 import com.yapp2app.photo.application.usecase.CreateFolderUseCase
 import com.yapp2app.photo.application.usecase.DeleteFolderUseCase
 import com.yapp2app.photo.application.usecase.GetFoldersUseCase
@@ -51,7 +51,6 @@ class FolderController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: CreateFolderRequest,
     ): BaseResponse<Any> {
-
         val command = commandConverter.toCreateFolderCommand(request, userId)
 
         createFolderUseCase.execute(command)
@@ -65,7 +64,6 @@ class FolderController(
     )
     @GetMapping
     fun getAllFolder(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetAllFolderResponse> {
-
         val command = commandConverter.toGetFoldersCommand(userId)
 
         val result = getFoldersUseCase.execute(command)
@@ -82,9 +80,8 @@ class FolderController(
     @DeleteMapping("/{folderId}")
     fun deleteFolder(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @PathVariable folderId: Long
+        @PathVariable folderId: Long,
     ): BaseResponse<Any> {
-
         val command = commandConverter.toDeleteFolderCommand(userId, folderId)
 
         deleteFolderUseCase.execute(command)
@@ -101,7 +98,6 @@ class FolderController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @RequestBody request: DeleteFoldersRequest,
     ): BaseResponse<Any> {
-
         val command = commandConverter.toDeleteFoldersCommand(request, userId)
 
         deleteFolderUseCase.execute(command)
@@ -119,7 +115,6 @@ class FolderController(
         @PathVariable folderId: Long,
         @RequestBody request: UpdateFolderRequest,
     ): BaseResponse<Any> {
-
         val command = commandConverter.toUpdateFolderCommand(request, folderId, userId)
 
         updateFolderUseCase.execute(command)
