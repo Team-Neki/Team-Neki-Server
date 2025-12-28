@@ -1,19 +1,16 @@
-package com.yapp2app.photobooth.api.controller
+package com.yapp2app.photo.api.controller
 
 import com.yapp2app.common.api.dto.BaseResponse
-import com.yapp2app.photobooth.api.request.CreateFolderRequest
-import com.yapp2app.photobooth.api.request.DeleteFoldersRequest
-import com.yapp2app.photobooth.api.request.UpdateFolderRequest
-import com.yapp2app.photobooth.api.response.GetAllFolderResponse
-import com.yapp2app.photobooth.application.command.CreateFolderCommand
-import com.yapp2app.photobooth.application.command.DeleteFolderCommand
-import com.yapp2app.photobooth.application.command.DeleteFoldersCommand
-import com.yapp2app.photobooth.application.command.GetFoldersCommand
-import com.yapp2app.photobooth.application.command.UpdateFolderCommand
-import com.yapp2app.photobooth.application.usecase.CreateFolderUseCase
-import com.yapp2app.photobooth.application.usecase.DeleteFolderUseCase
-import com.yapp2app.photobooth.application.usecase.GetFoldersUseCase
-import com.yapp2app.photobooth.application.usecase.UpdateFolderUseCase
+import com.yapp2app.photo.api.converter.FolderCommandConverter
+import com.yapp2app.photo.api.converter.FolderResultConverter
+import com.yapp2app.photo.api.dto.CreateFolderRequest
+import com.yapp2app.photo.api.dto.DeleteFoldersRequest
+import com.yapp2app.photo.api.dto.UpdateFolderRequest
+import com.yapp2app.photo.api.dto.GetAllFolderResponse
+import com.yapp2app.photo.application.usecase.CreateFolderUseCase
+import com.yapp2app.photo.application.usecase.DeleteFolderUseCase
+import com.yapp2app.photo.application.usecase.GetFoldersUseCase
+import com.yapp2app.photo.application.usecase.UpdateFolderUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -41,6 +38,8 @@ class FolderController(
     private val getFoldersUseCase: GetFoldersUseCase,
     private val deleteFolderUseCase: DeleteFolderUseCase,
     private val updateFolderUseCase: UpdateFolderUseCase,
+    private val commandConverter: FolderCommandConverter,
+    private val resultConverter: FolderResultConverter,
 ) {
 
     @Operation(
@@ -49,10 +48,13 @@ class FolderController(
     )
     @PostMapping
     fun createFolder(
-        @AuthenticationPrincipal userId: Long,
-        @Valid @RequestBody body: CreateFolderRequest,
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @Valid @RequestBody request: CreateFolderRequest,
     ): BaseResponse<Any> {
-        createFolderUseCase.execute(CreateFolderCommand(userId, body.name))
+
+        val command = commandConverter.toCreateFolderCommand(request, userId)
+
+        createFolderUseCase.execute(command)
 
         return BaseResponse()
     }
@@ -62,19 +64,15 @@ class FolderController(
         description = "폴더 목록을 조회합니다.",
     )
     @GetMapping
-    fun getAllFolder(@AuthenticationPrincipal userId: Long): BaseResponse<GetAllFolderResponse> {
-        val result = getFoldersUseCase.execute(GetFoldersCommand(userId))
+    fun getAllFolder(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetAllFolderResponse> {
 
-        return BaseResponse(
-            data = GetAllFolderResponse(
-                result.items.map {
-                    GetAllFolderResponse.FolderInfo(
-                        it.folderId,
-                        it.name,
-                    )
-                },
-            ),
-        )
+        val command = commandConverter.toGetFoldersCommand(userId)
+
+        val result = getFoldersUseCase.execute(command)
+
+        val response = resultConverter.toGetAllFoldersResponse(result)
+
+        return BaseResponse(data = response)
     }
 
     @Operation(
@@ -82,8 +80,14 @@ class FolderController(
         description = "단건 폴더 삭제를 합니다.",
     )
     @DeleteMapping("/{folderId}")
-    fun deleteFolder(@AuthenticationPrincipal userId: Long, @PathVariable folderId: Long): BaseResponse<Any> {
-        deleteFolderUseCase.execute(DeleteFolderCommand(userId, folderId))
+    fun deleteFolder(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @PathVariable folderId: Long
+    ): BaseResponse<Any> {
+
+        val command = commandConverter.toDeleteFolderCommand(userId, folderId)
+
+        deleteFolderUseCase.execute(command)
 
         return BaseResponse()
     }
@@ -94,10 +98,13 @@ class FolderController(
     )
     @DeleteMapping
     fun deleteFolders(
-        @AuthenticationPrincipal userId: Long,
-        @RequestBody body: DeleteFoldersRequest,
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @RequestBody request: DeleteFoldersRequest,
     ): BaseResponse<Any> {
-        deleteFolderUseCase.execute(DeleteFoldersCommand(userId, body.folderIds))
+
+        val command = commandConverter.toDeleteFoldersCommand(request, userId)
+
+        deleteFolderUseCase.execute(command)
 
         return BaseResponse()
     }
@@ -108,11 +115,14 @@ class FolderController(
     )
     @PatchMapping("/{folderId}")
     fun updateFolder(
-        @AuthenticationPrincipal userId: Long,
+        @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable folderId: Long,
-        @RequestBody body: UpdateFolderRequest,
+        @RequestBody request: UpdateFolderRequest,
     ): BaseResponse<Any> {
-        updateFolderUseCase.execute(UpdateFolderCommand(userId, folderId, body.name))
+
+        val command = commandConverter.toUpdateFolderCommand(request, folderId, userId)
+
+        updateFolderUseCase.execute(command)
 
         return BaseResponse()
     }
