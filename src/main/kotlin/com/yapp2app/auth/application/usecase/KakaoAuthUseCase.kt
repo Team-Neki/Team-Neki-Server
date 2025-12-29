@@ -53,7 +53,7 @@ class KakaoAuthUseCase(
         return GetKakaoRegisterResult(oid = existingUser.oid, providerType = existingUser.providerType)
     }
 
-    private fun registerKakaoUserIfEmpty(oauthInfoResponse: OauthInfoResponse) : User {
+    private fun registerKakaoUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User {
         val existingUser = userRepositoryPort.findByOid(
             oid = oauthInfoResponse.oid,
             provider = oauthInfoResponse.providerType,

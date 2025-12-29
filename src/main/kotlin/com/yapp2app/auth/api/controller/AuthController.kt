@@ -56,7 +56,9 @@ class AuthController(private val kakaoAuthUseCase: KakaoAuthUseCase) {
         ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
     )
     @PostMapping("/kakao/oidc")
-    fun kakaoRegisterWithOIDC(@RequestBody @Valid request: KakaoOIDCLoginRequest): BaseResponse<GetKakaoRegisterResponse> {
+    fun kakaoRegisterWithOIDC(
+        @RequestBody @Valid request: KakaoOIDCLoginRequest,
+    ): BaseResponse<GetKakaoRegisterResponse> {
         val result = kakaoAuthUseCase.execute(RegisterKakaoUserCommand(idToken = request.idToken))
 
         return BaseResponse(data = GetKakaoRegisterResponse(oid = result.oid, providerType = result.providerType))
