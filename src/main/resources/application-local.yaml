@@ -33,6 +33,9 @@ jasypt:
     password: ${JASYPT_PASSWORD}
 
 app:
+  version: "@version@"
+  server:
+    url: http://localhost:8080
   auth:
     tokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
     tokenExpiry: 7776000000 #3?

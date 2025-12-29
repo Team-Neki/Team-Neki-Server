@@ -44,7 +44,9 @@ class AuthController(private val kakaoAuthUseCase: KakaoAuthUseCase) {
         #### 1단계: Authorization Code 획득
         아래 URL을 브라우저에서 실행하여 카카오 로그인 후 idToken 얻습니다.
 
-        https://kauth.kakao.com/oauth/authorize?client_id=a8777a62d28eee709e96cd6f803ec377&redirect_uri=http://localhost:8080/api/auth/test/kakao/redirect&response_type=code&scope=openid,profile_nickname
+        [local] https://kauth.kakao.com/oauth/authorize?client_id=a8777a62d28eee709e96cd6f803ec377&redirect_uri=http://localhost:8080/api/auth/test/kakao/redirect&response_type=code&scope=openid,profile_nickname
+        
+        [staging] https://kauth.kakao.com/oauth/authorize?client_id=a8777a62d28eee709e96cd6f803ec377&redirect_uri=https://dev-yapp.suitestudy.com:4641/api/auth/test/kakao/redirect&response_type=code&scope=openid,profile_nickname
 
         응답의 `id_token` 필드 값을 이 API의 `idToken`으로 사용하세요.
         """,
