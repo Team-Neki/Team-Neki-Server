@@ -11,6 +11,4 @@ import org.springframework.web.bind.annotation.RestController
  */
 @RestController
 @RequestMapping("/api/users")
-class UserController() {
-
-}
+class UserController

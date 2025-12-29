@@ -42,7 +42,6 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         private const val HEADER_KID = "kid"
         private const val CLAIM_EMAIL = "email"
         private const val CLAIM_NICKNAME = "nickname"
-        private const val ERROR_PREFIX = "[KAKAO]"
     }
 
     /**
@@ -88,10 +87,10 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
 
             return header[HEADER_KID] as? String
                 ?: throw BusinessException(
-                    ResultCode.INVALID_TOKEN_ERROR.addMessage("$ERROR_PREFIX kid not found in header"),
+                    ResultCode.INVALID_TOKEN_ERROR,
                 )
         } catch (e: Exception) {
-            throw BusinessException(ResultCode.INVALID_TOKEN_ERROR.addMessage("$ERROR_PREFIX kid not found in header"))
+            throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
         }
     }
 
@@ -101,7 +100,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
     private fun findPublicKeyByKid(keys: List<OIDCPublicKeyDto>, kid: String): OIDCPublicKeyDto =
         keys.find { it.kid == kid }
             ?: throw BusinessException(
-                ResultCode.INVALID_TOKEN_ERROR.addMessage("$ERROR_PREFIX Public key not found for kid: $kid"),
+                ResultCode.INVALID_TOKEN_ERROR,
             )
 
     /**
@@ -149,9 +148,9 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
             .parseSignedClaims(token) // Step 5: exp 자동 검증
             .payload
     } catch (e: ExpiredJwtException) {
-        throw BusinessException(ResultCode.EXPIRED_TOKEN_ERROR.addMessage(ERROR_PREFIX))
+        throw BusinessException(ResultCode.EXPIRED_TOKEN_ERROR)
     } catch (e: Exception) {
-        throw BusinessException(ResultCode.INVALID_TOKEN_ERROR.addMessage("$ERROR_PREFIX ${e.message}"))
+        throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
     }
 
     /**
