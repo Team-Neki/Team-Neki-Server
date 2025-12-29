@@ -1,12 +1,17 @@
 package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.yapp2app.auth.application.command.CreateTokenCommand
+import com.yapp2app.auth.application.command.CreateKakaoUserCommand
 import com.yapp2app.auth.application.helper.KakaoOauthHelper
-import com.yapp2app.auth.application.result.GetKakaoTokenResult
+import com.yapp2app.auth.application.result.GetKakaoSignupResult
 import com.yapp2app.auth.infra.KakaoOauthClient
+import com.yapp2app.auth.infra.response.GetKakaoTokenResponse
+import com.yapp2app.auth.infra.response.OauthInfoResponse
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.annotation.UseCase
+import com.yapp2app.user.application.port.UserRepositoryPort
+import com.yapp2app.user.domain.entity.User
+import com.yapp2app.user.domain.enums.RoleType
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
@@ -23,6 +28,7 @@ class KakaoAuthUseCase(
     private val kakaoOauthClient: KakaoOauthClient,
     private val restClient: RestClient,
     private val kakaoOauthHelper: KakaoOauthHelper,
+    private val userRepositoryPort: UserRepositoryPort,
 ) {
 
     /**
@@ -30,18 +36,30 @@ class KakaoAuthUseCase(
      * 2. oauthInfoResult 값 여부에 따라 회원가입/로그인 처리
      * 3. accessToken, refreshToken 반환
      */
-    fun execute(command: CreateTokenCommand) {
+    fun execute(command: CreateKakaoUserCommand): GetKakaoSignupResult {
         // 카카오 공개 키 가져오기
         val oidcPublicKeysResult = kakaoOauthClient.getOIDCPublicKey()
 
         // ID Token 검증 및 Claims 추출
-        val oauthInfoResult = kakaoOauthHelper.getOauthInfoByIdToken(
+        val oauthInfoResponse: OauthInfoResponse = kakaoOauthHelper.getOauthInfoByIdToken(
             idToken = command.idToken,
             publicKeys = oidcPublicKeysResult,
         )
 
-        print(oauthInfoResult)
-        // User 테이블 내 oauthInfoResult 값이 없으면 회원가입 있으면 Token 반환
+        val existingUser = userRepositoryPort.findByOid(
+            oid = oauthInfoResponse.oid,
+            provider = oauthInfoResponse.providerType,
+        ) ?: User(
+            email = oauthInfoResponse.email,
+            oid = oauthInfoResponse.oid,
+            name = oauthInfoResponse.name,
+            roles = RoleType.USER.role,
+            providerType = oauthInfoResponse.providerType,
+        )
+
+        userRepositoryPort.save(existingUser)
+
+        return GetKakaoSignupResult(oid = existingUser.oid, providerType = existingUser.providerType)
     }
 
     /**
@@ -53,7 +71,7 @@ class KakaoAuthUseCase(
      * @return KakaoTokenResponse 카카오 토큰 정보
      * @throws Exception 토큰 획득 실패 시
      */
-    fun getAccessTokenByCode(code: String): GetKakaoTokenResult {
+    fun getAccessTokenByCode(code: String): GetKakaoTokenResponse {
         val clientId = "a8777a62d28eee709e96cd6f803ec377"
         val clientSecret = oauthProperties.kakao.clientSecret
 
@@ -78,7 +96,7 @@ class KakaoAuthUseCase(
         val objectMapper = jacksonObjectMapper()
         val jsonNode = objectMapper.readTree(response)
 
-        return GetKakaoTokenResult(
+        return GetKakaoTokenResponse(
             accessToken = jsonNode.get("access_token").asText(),
             tokenType = jsonNode.get("token_type").asText(),
             refreshToken = jsonNode.get("refresh_token").asText(),

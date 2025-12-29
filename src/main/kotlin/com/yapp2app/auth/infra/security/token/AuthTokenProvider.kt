@@ -1,7 +1,6 @@
 package com.yapp2app.auth.infra.security.token
 
 import com.yapp2app.auth.infra.security.properties.AppProperties
-import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.ProviderType
 import com.yapp2app.user.domain.enums.RoleType
 import io.jsonwebtoken.Claims
@@ -88,12 +87,12 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
         val authorities = roles.map { SimpleGrantedAuthority(it) }
 
         val principal = UserPrincipal(
-            User(
-                email = claims.subject,
-                name = name,
-                roles = roles.joinToString(","),
-                providerType = ProviderType.valueOf(providerTypeStr),
-            ),
+            id = claims.subject.toLong(), // JWT subject(String)를 Long으로 변환
+            name = name,
+            providerType = ProviderType.valueOf(providerTypeStr),
+            email = "", // 토큰에서는 email 정보 없음 (필요시 claim 추가)
+            roles = roles.toSet(),
+            password = "NO_PASS",
         )
 
         return UsernamePasswordAuthenticationToken(principal, token, authorities)

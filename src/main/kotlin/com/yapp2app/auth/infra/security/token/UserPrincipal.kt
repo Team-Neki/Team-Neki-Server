@@ -16,12 +16,14 @@ import org.springframework.security.oauth2.core.user.OAuth2User
  * description    : 로그인한 사용자의 인증 정보를 담는 클래스
  */
 class UserPrincipal(
+    @get:JvmName("id")
+    val id: Long,
     @get:JvmName("name")
-    val name: String,
+    val name: String?,
     @get:JvmName("providerType")
     val providerType: ProviderType,
     @get:JvmName("email")
-    val email: String,
+    val email: String?,
     @get:JvmName("roles")
     val roles: Set<String>,
     @get:JvmName("getUserAttributes")
@@ -36,6 +38,7 @@ class UserPrincipal(
      * LOCAL 로그인 생길 시
      */
     constructor(user: User) : this(
+        id = user.id ?: throw IllegalArgumentException("User id cannot be null"),
         name = user.name,
         providerType = user.providerType,
         email = user.email,
@@ -47,6 +50,7 @@ class UserPrincipal(
      * OAuth 로그인 시
      */
     constructor(user: User, providerType: ProviderType, attributes: MutableMap<String, Any>) : this(
+        id = user.id ?: throw IllegalArgumentException("User id cannot be null"),
         name = user.name,
         providerType = providerType,
         email = user.email,
@@ -55,7 +59,7 @@ class UserPrincipal(
         password = "NO_PASS",
     )
 
-    override fun getName(): String = name
+    override fun getName(): String? = name
 
     override fun getAttributes(): MutableMap<String, Any> = attributes
 
@@ -71,5 +75,5 @@ class UserPrincipal(
 
     override fun getPassword(): String = password
 
-    override fun getUsername(): String = email
+    override fun getUsername(): String? = email
 }

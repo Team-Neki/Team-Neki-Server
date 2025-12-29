@@ -1,24 +1,33 @@
-package com.yapp2app.auth.application.result
+package com.yapp2app.auth.infra.response
 
 import com.yapp2app.user.domain.enums.ProviderType
 
 /**
+ * fileName       : KakaoClientResponse
+ * author         : darren
+ * date           : 2025. 12. 29. 14:23
+ * description    : 카카오 외부 통신 과정에서 변환된 DTO
+ */
+
+/**
  * 카카오 사용자정보 추출 DTO
  */
-data class OauthInfoResult(val providerType: ProviderType, val oid: String)
+data class OauthInfoResponse(val providerType: ProviderType, val oid: Long, val email: String?, val name: String?)
 
-data class OIDCDecodePayloadResult(
+data class OIDCDecodePayloadResponse(
     /** issuer ex https://kauth.kakao.com  */
     val iss: String,
     /** client id  */
     val aud: String,
     /** oauth provider account unique id  */
-    val sub: String,
+    val sub: Long,
     /** biz 앱 신청을 해야 email을 수집가능,,  */
     val email: String?,
+    /** nickname  */
+    val nickname: String?,
 )
 
-data class OIDCPublicKeysResult(var keys: MutableList<OIDCPublicKeyDto>)
+data class OIDCPublicKeysResponse(var keys: MutableList<OIDCPublicKeyDto>)
 
 data class OIDCPublicKeyDto(val kid: String, val alg: String, val use: String, val n: String, val e: String)
 
@@ -28,7 +37,7 @@ data class OIDCPublicKeyDto(val kid: String, val alg: String, val use: String, v
  * date           : 2025. 12. 26. 18:20
  * description    : Auth usercase 관련 result idToken을 얻기 위한 테스트 DTO
  */
-data class GetKakaoTokenResult(
+data class GetKakaoTokenResponse(
     val accessToken: String,
     val tokenType: String,
     val refreshToken: String,

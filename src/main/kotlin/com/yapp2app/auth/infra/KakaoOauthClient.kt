@@ -1,6 +1,6 @@
 package com.yapp2app.auth.infra
 
-import com.yapp2app.auth.application.result.OIDCPublicKeysResult
+import com.yapp2app.auth.infra.response.OIDCPublicKeysResponse
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -14,8 +14,8 @@ import org.springframework.web.client.RestClient
 @Component
 class KakaoOauthClient(private val restClient: RestClient, private val oauthProperties: OauthProperties) {
 
-    fun getOIDCPublicKey(): OIDCPublicKeysResult = restClient.get()
+    fun getOIDCPublicKey(): OIDCPublicKeysResponse = restClient.get()
         .uri(oauthProperties.kakao.jwksUri)
         .retrieve()
-        .body(OIDCPublicKeysResult::class.java)!!
+        .body(OIDCPublicKeysResponse::class.java)!!
 }

@@ -1,12 +1,14 @@
 package com.yapp2app.auth.api.response
 
+import com.yapp2app.user.domain.enums.ProviderType
+
 /**
  * fileName       : AuthResponse
  * author         : darren
  * date           : 2025. 12. 26. 18:05
  * description    : Auth aggregate에 대한 응답
  */
-data class TokenResponse(val accessToken: String, val refreshToken: String)
+data class GetKakaoSignResponse(val oid: Long, val providerType: ProviderType)
 
 data class GetKakaoTokenResponse(
     val accessToken: String,

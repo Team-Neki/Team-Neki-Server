@@ -1,10 +1,10 @@
 package com.yapp2app.auth.application.helper
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.yapp2app.auth.application.result.OIDCDecodePayloadResult
-import com.yapp2app.auth.application.result.OIDCPublicKeyDto
-import com.yapp2app.auth.application.result.OIDCPublicKeysResult
-import com.yapp2app.auth.application.result.OauthInfoResult
+import com.yapp2app.auth.infra.response.OIDCDecodePayloadResponse
+import com.yapp2app.auth.infra.response.OIDCPublicKeyDto
+import com.yapp2app.auth.infra.response.OIDCPublicKeysResponse
+import com.yapp2app.auth.infra.response.OauthInfoResponse
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
@@ -41,6 +41,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
     companion object {
         private const val HEADER_KID = "kid"
         private const val CLAIM_EMAIL = "email"
+        private const val CLAIM_NICKNAME = "nickname"
         private const val ERROR_PREFIX = "[KAKAO]"
     }
 
@@ -51,7 +52,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
      * @param publicKeys 카카오 공개키 목록
      * @return OAuth 정보 (Provider 타입, OID)
      */
-    fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysResult): OauthInfoResult {
+    fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysResponse): OauthInfoResponse {
         // Step 1: 헤더에서 kid 추출 (토큰 분리 및 Base64 디코딩)
         val kid = extractKidFromTokenHeader(idToken)
 
@@ -66,9 +67,11 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
             expectedAudience = oauthProperties.kakao.clientId,
         )
 
-        return OauthInfoResult(
+        return OauthInfoResponse(
             providerType = ProviderType.KAKAO,
             oid = payload.sub,
+            email = payload.email,
+            name = payload.nickname,
         )
     }
 
@@ -79,13 +82,17 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
      * - JSON 파싱하여 kid 추출
      */
     private fun extractKidFromTokenHeader(token: String): String {
-        val headerJson = String(Base64.getUrlDecoder().decode(token.split(".")[0]))
-        val header = objectMapper.readValue(headerJson, Map::class.java)
+        try {
+            val headerJson = String(Base64.getUrlDecoder().decode(token.split(".")[0]))
+            val header = objectMapper.readValue(headerJson, Map::class.java)
 
-        return header[HEADER_KID] as? String
-            ?: throw BusinessException(
-                ResultCode.INVALID_TOKEN_ERROR.addMessage("$ERROR_PREFIX kid not found in header"),
-            )
+            return header[HEADER_KID] as? String
+                ?: throw BusinessException(
+                    ResultCode.INVALID_TOKEN_ERROR.addMessage("$ERROR_PREFIX kid not found in header"),
+                )
+        } catch (e: Exception) {
+            throw BusinessException(ResultCode.INVALID_TOKEN_ERROR.addMessage("$ERROR_PREFIX kid not found in header"))
+        }
     }
 
     /**
@@ -110,15 +117,16 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         publicKey: OIDCPublicKeyDto,
         expectedIssuer: String,
         expectedAudience: String,
-    ): OIDCDecodePayloadResult {
+    ): OIDCDecodePayloadResponse {
         val rsaPublicKey = convertToRSAPublicKey(publicKey.n, publicKey.e)
         val claims = verifyTokenSignatureAndClaims(token, rsaPublicKey, expectedIssuer, expectedAudience)
 
-        return OIDCDecodePayloadResult(
+        return OIDCDecodePayloadResponse(
             iss = claims.issuer,
             aud = claims.audience.toString(),
-            sub = claims.subject,
+            sub = claims.subject.toLong(),
             email = claims[CLAIM_EMAIL, String::class.java],
+            nickname = claims[CLAIM_NICKNAME, String::class.java],
         )
     }
 
