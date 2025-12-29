@@ -9,6 +9,7 @@ import com.yapp2app.auth.infra.response.GetKakaoTokenResponse
 import com.yapp2app.auth.infra.response.OauthInfoResponse
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.annotation.UseCase
+import com.yapp2app.common.infra.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.RoleType
@@ -29,12 +30,13 @@ class KakaoAuthUseCase(
     private val restClient: RestClient,
     private val kakaoOauthHelper: KakaoOauthHelper,
     private val userRepositoryPort: UserRepositoryPort,
+    private val transactionRunner: TransactionRunner,
 ) {
 
     /**
      * 1. 카카오 공개키 조회
-     * 2. oauthInfoResult 값 여부에 따라 회원가입/로그인 처리
-     * 3. accessToken, refreshToken 반환
+     * 2. ID Token 검증 및 Claims 추출
+     * 3. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
     fun execute(command: RegisterKakaoUserCommand): GetKakaoRegisterResult {
         // 카카오 공개 키 가져오기
@@ -46,6 +48,12 @@ class KakaoAuthUseCase(
             publicKeys = oidcPublicKeysResult,
         )
 
+        val existingUser = transactionRunner.run { registerKakaoUserIfEmpty(oauthInfoResponse) }
+
+        return GetKakaoRegisterResult(oid = existingUser.oid, providerType = existingUser.providerType)
+    }
+
+    private fun registerKakaoUserIfEmpty(oauthInfoResponse: OauthInfoResponse) : User {
         val existingUser = userRepositoryPort.findByOid(
             oid = oauthInfoResponse.oid,
             provider = oauthInfoResponse.providerType,
@@ -57,9 +65,7 @@ class KakaoAuthUseCase(
             providerType = oauthInfoResponse.providerType,
         )
 
-        userRepositoryPort.save(existingUser)
-
-        return GetKakaoRegisterResult(oid = existingUser.oid, providerType = existingUser.providerType)
+        return userRepositoryPort.save(existingUser)
     }
 
     /**
