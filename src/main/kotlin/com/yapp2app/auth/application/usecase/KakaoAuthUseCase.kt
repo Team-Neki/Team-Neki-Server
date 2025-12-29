@@ -1,9 +1,9 @@
 package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.yapp2app.auth.application.command.CreateKakaoUserCommand
+import com.yapp2app.auth.application.command.RegisterKakaoUserCommand
 import com.yapp2app.auth.application.helper.KakaoOauthHelper
-import com.yapp2app.auth.application.result.GetKakaoSignupResult
+import com.yapp2app.auth.application.result.GetKakaoRegisterResult
 import com.yapp2app.auth.infra.KakaoOauthClient
 import com.yapp2app.auth.infra.response.GetKakaoTokenResponse
 import com.yapp2app.auth.infra.response.OauthInfoResponse
@@ -36,7 +36,7 @@ class KakaoAuthUseCase(
      * 2. oauthInfoResult 값 여부에 따라 회원가입/로그인 처리
      * 3. accessToken, refreshToken 반환
      */
-    fun execute(command: CreateKakaoUserCommand): GetKakaoSignupResult {
+    fun execute(command: RegisterKakaoUserCommand): GetKakaoRegisterResult {
         // 카카오 공개 키 가져오기
         val oidcPublicKeysResult = kakaoOauthClient.getOIDCPublicKey()
 
@@ -59,7 +59,7 @@ class KakaoAuthUseCase(
 
         userRepositoryPort.save(existingUser)
 
-        return GetKakaoSignupResult(oid = existingUser.oid, providerType = existingUser.providerType)
+        return GetKakaoRegisterResult(oid = existingUser.oid, providerType = existingUser.providerType)
     }
 
     /**

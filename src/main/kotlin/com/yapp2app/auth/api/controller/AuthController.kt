@@ -1,9 +1,9 @@
 package com.yapp2app.auth.api.controller
 
 import com.yapp2app.auth.api.request.KakaoOIDCLoginRequest
-import com.yapp2app.auth.api.response.GetKakaoSignResponse
+import com.yapp2app.auth.api.response.GetKakaoRegisterResponse
 import com.yapp2app.auth.api.response.GetKakaoTokenResponse
-import com.yapp2app.auth.application.command.CreateKakaoUserCommand
+import com.yapp2app.auth.application.command.RegisterKakaoUserCommand
 import com.yapp2app.auth.application.usecase.KakaoAuthUseCase
 import com.yapp2app.common.api.dto.BaseResponse
 import io.swagger.v3.oas.annotations.Hidden
@@ -56,10 +56,10 @@ class AuthController(private val kakaoAuthUseCase: KakaoAuthUseCase) {
         ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
     )
     @PostMapping("/kakao/oidc")
-    fun kakaoLoginWithOIDC(@RequestBody @Valid request: KakaoOIDCLoginRequest): BaseResponse<GetKakaoSignResponse> {
-        val result = kakaoAuthUseCase.execute(CreateKakaoUserCommand(idToken = request.idToken))
+    fun kakaoRegisterWithOIDC(@RequestBody @Valid request: KakaoOIDCLoginRequest): BaseResponse<GetKakaoRegisterResponse> {
+        val result = kakaoAuthUseCase.execute(RegisterKakaoUserCommand(idToken = request.idToken))
 
-        return BaseResponse(data = GetKakaoSignResponse(oid = result.oid, providerType = result.providerType))
+        return BaseResponse(data = GetKakaoRegisterResponse(oid = result.oid, providerType = result.providerType))
     }
 
     /**
