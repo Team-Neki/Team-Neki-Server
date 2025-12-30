@@ -1,7 +1,7 @@
 package com.yapp2app.auth.api.controller
 
-import com.yapp2app.auth.api.dto.LoginRequest
-import com.yapp2app.auth.api.dto.TokenResponse
+import com.yapp2app.auth.api.request.LoginRequest
+import com.yapp2app.auth.api.response.GetTokenResponse
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.common.api.dto.ResultCode
@@ -30,7 +30,7 @@ class TestAuthController(
 ) {
 
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest): BaseResponse<TokenResponse> {
+    fun login(@RequestBody request: LoginRequest): BaseResponse<GetTokenResponse> {
         val user = userRepository.findByOidAndProviderType(
             request.oid,
             ProviderType.KAKAO,
@@ -51,7 +51,7 @@ class TestAuthController(
         )
 
         return BaseResponse(
-            data = TokenResponse(
+            data = GetTokenResponse(
                 accessToken = accessToken,
                 refreshToken = refreshToken,
             ),

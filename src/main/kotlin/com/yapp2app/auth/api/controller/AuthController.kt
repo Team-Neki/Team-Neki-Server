@@ -1,10 +1,14 @@
 package com.yapp2app.auth.api.controller
 
-import com.yapp2app.auth.api.request.KakaoOIDCLoginRequest
+import com.yapp2app.auth.api.request.KakaoRegisterRequest
+import com.yapp2app.auth.api.request.LoginRequest
 import com.yapp2app.auth.api.response.GetKakaoRegisterResponse
 import com.yapp2app.auth.api.response.GetKakaoTokenResponse
+import com.yapp2app.auth.api.response.GetTokenResponse
+import com.yapp2app.auth.application.command.LoginCommand
 import com.yapp2app.auth.application.command.RegisterKakaoUserCommand
-import com.yapp2app.auth.application.usecase.KakaoAuthUseCase
+import com.yapp2app.auth.application.usecase.KakaoRegisterUseCase
+import com.yapp2app.auth.application.usecase.LoginUseCase
 import com.yapp2app.common.api.dto.BaseResponse
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
@@ -28,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "AuthController", description = "인증/인가 API")
 @RequestMapping("/api/auth")
 @RestController
-class AuthController(private val kakaoAuthUseCase: KakaoAuthUseCase) {
+class AuthController(private val kakaoRegisterUseCase: KakaoRegisterUseCase, private val loginUseCase: LoginUseCase) {
 
     /**
      * OIDC 방식 회원가입
@@ -55,13 +59,17 @@ class AuthController(private val kakaoAuthUseCase: KakaoAuthUseCase) {
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
     )
-    @PostMapping("/kakao/oidc")
-    fun kakaoRegisterWithOIDC(
-        @RequestBody @Valid request: KakaoOIDCLoginRequest,
-    ): BaseResponse<GetKakaoRegisterResponse> {
-        val result = kakaoAuthUseCase.execute(RegisterKakaoUserCommand(idToken = request.idToken))
+    @PostMapping("/kakao/register")
+    fun kakaoRegister(@RequestBody @Valid request: KakaoRegisterRequest): BaseResponse<GetKakaoRegisterResponse> {
+        val result = kakaoRegisterUseCase.execute(RegisterKakaoUserCommand(idToken = request.idToken))
 
         return BaseResponse(data = GetKakaoRegisterResponse(oid = result.oid, providerType = result.providerType))
+    }
+
+    fun login(@RequestBody @Valid request: LoginRequest): BaseResponse<GetTokenResponse> {
+        val result = loginUseCase.execute(LoginCommand(oid = request.oid, providerType = request.providerType))
+
+        return BaseResponse(data = GetTokenResponse(accessToken = result.accessToken, result.refreshToken))
     }
 
     /**
@@ -72,7 +80,7 @@ class AuthController(private val kakaoAuthUseCase: KakaoAuthUseCase) {
     @Hidden
     @GetMapping("/test/kakao/redirect")
     fun kakaoTestRedirect(@RequestParam code: String): BaseResponse<GetKakaoTokenResponse> {
-        val tokenResponse = kakaoAuthUseCase.getAccessTokenByCode(code)
+        val tokenResponse = kakaoRegisterUseCase.getAccessTokenByCode(code)
         return BaseResponse(
             data = GetKakaoTokenResponse(
                 accessToken = tokenResponse.accessToken,

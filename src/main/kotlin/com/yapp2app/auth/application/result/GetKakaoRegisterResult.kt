@@ -9,3 +9,5 @@ import com.yapp2app.user.domain.enums.ProviderType
  * description    :
  */
 data class GetKakaoRegisterResult(val oid: Long, val providerType: ProviderType)
+
+data class GetTokenResult(val accessToken: String, val refreshToken: String)

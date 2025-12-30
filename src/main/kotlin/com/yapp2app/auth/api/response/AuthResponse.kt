@@ -19,3 +19,5 @@ data class GetKakaoTokenResponse(
     val refreshTokenExpiresIn: Int? = null,
     val idToken: String? = null,
 )
+
+data class GetTokenResponse(val accessToken: String, val refreshToken: String)

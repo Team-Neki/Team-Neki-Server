@@ -24,7 +24,7 @@ import org.springframework.web.client.RestClient
  * description    : 카카오 auth usecase
  */
 @UseCase
-class KakaoAuthUseCase(
+class KakaoRegisterUseCase(
     private val oauthProperties: OauthProperties,
     private val kakaoOauthClient: KakaoOauthClient,
     private val restClient: RestClient,
