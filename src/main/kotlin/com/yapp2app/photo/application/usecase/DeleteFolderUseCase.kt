@@ -1,6 +1,8 @@
 package com.yapp2app.photo.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
+import com.yapp2app.common.api.dto.ResultCode
+import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.photo.application.command.DeleteFolderCommand
 import com.yapp2app.photo.application.command.DeleteFoldersCommand
 import com.yapp2app.photo.application.port.FolderRepositoryPort
@@ -17,20 +19,24 @@ class DeleteFolderUseCase(private val folderRepository: FolderRepositoryPort) {
 
     @Transactional
     fun execute(command: DeleteFolderCommand) {
-        val folder = folderRepository.findById(command.folderId)
-            ?: throw RuntimeException()
+        val folder = folderRepository.getOwnedFolder(command.userId, command.folderId)
+            ?: throw BusinessException(ResultCode.NOT_FOUND)
 
         folder.detachPhotos()
 
-        folderRepository.deleteById(command.folderId)
+        folderRepository.deleteOwnedFolder(command.userId, command.folderId)
     }
 
     @Transactional
     fun execute(command: DeleteFoldersCommand) {
-        val folders = folderRepository.findAllByIdIn(command.userId, command.folderIds)
+        val folders = folderRepository.getOwnedFolders(command.userId, command.folderIds)
+
+        if (folders.size != command.folderIds.size) {
+            throw BusinessException(ResultCode.NOT_FOUND)
+        }
 
         folders.forEach { it.detachPhotos() }
 
-        folderRepository.deleteAllById(command.folderIds)
+        folderRepository.deleteOwnedFolders(command.userId, command.folderIds)
     }
 }
