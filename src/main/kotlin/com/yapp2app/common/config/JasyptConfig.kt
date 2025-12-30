@@ -6,6 +6,7 @@ import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 
 /**
  * fileName       : JasyptConfig
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration
  * date           : 2025. 12. 24.
  * description    : Jasypt 암호화 설정
  */
+@Profile("!test")
 @Configuration
 class JasyptConfig {
 
