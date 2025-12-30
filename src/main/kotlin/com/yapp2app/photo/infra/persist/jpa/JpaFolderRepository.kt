@@ -10,7 +10,16 @@ import org.springframework.data.jpa.repository.JpaRepository
  * description    : File에 대한 Jpa interface
  */
 interface JpaFolderRepository : JpaRepository<Folder, Long> {
+
+    fun findByUserIdAndId(userId: Long, folderId: Long): Folder?
+
     fun findAllByUserId(userId: Long): List<Folder>
 
     fun findAllByUserIdAndIdIn(userId: Long, folderIds: List<Long>): List<Folder>
+
+    fun existsByUserIdAndName(userId: Long, name: String): Boolean
+
+    fun deleteByUserIdAndId(userId: Long, folderId: Long)
+
+    fun deleteAllByUserIdAndIdIn(userId: Long, folderIds: List<Long>)
 }
