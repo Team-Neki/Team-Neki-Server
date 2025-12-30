@@ -9,15 +9,16 @@ import com.yapp2app.photo.domain.entity.Folder
  * description    : Folder 영속성 관련 포트 (command + query)
  */
 interface FolderRepositoryPort {
+
     fun save(folder: Folder): Folder
 
-    fun deleteById(folderId: Long)
+    fun deleteOwnedFolder(userId: Long, folderId: Long)
+    fun deleteOwnedFolders(userId: Long, folderIds: List<Long>)
 
-    fun deleteAllById(folderIds: List<Long>)
+    fun listOwnedFolders(userId: Long): List<Folder>
 
-    fun findAll(userId: Long): List<Folder>
+    fun getOwnedFolder(userId: Long, folderId: Long): Folder?
+    fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder>
 
-    fun findAllByIdIn(userId: Long, folderIds: List<Long>): List<Folder>
-
-    fun findById(folderId: Long): Folder?
+    fun existsOwnedFolderName(userId: Long, name: String): Boolean
 }

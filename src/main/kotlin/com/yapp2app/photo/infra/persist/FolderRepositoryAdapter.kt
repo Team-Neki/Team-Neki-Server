@@ -3,7 +3,6 @@ package com.yapp2app.photo.infra.persist
 import com.yapp2app.photo.application.port.FolderRepositoryPort
 import com.yapp2app.photo.domain.entity.Folder
 import com.yapp2app.photo.infra.persist.jpa.JpaFolderRepository
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 /**
@@ -17,18 +16,21 @@ class FolderRepositoryAdapter(private val jpaRepository: JpaFolderRepository) : 
 
     override fun save(folder: Folder): Folder = jpaRepository.save(folder)
 
-    override fun deleteById(folderId: Long) {
-        jpaRepository.deleteById(folderId)
+    override fun deleteOwnedFolder(userId: Long, folderId: Long) {
+        jpaRepository.deleteByUserIdAndId(userId, folderId)
     }
 
-    override fun deleteAllById(folderIds: List<Long>) {
-        jpaRepository.deleteAllById(folderIds)
+    override fun deleteOwnedFolders(userId: Long, folderIds: List<Long>) {
+        jpaRepository.deleteAllByUserIdAndIdIn(userId, folderIds)
     }
 
-    override fun findAll(userId: Long): List<Folder> = jpaRepository.findAllByUserId(userId)
+    override fun listOwnedFolders(userId: Long): List<Folder> = jpaRepository.findAllByUserId(userId)
 
-    override fun findAllByIdIn(userId: Long, folderIds: List<Long>): List<Folder> =
+    override fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder> =
         jpaRepository.findAllByUserIdAndIdIn(userId, folderIds)
 
-    override fun findById(folderId: Long): Folder? = jpaRepository.findByIdOrNull(folderId)
+    override fun getOwnedFolder(userId: Long, folderId: Long) = jpaRepository.findByUserIdAndId(userId, folderId)
+
+    override fun existsOwnedFolderName(userId: Long, name: String): Boolean =
+        jpaRepository.existsByUserIdAndName(userId, name)
 }
