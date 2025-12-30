@@ -14,4 +14,4 @@ data class DeleteFoldersCommand(val userId: Long, val folderIds: List<Long>)
 
 data class GetFoldersCommand(val userId: Long)
 
-data class UpdateFolderCommand(val userId: Long, val folderId: Long, val name: String)
+data class UpdateFolderCommand(val userId: Long, val folderId: Long, val newName: String)
