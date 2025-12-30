@@ -17,7 +17,7 @@ class GetFoldersUseCase(private val folderRepository: FolderRepositoryPort) {
 
     @Transactional(readOnly = true)
     fun execute(command: GetFoldersCommand): GetFoldersResult {
-        val folders = folderRepository.findAll(command.userId)
+        val folders = folderRepository.listOwnedFolders(command.userId)
             .map { GetFoldersResult.FolderInfo(it.id!!, it.name) }
             .toList()
 
