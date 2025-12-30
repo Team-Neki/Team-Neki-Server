@@ -1,8 +1,11 @@
 package com.yapp2app.photo.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
+import com.yapp2app.common.api.dto.ResultCode
+import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.photo.application.command.CreateFolderCommand
 import com.yapp2app.photo.application.port.FolderRepositoryPort
+import com.yapp2app.photo.application.result.CreateFolderResult
 import com.yapp2app.photo.domain.entity.Folder
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,12 +19,18 @@ import org.springframework.transaction.annotation.Transactional
 class CreateFolderUseCase(private val folderRepository: FolderRepositoryPort) {
 
     @Transactional
-    fun execute(command: CreateFolderCommand) {
-        val folder = Folder(
-            userId = command.userId,
-            name = command.name,
+    fun execute(command: CreateFolderCommand): CreateFolderResult {
+        if (folderRepository.existsOwnedFolderName(command.userId, command.name)) {
+            throw BusinessException(ResultCode.CONFLICT_FOLDER)
+        }
+
+        val savedFolder = folderRepository.save(
+            Folder(
+                userId = command.userId,
+                name = command.name,
+            ),
         )
 
-        folderRepository.save(folder)
+        return CreateFolderResult(savedFolder.id!!)
     }
 }
