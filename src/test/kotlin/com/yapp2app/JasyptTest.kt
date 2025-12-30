@@ -1,14 +1,27 @@
 package com.yapp2app
 
-import org.jasypt.encryption.StringEncryptor
+import org.jasypt.encryption.pbe.PooledPBEStringEncryptor
+import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 
-@SpringBootTest
 @ActiveProfiles("test")
-class JasyptTest(@Autowired private val jasyptStringEncryptor: StringEncryptor) {
+class JasyptTest {
+
+    private val jasyptStringEncryptor = PooledPBEStringEncryptor().apply {
+        setConfig(
+            SimpleStringPBEConfig().apply {
+                password = "testPasswordForJasypt"
+                algorithm = "PBEWithHmacSHA512AndAES_256"
+                setKeyObtentionIterations("1000")
+                setPoolSize("1")
+                providerName = "SunJCE"
+                setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator")
+                setIvGeneratorClassName("org.jasypt.iv.RandomIvGenerator")
+                stringOutputType = "base64"
+            },
+        )
+    }
 
     @Test
     fun jasyptGeneratTest() {
