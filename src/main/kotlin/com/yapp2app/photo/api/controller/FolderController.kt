@@ -4,6 +4,7 @@ import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.photo.api.converter.FolderCommandConverter
 import com.yapp2app.photo.api.converter.FolderResultConverter
 import com.yapp2app.photo.api.dto.CreateFolderRequest
+import com.yapp2app.photo.api.dto.CreateFolderResponse
 import com.yapp2app.photo.api.dto.DeleteFoldersRequest
 import com.yapp2app.photo.api.dto.GetAllFolderResponse
 import com.yapp2app.photo.api.dto.UpdateFolderRequest
@@ -50,12 +51,14 @@ class FolderController(
     fun createFolder(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: CreateFolderRequest,
-    ): BaseResponse<Any> {
+    ): BaseResponse<CreateFolderResponse> {
         val command = commandConverter.toCreateFolderCommand(request, userId)
 
-        createFolderUseCase.execute(command)
+        val result = createFolderUseCase.execute(command)
 
-        return BaseResponse()
+        val response = resultConverter.toCreateFolderResponse(result)
+
+        return BaseResponse(data = response)
     }
 
     @Operation(
@@ -96,7 +99,7 @@ class FolderController(
     @DeleteMapping
     fun deleteFolders(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @RequestBody request: DeleteFoldersRequest,
+        @Valid @RequestBody request: DeleteFoldersRequest,
     ): BaseResponse<Any> {
         val command = commandConverter.toDeleteFoldersCommand(request, userId)
 
@@ -113,7 +116,7 @@ class FolderController(
     fun updateFolder(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable folderId: Long,
-        @RequestBody request: UpdateFolderRequest,
+        @Valid @RequestBody request: UpdateFolderRequest,
     ): BaseResponse<Any> {
         val command = commandConverter.toUpdateFolderCommand(request, folderId, userId)
 

@@ -1,6 +1,8 @@
 package com.yapp2app.photo.api.converter
 
+import com.yapp2app.photo.api.dto.CreateFolderResponse
 import com.yapp2app.photo.api.dto.GetAllFolderResponse
+import com.yapp2app.photo.application.result.CreateFolderResult
 import com.yapp2app.photo.application.result.GetFoldersResult
 import org.springframework.stereotype.Component
 
@@ -21,4 +23,6 @@ class FolderResultConverter {
             )
         },
     )
+
+    fun toCreateFolderResponse(result: CreateFolderResult): CreateFolderResponse = CreateFolderResponse(result.folderId)
 }
