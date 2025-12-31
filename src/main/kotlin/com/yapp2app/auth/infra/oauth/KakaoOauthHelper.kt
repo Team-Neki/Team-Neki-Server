@@ -1,6 +1,7 @@
-package com.yapp2app.auth.application.helper
+package com.yapp2app.auth.infra.oauth
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.yapp2app.auth.application.port.OauthHelperPort
 import com.yapp2app.auth.infra.response.OIDCDecodePayloadResponse
 import com.yapp2app.auth.infra.response.OIDCPublicKeyDto
 import com.yapp2app.auth.infra.response.OIDCPublicKeysResponse
@@ -36,7 +37,8 @@ import java.util.Base64
  * 7. 서명 검증
  */
 @Component
-class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val objectMapper: ObjectMapper) {
+class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val objectMapper: ObjectMapper) :
+    OauthHelperPort {
 
     companion object {
         private const val HEADER_KID = "kid"
@@ -51,7 +53,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
      * @param publicKeys 카카오 공개키 목록
      * @return OAuth 정보 (Provider 타입, OID)
      */
-    fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysResponse): OauthInfoResponse {
+    override fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysResponse): OauthInfoResponse {
         // Step 1: 헤더에서 kid 추출 (토큰 분리 및 Base64 디코딩)
         val kid = extractKidFromTokenHeader(idToken)
 

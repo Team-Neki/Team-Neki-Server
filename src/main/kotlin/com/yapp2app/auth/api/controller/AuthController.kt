@@ -66,6 +66,7 @@ class AuthController(private val kakaoRegisterUseCase: KakaoRegisterUseCase, pri
         return BaseResponse(data = GetKakaoRegisterResponse(oid = result.oid, providerType = result.providerType))
     }
 
+    @PostMapping("/login")
     fun login(@RequestBody @Valid request: LoginRequest): BaseResponse<GetTokenResponse> {
         val result = loginUseCase.execute(LoginCommand(oid = request.oid, providerType = request.providerType))
 

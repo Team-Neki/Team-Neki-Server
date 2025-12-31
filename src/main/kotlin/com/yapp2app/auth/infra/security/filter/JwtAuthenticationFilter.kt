@@ -1,9 +1,17 @@
 package com.yapp2app.auth.infra.security.filter
 
+import com.nimbusds.jose.shaded.gson.JsonArray
+import com.nimbusds.jose.shaded.gson.JsonObject
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
+import com.yapp2app.common.api.dto.ResultCode
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.MalformedJwtException
+import io.jsonwebtoken.UnsupportedJwtException
+import io.jsonwebtoken.security.SignatureException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -23,20 +31,26 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
         filterChain: FilterChain,
     ) {
         try {
-            // Authorization 헤더에서 토큰 추출
-            val token = extractToken(request)
+            val tokenStr: String? = extractToken(request)
+            tokenStr?.let {
+                val authentication: Authentication = tokenProvider.getAuthentication(it)
 
-            // 토큰이 있으면 검증 후 인증 정보 설정
-            if (token != null) {
-                val authentication = tokenProvider.getAuthentication(token)
                 SecurityContextHolder.getContext().authentication = authentication
             }
-        } catch (e: Exception) {
-            logger.debug("JWT validation failed: ${e.message}")
-            return
+            filterChain.doFilter(request, response)
+        } catch (ex: SignatureException) {
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+        } catch (ex: SecurityException) {
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+        } catch (ex: MalformedJwtException) {
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+        } catch (ex: ExpiredJwtException) {
+            handleException(response, ResultCode.EXPIRED_TOKEN_ERROR)
+        } catch (ex: UnsupportedJwtException) {
+            handleException(response, ResultCode.EXPIRED_TOKEN_ERROR)
+        } catch (ex: Exception) {
+            handleException(response, ResultCode.SECURITY_ERROR)
         }
-
-        filterChain.doFilter(request, response)
     }
 
     private fun extractToken(request: HttpServletRequest): String? {
@@ -46,5 +60,20 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
         } else {
             null
         }
+    }
+
+    private fun handleException(response: HttpServletResponse, resultCode: ResultCode) {
+        var jsonObject = JsonObject()
+
+        response!!.contentType = "application/json;charset=UTF-8"
+        response!!.characterEncoding = "utf-8"
+        response!!.status = HttpServletResponse.SC_UNAUTHORIZED
+
+        jsonObject.addProperty("resultCode", resultCode.code)
+        jsonObject.addProperty("message", resultCode.message)
+        jsonObject.addProperty("success", false)
+        jsonObject.add("errors", JsonArray())
+
+        response!!.writer.print(jsonObject)
     }
 }

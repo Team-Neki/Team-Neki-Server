@@ -3,10 +3,10 @@ package com.yapp2app.auth.application.usecase
 import com.yapp2app.auth.application.command.LoginCommand
 import com.yapp2app.auth.application.result.GetTokenResult
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
+import com.yapp2app.auth.infra.security.token.UserPrincipal
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
-import com.yapp2app.user.application.port.UserRepositoryPort
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.AuthenticationException
@@ -20,37 +20,37 @@ import org.springframework.security.core.AuthenticationException
 @UseCase
 class LoginUseCase(
     private val tokenProvider: AuthTokenProvider,
-    private val userRepositoryPort: UserRepositoryPort,
     private val authenticationManager: AuthenticationManager,
 ) {
 
     fun execute(loginCommand: LoginCommand): GetTokenResult {
         // 1. 스프링 시큐리티 인증 수행
-        // username 형식: "oid:providerType", password: providerType의 name
+        // username 형식: "oid:providerType", password: OAuth는 실제 비밀번호가 없으므로 "NO_PASS" 사용
         val username = "${loginCommand.oid}:${loginCommand.providerType}"
-        val providerType = loginCommand.providerType.name
+        val password = "NO_PASS"
 
         try {
-            authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(username, providerType),
+            // 인증 수행 (CustomUserDetailsService에서 DB 조회 발생)
+            val authentication = authenticationManager.authenticate(
+                UsernamePasswordAuthenticationToken(username, password),
             )
 
-            // 2. 인증 성공 후 사용자 조회
-            val user = userRepositoryPort.findByOid(loginCommand.oid, loginCommand.providerType)
-                ?: throw BusinessException(ResultCode.NOT_FOUND_USER)
+            // 인증 결과에서 UserPrincipal 추출
+            val userPrincipal = authentication.principal as UserPrincipal
 
-            // 3. JWT 토큰 생성
-            val roles = user.roles.split(",").map { it.trim() }
-            val accessToken = tokenProvider.createToken(
-                id = user.id.toString(),
-                roles = roles,
-                providerType = user.providerType,
+            // JWT 토큰 생성
+            val accessToken = tokenProvider.createAccessToken(
+                id = userPrincipal.id.toString(),
+                roles = userPrincipal.roles.toList(),
+                name = userPrincipal.name,
+                providerType = userPrincipal.providerType,
             )
-            // TODO: refreshToken은 별도 만료 시간으로 생성하도록 개선 필요
-            val refreshToken = tokenProvider.createToken(
-                id = user.id.toString(),
-                roles = roles,
-                providerType = user.providerType,
+
+            val refreshToken = tokenProvider.createRefreshToken(
+                id = userPrincipal.id.toString(),
+                roles = userPrincipal.roles.toList(),
+                name = userPrincipal.name,
+                providerType = userPrincipal.providerType,
             )
 
             return GetTokenResult(

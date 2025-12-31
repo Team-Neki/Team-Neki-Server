@@ -2,9 +2,9 @@ package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.yapp2app.auth.application.command.RegisterKakaoUserCommand
-import com.yapp2app.auth.application.helper.KakaoOauthHelper
+import com.yapp2app.auth.application.port.OauthHelperPort
+import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.application.result.GetKakaoRegisterResult
-import com.yapp2app.auth.infra.KakaoOauthClient
 import com.yapp2app.auth.infra.response.GetKakaoTokenResponse
 import com.yapp2app.auth.infra.response.OauthInfoResponse
 import com.yapp2app.auth.infra.security.properties.OauthProperties
@@ -13,6 +13,7 @@ import com.yapp2app.common.infra.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.RoleType
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
@@ -26,9 +27,9 @@ import org.springframework.web.client.RestClient
 @UseCase
 class KakaoRegisterUseCase(
     private val oauthProperties: OauthProperties,
-    private val kakaoOauthClient: KakaoOauthClient,
+    @Qualifier("kakaoOidcAdapter") private val oidcPort: OidcPort,
+    @Qualifier("kakaoOauthHelper") private val oauthHelperPort: OauthHelperPort,
     private val restClient: RestClient,
-    private val kakaoOauthHelper: KakaoOauthHelper,
     private val userRepositoryPort: UserRepositoryPort,
     private val transactionRunner: TransactionRunner,
 ) {
@@ -40,21 +41,21 @@ class KakaoRegisterUseCase(
      */
     fun execute(command: RegisterKakaoUserCommand): GetKakaoRegisterResult {
         // 카카오 공개 키 가져오기
-        val oidcPublicKeysResult = kakaoOauthClient.getOIDCPublicKey()
+        val oidcPublicKeysResult = oidcPort.getOIDCPublicKey()
 
         // ID Token 검증 및 Claims 추출
-        val oauthInfoResponse: OauthInfoResponse = kakaoOauthHelper.getOauthInfoByIdToken(
+        val oauthInfoResponse: OauthInfoResponse = oauthHelperPort.getOauthInfoByIdToken(
             idToken = command.idToken,
             publicKeys = oidcPublicKeysResult,
         )
 
-        val existingUser = transactionRunner.run { registerKakaoUserIfEmpty(oauthInfoResponse) }
+        val user = transactionRunner.run { registerKakaoUserIfEmpty(oauthInfoResponse) }
 
-        return GetKakaoRegisterResult(oid = existingUser.oid, providerType = existingUser.providerType)
+        return GetKakaoRegisterResult(oid = user.oid, providerType = user.providerType)
     }
 
     private fun registerKakaoUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User {
-        val existingUser = userRepositoryPort.findByOid(
+        val user = userRepositoryPort.findByOid(
             oid = oauthInfoResponse.oid,
             provider = oauthInfoResponse.providerType,
         ) ?: User(
@@ -65,7 +66,7 @@ class KakaoRegisterUseCase(
             providerType = oauthInfoResponse.providerType,
         )
 
-        return userRepositoryPort.save(existingUser)
+        return userRepositoryPort.save(user)
     }
 
     /**

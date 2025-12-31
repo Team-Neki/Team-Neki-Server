@@ -2,7 +2,6 @@ package com.yapp2app.auth.infra.security.token
 
 import com.yapp2app.auth.infra.security.properties.AppProperties
 import com.yapp2app.user.domain.enums.ProviderType
-import com.yapp2app.user.domain.enums.RoleType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -29,35 +28,17 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
         private const val PROVIDER_TYPE_KEY = "provider_type"
     }
 
-    private val secretKey: SecretKey by lazy {
-        Keys.hmacShaKeyFor(appProperties.auth.tokenSecret?.toByteArray() ?: byteArrayOf())
+    private val accessTokenSecretKey: SecretKey by lazy {
+        Keys.hmacShaKeyFor(appProperties.auth.accessTokenSecret?.toByteArray() ?: byteArrayOf())
     }
 
-    fun createToken(id: String): String = createToken(
-        id = id,
-        roles = listOf(RoleType.USER.role),
-        name = null,
-        providerType = null,
-    )
+    private val refreshTokenSecretKey: SecretKey by lazy {
+        Keys.hmacShaKeyFor(appProperties.auth.refreshTokenSecret?.toByteArray() ?: byteArrayOf())
+    }
 
-    fun createToken(id: String, roles: Collection<String>, providerType: ProviderType): String = createToken(
-        id = id,
-        roles = roles,
-        name = null,
-        providerType = providerType,
-    )
-
-    fun createToken(id: String, name: String, roles: Collection<String>, providerType: ProviderType): String =
-        createToken(
-            id = id,
-            roles = roles,
-            name = name,
-            providerType = providerType,
-        )
-
-    private fun createToken(id: String, roles: Collection<String>, name: String?, providerType: ProviderType?): String {
+    fun createAccessToken(id: String, name: String?, roles: Collection<String>, providerType: ProviderType): String {
         val now = Instant.now()
-        val expiryMillis = appProperties.auth.tokenExpiry ?: 0L
+        val expiryMillis = appProperties.auth.accessTokenExpiry ?: 0L
 
         return Jwts.builder()
             .subject(id)
@@ -68,7 +49,24 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
             }
             .issuedAt(Date.from(now))
             .expiration(Date.from(now.plusMillis(expiryMillis)))
-            .signWith(secretKey)
+            .signWith(accessTokenSecretKey)
+            .compact()
+    }
+
+    fun createRefreshToken(id: String, name: String?, roles: Collection<String>, providerType: ProviderType): String {
+        val now = Instant.now()
+        val expiryMillis = appProperties.auth.refreshTokenExpiry ?: 0L
+
+        return Jwts.builder()
+            .subject(id)
+            .claim(AUTHORITIES_KEY, roles)
+            .apply {
+                name?.let { claim(NAME_KEY, it) }
+                providerType?.let { claim(PROVIDER_TYPE_KEY, it) }
+            }
+            .issuedAt(Date.from(now))
+            .expiration(Date.from(now.plusMillis(expiryMillis)))
+            .signWith(refreshTokenSecretKey)
             .compact()
     }
 
@@ -99,7 +97,7 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
     }
 
     private fun getTokenClaims(token: String): Claims = Jwts.parser()
-        .verifyWith(secretKey)
+        .verifyWith(accessTokenSecretKey)
         .build()
         .parseSignedClaims(token)
         .payload
