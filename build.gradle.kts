@@ -23,6 +23,7 @@ val bouncyCastleVersion = "1.78"
 val awsSdkVersion = "2.27.0"
 val springDocVersion = "2.6.0"
 val jasyptVersion = "3.0.5"
+val logstashEncoderVersion = "8.0"
 val kotestVersion = "5.9.1"
 val kotestExtensionsVersion = "1.3.0"
 val mockkVersion = "1.13.10"
@@ -75,6 +76,9 @@ dependencies {
 
     // Jasypt (암호화)
     implementation("com.github.ulisesbocchio:jasypt-spring-boot-starter:$jasyptVersion")
+
+    // Logback JSON Encoder (구조화된 로그 출력)
+    implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
 
     // JPA
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
