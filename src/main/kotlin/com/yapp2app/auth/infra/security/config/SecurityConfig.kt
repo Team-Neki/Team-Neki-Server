@@ -1,5 +1,6 @@
 package com.yapp2app.auth.infra.security.config
 
+import com.yapp2app.auth.infra.security.filter.AuthMdcFilter
 import com.yapp2app.auth.infra.security.filter.JwtAuthenticationFilter
 import com.yapp2app.auth.infra.security.properties.AppProperties
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
@@ -48,5 +49,6 @@ class SecurityConfig(
             it.anyRequest().authenticated()
         }
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+        .addFilterAfter(AuthMdcFilter(), JwtAuthenticationFilter::class.java)
         .build()
 }
