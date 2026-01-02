@@ -38,6 +38,9 @@ class User(
     @Column(nullable = false, length = 10)
     val providerType: ProviderType,
 
+    @Column(name = "image_url", nullable = true, length = 100)
+    var imageUrl: String?,
+
     @Column(name = "role", nullable = false, length = 255)
     var roles: String = RoleType.USER.role,
 
@@ -49,12 +52,13 @@ class User(
     @Column(nullable = false)
     var updatedAt: LocalDateTime? = null,
 ) {
-    constructor(email: String?, name: String?, oid: Long, roles: String, providerType: ProviderType) : this(
+    constructor(email: String?, name: String?, oid: Long, roles: String, providerType: ProviderType, imageUrl: String?) : this(
         email = email ?: "NO_EMAIL",
         password = "NO_PASS",
         oid = oid,
         name = name,
         providerType = providerType,
         roles = roles,
+        imageUrl = imageUrl,
     )
 }

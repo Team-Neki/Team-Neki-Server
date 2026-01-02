@@ -71,7 +71,7 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
     }
 
     fun getAuthentication(token: String): Authentication {
-        val claims = getTokenClaims(token)
+        val claims = getAccessTokenClaims(token)
 
         @Suppress("UNCHECKED_CAST")
         val roles = (claims[AUTHORITIES_KEY] as? List<*>)
@@ -96,9 +96,50 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
         return UsernamePasswordAuthenticationToken(principal, token, authorities)
     }
 
-    private fun getTokenClaims(token: String): Claims = Jwts.parser()
+    private fun getAccessTokenClaims(token: String): Claims = Jwts.parser()
         .verifyWith(accessTokenSecretKey)
         .build()
         .parseSignedClaims(token)
         .payload
+
+    private fun getRefreshTokenClaims(token: String): Claims = Jwts.parser()
+        .verifyWith(refreshTokenSecretKey)
+        .build()
+        .parseSignedClaims(token)
+        .payload
+
+    fun validateRefreshToken(token: String): Boolean {
+        return try {
+            getRefreshTokenClaims(token)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun getAuthenticationFromRefreshToken(token: String): Authentication {
+        val claims = getRefreshTokenClaims(token)
+
+        @Suppress("UNCHECKED_CAST")
+        val roles = (claims[AUTHORITIES_KEY] as? List<*>)
+            ?.filterIsInstance<String>()
+            ?: emptyList()
+
+        val name = claims[NAME_KEY] as? String ?: ""
+        val providerTypeStr = claims[PROVIDER_TYPE_KEY] as? String
+            ?: throw IllegalArgumentException("Provider type not found in token")
+
+        val authorities = roles.map { SimpleGrantedAuthority(it) }
+
+        val principal = UserPrincipal(
+            id = claims.subject.toLong(),
+            name = name,
+            providerType = ProviderType.valueOf(providerTypeStr),
+            email = "",
+            roles = roles.toSet(),
+            password = "NO_PASS",
+        )
+
+        return UsernamePasswordAuthenticationToken(principal, token, authorities)
+    }
 }

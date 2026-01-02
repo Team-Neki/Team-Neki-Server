@@ -62,18 +62,44 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
         }
     }
 
+    /**
+     * JWT 검증 실패 시 에러 응답 처리
+     *
+     * @param response HttpServletResponse
+     * @param resultCode 에러 코드
+     *
+     * ## HTTP Status: 401 Unauthorized
+     * 인증이 필요하거나 인증에 실패한 경우 반환됩니다.
+     *
+     * ## 에러 코드별 클라이언트 대응 방법
+     *
+     * ### D-997 (EXPIRED_TOKEN_ERROR) - 토큰 만료
+     * - **원인**: AccessToken의 유효기간이 만료되었습니다.
+     * - **대응**: RefreshToken을 사용하여 `/api/auth/refresh` API를 호출해 새로운 토큰을 발급받으세요.
+     * - **재로그인 필요 여부**: 아니오 (RefreshToken이 유효한 경우)
+     *
+     * ### D-998 (INVALID_TOKEN_ERROR) - 토큰 무효
+     * - **원인**: 토큰의 서명이 올바르지 않거나, 토큰 형식이 잘못되었습니다.
+     * - **대응**: 재로그인이 필요합니다. `/api/auth/login` API를 호출하세요.
+     * - **재로그인 필요 여부**: 예
+     *
+     * ### D-999 (SECURITY_ERROR) - 인증 실패
+     * - **원인**: 예상하지 못한 인증 오류가 발생했습니다.
+     * - **대응**: 재로그인이 필요합니다. `/api/auth/login` API를 호출하세요.
+     * - **재로그인 필요 여부**: 예
+     */
     private fun handleException(response: HttpServletResponse, resultCode: ResultCode) {
-        var jsonObject = JsonObject()
+        val jsonObject = JsonObject()
 
-        response!!.contentType = "application/json;charset=UTF-8"
-        response!!.characterEncoding = "utf-8"
-        response!!.status = HttpServletResponse.SC_UNAUTHORIZED
+        response.contentType = "application/json;charset=UTF-8"
+        response.characterEncoding = "utf-8"
+        response.status = HttpServletResponse.SC_UNAUTHORIZED
 
         jsonObject.addProperty("resultCode", resultCode.code)
         jsonObject.addProperty("message", resultCode.message)
         jsonObject.addProperty("success", false)
         jsonObject.add("errors", JsonArray())
 
-        response!!.writer.print(jsonObject)
+        response.writer.print(jsonObject)
     }
 }

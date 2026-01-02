@@ -12,7 +12,7 @@ import com.yapp2app.user.domain.enums.ProviderType
 /**
  * 카카오 사용자정보 추출 DTO
  */
-data class OauthInfoResponse(val providerType: ProviderType, val oid: Long, val email: String?, val name: String?)
+data class OauthInfoResponse(val providerType: ProviderType, val oid: Long, val email: String?, val name: String?, val imageUrl: String?)
 
 data class OIDCDecodePayloadResponse(
     /** issuer ex https://kauth.kakao.com  */
@@ -23,8 +23,10 @@ data class OIDCDecodePayloadResponse(
     val sub: Long,
     /** biz 앱 신청을 해야 email을 수집가능,,  */
     val email: String?,
-    /** nickname  */
+    /** 닉네임  */
     val nickname: String?,
+    /** 프로필 이미지  */
+    val imageUrl: String?
 )
 
 data class OIDCPublicKeysResponse(var keys: MutableList<OIDCPublicKeyDto>)

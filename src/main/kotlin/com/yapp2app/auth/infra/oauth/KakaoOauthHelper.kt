@@ -44,6 +44,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         private const val HEADER_KID = "kid"
         private const val CLAIM_EMAIL = "email"
         private const val CLAIM_NICKNAME = "nickname"
+        private const val CLAIM_PROFILEIMAGE = "profile_image"
     }
 
     /**
@@ -73,6 +74,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
             oid = payload.sub,
             email = payload.email,
             name = payload.nickname,
+            imageUrl = payload.imageUrl,
         )
     }
 
@@ -128,6 +130,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
             sub = claims.subject.toLong(),
             email = claims[CLAIM_EMAIL, String::class.java],
             nickname = claims[CLAIM_NICKNAME, String::class.java],
+            imageUrl = claims[CLAIM_PROFILEIMAGE, String::class.java],
         )
     }
 
