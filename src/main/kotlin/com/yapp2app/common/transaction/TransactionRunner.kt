@@ -1,4 +1,4 @@
-package com.yapp2app.common.infra
+package com.yapp2app.common.transaction
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Propagation
