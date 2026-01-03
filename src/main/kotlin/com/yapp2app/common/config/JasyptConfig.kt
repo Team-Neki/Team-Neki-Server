@@ -6,7 +6,6 @@ import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 
 /**
  * fileName       : JasyptConfig
@@ -15,11 +14,10 @@ import org.springframework.context.annotation.Profile
  * description    : Jasypt 암호화 설정
  */
 @Configuration
-@Profile("!test")
-class JasyptConfig {
-
+class JasyptConfig(
     @Value("\${jasypt.encryptor.password}")
-    private lateinit var encryptKey: String
+    private val encryptKey: String,
+) {
 
     @Bean("jasyptStringEncryptor")
     fun stringEncryptor(): StringEncryptor {

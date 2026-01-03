@@ -1,4 +1,4 @@
-package com.yapp2app.common.media
+package com.yapp2app.media.domain
 
 /**
  * fileName       : MediaType

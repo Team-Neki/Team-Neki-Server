@@ -1,4 +1,6 @@
-package com.yapp2app.common.media
+package com.yapp2app.media.application.port
+
+import com.yapp2app.media.application.dto.MediaRef
 
 /**
  * fileName       : MediaStorage
@@ -6,7 +8,7 @@ package com.yapp2app.common.media
  * date           : 2025. 12. 19. 오전 2:41
  * description    : 이미지 저장을 위한 인터페이스 (port)
  */
-interface MediaStorage {
+interface MediaStoragePort {
 
     fun deleteByKey(key: String)
 
