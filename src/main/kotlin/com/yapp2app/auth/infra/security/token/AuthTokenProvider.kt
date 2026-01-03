@@ -108,13 +108,11 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
         .parseSignedClaims(token)
         .payload
 
-    fun validateRefreshToken(token: String): Boolean {
-        return try {
-            getRefreshTokenClaims(token)
-            true
-        } catch (e: Exception) {
-            false
-        }
+    fun validateRefreshToken(token: String): Boolean = try {
+        getRefreshTokenClaims(token)
+        true
+    } catch (e: Exception) {
+        false
     }
 
     fun getAuthenticationFromRefreshToken(token: String): Authentication {

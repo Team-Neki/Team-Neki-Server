@@ -15,9 +15,7 @@ import com.yapp2app.common.exception.BusinessException
  * description    : RefreshToken으로 AccessToken을 갱신하는 UseCase
  */
 @UseCase
-class RefreshTokenUseCase(
-    private val tokenProvider: AuthTokenProvider,
-) {
+class RefreshTokenUseCase(private val tokenProvider: AuthTokenProvider) {
 
     fun execute(command: RefreshTokenCommand): GetTokenResult {
         // 1. RefreshToken 유효성 검증

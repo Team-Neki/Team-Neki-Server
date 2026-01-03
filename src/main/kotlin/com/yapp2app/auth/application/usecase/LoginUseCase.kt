@@ -15,15 +15,13 @@ import com.yapp2app.user.application.port.UserRepositoryPort
  * description    : 스프링 시큐리티를 사용한 로그인 UseCase
  */
 @UseCase
-class LoginUseCase(
-    private val tokenProvider: AuthTokenProvider,
-    private val userRepositoryPort: UserRepositoryPort,
-) {
+class LoginUseCase(private val tokenProvider: AuthTokenProvider, private val userRepositoryPort: UserRepositoryPort) {
 
     fun execute(loginCommand: LoginCommand): GetTokenResult {
         val user = userRepositoryPort.findByOid(loginCommand.oid, loginCommand.providerType) ?: throw BusinessException(
-            ResultCode.NOT_FOUND_USER)
-        
+            ResultCode.NOT_FOUND_USER,
+        )
+
         // JWT 토큰 생성
         val accessToken = tokenProvider.createAccessToken(
             id = user.id.toString(),

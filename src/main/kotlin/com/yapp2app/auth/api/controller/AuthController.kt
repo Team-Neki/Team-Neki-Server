@@ -193,7 +193,10 @@ class AuthController(
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "토큰 갱신 성공 - 새로운 AccessToken과 RefreshToken 발급"),
-        ApiResponse(responseCode = "401", description = "D-997: RefreshToken 만료 (재로그인 필요) / D-998: RefreshToken 무효 (재로그인 필요)"),
+        ApiResponse(
+            responseCode = "401",
+            description = "D-997: RefreshToken 만료 (재로그인 필요) / D-998: RefreshToken 무효 (재로그인 필요)",
+        ),
     )
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetTokenResponse> {

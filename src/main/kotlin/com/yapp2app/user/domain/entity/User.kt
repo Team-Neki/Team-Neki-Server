@@ -52,7 +52,14 @@ class User(
     @Column(nullable = false)
     var updatedAt: LocalDateTime? = null,
 ) {
-    constructor(email: String?, name: String?, oid: Long, roles: String, providerType: ProviderType, imageUrl: String?) : this(
+    constructor(
+        email: String?,
+        name: String?,
+        oid: Long,
+        roles: String,
+        providerType: ProviderType,
+        imageUrl: String?,
+    ) : this(
         email = email ?: "NO_EMAIL",
         password = "NO_PASS",
         oid = oid,

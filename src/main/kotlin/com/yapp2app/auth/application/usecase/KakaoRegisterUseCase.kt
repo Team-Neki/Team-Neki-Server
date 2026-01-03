@@ -64,7 +64,7 @@ class KakaoRegisterUseCase(
             name = oauthInfoResponse.name,
             roles = RoleType.USER.role,
             providerType = oauthInfoResponse.providerType,
-            imageUrl = oauthInfoResponse.imageUrl
+            imageUrl = oauthInfoResponse.imageUrl,
         )
 
         return userRepositoryPort.save(user)
