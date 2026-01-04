@@ -31,9 +31,6 @@ class AuthE2ETest : E2ETestBase() {
     @LocalServerPort
     private var port: Int = 0
 
-    private val expiredAccessToken: String = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sIm5hbWUiOiLthYzsiqTtirgg7IKs7Jqp7J6QIiwicHJvdmlkZXJfdHlwZSI6IlRFU1QiLCJpYXQiOjE3Njc1MTQyMjQsImV4cCI6MTc2NzUxNDI4NH0.QJ0T0eoYxMf7PUxQni2AGMMrNEMMFphY1W5vLE66vUyuPES-trmvqs7xbm9mp63v"
-    private val expiredRefreshToken: String = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sIm5hbWUiOiLthYzsiqTtirgg7IKs7Jqp7J6QIiwicHJvdmlkZXJfdHlwZSI6IlRFU1QiLCJpYXQiOjE3Njc1MTQyMjQsImV4cCI6MTc2NzUxNDI4NH0.KkvRf2fmXjr51Lk0Q8Xmd_MpKhJUY9m9WGZIqLH3yilMh47iv6Q7PIxmTUGuk1O1"
-
     private lateinit var accessToken: String
     private lateinit var testUser: User
 
@@ -53,7 +50,7 @@ class AuthE2ETest : E2ETestBase() {
     fun givenValidCredentials_whenLogin_thenReturnsSuccessWithTokens() {
         val request = LoginRequest(
             oid = testUser.oid,
-            providerType = testUser.providerType
+            providerType = testUser.providerType,
         )
 
         val response = RestAssured.given()
@@ -84,7 +81,7 @@ class AuthE2ETest : E2ETestBase() {
     fun givenNonExistentUser_whenLogin_thenReturnsNotFoundError() {
         val request = LoginRequest(
             oid = 99999L,
-            providerType = ProviderType.TEST
+            providerType = ProviderType.TEST,
         )
 
         RestAssured.given()
@@ -104,7 +101,7 @@ class AuthE2ETest : E2ETestBase() {
         // 먼저 로그인하여 토큰 획득
         val loginRequest = LoginRequest(
             oid = testUser.oid,
-            providerType = testUser.providerType
+            providerType = testUser.providerType,
         )
 
         val loginResponse = RestAssured.given()
@@ -167,5 +164,4 @@ class AuthE2ETest : E2ETestBase() {
             .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_TOKEN_ERROR.code))
     }
-
 }
