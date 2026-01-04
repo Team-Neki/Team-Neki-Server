@@ -118,6 +118,9 @@ jobs:
             # K3s에 배포 적용
             kubectl apply -f deployment.yaml
 
+            # Pod 강제 재시작 (새 이미지 pull 보장)
+            kubectl rollout restart deployment/yapp-app-staging -n staging
+
             # 배포 상태 확인
             kubectl rollout status deployment/yapp-app-staging -n staging --timeout=5m
 
