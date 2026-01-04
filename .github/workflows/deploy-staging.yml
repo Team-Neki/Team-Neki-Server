@@ -58,6 +58,47 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Discord notification - Deployment started
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d '{
+                 "embeds": [{
+                   "title": "🚀 Staging 배포 시작",
+                   "description": "K3s 배포를 시작합니다",
+                   "color": 3447003,
+                   "fields": [
+                     {
+                       "name": "브랜치",
+                       "value": "'"${{ github.ref_name }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "커밋",
+                       "value": "'"${{ steps.version.outputs.short_sha }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "작성자",
+                       "value": "'"${{ github.actor }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "버전",
+                       "value": "'"${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}"'",
+                       "inline": false
+                     },
+                     {
+                       "name": "커밋 메시지",
+                       "value": "'"$(git log -1 --pretty=%B | head -n 1)"'",
+                       "inline": false
+                     }
+                   ],
+                   "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'"
+                 }]
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
+
       - name: Deploy to K3s (On-premise)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -78,16 +119,83 @@ jobs:
             kubectl apply -f deployment.yaml
 
             # 배포 상태 확인
-            kubectl rollout status deployment/yapp-staging -n default --timeout=5m
+            kubectl rollout status deployment/yapp-app-staging -n staging --timeout=5m
 
             echo "✅ Deployment completed successfully!"
 
-      - name: Notify deployment result
-        if: always()
+      - name: Discord notification - Deployment success
+        if: success()
         run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Deployment to staging succeeded!"
-          else
-            echo "❌ Deployment to staging failed!"
-            exit 1
-          fi
+          curl -H "Content-Type: application/json" \
+               -d '{
+                 "embeds": [{
+                   "title": "✅ Staging 배포 성공",
+                   "description": "K3s 배포가 성공적으로 완료되었습니다",
+                   "color": 5763719,
+                   "fields": [
+                     {
+                       "name": "브랜치",
+                       "value": "'"${{ github.ref_name }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "커밋",
+                       "value": "'"${{ steps.version.outputs.short_sha }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "작성자",
+                       "value": "'"${{ github.actor }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "배포 버전",
+                       "value": "'"${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}"'",
+                       "inline": false
+                     },
+                     {
+                       "name": "배포 링크",
+                       "value": "[GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                       "inline": false
+                     }
+                   ],
+                   "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'"
+                 }]
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Discord notification - Deployment failed
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d '{
+                 "embeds": [{
+                   "title": "❌ Staging 배포 실패",
+                   "description": "K3s 배포 중 오류가 발생했습니다",
+                   "color": 15158332,
+                   "fields": [
+                     {
+                       "name": "브랜치",
+                       "value": "'"${{ github.ref_name }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "커밋",
+                       "value": "'"${{ steps.version.outputs.short_sha }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "작성자",
+                       "value": "'"${{ github.actor }}"'",
+                       "inline": true
+                     },
+                     {
+                       "name": "실패 로그",
+                       "value": "[GitHub Actions 확인](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                       "inline": false
+                     }
+                   ],
+                   "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'"
+                 }]
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
