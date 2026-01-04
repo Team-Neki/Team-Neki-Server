@@ -1,7 +1,7 @@
 -- Create users table
 CREATE TABLE TB_USERS (
     id BIGSERIAL PRIMARY KEY,
-    email VARCHAR(255) NULL UNIQUE,
+    email VARCHAR(255) NULL,
     password VARCHAR(255),
     oid BIGINT NOT NULL,
     name VARCHAR(100) NULL,
@@ -15,7 +15,7 @@ CREATE TABLE TB_USERS (
 -- Add comments for documentation
 COMMENT ON TABLE TB_USERS IS '사용자 정보 테이블';
 COMMENT ON COLUMN TB_USERS.id IS '사용자 고유 ID';
-COMMENT ON COLUMN TB_USERS.email IS '사용자 이메일 (unique)';
+COMMENT ON COLUMN TB_USERS.email IS '사용자 이메일';
 COMMENT ON COLUMN TB_USERS.password IS '사용자 비밀번호 (OAuth 사용자는 NO_PASS)';
 COMMENT ON COLUMN TB_USERS.oid IS 'OAuth 제공자의 사용자 고유 ID';
 COMMENT ON COLUMN TB_USERS.name IS '사용자 이름';

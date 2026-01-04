@@ -16,7 +16,7 @@ class JasyptTest(@Autowired private val jasyptStringEncryptor: StringEncryptor) 
         println()
 
         // 기타 암호화할 값
-        val text = "test_text"
+        val text = "2uYKrIx7hFeZDoEyiXvWSY29TvSGfevQ"
         val encryptedText = jasyptStringEncryptor.encrypt(text)
         println("   원본: $text")
         println("   암호화: ENC($encryptedText)")

@@ -9,4 +9,4 @@ import com.yapp2app.user.domain.enums.ProviderType
  * description    :
  */
 
-data class GetUserInfoResponse(val name: String, val profileImageUrl: String, val providerType: ProviderType)
+data class GetUserInfoResponse(val name: String, val providerType: ProviderType)

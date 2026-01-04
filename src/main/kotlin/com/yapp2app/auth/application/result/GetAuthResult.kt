@@ -8,6 +8,6 @@ import com.yapp2app.user.domain.enums.ProviderType
  * date           : 2025. 12. 29. 14:23
  * description    :
  */
-data class GetKakaoRegisterResult(val oid: Long, val providerType: ProviderType)
+data class GetAuthResult(val oid: Long, val providerType: ProviderType)
 
 data class GetTokenResult(val accessToken: String, val refreshToken: String)

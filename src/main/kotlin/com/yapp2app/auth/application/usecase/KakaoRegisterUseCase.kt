@@ -4,12 +4,12 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.yapp2app.auth.application.command.RegisterKakaoUserCommand
 import com.yapp2app.auth.application.port.OauthHelperPort
 import com.yapp2app.auth.application.port.OidcPort
-import com.yapp2app.auth.application.result.GetKakaoRegisterResult
+import com.yapp2app.auth.application.result.GetAuthResult
 import com.yapp2app.auth.infra.response.GetKakaoTokenResponse
 import com.yapp2app.auth.infra.response.OauthInfoResponse
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.infra.TransactionRunner
+import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.RoleType
@@ -39,7 +39,7 @@ class KakaoRegisterUseCase(
      * 2. ID Token 검증 및 Claims 추출
      * 3. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
-    fun execute(command: RegisterKakaoUserCommand): GetKakaoRegisterResult {
+    fun execute(command: RegisterKakaoUserCommand): GetAuthResult {
         // 카카오 공개 키 가져오기
         val oidcPublicKeysResult = oidcPort.getOIDCPublicKey()
 
@@ -51,7 +51,7 @@ class KakaoRegisterUseCase(
 
         val user = transactionRunner.run { registerKakaoUserIfEmpty(oauthInfoResponse) }
 
-        return GetKakaoRegisterResult(oid = user.oid, providerType = user.providerType)
+        return GetAuthResult(oid = user.oid, providerType = user.providerType)
     }
 
     private fun registerKakaoUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User {
@@ -80,7 +80,7 @@ class KakaoRegisterUseCase(
      * @throws Exception 토큰 획득 실패 시
      */
     fun getAccessTokenByCode(code: String): GetKakaoTokenResponse {
-        val clientId = "a8777a62d28eee709e96cd6f803ec377"
+        val clientId = oauthProperties.kakao.clientId
         val clientSecret = oauthProperties.kakao.clientSecret
 
         val params = LinkedMultiValueMap<String, String>()

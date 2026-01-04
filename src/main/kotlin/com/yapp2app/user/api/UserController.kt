@@ -34,7 +34,6 @@ class UserController {
     ): BaseResponse<GetUserInfoResponse> = BaseResponse(
         data = GetUserInfoResponse(
             name = userPrincipal.name!!,
-            profileImageUrl = "temp",
             providerType = userPrincipal.providerType,
         ),
     )

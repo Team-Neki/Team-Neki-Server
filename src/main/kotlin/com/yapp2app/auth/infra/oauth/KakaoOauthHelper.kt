@@ -44,7 +44,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         private const val HEADER_KID = "kid"
         private const val CLAIM_EMAIL = "email"
         private const val CLAIM_NICKNAME = "nickname"
-        private const val CLAIM_PROFILEIMAGE = "profile_image"
+        private const val CLAIM_PROFILEIMAGE = "picture"
     }
 
     /**
