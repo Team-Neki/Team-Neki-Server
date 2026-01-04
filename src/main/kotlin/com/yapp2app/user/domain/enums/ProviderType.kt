@@ -4,4 +4,5 @@ enum class ProviderType {
     LOCAL,
     APPLE,
     KAKAO,
+    TEST
 }

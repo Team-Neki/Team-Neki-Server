@@ -36,7 +36,7 @@ class ExceptionHandler {
 
         val temp = ResponseEntity(
             ExceptionMsg(
-                code = ex.resultCode.code,
+                resultCode = ex.resultCode.code,
                 message = ex.resultCode.message,
                 success = false,
                 errors = emptyList(),
@@ -63,7 +63,7 @@ class ExceptionHandler {
 
         return ResponseEntity(
             ExceptionMsg(
-                code = ResultCode.INVALID_PARAMETER.code,
+                resultCode = ResultCode.INVALID_PARAMETER.code,
                 message = errors.get(0).message,
                 success = false,
                 errors = errors,
@@ -108,7 +108,7 @@ class ExceptionHandler {
         }
         return ResponseEntity(
             ExceptionMsg(
-                code = ResultCode.INVALID_PARAMETER.code,
+                resultCode = ResultCode.INVALID_PARAMETER.code,
                 message = ResultCode.INVALID_PARAMETER.message,
                 success = false,
                 errors = errors,
@@ -123,7 +123,7 @@ class ExceptionHandler {
         request: WebRequest,
     ): ResponseEntity<ExceptionMsg> = ResponseEntity(
         ExceptionMsg(
-            code = ResultCode.INVALID_PARAMETER.code,
+            resultCode = ResultCode.INVALID_PARAMETER.code,
             message = ResultCode.INVALID_PARAMETER.message,
             success = false,
             errors = listOf(
@@ -142,7 +142,7 @@ class ExceptionHandler {
             val enumValues = ex.requiredType!!.enumConstants?.joinToString(", ")
             ResponseEntity(
                 ExceptionMsg(
-                    code = ResultCode.INVALID_PARAMETER.code,
+                    resultCode = ResultCode.INVALID_PARAMETER.code,
                     message = ResultCode.INVALID_PARAMETER.message,
                     success = false,
                     errors = listOf(
@@ -157,7 +157,7 @@ class ExceptionHandler {
         } else {
             ResponseEntity(
                 ExceptionMsg(
-                    code = ResultCode.INVALID_PARAMETER.code,
+                    resultCode = ResultCode.INVALID_PARAMETER.code,
                     message = ResultCode.INVALID_PARAMETER.message,
                     success = false,
                     errors = listOf(
