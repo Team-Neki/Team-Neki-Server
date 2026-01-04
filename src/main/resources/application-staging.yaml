@@ -38,8 +38,8 @@ app:
 
 oauth:
   kakao:
-    clientId: a8777a62d28eee709e96cd6f803ec377
-    clientSecret: ENC(Vp5cuoxNfJO1pGq+8yfNExw5D+3fCiixp0IxFCzheBPZt/t13sm9I0x8S7jOhq59VFb3HXthgc8egBqf9TpJg0TBO8sJqfHvBdlc5z+xSUc=)
+    clientId: 4db94315d17162e99b36029f6f9775c6
+    clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
     jwksUri: https://kauth.kakao.com/.well-known/jwks.json
     issuer: https://kauth.kakao.com
   apple:

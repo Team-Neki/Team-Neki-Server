@@ -137,3 +137,10 @@ tasks.withType<Test> {
 tasks.jar {
     enabled = false
 }
+
+tasks.bootJar {
+    // Spring Boot Layered JAR 활성화 (Docker 캐싱 최적화)
+    layered {
+        enabled = true
+    }
+}
