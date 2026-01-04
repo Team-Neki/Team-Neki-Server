@@ -38,7 +38,7 @@ app:
 
 oauth:
   kakao:
-    clientId: 4db94315d17162e99b36029f6f9775c6
+    clientId: 8964db6054f3f0beb0f534673f93eab7
     clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
     jwksUri: https://kauth.kakao.com/.well-known/jwks.json
     issuer: https://kauth.kakao.com

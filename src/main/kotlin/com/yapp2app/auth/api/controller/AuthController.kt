@@ -52,7 +52,7 @@ class AuthController(
 
         앱에서 카카오 SDK로 획득한 idToken을 검증하고 회원가입을 처리합니다.
 
-        ### 테스트용 idToken 발급 방법
+        ### 테스트용 idToken 발급 방법 (AOS, IOS 는 SDK로 부터 얻은 idToken 바로 넣어주면 됩니다!)
 
         #### 1단계: Authorization Code 획득
         아래 URL을 브라우저에서 실행하여 카카오 로그인 후 idToken 얻습니다.
