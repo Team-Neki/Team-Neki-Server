@@ -17,8 +17,19 @@ import org.springframework.web.cors.CorsConfigurationSource
 @EnableWebSecurity
 class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSource) {
 
+    /**
+     * Actuator Health Check 엔드포인트 보안 설정 (Kubernetes Probe용)
+     */
     @Bean
     @Order(0)
+    fun actuatorSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
+        http.securityMatcher("/actuator/health/**")
+            .csrf { it.disable() }
+            .authorizeHttpRequests { it.anyRequest().permitAll() }
+            .build()
+
+    @Bean
+    @Order(1)
     fun documentSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http.securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
             .csrf { it.disable() }
@@ -28,7 +39,7 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
             .build()
 
     @Bean
-    @Order(1)
+    @Order(2)
     fun apiSecurityFilterChain(
         http: HttpSecurity,
         jwtAuthenticationFilter: JwtAuthenticationFilter,

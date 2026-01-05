@@ -99,7 +99,8 @@ jobs:
                }' \
                ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-      - name: Deploy to K3s (On-premise)
+      - name: Deploy to K3s (On-premise) with Zero-Downtime
+        id: deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -107,24 +108,41 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            echo "🚀 Starting deployment to K3s..."
+            echo "🚀 Starting Zero-Downtime deployment to K3s..."
 
             # K3s deployment 디렉토리로 이동
             cd /home/yapp/k3s/staging
 
-            # 이미지 태그 업데이트 (deployment.yaml에서 이미지 태그 변경)
-            sed -i "s|image: .*yapp-staging:.*|image: ${{ secrets.DOCKER_USERNAME }}/yapp-dev:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}|g" deployment.yaml
+            # 현재 실행 중인 이미지 확인
+            CURRENT_IMAGE=$(kubectl get deployment yapp-app-staging -n staging -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "none")
+            echo "📌 Current image: $CURRENT_IMAGE"
 
-            # K3s에 배포 적용
+            # 이미지 태그 업데이트
+            NEW_IMAGE="${{ secrets.DOCKER_USERNAME }}/yapp-dev:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}"
+            echo "📦 New image: $NEW_IMAGE"
+            sed -i "s|image: .*yapp-dev:.*|image: $NEW_IMAGE|g" deployment.yaml
+
+            # K3s에 배포 적용 (Rolling Update 자동 실행)
+            echo "🔄 Applying deployment... Rolling update will start automatically"
             kubectl apply -f deployment.yaml
 
-            # Pod 강제 재시작 (새 이미지 pull 보장)
-            kubectl rollout restart deployment/yapp-app-staging -n staging
+            # 배포 상태 확인 (새 파드가 완전히 준비될 때까지 대기)
+            echo "⏳ Waiting for new pods to be ready..."
+            if kubectl rollout status deployment/yapp-app-staging -n staging --timeout=10m; then
+              echo "✅ Rollout completed successfully!"
 
-            # 배포 상태 확인
-            kubectl rollout status deployment/yapp-app-staging -n staging --timeout=5m
+              # 배포된 파드 정보 확인
+              echo "📊 Pod status:"
+              kubectl get pods -n staging -l app=yapp-app-staging
 
-            echo "✅ Deployment completed successfully!"
+              # 최종 이미지 확인
+              DEPLOYED_IMAGE=$(kubectl get deployment yapp-app-staging -n staging -o jsonpath='{.spec.template.spec.containers[0].image}')
+              echo "✅ Deployment completed! Deployed image: $DEPLOYED_IMAGE"
+            else
+              echo "❌ Rollout failed or timed out!"
+              kubectl get pods -n staging -l app=yapp-app-staging
+              exit 1
+            fi
 
       - name: Discord notification - Deployment success
         if: success()

@@ -7,6 +7,25 @@ spring:
 springdoc:
   override-with-generic-response: false
 
+# Spring Boot Actuator 설정 (Health Check for Kubernetes)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+
 aws:
   s3:
     access-key: ${AWS_S3_ACCESS_KEY:}
