@@ -7,6 +7,10 @@ spring:
 springdoc:
   override-with-generic-response: false
 
+# Application Version (from build.gradle.kts)
+app:
+  version: "@version@"
+
 # Spring Boot Actuator 설정 (Health Check for Kubernetes)
 management:
   endpoints:

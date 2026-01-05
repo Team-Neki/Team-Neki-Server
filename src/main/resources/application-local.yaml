@@ -33,7 +33,6 @@ jasypt:
     password: ${JASYPT_PASSWORD}
 
 app:
-  version: "@version@"
   server:
     url: http://localhost:8080
   auth:

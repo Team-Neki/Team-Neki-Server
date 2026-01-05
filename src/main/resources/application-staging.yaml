@@ -27,7 +27,6 @@ jasypt:
     password: ${JASYPT_PASSWORD}
 
 app:
-  version: "@version@"
   server:
     url: https://dev-yapp.suitestudy.com:4641
   auth:
