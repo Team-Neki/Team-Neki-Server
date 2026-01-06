@@ -3,13 +3,6 @@ package com.yapp2app.auth.infra.response
 import com.yapp2app.user.domain.enums.ProviderType
 
 /**
- * fileName       : KakaoClientResponse
- * author         : darren
- * date           : 2025. 12. 29. 14:23
- * description    : 카카오 외부 통신 과정에서 변환된 DTO
- */
-
-/**
  * 카카오 사용자정보 추출 DTO
  */
 data class OauthInfoResponse(
@@ -35,7 +28,7 @@ data class OIDCDecodePayloadResponse(
     val imageUrl: String?,
 )
 
-data class OIDCPublicKeysResponse(var keys: MutableList<OIDCPublicKeyDto>)
+data class OIDCPublicKeysResponse(val keys: MutableList<OIDCPublicKeyDto>)
 
 data class OIDCPublicKeyDto(val kid: String, val alg: String, val use: String, val n: String, val e: String)
 
