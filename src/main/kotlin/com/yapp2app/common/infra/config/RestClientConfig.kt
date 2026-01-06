@@ -1,4 +1,4 @@
-package com.yapp2app.common.api.config
+package com.yapp2app.common.infra.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
