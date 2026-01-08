@@ -34,7 +34,6 @@ class GenerateUploadTicketUseCase(
             contentType = command.contentType,
         )
 
-        // TODO : ttl 적용할 수 있도록 변경
         val savedMedia = transactionRunner.run { mediaRepository.save(media) }
 
         // Upload Ticket 발급
