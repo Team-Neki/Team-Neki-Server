@@ -82,6 +82,7 @@ dependencies {
 
     // JPA
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    runtimeOnly("org.postgresql:postgresql")
 
     // flyway (DB schema migration)
     implementation("org.flywaydb:flyway-core")
@@ -94,7 +95,7 @@ dependencies {
     testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestExtensionsVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testRuntimeOnly("com.h2database:h2")
-    runtimeOnly("org.postgresql:postgresql")
+    testImplementation("io.rest-assured:rest-assured")
 }
 
 spotless {
