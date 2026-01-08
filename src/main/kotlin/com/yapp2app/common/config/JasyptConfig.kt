@@ -16,10 +16,10 @@ import org.springframework.context.annotation.Profile
  */
 @Profile("!test")
 @Configuration
-class JasyptConfig {
-
+class JasyptConfig(
     @Value("\${jasypt.encryptor.password}")
-    private lateinit var encryptKey: String
+    private val encryptKey: String,
+) {
 
     @Bean("jasyptStringEncryptor")
     fun stringEncryptor(): StringEncryptor {

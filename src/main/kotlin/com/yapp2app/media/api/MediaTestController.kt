@@ -1,8 +1,8 @@
-package com.yapp2app.common.media.api
+package com.yapp2app.media.api
 
-import com.yapp2app.common.media.MediaKey
-import com.yapp2app.common.media.MediaStorage
-import com.yapp2app.common.media.MediaType
+import com.yapp2app.media.application.port.MediaStoragePort
+import com.yapp2app.media.domain.MediaKey
+import com.yapp2app.media.domain.MediaType
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 @Profile("local")
 @RestController
 @RequestMapping("/api/media/test")
-class MediaTestController(private val mediaStorage: MediaStorage) {
+class MediaTestController(private val mediaStorage: MediaStoragePort) {
 
     @GetMapping
     fun listMedia(@RequestParam(defaultValue = "temp/") prefix: String): MediaListResponse {

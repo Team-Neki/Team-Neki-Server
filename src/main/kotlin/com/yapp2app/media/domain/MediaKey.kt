@@ -1,5 +1,6 @@
-package com.yapp2app.common.media
+package com.yapp2app.media.domain
 
+import com.yapp2app.media.domain.MediaType
 import java.util.UUID
 
 /**

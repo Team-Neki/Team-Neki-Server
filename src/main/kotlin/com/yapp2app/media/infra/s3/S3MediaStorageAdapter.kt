@@ -1,8 +1,8 @@
-package com.yapp2app.common.infra.media.s3
+package com.yapp2app.media.infra.s3
 
-import com.yapp2app.common.media.MediaRef
-import com.yapp2app.common.media.MediaStorage
-import com.yapp2app.common.media.MediaType
+import com.yapp2app.media.application.dto.MediaRef
+import com.yapp2app.media.application.port.MediaStoragePort
+import com.yapp2app.media.domain.MediaType
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
@@ -16,12 +16,12 @@ import java.time.Duration
  * date           : 2025. 12. 19. 오전 2:40
  * description    : 이미지 업로드(MediaStorage) S3 구현체
  */
-class S3MediaStorage(
+class S3MediaStorageAdapter(
     private val s3Client: S3Client,
     private val s3Presigner: S3Presigner,
     private val bucketName: String,
     private val baseUrl: String,
-) : MediaStorage {
+) : MediaStoragePort {
 
     override fun deleteByKey(key: String) {
         s3Client.deleteObject {

@@ -1,6 +1,6 @@
-package com.yapp2app.common.infra.media.s3
+package com.yapp2app.media.infra.s3
 
-import com.yapp2app.common.media.MediaStorage
+import com.yapp2app.media.application.port.MediaStoragePort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -67,7 +67,7 @@ class S3MediaStorageConfig(private val props: S3Properties) {
     }
 
     @Bean
-    fun mediaStorage(s3Client: S3Client, s3Presigner: S3Presigner): MediaStorage = S3MediaStorage(
+    fun mediaStorage(s3Client: S3Client, s3Presigner: S3Presigner): MediaStoragePort = S3MediaStorageAdapter(
         s3Client = s3Client,
         s3Presigner = s3Presigner,
         bucketName = props.bucket,
