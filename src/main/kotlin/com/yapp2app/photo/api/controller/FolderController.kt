@@ -1,5 +1,6 @@
 package com.yapp2app.photo.api.controller
 
+import com.yapp2app.common.api.document.RequiresSecurity
 import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.photo.api.converter.FolderCommandConverter
 import com.yapp2app.photo.api.converter.FolderResultConverter
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController
  * date           : 2025. 12. 23. 오후 7:58
  * description    : Folder aggregate에 대한 api endpoint
  */
+@RequiresSecurity
 @Tag(name = "folder", description = "폴더 API")
 @RestController
 @RequestMapping("/api/folders")
