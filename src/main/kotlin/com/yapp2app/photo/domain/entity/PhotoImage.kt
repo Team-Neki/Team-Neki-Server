@@ -27,6 +27,6 @@ class PhotoImage(
     @Column(name = "media_id", nullable = false)
     val mediaId: Long,
 
-    @Column(name = "folder_id")
+    @Column(name = "folder_id", nullable = true)
     var folderId: Long? = null,
 ) : BaseTimeEntity()

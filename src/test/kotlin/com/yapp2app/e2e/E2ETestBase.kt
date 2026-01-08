@@ -31,7 +31,7 @@ abstract class E2ETestBase {
         email: String = "test-${System.currentTimeMillis()}@example.com",
         name: String = "테스트 사용자",
         password: String = "Test1234!",
-        providerType: ProviderType = ProviderType.LOCAL,
+        providerType: ProviderType = ProviderType.TEST,
         roles: String = RoleType.USER.role,
     ): Pair<User, String> {
         val user = userRepository.save(
