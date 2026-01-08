@@ -11,6 +11,7 @@ import com.yapp2app.photo.api.dto.UploadPhotoResponse
 import com.yapp2app.photo.application.usecase.DeletePhotoUseCase
 import com.yapp2app.photo.application.usecase.GetPhotosUseCase
 import com.yapp2app.photo.application.usecase.UploadPhotoUseCase
+import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -42,7 +43,7 @@ class PhotoController(
     @PostMapping
     fun uploadPhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @RequestBody request: UploadPhotoRequest,
+        @Valid @RequestBody request: UploadPhotoRequest,
     ): BaseResponse<UploadPhotoResponse> {
         val command = commandConverter.toUploadPhotoCommand(userId, request)
 
@@ -82,7 +83,7 @@ class PhotoController(
     @DeleteMapping
     fun deletePhotos(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @RequestBody request: DeletePhotosRequest,
+        @Valid @RequestBody request: DeletePhotosRequest,
     ): BaseResponse<Any> {
         val command = commandConverter.toDeletePhotosCommand(userId, request)
 
