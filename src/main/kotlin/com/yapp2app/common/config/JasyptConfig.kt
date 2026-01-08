@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Profile
  * date           : 2025. 12. 24.
  * description    : Jasypt 암호화 설정
  */
-@Profile("!test")
 @Configuration
 class JasyptConfig(
     @Value("\${jasypt.encryptor.password}")

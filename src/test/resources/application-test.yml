@@ -16,6 +16,11 @@ spring:
   flyway:
     enabled: false
 
+
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD}
+
 app:
   auth:
     tokenSecret: testSecretTokenMustBeVeryLongTestSecretDoesNotUseJasypt
