@@ -16,8 +16,11 @@ class PhotoImageRepositoryAdapter(private val jpaRepository: JpaPhotoImageReposi
 
     override fun save(photoImage: PhotoImage): PhotoImage = jpaRepository.save(photoImage)
 
-    override fun listOwnedPhotos(userId: Long, folderId: Long?): List<PhotoImage> {
-        TODO("Not yet implemented")
+    // TODO : querydsl 교체
+    override fun listOwnedPhotos(userId: Long, folderId: Long?): List<PhotoImage> = if (folderId != null) {
+        jpaRepository.findAllByUserIdAndFolderId(userId, folderId)
+    } else {
+        jpaRepository.findAllByUserId(userId)
     }
 
     override fun deleteOwnedPhoto(userId: Long, photoId: Long): PhotoImage? {
