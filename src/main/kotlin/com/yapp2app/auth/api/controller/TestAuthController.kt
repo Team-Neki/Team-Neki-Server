@@ -8,6 +8,7 @@ import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.user.application.repository.UserRepository
 import com.yapp2app.user.domain.enums.ProviderType
+import org.springframework.context.annotation.Profile
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController
  * date           : 2025. 12. 28. 오후 7:58
  * description    :
  */
+@Profile("!test")
 @Deprecated("로컬 토큰 발급을 위한 임시 엔드 포인트")
 @RestController
 @RequestMapping("/api/auth/test")
