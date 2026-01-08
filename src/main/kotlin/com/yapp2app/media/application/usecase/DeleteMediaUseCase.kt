@@ -6,6 +6,7 @@ import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.media.application.command.DeleteMediaCommand
 import com.yapp2app.media.application.command.DeleteMediasCommand
+import com.yapp2app.media.application.port.MediaBinaryCachePort
 import com.yapp2app.media.application.port.MediaRepositoryPort
 import com.yapp2app.media.application.port.MediaStoragePort
 import org.slf4j.LoggerFactory
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory
 class DeleteMediaUseCase(
     private val mediaRepository: MediaRepositoryPort,
     private val mediaStorage: MediaStoragePort,
+    private val cache: MediaBinaryCachePort,
     private val transactionRunner: TransactionRunner,
 ) {
 
@@ -38,6 +40,8 @@ class DeleteMediaUseCase(
             foundMedia.markAsDeleteRequested()
             foundMedia
         }
+
+        cache.evict(media.storageKey) // cache 무효화 시도
 
         return runCatching {
             // object storage 삭제 요청
@@ -71,7 +75,10 @@ class DeleteMediaUseCase(
             val foundMedias =
                 mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
 
-            foundMedias.forEach { it.markAsDeleteRequested() }
+            foundMedias.forEach {
+                it.markAsDeleteRequested()
+                cache.evict(it.storageKey) // cache 무효화 시도
+            }
             foundMedias
         }
 

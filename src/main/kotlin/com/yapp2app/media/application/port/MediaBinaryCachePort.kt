@@ -11,4 +11,6 @@ interface MediaBinaryCachePort {
     fun get(key: String): ByteArray?
 
     fun put(key: String, value: ByteArray)
+
+    fun evict(key: String)
 }

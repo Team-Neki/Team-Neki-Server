@@ -19,4 +19,8 @@ class FakeMediaBinaryCacheAdapter : MediaBinaryCachePort {
     override fun put(key: String, value: ByteArray) {
         // 캐시 미사용: 아무 동작도 하지 않음
     }
+
+    override fun evict(key: String) {
+        // 캐시 미사용: 항상 evict skip
+    }
 }
