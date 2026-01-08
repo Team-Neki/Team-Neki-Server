@@ -33,7 +33,6 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
             }
         } catch (e: Exception) {
             logger.debug("JWT validation failed: ${e.message}")
-            return
         }
 
         filterChain.doFilter(request, response)
