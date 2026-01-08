@@ -1,4 +1,6 @@
-package com.yapp2app.common.media
+package com.yapp2app.media.application.dto
+
+import com.yapp2app.media.domain.MediaType
 
 /**
  * fileName       : MediaRef
