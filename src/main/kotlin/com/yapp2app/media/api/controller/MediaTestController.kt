@@ -1,4 +1,4 @@
-package com.yapp2app.media.api
+package com.yapp2app.media.api.controller
 
 import com.yapp2app.media.application.port.MediaStoragePort
 import com.yapp2app.media.domain.MediaKey
@@ -52,7 +52,7 @@ class MediaTestController(private val mediaStorage: MediaStoragePort) {
         val key = MediaKey.generate(MediaType.TEMP, effectiveFilename)
 
         // Presigned URL 생성
-        val presignedUrl = mediaStorage.generatePresignedUrl(
+        val presignedUrl = mediaStorage.generateUploadTicket(
             key = key,
             contentType = contentType,
             expirationMinutes = expirationMinutes,

@@ -14,7 +14,11 @@ interface MediaStoragePort {
 
     fun findByKey(key: String): String
 
+    fun fetchBinaryByKey(key: String): ByteArray
+
     fun findAll(prefix: String): List<MediaRef>
 
-    fun generatePresignedUrl(key: String, contentType: String, expirationMinutes: Long = 10): String
+    fun exists(key: String): Boolean
+
+    fun generateUploadTicket(key: String, contentType: String, expirationMinutes: Long = 10): String
 }
