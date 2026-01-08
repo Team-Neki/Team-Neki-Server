@@ -17,6 +17,8 @@ enum class ResultCode(val code: String, var message: String) {
     NOT_FOUND("D-04", "데이터를 찾을 수 없습니다."),
     ALREADY_REQUEST("D-05", "이미 처리된 요청입니다."),
 
+    CONFLICT_FOLDER("D-06", message = "해당하는 폴더가 존재합니다."),
+
     EXPIRED_TOKEN_ERROR("D-997", "토큰이 만료되었습니다."),
     INVALID_TOKEN_ERROR("D-998", "토큰이 올바르지 않습니다."),
     SECURITY_ERROR("D-999", "인증에 실패하였습니다."),
