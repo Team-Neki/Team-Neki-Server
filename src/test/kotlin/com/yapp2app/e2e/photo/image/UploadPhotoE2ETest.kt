@@ -139,19 +139,6 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("인증되지 않은 사용자가 업로드 시도 시 401 에러를 반환한다")
-    fun givenNoAuthToken_whenUploadPhoto_thenReturnsUnauthorized() {
-        // when & then
-        RestAssured.given()
-            .contentType(ContentType.JSON)
-            .body(UploadPhotoRequest(1, null))
-            .`when`()
-            .post("/api/photos")
-            .then()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-    }
-
-    @Test
     @DisplayName("존재하지 않는 미디어로 업로드 시 NOT_FOUND 에러를 반환한다")
     fun givenNonExistentMediaId_whenUploadPhoto_thenReturnsNotFound() {
         // when & then

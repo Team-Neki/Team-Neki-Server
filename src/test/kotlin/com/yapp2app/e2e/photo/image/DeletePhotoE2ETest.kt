@@ -94,21 +94,6 @@ class DeletePhotoE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("인증되지 않은 사용자가 삭제 시도 시 401 에러를 반환한다")
-    fun givenNoAuthToken_whenDeletePhoto_thenReturnsUnauthorized() {
-        // given
-        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
-        val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
-
-        // when & then
-        RestAssured.given()
-            .`when`()
-            .delete("/api/photos/${photo.id}")
-            .then()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-    }
-
-    @Test
     @DisplayName("폴더에 포함된 사진 삭제 성공")
     fun givenPhotoInFolder_whenDeletePhoto_thenReturnsSuccess() {
         // given

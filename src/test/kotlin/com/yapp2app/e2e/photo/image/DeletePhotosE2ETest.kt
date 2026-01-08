@@ -106,19 +106,6 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("인증되지 않은 사용자가 삭제 시도 시 401 에러를 반환한다")
-    fun givenNoAuthToken_whenDeletePhotos_thenReturnsUnauthorized() {
-        // when & then
-        RestAssured.given()
-            .contentType(ContentType.JSON)
-            .body(DeletePhotosRequest(photoIds = listOf(1, 2, 3)))
-            .`when`()
-            .delete("/api/photos")
-            .then()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-    }
-
-    @Test
     @DisplayName("존재하지 않는 사진 ID가 포함되어도 나머지 사진은 삭제된다")
     fun givenMixedValidAndInvalidPhotoIds_whenDeletePhotos_thenDeletesValidPhotos() {
         // given

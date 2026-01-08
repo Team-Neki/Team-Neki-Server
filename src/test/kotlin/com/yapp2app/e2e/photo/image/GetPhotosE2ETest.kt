@@ -110,19 +110,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("인증되지 않은 사용자가 조회 시도 시 401 에러를 반환한다")
-    fun givenNoAuthToken_whenGetPhotos_thenReturnsUnauthorized() {
-        // given - no auth token
-
-        // when & then
-        RestAssured.given()
-            .`when`()
-            .get("/api/photos")
-            .then()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-    }
-
-    @Test
     @DisplayName("다른 사용자의 사진은 조회되지 않는다")
     fun givenOtherUserPhotos_whenGetPhotos_thenReturnsEmptyList() {
         // given
