@@ -24,7 +24,6 @@ class JasyptTest(@Autowired private val jasyptStringEncryptor: StringEncryptor) 
         println("암호화    : ENC($encrypted)")
     }
 
-
     @Test
     fun jasyptDecryptTest() {
         val encText = "ENC(Tlk9CbdZwOMF7yO8va+hxDL6DAdNG8szceqMIazx69QgGDRNMkXVBgn8ZiMY2Bec)"
