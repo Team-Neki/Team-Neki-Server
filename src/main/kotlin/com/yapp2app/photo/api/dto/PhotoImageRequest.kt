@@ -11,8 +11,8 @@ import jakarta.validation.constraints.NotNull
  * description    : Photo image domain 요청
  */
 data class UploadPhotoRequest(
-    @field:NotNull(message = "fileId가 null입니다.")
-    val mediaId: Long,
+    @field:NotNull(message = "mediaId는 필수 입력값입니다.")
+    val mediaId: Long?,
 
     @field:Nullable
     val folderId: Long?,

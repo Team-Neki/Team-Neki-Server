@@ -19,7 +19,7 @@ class PhotoImageCommandConverter {
 
     fun toUploadPhotoCommand(userId: Long, request: UploadPhotoRequest): UploadPhotoCommand = UploadPhotoCommand(
         userId = userId,
-        mediaId = request.mediaId,
+        mediaId = request.mediaId!!,
         folderId = request.folderId,
     )
 
