@@ -1,4 +1,4 @@
-package com.yapp2app.media.infra.s3
+package com.yapp2app.media.infra.storage.s3
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

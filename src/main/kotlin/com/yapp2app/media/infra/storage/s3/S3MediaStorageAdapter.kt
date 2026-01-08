@@ -1,4 +1,4 @@
-package com.yapp2app.media.infra.s3
+package com.yapp2app.media.infra.storage.s3
 
 import com.yapp2app.media.application.dto.MediaRef
 import com.yapp2app.media.application.port.MediaStoragePort

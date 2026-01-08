@@ -1,8 +1,9 @@
-package com.yapp2app.media.infra.s3
+package com.yapp2app.media.infra.storage.s3
 
 import com.yapp2app.media.application.port.MediaStoragePort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.regions.Region
@@ -12,11 +13,12 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import java.net.URI
 
 /**
- * fileName       : S3Config
+ * fileName       : MediaStorageConfig
  * author         : koo
  * date           : 2025. 12. 19. 오전 2:40
- * description    : S3 설정
+ * description    : ObjectStorage 설정
  */
+@Profile("!test")
 @Configuration
 class S3MediaStorageConfig(private val props: S3Properties) {
 
