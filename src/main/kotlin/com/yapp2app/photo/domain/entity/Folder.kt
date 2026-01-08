@@ -6,7 +6,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
 /**
@@ -30,14 +29,4 @@ class Folder(
 
     @Column(name = "cover_photo_id")
     var coverPhotoId: Long? = null,
-
-    @OneToMany(mappedBy = "folder")
-    val photoImages: MutableList<PhotoImage> = mutableListOf(),
-
-) : BaseTimeEntity() {
-
-    fun detachPhotos() {
-        photoImages.forEach { it.detachFolder() }
-        photoImages.clear()
-    }
-}
+) : BaseTimeEntity()

@@ -22,8 +22,6 @@ class DeleteFolderUseCase(private val folderRepository: FolderRepositoryPort) {
         val folder = folderRepository.getOwnedFolder(command.userId, command.folderId)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
-        folder.detachPhotos()
-
         folderRepository.deleteOwnedFolder(command.userId, command.folderId)
     }
 
@@ -34,8 +32,6 @@ class DeleteFolderUseCase(private val folderRepository: FolderRepositoryPort) {
         if (folders.size != command.folderIds.size) {
             throw BusinessException(ResultCode.NOT_FOUND)
         }
-
-        folders.forEach { it.detachPhotos() }
 
         folderRepository.deleteOwnedFolders(command.userId, command.folderIds)
     }
