@@ -16,6 +16,7 @@ enum class ResultCode(val code: String, var message: String) {
     NOT_FOUND_USER("D-03", "가입된 계정이 없습니다."),
     NOT_FOUND("D-04", "데이터를 찾을 수 없습니다."),
     ALREADY_REQUEST("D-05", "이미 처리된 요청입니다."),
+    UPLOAD_FAILED("D-06", "파일 업로드에 실패했습니다."),
 
     EXPIRED_TOKEN_ERROR("D-997", "토큰이 만료되었습니다."),
     INVALID_TOKEN_ERROR("D-998", "토큰이 올바르지 않습니다."),
