@@ -7,6 +7,8 @@ import com.yapp2app.media.api.converter.MediaResultConverter
 import com.yapp2app.media.api.dto.GenerateUploadTicketRequest
 import com.yapp2app.media.api.dto.GenerateUploadTicketResponse
 import com.yapp2app.media.application.usecase.GenerateUploadTicketUseCase
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController
  * date           : 2026. 1. 2. 오후 7:34
  * description    : Media api endpoint
  */
+@Tag(name = "MediaController", description = "미디어 업로드 API")
 @RequiresSecurity
 @RestController
 @RequestMapping("/api/media")
@@ -28,6 +31,20 @@ class MediaController(
     private val resultConverter: MediaResultConverter,
 ) {
 
+    @Operation(
+        summary = "미디어 업로드 ticket 발급",
+        description = """
+            mediaType:
+            * USER_PROFILE("user-profiles") : 사용자 프로필
+            * PHOTO_BOOTH("photo-booth") : 인생네컷
+            * ATTACHMENT("attachments") : 확장성을 고려한 첨부 이미지
+            * TEMP("temp") : 업로드 검증, 테스트 등
+
+            contentType:
+            * image/jpeg
+            * image/png
+        """,
+    )
     @PostMapping("/upload")
     fun generateUploadTicket(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
