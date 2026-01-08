@@ -1,5 +1,7 @@
 package com.yapp2app.media.application.result
 
+import java.time.Instant
+
 /**
  * fileName       : MediaResult
  * author         : koo
@@ -8,7 +10,13 @@ package com.yapp2app.media.application.result
  */
 data class ConfirmMediaUploadedResult(val success: Boolean)
 
-data class GenerateUploadTicketResult(val mediaId: Long, val presignedUrl: String)
+data class GenerateUploadTicketResult(
+    val mediaId: Long,
+    val uploadUrl: String,
+    val method: String,
+    val expiresAt: Instant,
+    val contentType: String,
+)
 
 data class GetMediasResult(val medias: List<MediaInfo>) {
     data class MediaInfo(val mediaId: Long, val binaryData: ByteArray, val contentType: String) {

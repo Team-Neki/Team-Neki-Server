@@ -28,14 +28,14 @@ class MediaController(
     private val resultConverter: MediaResultConverter,
 ) {
 
-    @PostMapping("/presigned")
+    @PostMapping("/upload")
     fun generateUploadTicket(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
         @RequestBody request: GenerateUploadTicketRequest,
     ): BaseResponse<GenerateUploadTicketResponse> {
-        val result = generateUploadTicketUseCase.execute(
-            commandConverter.toGenerateUploadTicketCommand(ownerId, request),
-        )
+        val command = commandConverter.toGenerateUploadTicketCommand(ownerId, request)
+
+        val result = generateUploadTicketUseCase.execute(command)
 
         val response = resultConverter.toGenerateUploadTicketResponse(result)
 

@@ -45,7 +45,10 @@ class GenerateUploadTicketUseCase(
 
         return GenerateUploadTicketResult(
             mediaId = savedMedia.id!!,
-            presignedUrl = uploadTicket,
+            uploadUrl = uploadTicket.url,
+            method = uploadTicket.method,
+            expiresAt = uploadTicket.expiresAt,
+            contentType = command.contentType,
         )
     }
 }

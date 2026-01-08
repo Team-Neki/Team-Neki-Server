@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.model.S3Exception
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
-import java.time.Duration
+import java.time.Instant
 
 /**
  * fileName       : S3MediaStorage
@@ -24,31 +24,31 @@ import java.time.Duration
 class S3MediaStorageAdapter(
     private val s3Client: S3Client,
     private val s3Presigner: S3Presigner,
-    private val bucketName: String,
-    private val baseUrl: String,
+    private val props: S3Properties,
 ) : MediaStoragePort {
 
     override fun deleteByKey(key: String) {
         s3Client.deleteObject {
-            it.bucket(bucketName).key(key)
+            it.bucket(props.bucket).key(key)
         }
     }
 
-    override fun findByKey(key: String): String = "$baseUrl/$key"
+    override fun findByKey(key: String): String = "${props.baseUrl}/$key"
 
     override fun fetchBinaryByKey(key: String): ByteArray {
         val getObjectRequest = GetObjectRequest.builder()
-            .bucket(bucketName)
+            .bucket(props.bucket)
             .key(key)
             .build()
 
-        val responseBytes: ResponseBytes<GetObjectResponse> = s3Client.getObjectAsBytes(getObjectRequest)
+        val responseBytes: ResponseBytes<GetObjectResponse> =
+            s3Client.getObjectAsBytes(getObjectRequest)
         return responseBytes.asByteArray()
     }
 
     override fun findAll(prefix: String): List<MediaRef> {
         val request = ListObjectsV2Request.builder()
-            .bucket(bucketName)
+            .bucket(props.bucket)
             .prefix(prefix)
             .build()
 
@@ -58,7 +58,7 @@ class S3MediaStorageAdapter(
             .map { s3Object ->
                 MediaRef(
                     key = s3Object.key(),
-                    url = "$baseUrl/${s3Object.key()}",
+                    url = "${props.baseUrl}/${s3Object.key()}",
                     type = MediaType.valueOf(s3Object.key().substringBefore("/").uppercase()),
                 )
             }
@@ -66,7 +66,7 @@ class S3MediaStorageAdapter(
 
     override fun exists(key: String): Boolean = try {
         s3Client.headObject {
-            it.bucket(bucketName)
+            it.bucket(props.bucket)
             it.key(key)
         }
         true
@@ -81,20 +81,25 @@ class S3MediaStorageAdapter(
         }
     }
 
-    override fun generateUploadTicket(key: String, contentType: String, expirationMinutes: Long): String {
+    override fun generateUploadTicket(key: String, contentType: String): MediaStoragePort.UploadTicket {
         val putObjectRequest = PutObjectRequest.builder()
-            .bucket(bucketName)
+            .bucket(props.bucket)
             .key(key)
             .contentType(contentType)
             .build()
 
         val presignRequest = PutObjectPresignRequest.builder()
-            .signatureDuration(Duration.ofMinutes(expirationMinutes))
+            .signatureDuration(props.presignedUrlExpiration)
             .putObjectRequest(putObjectRequest)
             .build()
 
         val presignedRequest = s3Presigner.presignPutObject(presignRequest)
 
-        return presignedRequest.url().toString()
+        return MediaStoragePort.UploadTicket(
+            url = presignedRequest.url().toString(),
+            method = "PUT",
+            expiresAt = Instant.now().plus(props.presignedUrlExpiration),
+            contentType = contentType,
+        )
     }
 }

@@ -16,6 +16,9 @@ class MediaResultConverter {
     fun toGenerateUploadTicketResponse(result: GenerateUploadTicketResult): GenerateUploadTicketResponse =
         GenerateUploadTicketResponse(
             mediaId = result.mediaId,
-            presignedUrl = result.presignedUrl,
+            uploadUrl = result.uploadUrl,
+            method = result.method,
+            expiresIn = result.expiresAt,
+            contentType = result.contentType,
         )
 }

@@ -20,21 +20,21 @@ import java.net.URI
  */
 @Profile("!test")
 @Configuration
-class S3MediaStorageConfig(private val props: S3Properties) {
+class S3MediaStorageConfig(private val s3Props: S3Properties) {
 
     @Bean
     fun s3Client(): S3Client {
         val credentials = AwsBasicCredentials.create(
-            props.accessKey,
-            props.secretKey,
+            s3Props.accessKey,
+            s3Props.secretKey,
         )
 
         val builder = S3Client.builder()
-            .region(Region.of(props.region))
+            .region(Region.of(s3Props.region))
             .credentialsProvider(StaticCredentialsProvider.create(credentials))
 
         // LocalStack을 위한 엔드포인트 설정
-        props.endpoint?.let {
+        s3Props.endpoint?.let {
             builder.endpointOverride(URI.create(it))
                 .forcePathStyle(true) // LocalStack은 path-style 필수
         }
@@ -45,16 +45,16 @@ class S3MediaStorageConfig(private val props: S3Properties) {
     @Bean
     fun s3Presigner(): S3Presigner {
         val credentials = AwsBasicCredentials.create(
-            props.accessKey,
-            props.secretKey,
+            s3Props.accessKey,
+            s3Props.secretKey,
         )
 
         val builder = S3Presigner.builder()
-            .region(Region.of(props.region))
+            .region(Region.of(s3Props.region))
             .credentialsProvider(StaticCredentialsProvider.create(credentials))
 
         // LocalStack을 위한 엔드포인트 설정
-        props.endpoint?.let {
+        s3Props.endpoint?.let {
             builder.endpointOverride(URI.create(it))
                 .serviceConfiguration(
                     S3Configuration.builder()
@@ -70,7 +70,6 @@ class S3MediaStorageConfig(private val props: S3Properties) {
     fun mediaStorage(s3Client: S3Client, s3Presigner: S3Presigner): MediaStoragePort = S3MediaStorageAdapter(
         s3Client = s3Client,
         s3Presigner = s3Presigner,
-        bucketName = props.bucket,
-        baseUrl = props.baseUrl,
+        props = s3Props,
     )
 }
