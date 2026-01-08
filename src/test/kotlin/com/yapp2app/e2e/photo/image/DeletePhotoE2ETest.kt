@@ -71,7 +71,7 @@ class DeletePhotoE2ETest : PhotoImageE2ETestBase() {
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("success", equalTo(false))
-            .body("code", equalTo(ResultCode.NOT_FOUND.code))
+            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 
     @Test
@@ -90,7 +90,7 @@ class DeletePhotoE2ETest : PhotoImageE2ETestBase() {
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("success", equalTo(false))
-            .body("code", equalTo(ResultCode.NOT_FOUND.code))
+            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 
     @Test

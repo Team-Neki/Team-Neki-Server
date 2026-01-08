@@ -79,7 +79,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("success", equalTo(false))
-            .body("code", equalTo(ResultCode.INVALID_PARAMETER.code))
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
     @Test
@@ -102,7 +102,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("success", equalTo(false))
-            .body("code", equalTo(ResultCode.INVALID_PARAMETER.code))
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
     @Test
