@@ -4,9 +4,6 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.MDC
-import org.springframework.core.Ordered
-import org.springframework.core.annotation.Order
-import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.util.UUID
 
@@ -17,8 +14,6 @@ import java.util.UUID
  * description    : 인증 전에 실행되어 요청별 기본 정보를 MDC에 설정하는 필터
  *                  Request ID, URI, Method, Client IP 등을 추가
  */
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
 class RequestMdcFilter : OncePerRequestFilter() {
 
     companion object {
