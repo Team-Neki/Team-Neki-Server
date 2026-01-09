@@ -4,6 +4,7 @@ import com.yapp2app.user.domain.enums.ProviderType
 import com.yapp2app.user.domain.enums.RoleType
 import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime
  * date           : 2025. 12. 18. 18:45
  * description    : User Entity
  */
+@DynamicUpdate
 @Entity
 @Table(name = "TB_USERS")
 class User(
@@ -21,17 +23,23 @@ class User(
     val id: Long? = null,
 
     @Column(nullable = false, unique = true)
-    val email: String,
+    val email: String?,
 
     @Column(nullable = true)
     var password: String,
 
+    @Column(nullable = false)
+    val oid: Long,
+
     @Column(nullable = false, length = 100)
-    var name: String,
+    var name: String?,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     val providerType: ProviderType,
+
+    @Column(name = "image_url", nullable = true, length = 100)
+    var imageUrl: String?,
 
     @Column(name = "role", nullable = false, length = 255)
     var roles: String = RoleType.USER.role,
@@ -44,11 +52,20 @@ class User(
     @Column(nullable = false)
     var updatedAt: LocalDateTime? = null,
 ) {
-    constructor(email: String, name: String, roles: String, providerType: ProviderType) : this(
-        email = email,
+    constructor(
+        email: String?,
+        name: String?,
+        oid: Long,
+        roles: String,
+        providerType: ProviderType,
+        imageUrl: String?,
+    ) : this(
+        email = email ?: "NO_EMAIL",
         password = "NO_PASS",
+        oid = oid,
         name = name,
         providerType = providerType,
         roles = roles,
+        imageUrl = imageUrl,
     )
 }

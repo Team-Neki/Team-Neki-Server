@@ -19,11 +19,11 @@ class UserPrincipal(
     @get:JvmName("id")
     val id: Long,
     @get:JvmName("name")
-    val name: String,
+    val name: String?,
     @get:JvmName("providerType")
     val providerType: ProviderType,
     @get:JvmName("email")
-    val email: String,
+    val email: String?,
     @get:JvmName("roles")
     val roles: Set<String>,
     @get:JvmName("getUserAttributes")
@@ -59,7 +59,7 @@ class UserPrincipal(
         password = "NO_PASS",
     )
 
-    override fun getName(): String = name
+    override fun getName(): String? = name
 
     override fun getAttributes(): MutableMap<String, Any> = attributes
 
@@ -75,5 +75,5 @@ class UserPrincipal(
 
     override fun getPassword(): String = password
 
-    override fun getUsername(): String = email
+    override fun getUsername(): String? = email
 }

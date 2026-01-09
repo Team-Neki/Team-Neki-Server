@@ -1,9 +1,17 @@
 package com.yapp2app.auth.infra.security.filter
 
+import com.nimbusds.jose.shaded.gson.JsonArray
+import com.nimbusds.jose.shaded.gson.JsonObject
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
+import com.yapp2app.common.api.dto.ResultCode
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.MalformedJwtException
+import io.jsonwebtoken.UnsupportedJwtException
+import io.jsonwebtoken.security.SignatureException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
@@ -23,19 +31,26 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
         filterChain: FilterChain,
     ) {
         try {
-            // Authorization 헤더에서 토큰 추출
-            val token = extractToken(request)
+            val tokenStr: String? = extractToken(request)
+            tokenStr?.let {
+                val authentication: Authentication = tokenProvider.getAuthentication(it)
 
-            // 토큰이 있으면 검증 후 인증 정보 설정
-            if (token != null) {
-                val authentication = tokenProvider.getAuthentication(token)
                 SecurityContextHolder.getContext().authentication = authentication
             }
-        } catch (e: Exception) {
-            logger.debug("JWT validation failed: ${e.message}")
+            filterChain.doFilter(request, response)
+        } catch (ex: SignatureException) {
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+        } catch (ex: SecurityException) {
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+        } catch (ex: MalformedJwtException) {
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+        } catch (ex: ExpiredJwtException) {
+            handleException(response, ResultCode.EXPIRED_TOKEN_ERROR)
+        } catch (ex: UnsupportedJwtException) {
+            handleException(response, ResultCode.EXPIRED_TOKEN_ERROR)
+        } catch (ex: Exception) {
+            handleException(response, ResultCode.SECURITY_ERROR)
         }
-
-        filterChain.doFilter(request, response)
     }
 
     private fun extractToken(request: HttpServletRequest): String? {
@@ -45,5 +60,46 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
         } else {
             null
         }
+    }
+
+    /**
+     * JWT 검증 실패 시 에러 응답 처리
+     *
+     * @param response HttpServletResponse
+     * @param resultCode 에러 코드
+     *
+     * ## HTTP Status: 401 Unauthorized
+     * 인증이 필요하거나 인증에 실패한 경우 반환됩니다.
+     *
+     * ## 에러 코드별 클라이언트 대응 방법
+     *
+     * ### D-997 (EXPIRED_TOKEN_ERROR) - 토큰 만료
+     * - **원인**: AccessToken의 유효기간이 만료되었습니다.
+     * - **대응**: RefreshToken을 사용하여 `/api/auth/refresh` API를 호출해 새로운 토큰을 발급받으세요.
+     * - **재로그인 필요 여부**: 아니오 (RefreshToken이 유효한 경우)
+     *
+     * ### D-998 (INVALID_TOKEN_ERROR) - 토큰 무효
+     * - **원인**: 토큰의 서명이 올바르지 않거나, 토큰 형식이 잘못되었습니다.
+     * - **대응**: 재로그인이 필요합니다. `/api/auth/login` API를 호출하세요.
+     * - **재로그인 필요 여부**: 예
+     *
+     * ### D-999 (SECURITY_ERROR) - 인증 실패
+     * - **원인**: 예상하지 못한 인증 오류가 발생했습니다.
+     * - **대응**: 재로그인이 필요합니다. `/api/auth/login` API를 호출하세요.
+     * - **재로그인 필요 여부**: 예
+     */
+    private fun handleException(response: HttpServletResponse, resultCode: ResultCode) {
+        val jsonObject = JsonObject()
+
+        response.contentType = "application/json;charset=UTF-8"
+        response.characterEncoding = "utf-8"
+        response.status = HttpServletResponse.SC_UNAUTHORIZED
+
+        jsonObject.addProperty("resultCode", resultCode.code)
+        jsonObject.addProperty("message", resultCode.message)
+        jsonObject.addProperty("success", false)
+        jsonObject.add("errors", JsonArray())
+
+        response.writer.print(jsonObject)
     }
 }

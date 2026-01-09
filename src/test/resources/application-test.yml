@@ -18,5 +18,15 @@ spring:
 
 app:
   auth:
-    tokenSecret: testSecretTokenMustBeVeryLongTestSecretDoesNotUseJasypt
-    tokenExpiry: 7776000000
+    accessTokenSecret: testSecretTokenMustBeVeryLongTestSecretDoesNotUseJasypt
+    accessTokenExpiry: 3600000 #1시간
+    refreshTokenSecret: testrefreshTokenMustBeVeryLongTestSecretDoesNotUseJasypt
+    refreshTokenExpiry: 604800000 #7일
+
+
+aws:
+  s3:
+    access-key: test
+    secret-key: test
+    region: ap-northeast-2
+    bucket: yapp-local

@@ -1,8 +1,6 @@
 package com.yapp2app.auth.infra.security.config
 
 import com.yapp2app.auth.infra.security.filter.JwtAuthenticationFilter
-import com.yapp2app.auth.infra.security.properties.AppProperties
-import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -17,15 +15,21 @@ import org.springframework.web.cors.CorsConfigurationSource
  */
 @Configuration
 @EnableWebSecurity
-class SecurityConfig(
-    private val authTokenProvider: AuthTokenProvider,
-    private val appProperties: AppProperties,
-    private val corsConfigurationSource: CorsConfigurationSource,
+class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSource) {
 
-) {
-
+    /**
+     * Actuator Health Check 엔드포인트 보안 설정 (Kubernetes Probe용)
+     */
     @Bean
     @Order(0)
+    fun actuatorSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
+        http.securityMatcher("/actuator/health/**")
+            .csrf { it.disable() }
+            .authorizeHttpRequests { it.anyRequest().permitAll() }
+            .build()
+
+    @Bean
+    @Order(1)
     fun documentSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http.securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
             .csrf { it.disable() }
@@ -35,7 +39,7 @@ class SecurityConfig(
             .build()
 
     @Bean
-    @Order(1)
+    @Order(2)
     fun apiSecurityFilterChain(
         http: HttpSecurity,
         jwtAuthenticationFilter: JwtAuthenticationFilter,

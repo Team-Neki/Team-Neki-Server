@@ -45,6 +45,7 @@ dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // Kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -136,4 +137,11 @@ tasks.withType<Test> {
 
 tasks.jar {
     enabled = false
+}
+
+tasks.bootJar {
+    // Spring Boot Layered JAR 활성화 (Docker 캐싱 최적화)
+    layered {
+        enabled = true
+    }
 }

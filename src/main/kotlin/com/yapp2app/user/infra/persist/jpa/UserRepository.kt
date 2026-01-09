@@ -1,4 +1,4 @@
-package com.yapp2app.user.application.repository
+package com.yapp2app.user.infra.persist.jpa
 
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.ProviderType
@@ -11,7 +11,5 @@ import org.springframework.data.jpa.repository.JpaRepository
  * description    : User Entity Repository
  */
 interface UserRepository : JpaRepository<User, Long> {
-    fun findByEmailAndProviderType(email: String, providerType: ProviderType): User?
-
-    fun existsByEmailAndProviderType(email: String, providerType: ProviderType): Boolean
+    fun findByOidAndProviderType(oid: Long, providerType: ProviderType): User?
 }

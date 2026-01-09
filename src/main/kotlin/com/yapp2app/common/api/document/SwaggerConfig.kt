@@ -1,5 +1,6 @@
 package com.yapp2app.common.api.document
 
+import com.yapp2app.auth.infra.security.properties.AppProperties
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
@@ -14,16 +15,12 @@ import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
 import org.springdoc.core.customizers.OperationCustomizer
 import org.springdoc.core.models.GroupedOpenApi
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
 
 @Configuration
-class SwaggerConfig(
-    @Value("\${app.server.url}") private val serverUrl: String,
-    @Value("\${app.version}") private val appVersion: String,
-) {
+class SwaggerConfig(private val appProperties: AppProperties) {
 
     companion object {
         private const val SECURITY_SCHEME = "JWT"
@@ -45,11 +42,11 @@ class SwaggerConfig(
             // TODO : 도메인 추가 후 수정
             .addServersItem(
                 Server()
-                    .url(serverUrl.replace("https://", "http://"))
+                    .url(appProperties.server.url)
                     .description("http server (no ssl)"),
             )
             .components(components)
-            .info(Info().title("Yapp App Team2 API Document").version(appVersion))
+            .info(Info().title("Yapp App Team2 API Document").version(appProperties.version))
     }
 
     @Bean
