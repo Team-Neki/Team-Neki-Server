@@ -2,7 +2,6 @@ package com.yapp2app.auth.api.dto
 
 import com.yapp2app.user.domain.enums.ProviderType
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 
 /**
  * fileName       : AuthRequest

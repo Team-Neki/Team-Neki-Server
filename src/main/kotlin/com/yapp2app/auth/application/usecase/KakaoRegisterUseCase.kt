@@ -2,11 +2,11 @@ package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.yapp2app.auth.application.command.RegisterKakaoUserCommand
+import com.yapp2app.auth.application.contract.GetKakaoTokenResponse
+import com.yapp2app.auth.application.contract.OauthInfoResponse
 import com.yapp2app.auth.application.port.OauthHelperPort
 import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.application.result.GetAuthResult
-import com.yapp2app.auth.application.contract.GetKakaoTokenResponse
-import com.yapp2app.auth.application.contract.OauthInfoResponse
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.transaction.TransactionRunner
