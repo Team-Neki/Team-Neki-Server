@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles
  * fileName       : DeletePhotoE2ETest
  * author         : koo
  * date           : 2026. 1. 8.
- * description    : DELETE /api/photos/{photoImageId} E2E 테스트
+ * description    : DELETE /api/photos/{photoId} E2E 테스트
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

@@ -31,5 +31,5 @@ class PhotoImage(
     var folderId: Long? = null,
 
     @Column(name = "memo", nullable = true)
-    var memo: String? = null
+    var memo: String? = null,
 ) : BaseTimeEntity()
