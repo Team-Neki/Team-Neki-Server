@@ -6,6 +6,7 @@ import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.exception.dto.ExceptionMsg
 import com.yapp2app.common.exception.dto.FieldErrorDetail
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -14,7 +15,6 @@ import org.springframework.validation.ObjectError
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -28,9 +28,12 @@ import java.util.function.Consumer
  */
 @RestControllerAdvice
 class ExceptionHandler {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(BusinessException::class)
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {
+        log.error("{} message = {}", ex.resultCode.code, ex.resultCode.message)
+
         val temp = ResponseEntity(
             ExceptionMsg(
                 resultCode = ex.resultCode.code,
@@ -40,6 +43,7 @@ class ExceptionHandler {
             ),
             HttpStatus.BAD_REQUEST,
         )
+
         return temp
     }
 
@@ -133,7 +137,6 @@ class ExceptionHandler {
     )
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
-    @ResponseStatus(HttpStatus.OK)
     fun handleTypeMismatchHandler(ex: MethodArgumentTypeMismatchException): ResponseEntity<ExceptionMsg> =
         if (ex.requiredType?.isEnum == true) {
             val enumValues = ex.requiredType!!.enumConstants?.joinToString(", ")

@@ -1,8 +1,3 @@
-app:
-  version: @version@
-  server:
-    url: ${APP_SERVER_URL:http://localhost:8080}
-
 spring:
   application:
     name: Yapp_APP_2_Sever
@@ -11,6 +6,29 @@ spring:
 
 springdoc:
   override-with-generic-response: false
+
+# Application Version (from build.gradle.kts)
+app:
+  version: "@version@"
+
+# Spring Boot Actuator 설정 (Health Check for Kubernetes)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
 
 aws:
   s3:

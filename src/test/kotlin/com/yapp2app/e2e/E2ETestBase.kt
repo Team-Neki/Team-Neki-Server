@@ -1,10 +1,10 @@
 package com.yapp2app.e2e
 
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
-import com.yapp2app.user.application.repository.UserRepository
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.ProviderType
 import com.yapp2app.user.domain.enums.RoleType
+import com.yapp2app.user.infra.persist.jpa.UserRepository
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -44,8 +44,9 @@ abstract class E2ETestBase {
             ),
         )
 
-        val token = tokenProvider.createToken(
+        val token = tokenProvider.createAccessToken(
             id = user.id.toString(),
+            name = user.name,
             roles = listOf(user.roles.split(",")[0]),
             providerType = user.providerType,
         )
@@ -63,7 +64,9 @@ abstract class E2ETestBase {
         email = email,
         name = name,
         password = password,
+        oid = System.currentTimeMillis(),
         providerType = providerType,
         roles = roles,
+        imageUrl = null,
     )
 }
