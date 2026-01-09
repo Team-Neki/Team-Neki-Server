@@ -1,10 +1,12 @@
 package com.yapp2app.photo.api.converter
 
 import com.yapp2app.photo.api.dto.DeletePhotosRequest
+import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
 import com.yapp2app.photo.application.command.DeletePhotoCommand
 import com.yapp2app.photo.application.command.DeletePhotosCommand
 import com.yapp2app.photo.application.command.GetPhotosCommand
+import com.yapp2app.photo.application.command.UpdatePhotoCommand
 import com.yapp2app.photo.application.command.UploadPhotoCommand
 import org.springframework.stereotype.Component
 
@@ -37,5 +39,11 @@ class PhotoImageCommandConverter {
     fun toDeletePhotosCommand(userId: Long, request: DeletePhotosRequest) = DeletePhotosCommand(
         userId = userId,
         photoIds = request.photoIds,
+    )
+
+    fun toUpdatePhotoCommand(userId: Long, photoId: Long, request: UpdatePhotoRequest) = UpdatePhotoCommand(
+        userId = userId,
+        photoId = photoId,
+        memo = request.memo,
     )
 }

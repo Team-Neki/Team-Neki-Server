@@ -6,15 +6,18 @@ import com.yapp2app.photo.api.converter.PhotoImageCommandConverter
 import com.yapp2app.photo.api.converter.PhotoImageResultConverter
 import com.yapp2app.photo.api.dto.DeletePhotosRequest
 import com.yapp2app.photo.api.dto.GetPhotosResponse
+import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoResponse
 import com.yapp2app.photo.application.usecase.DeletePhotoUseCase
 import com.yapp2app.photo.application.usecase.GetPhotosUseCase
+import com.yapp2app.photo.application.usecase.UpdatePhotoUseCase
 import com.yapp2app.photo.application.usecase.UploadPhotoUseCase
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -35,6 +38,7 @@ class PhotoController(
     private val uploadPhotoUseCase: UploadPhotoUseCase,
     private val getPhotosUseCase: GetPhotosUseCase,
     private val deletePhotoUseCase: DeletePhotoUseCase,
+    private val updatePhotoUseCase: UpdatePhotoUseCase,
 
     private val commandConverter: PhotoImageCommandConverter,
     private val resultConverter: PhotoImageResultConverter,
@@ -68,12 +72,12 @@ class PhotoController(
         return BaseResponse(data = response)
     }
 
-    @DeleteMapping("/{photoImageId}")
+    @DeleteMapping("/{photoId}")
     fun deletePhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @PathVariable photoImageId: Long,
+        @PathVariable photoId: Long,
     ): BaseResponse<Any> {
-        val command = commandConverter.toDeletePhotoCommand(userId, photoImageId)
+        val command = commandConverter.toDeletePhotoCommand(userId, photoId)
 
         deletePhotoUseCase.execute(command)
 
@@ -88,6 +92,19 @@ class PhotoController(
         val command = commandConverter.toDeletePhotosCommand(userId, request)
 
         deletePhotoUseCase.execute(command)
+
+        return BaseResponse()
+    }
+
+    @PatchMapping("/{photoId}")
+    fun updatePhoto(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @PathVariable photoId: Long,
+        @Valid @RequestBody request: UpdatePhotoRequest,
+    ): BaseResponse<Any> {
+        val command = commandConverter.toUpdatePhotoCommand(userId, photoId, request)
+
+        updatePhotoUseCase.execute(command)
 
         return BaseResponse()
     }

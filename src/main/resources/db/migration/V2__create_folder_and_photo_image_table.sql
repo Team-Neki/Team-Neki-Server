@@ -32,7 +32,7 @@ CREATE TABLE TB_PHOTO_IMAGE
 (
     id         BIGSERIAL PRIMARY KEY,
     user_id    BIGINT      NOT NULL,
-    media_id    VARCHAR(64) NOT NULL,
+    media_id   BIGINT      NOT NULL,
     folder_id  BIGINT,
     memo       VARCHAR(255),
     created_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -47,7 +47,7 @@ ON COLUMN TB_PHOTO_IMAGE.id IS '사진 고유 ID';
 COMMENT
 ON COLUMN TB_PHOTO_IMAGE.user_id IS '사용자 ID';
 COMMENT
-ON COLUMN TB_PHOTO_IMAGE.media_id IS '파일 고유 ID (S3 키 등)';
+ON COLUMN TB_PHOTO_IMAGE.media_id IS '미디어 파일 ID (TB_MEDIA 테이블 참조)';
 COMMENT
 ON COLUMN TB_PHOTO_IMAGE.folder_id IS '폴더 ID (nullable, 폴더 삭제 시 NULL)';
 COMMENT

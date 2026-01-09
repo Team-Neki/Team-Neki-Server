@@ -17,10 +17,12 @@ data class UploadPhotoRequest(
     @field:Nullable
     val folderId: Long?,
 
-    val memo: String?
+    val memo: String?,
 )
 
 data class DeletePhotosRequest(
     @field:NotEmpty(message = "photoIds가 비어있습니다.")
     val photoIds: List<Long>,
 )
+
+data class UpdatePhotoRequest(val memo: String?)

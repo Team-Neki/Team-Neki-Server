@@ -13,3 +13,5 @@ data class GetPhotosCommand(val userId: Long, val folderId: Long?)
 data class DeletePhotoCommand(val userId: Long, val photoId: Long)
 
 data class DeletePhotosCommand(val userId: Long, val photoIds: List<Long>)
+
+data class UpdatePhotoCommand(val userId: Long, val photoId: Long, val memo: String?)
