@@ -162,6 +162,6 @@ class AuthE2ETest : E2ETestBase() {
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("success", equalTo(false))
-            .body("resultCode", equalTo(ResultCode.INVALID_TOKEN_ERROR.code))
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 }

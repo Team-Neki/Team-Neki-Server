@@ -1,10 +1,10 @@
 package com.yapp2app.e2e
 
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
+import com.yapp2app.user.infra.persist.jpa.UserRepository
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.ProviderType
 import com.yapp2app.user.domain.enums.RoleType
-import com.yapp2app.user.infra.persist.jpa.UserRepository
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 
