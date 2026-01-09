@@ -21,6 +21,7 @@ class PhotoImageCommandConverter {
         userId = userId,
         mediaId = request.mediaId!!,
         folderId = request.folderId,
+        memo = request.memo,
     )
 
     fun toGetPhotosCommand(userId: Long, folderId: Long?): GetPhotosCommand = GetPhotosCommand(

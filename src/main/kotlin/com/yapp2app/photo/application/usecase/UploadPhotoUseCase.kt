@@ -41,6 +41,7 @@ class UploadPhotoUseCase(
             userId = command.userId,
             mediaId = command.mediaId,
             folderId = command.folderId,
+            memo = command.memo,
         )
 
         val savedPhoto = transactionRunner.run { photoImageRepository.save(photo) }

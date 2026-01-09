@@ -16,6 +16,8 @@ data class UploadPhotoRequest(
 
     @field:Nullable
     val folderId: Long?,
+
+    val memo: String?
 )
 
 data class DeletePhotosRequest(

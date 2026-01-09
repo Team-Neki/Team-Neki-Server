@@ -29,4 +29,7 @@ class PhotoImage(
 
     @Column(name = "folder_id", nullable = true)
     var folderId: Long? = null,
+
+    @Column(name = "memo", nullable = true)
+    var memo: String? = null
 ) : BaseTimeEntity()
