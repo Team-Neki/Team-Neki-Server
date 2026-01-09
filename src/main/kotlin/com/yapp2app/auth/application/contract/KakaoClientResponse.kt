@@ -1,4 +1,4 @@
-package com.yapp2app.auth.infra.response
+package com.yapp2app.auth.application.contract
 
 import com.yapp2app.user.domain.enums.ProviderType
 

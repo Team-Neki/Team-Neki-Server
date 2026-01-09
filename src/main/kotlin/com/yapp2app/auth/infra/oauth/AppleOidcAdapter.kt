@@ -1,7 +1,7 @@
 package com.yapp2app.auth.infra.oauth
 
 import com.yapp2app.auth.application.port.OidcPort
-import com.yapp2app.auth.infra.response.OIDCPublicKeysResponse
+import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
 import org.springframework.stereotype.Component
 
 /**

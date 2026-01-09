@@ -1,7 +1,7 @@
 package com.yapp2app.auth.application.port
 
-import com.yapp2app.auth.infra.response.OIDCPublicKeysResponse
-import com.yapp2app.auth.infra.response.OauthInfoResponse
+import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
+import com.yapp2app.auth.application.contract.OauthInfoResponse
 
 /**
  * fileName       : OauthHelperPort
