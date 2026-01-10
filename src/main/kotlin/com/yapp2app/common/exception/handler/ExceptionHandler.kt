@@ -34,6 +34,18 @@ class ExceptionHandler {
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {
         log.error("{} message = {}", ex.resultCode.code, ex.resultCode.message)
 
+        if (ex.resultCode == ResultCode.INVALID_TOKEN_ERROR) {
+            return ResponseEntity(
+                ExceptionMsg(
+                    resultCode = ex.resultCode.code,
+                    message = ex.resultCode.message,
+                    success = false,
+                    errors = emptyList(),
+                ),
+                HttpStatus.FORBIDDEN,
+            )
+        }
+
         val temp = ResponseEntity(
             ExceptionMsg(
                 resultCode = ex.resultCode.code,
