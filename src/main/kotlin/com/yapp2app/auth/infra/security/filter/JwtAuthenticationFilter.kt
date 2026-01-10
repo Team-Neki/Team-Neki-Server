@@ -39,17 +39,17 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
             }
             filterChain.doFilter(request, response)
         } catch (ex: SignatureException) {
-            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR, HttpServletResponse.SC_FORBIDDEN)
         } catch (ex: SecurityException) {
-            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR, HttpServletResponse.SC_FORBIDDEN)
         } catch (ex: MalformedJwtException) {
-            handleException(response, ResultCode.INVALID_TOKEN_ERROR)
+            handleException(response, ResultCode.INVALID_TOKEN_ERROR, HttpServletResponse.SC_FORBIDDEN)
         } catch (ex: ExpiredJwtException) {
-            handleException(response, ResultCode.EXPIRED_TOKEN_ERROR)
+            handleException(response, ResultCode.EXPIRED_TOKEN_ERROR, HttpServletResponse.SC_UNAUTHORIZED)
         } catch (ex: UnsupportedJwtException) {
-            handleException(response, ResultCode.EXPIRED_TOKEN_ERROR)
+            handleException(response, ResultCode.EXPIRED_TOKEN_ERROR, HttpServletResponse.SC_UNAUTHORIZED)
         } catch (ex: Exception) {
-            handleException(response, ResultCode.SECURITY_ERROR)
+            handleException(response, ResultCode.SECURITY_ERROR, HttpServletResponse.SC_FORBIDDEN)
         }
     }
 
@@ -88,12 +88,12 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
      * - **대응**: 재로그인이 필요합니다. `/api/auth/login` API를 호출하세요.
      * - **재로그인 필요 여부**: 예
      */
-    private fun handleException(response: HttpServletResponse, resultCode: ResultCode) {
+    private fun handleException(response: HttpServletResponse, resultCode: ResultCode, status: Int) {
         val jsonObject = JsonObject()
 
         response.contentType = "application/json;charset=UTF-8"
         response.characterEncoding = "utf-8"
-        response.status = HttpServletResponse.SC_UNAUTHORIZED
+        response.status = status
 
         jsonObject.addProperty("resultCode", resultCode.code)
         jsonObject.addProperty("message", resultCode.message)

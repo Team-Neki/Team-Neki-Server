@@ -5,11 +5,8 @@ import com.yapp2app.auth.api.converter.AuthResultConverter
 import com.yapp2app.auth.api.dto.CreateAuthRequest
 import com.yapp2app.auth.api.dto.GetAuthResponse
 import com.yapp2app.auth.api.dto.GetKakaoTokenResponse
-import com.yapp2app.auth.api.dto.GetTokenResponse
-import com.yapp2app.auth.api.dto.LoginRequest
 import com.yapp2app.auth.api.dto.RefreshTokenRequest
 import com.yapp2app.auth.application.usecase.KakaoRegisterUseCase
-import com.yapp2app.auth.application.usecase.LoginUseCase
 import com.yapp2app.auth.application.usecase.RefreshTokenUseCase
 import com.yapp2app.common.api.dto.BaseResponse
 import io.swagger.v3.oas.annotations.Hidden
@@ -36,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class AuthController(
     private val kakaoRegisterUseCase: KakaoRegisterUseCase,
-    private val loginUseCase: LoginUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
     private val commandConverter: AuthCommandConverter,
     private val resultConverter: AuthResultConverter,
@@ -62,26 +58,6 @@ class AuthController(
         [staging] https://kauth.kakao.com/oauth/authorize?client_id=4db94315d17162e99b36029f6f9775c6&redirect_uri=https://dev-yapp.suitestudy.com:4641/api/auth/test/kakao/redirect&response_type=code&scope=openid,profile_nickname,profile_image
 
         응답의 `id_token` 필드 값을 이 API의 `idToken`으로 사용하세요.
-        """,
-    )
-    @ApiResponses(
-        ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
-    )
-    @PostMapping("/kakao/register")
-    fun kakaoRegister(@RequestBody @Valid request: CreateAuthRequest): BaseResponse<GetAuthResponse> {
-        val command = commandConverter.toCreateAuthCommand(request)
-
-        val result = kakaoRegisterUseCase.execute(command)
-
-        val response = resultConverter.toCreateAuthResponse(result)
-
-        return BaseResponse(data = response)
-    }
-
-    @Operation(
-        summary = "로그인",
-        description = """
-        ## 로그인 API
 
         사용자의 OID와 ProviderType을 사용하여 로그인을 수행합니다.
 
@@ -107,16 +83,15 @@ class AuthController(
         """,
     )
     @ApiResponses(
-        ApiResponse(responseCode = "200", description = "로그인 성공"),
-        ApiResponse(responseCode = "400", description = "인증 실패 - 가입되지 않은 사용자"),
+        ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
     )
-    @PostMapping("/login")
-    fun login(@RequestBody @Valid request: LoginRequest): BaseResponse<GetTokenResponse> {
-        val command = commandConverter.toLoginAuthCommand(request)
+    @PostMapping("/kakao/login")
+    fun kakaoRegister(@RequestBody @Valid request: CreateAuthRequest): BaseResponse<GetAuthResponse> {
+        val command = commandConverter.toCreateAuthCommand(request)
 
-        val result = loginUseCase.execute(command)
+        val result = kakaoRegisterUseCase.execute(command)
 
-        val response = resultConverter.toLoginAuthResponse(result)
+        val response = resultConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -150,12 +125,12 @@ class AuthController(
         ),
     )
     @PostMapping("/refresh")
-    fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetTokenResponse> {
+    fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetAuthResponse> {
         val command = commandConverter.toRefreshTokenCommand(request)
 
         val result = refreshTokenUseCase.execute(command)
 
-        val response = resultConverter.toLoginAuthResponse(result)
+        val response = resultConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }

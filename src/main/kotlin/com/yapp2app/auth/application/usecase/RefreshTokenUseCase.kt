@@ -1,7 +1,7 @@
 package com.yapp2app.auth.application.usecase
 
 import com.yapp2app.auth.application.command.RefreshTokenCommand
-import com.yapp2app.auth.application.result.GetTokenResult
+import com.yapp2app.auth.application.result.GetAuthResult
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.auth.infra.security.token.UserPrincipal
 import com.yapp2app.common.annotation.UseCase
@@ -17,7 +17,7 @@ import com.yapp2app.common.exception.BusinessException
 @UseCase
 class RefreshTokenUseCase(private val tokenProvider: AuthTokenProvider) {
 
-    fun execute(command: RefreshTokenCommand): GetTokenResult {
+    fun execute(command: RefreshTokenCommand): GetAuthResult {
         // 1. RefreshToken 유효성 검증
         if (!tokenProvider.validateRefreshToken(command.refreshToken)) {
             throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
@@ -43,7 +43,7 @@ class RefreshTokenUseCase(private val tokenProvider: AuthTokenProvider) {
             providerType = userPrincipal.providerType,
         )
 
-        return GetTokenResult(
+        return GetAuthResult(
             accessToken = newAccessToken,
             refreshToken = newRefreshToken,
         )
