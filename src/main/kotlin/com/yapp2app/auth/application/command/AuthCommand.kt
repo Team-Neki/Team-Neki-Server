@@ -1,7 +1,5 @@
 package com.yapp2app.auth.application.command
 
-import com.yapp2app.user.domain.enums.ProviderType
-
 /**
  * fileName       : AuthCommand
  * author         : darren

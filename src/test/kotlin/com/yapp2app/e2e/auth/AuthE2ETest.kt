@@ -42,7 +42,6 @@ class AuthE2ETest : E2ETestBase() {
         accessToken = token
     }
 
-
     @Test
     @DisplayName("유효하지 않은 Refresh Token으로 토큰 갱신 요청 시 400 에러를 반환한다")
     fun givenInvalidRefreshToken_whenRefresh_thenReturnsInvalidTokenError() {

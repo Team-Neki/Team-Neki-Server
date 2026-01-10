@@ -34,7 +34,7 @@ class ExceptionHandler {
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {
         log.error("{} message = {}", ex.resultCode.code, ex.resultCode.message)
 
-        if(ex.resultCode == ResultCode.INVALID_TOKEN_ERROR) {
+        if (ex.resultCode == ResultCode.INVALID_TOKEN_ERROR) {
             return ResponseEntity(
                 ExceptionMsg(
                     resultCode = ex.resultCode.code,
