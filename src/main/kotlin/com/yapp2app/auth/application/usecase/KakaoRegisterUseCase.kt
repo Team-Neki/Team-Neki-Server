@@ -8,6 +8,7 @@ import com.yapp2app.auth.application.port.OauthHelperPort
 import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.application.result.GetAuthResult
 import com.yapp2app.auth.infra.security.properties.OauthProperties
+import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
@@ -30,6 +31,7 @@ class KakaoRegisterUseCase(
     @Qualifier("kakaoOidcAdapter") private val oidcPort: OidcPort,
     @Qualifier("kakaoOauthHelper") private val oauthHelperPort: OauthHelperPort,
     private val restClient: RestClient,
+    private val tokenProvider: AuthTokenProvider,
     private val userRepositoryPort: UserRepositoryPort,
     private val transactionRunner: TransactionRunner,
 ) {
@@ -51,7 +53,25 @@ class KakaoRegisterUseCase(
 
         val user = transactionRunner.run { registerKakaoUserIfEmpty(oauthInfoResponse) }
 
-        return GetAuthResult(oid = user.oid, providerType = user.providerType)
+        // JWT 토큰 생성
+        val accessToken = tokenProvider.createAccessToken(
+            id = user.id.toString(),
+            roles = user.roles.split(","),
+            name = user.name,
+            providerType = user.providerType,
+        )
+
+        val refreshToken = tokenProvider.createRefreshToken(
+            id = user.id.toString(),
+            roles = user.roles.split(","),
+            name = user.name,
+            providerType = user.providerType,
+        )
+
+        return GetAuthResult(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+        )
     }
 
     private fun registerKakaoUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User {
