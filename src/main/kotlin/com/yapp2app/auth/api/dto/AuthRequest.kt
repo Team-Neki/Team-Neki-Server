@@ -11,6 +11,5 @@ import jakarta.validation.constraints.NotBlank
  */
 data class CreateAuthRequest(@field:NotBlank(message = "ID 토큰은 필수 입니다") val idToken: String)
 
-data class LoginRequest(val oid: Long, val providerType: ProviderType)
 
 data class RefreshTokenRequest(@field:NotBlank(message = "Refresh 토큰은 필수입니다") val refreshToken: String)

@@ -10,6 +10,4 @@ import com.yapp2app.user.domain.enums.ProviderType
  */
 data class RegisterKakaoUserCommand(val idToken: String)
 
-data class LoginCommand(val oid: Long, val providerType: ProviderType)
-
 data class RefreshTokenCommand(val refreshToken: String)
