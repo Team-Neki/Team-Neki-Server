@@ -98,7 +98,7 @@ class UserE2ETest : E2ETestBase() {
             .`when`()
             .get("/api/users/info")
             .then()
-            .statusCode(HttpStatus.UNAUTHORIZED.value())
+            .statusCode(HttpStatus.FORBIDDEN.value())
             .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_TOKEN_ERROR.code))
     }
