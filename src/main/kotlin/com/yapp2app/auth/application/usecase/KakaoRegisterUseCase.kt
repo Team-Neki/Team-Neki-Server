@@ -10,7 +10,6 @@ import com.yapp2app.auth.application.result.GetAuthResult
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.redis.CacheKeys
 import com.yapp2app.common.redis.RedisCacheService
@@ -64,7 +63,7 @@ class KakaoRegisterUseCase(
             redisCacheService.evict(CacheKeys.KAKAO_OIDC_KEY)
             validateTokenWithPublicKeys(command.idToken)
         } catch (e: Exception) {
-            e.printStackTrace() //TODO 인증 실패 예외 로그 모니터링용
+            e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용
             throw e
         }
 

@@ -20,9 +20,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
  * - Jackson2JsonRedisSerializer 사용 (성능 최적화)
  */
 @Configuration
-class RedisCacheConfig(
-    private val objectMapper: ObjectMapper,
-) {
+class RedisCacheConfig(private val objectMapper: ObjectMapper) {
 
     /**
      * RedisTemplate 설정

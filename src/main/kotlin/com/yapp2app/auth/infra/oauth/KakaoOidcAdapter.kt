@@ -40,7 +40,7 @@ class KakaoOidcAdapter(
         // 1. 캐시 조회
         val cached = redisCacheService.get(CacheKeys.KAKAO_OIDC_KEY, OIDCPublicKeysResponse::class.java)
         if (cached != null) {
-            log.info("Found cached OIDC key") //TODO 임시 코드
+            log.info("Found cached OIDC key") // TODO 임시 코드
             return cached
         }
 

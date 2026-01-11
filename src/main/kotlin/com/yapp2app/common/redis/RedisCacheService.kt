@@ -80,7 +80,5 @@ class RedisCacheService(
      * @param key 캐시 키
      * @return 존재하면 true
      */
-    fun exists(key: String): Boolean {
-        return redisTemplate.hasKey(key)
-    }
+    fun exists(key: String): Boolean = redisTemplate.hasKey(key)
 }
