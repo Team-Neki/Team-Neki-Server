@@ -85,6 +85,10 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
 
+    // Redis Cache
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")

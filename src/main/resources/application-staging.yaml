@@ -17,6 +17,12 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     out-of-order: false
+  data:
+    redis:
+      host: ENC(RJVGRKgJQdjvDbg/TdCFtG/vJojISi+WwlXIEu8ijVsyi3//bW7/a2nAqe7iFvVA)
+      port: 6379
+      password: ENC(0ohhdfdfOZN9TS4bQdBZiLsg9gRJtWpDSWEbD5nXgfhPorPeTXAG9MqcRsxJrY5E)
+
 
 logging:
   level:

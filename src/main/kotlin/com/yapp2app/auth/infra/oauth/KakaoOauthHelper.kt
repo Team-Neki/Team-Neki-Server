@@ -13,6 +13,7 @@ import com.yapp2app.user.domain.enums.ProviderType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigInteger
 import java.security.KeyFactory
@@ -39,6 +40,7 @@ import java.util.Base64
 @Component
 class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val objectMapper: ObjectMapper) :
     OauthHelperPort {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
         private const val HEADER_KID = "kid"
@@ -153,8 +155,12 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
             .parseSignedClaims(token) // Step 5: exp 자동 검증
             .payload
     } catch (e: ExpiredJwtException) {
+        e.printStackTrace()
+        log.error("Token verification failed: {}", e) // TODO 캐싱이후로 oidc검증 실패시 어떤 예외 찍히는지 모니터링용
         throw BusinessException(ResultCode.EXPIRED_TOKEN_ERROR)
     } catch (e: Exception) {
+        e.printStackTrace()
+        log.error("Token verification failed: {}", e) // TODO 캐싱이후로 oidc검증 실패시 어떤 예외 찍히는지 모니터링용
         throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
     }
 
@@ -162,10 +168,16 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
      * JWK의 modulus(n)와 exponent(e)를 RSA 공개키로 변환
      */
     private fun convertToRSAPublicKey(modulus: String, exponent: String): RSAPublicKey {
-        val keyFactory = KeyFactory.getInstance("RSA")
-        val n = BigInteger(1, Base64.getUrlDecoder().decode(modulus))
-        val e = BigInteger(1, Base64.getUrlDecoder().decode(exponent))
-        val keySpec = RSAPublicKeySpec(n, e)
-        return keyFactory.generatePublic(keySpec) as RSAPublicKey
+        try {
+            val keyFactory = KeyFactory.getInstance("RSA")
+            val n = BigInteger(1, Base64.getUrlDecoder().decode(modulus))
+            val e = BigInteger(1, Base64.getUrlDecoder().decode(exponent))
+            val keySpec = RSAPublicKeySpec(n, e)
+            return keyFactory.generatePublic(keySpec) as RSAPublicKey
+        } catch (e: Exception) {
+            e.printStackTrace()
+            log.error("Token verification failed: {}", e) // TODO 캐싱이후로 oidc검증 실패시 어떤 예외 찍히는지 모니터링용
+            throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
+        }
     }
 }
