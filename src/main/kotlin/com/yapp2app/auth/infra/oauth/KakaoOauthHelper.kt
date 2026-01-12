@@ -127,7 +127,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         return OIDCDecodePayloadResponse(
             iss = claims.issuer,
             aud = claims.audience.toString(),
-            sub = claims.subject.toLong(),
+            sub = claims.subject,
             email = claims[CLAIM_EMAIL, String::class.java],
             nickname = claims[CLAIM_NICKNAME, String::class.java],
             imageUrl = claims[CLAIM_PROFILEIMAGE, String::class.java],

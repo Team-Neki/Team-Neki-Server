@@ -1,12 +1,12 @@
 package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.yapp2app.auth.application.command.RegisterKakaoUserCommand
+import com.yapp2app.auth.application.command.RegisterOauthUserCommand
 import com.yapp2app.auth.application.contract.GetKakaoTokenResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
-import com.yapp2app.auth.application.port.OauthHelperPort
-import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.application.result.GetAuthResult
+import com.yapp2app.auth.infra.oauth.OauthHelperAdapterRegistry
+import com.yapp2app.auth.infra.oauth.OidcAdapterRegistry
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.common.annotation.UseCase
@@ -14,7 +14,6 @@ import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.RoleType
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
@@ -26,10 +25,10 @@ import org.springframework.web.client.RestClient
  * description    : 카카오 auth usecase
  */
 @UseCase
-class KakaoRegisterUseCase(
+class OauthLoginUseCase(
     private val oauthProperties: OauthProperties,
-    @Qualifier("kakaoOidcAdapter") private val oidcPort: OidcPort,
-    @Qualifier("kakaoOauthHelper") private val oauthHelperPort: OauthHelperPort,
+    private val oidcAdapterRegistry: OidcAdapterRegistry,
+    private val oauthHelperAdapterRegistry: OauthHelperAdapterRegistry,
     private val restClient: RestClient,
     private val tokenProvider: AuthTokenProvider,
     private val userRepositoryPort: UserRepositoryPort,
@@ -37,21 +36,27 @@ class KakaoRegisterUseCase(
 ) {
 
     /**
-     * 1. 카카오 공개키 조회
-     * 2. ID Token 검증 및 Claims 추출
-     * 3. oauthInfoResult 값 여부에 따라 회원가입 처리
+     * 1. ProviderType에 따라 적절한 Adapter 선택
+     * 2. 공개키 조회
+     * 3. ID Token 검증 및 Claims 추출
+     * 4. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
-    fun execute(command: RegisterKakaoUserCommand): GetAuthResult {
-        // 카카오 공개 키 가져오기
-        val oidcPublicKeysResult = oidcPort.getOIDCPublicKey()
+    fun execute(command: RegisterOauthUserCommand): GetAuthResult {
+        // Registry로부터 providerType에 맞는 Adapter 선택
+        val oidcAdapter = oidcAdapterRegistry.getAdapter(command.providerType)
+        val oauthHelperAdapter = oauthHelperAdapterRegistry.getAdapter(command.providerType)
+
+        // 공개키 조회
+        val oidcPublicKeysResult = oidcAdapter.getOIDCPublicKey()
 
         // ID Token 검증 및 Claims 추출
-        val oauthInfoResponse: OauthInfoResponse = oauthHelperPort.getOauthInfoByIdToken(
+        val oauthInfoResponse: OauthInfoResponse = oauthHelperAdapter.getOauthInfoByIdToken(
             idToken = command.idToken,
             publicKeys = oidcPublicKeysResult,
         )
 
-        val user = transactionRunner.run { registerKakaoUserIfEmpty(oauthInfoResponse) }
+        // 회원가입 또는 로그인
+        val user = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoResponse) }
 
         // JWT 토큰 생성
         val accessToken = tokenProvider.createAccessToken(
@@ -74,7 +79,7 @@ class KakaoRegisterUseCase(
         )
     }
 
-    private fun registerKakaoUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User {
+    private fun registerOauthUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User {
         val user = userRepositoryPort.findByOid(
             oid = oauthInfoResponse.oid,
             provider = oauthInfoResponse.providerType,

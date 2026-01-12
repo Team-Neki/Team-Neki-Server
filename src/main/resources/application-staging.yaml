@@ -42,7 +42,9 @@ oauth:
     jwksUri: https://kauth.kakao.com/.well-known/jwks.json
     issuer: https://kauth.kakao.com
   apple:
-    key: test
+    clientId: ENC(bVHf5Um9/vmBQj9KJuPKH3NOlGTsgbe9bd4aNPgkXjK8D5bLNp+89xSFdFAi9pWMCHaVdIyXncc4w/mE+l0byw==)
+    jwksUri: https://appleid.apple.com/auth/keys
+    issuer: https://appleid.apple.com
 
 aws:
   s3:

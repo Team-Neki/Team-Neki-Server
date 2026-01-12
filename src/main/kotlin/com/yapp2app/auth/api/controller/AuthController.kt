@@ -6,9 +6,10 @@ import com.yapp2app.auth.api.dto.CreateAuthRequest
 import com.yapp2app.auth.api.dto.GetAuthResponse
 import com.yapp2app.auth.api.dto.GetKakaoTokenResponse
 import com.yapp2app.auth.api.dto.RefreshTokenRequest
-import com.yapp2app.auth.application.usecase.KakaoRegisterUseCase
+import com.yapp2app.auth.application.usecase.OauthLoginUseCase
 import com.yapp2app.auth.application.usecase.RefreshTokenUseCase
 import com.yapp2app.common.api.dto.BaseResponse
+import com.yapp2app.user.domain.enums.ProviderType
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -32,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/auth")
 @RestController
 class AuthController(
-    private val kakaoRegisterUseCase: KakaoRegisterUseCase,
+    private val oauthLoginUseCase: OauthLoginUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
     private val commandConverter: AuthCommandConverter,
     private val resultConverter: AuthResultConverter,
@@ -80,16 +82,21 @@ class AuthController(
         ### 토큰 저장 권장사항
         - **accessToken**: 메모리 또는 안전한 저장소 (탈취 위험 최소화)
         - **refreshToken**: 안전한 저장소 (Keychain, EncryptedSharedPreferences 등)
+
+        providerType LOCAL, TEST는 무시해주세요 ~
         """,
     )
     @ApiResponses(
         ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
     )
-    @PostMapping("/kakao/login")
-    fun kakaoRegister(@RequestBody @Valid request: CreateAuthRequest): BaseResponse<GetAuthResponse> {
-        val command = commandConverter.toCreateAuthCommand(request)
+    @PostMapping("/{providerType}/login")
+    fun oauthLogin(
+        @PathVariable(name = "providerType") providerType: ProviderType,
+        @RequestBody @Valid request: CreateAuthRequest,
+    ): BaseResponse<GetAuthResponse> {
+        val command = commandConverter.toCreateAuthCommand(request, providerType)
 
-        val result = kakaoRegisterUseCase.execute(command)
+        val result = oauthLoginUseCase.execute(command)
 
         val response = resultConverter.toCreateAuthResponse(result)
 
@@ -143,7 +150,7 @@ class AuthController(
     @Hidden
     @GetMapping("/test/kakao/redirect")
     fun kakaoTestRedirect(@RequestParam code: String): BaseResponse<GetKakaoTokenResponse> {
-        val tokenResponse = kakaoRegisterUseCase.getAccessTokenByCode(code)
+        val tokenResponse = oauthLoginUseCase.getAccessTokenByCode(code)
         return BaseResponse(
             data = GetKakaoTokenResponse(
                 accessToken = tokenResponse.accessToken,

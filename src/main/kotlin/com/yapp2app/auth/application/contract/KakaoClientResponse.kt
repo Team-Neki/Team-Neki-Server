@@ -7,7 +7,7 @@ import com.yapp2app.user.domain.enums.ProviderType
  */
 data class OauthInfoResponse(
     val providerType: ProviderType,
-    val oid: Long,
+    val oid: String,
     val email: String?,
     val name: String?,
     val imageUrl: String?,
@@ -19,7 +19,7 @@ data class OIDCDecodePayloadResponse(
     /** client id  */
     val aud: String,
     /** oauth provider account unique id  */
-    val sub: Long,
+    val sub: String,
     /** biz 앱 신청을 해야 email을 수집가능,,  */
     val email: String?,
     /** 닉네임  */
