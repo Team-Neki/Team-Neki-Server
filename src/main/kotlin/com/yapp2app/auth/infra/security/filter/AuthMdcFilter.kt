@@ -1,5 +1,6 @@
 package com.yapp2app.auth.infra.security.filter
 
+import com.yapp2app.auth.infra.security.token.UserPrincipal
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -31,7 +32,11 @@ class AuthMdcFilter : OncePerRequestFilter() {
 
         // 인증된 사용자인 경우 MDC에 userId 추가
         if (authentication != null && authentication.isAuthenticated && authentication.principal != "anonymousUser") {
-            val userId = authentication.name
+            val userPrincipal = authentication.principal as UserPrincipal
+
+            // DB상 name을 가져오는 코드 (택 1)
+            val userId = userPrincipal.id.toString()
+
             MDC.put(USER_ID, userId)
         }
 
