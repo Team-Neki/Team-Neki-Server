@@ -41,9 +41,6 @@ services:
       - "6379:6379"
     networks:
       - yapp-net
-    volumes:
-      - ./redis_data:/data
-    command: redis-server --appendonly yes
 
 networks:
   yapp-net:

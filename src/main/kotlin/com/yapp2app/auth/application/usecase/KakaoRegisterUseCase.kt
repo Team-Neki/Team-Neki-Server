@@ -12,7 +12,7 @@ import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.redis.CacheKeys
-import com.yapp2app.common.redis.RedisCacheService
+import com.yapp2app.common.redis.port.CachePort
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
@@ -34,7 +34,7 @@ class KakaoRegisterUseCase(
     private val oauthProperties: OauthProperties,
     @Qualifier("kakaoOidcAdapter") private val oidcPort: OidcPort,
     @Qualifier("kakaoOauthHelper") private val oauthHelperPort: OauthHelperPort,
-    private val redisCacheService: RedisCacheService,
+    private val cachePort: CachePort,
     private val restClient: RestClient,
     private val tokenProvider: AuthTokenProvider,
     private val userRepositoryPort: UserRepositoryPort,
@@ -60,7 +60,7 @@ class KakaoRegisterUseCase(
         } catch (e: BusinessException) {
             log.info("Kakao OIDC token expired. 갱신 로직")
             // 캐시 무효화 후 재시도
-            redisCacheService.evict(CacheKeys.KAKAO_OIDC_KEY)
+            cachePort.evict(CacheKeys.KAKAO_OIDC_KEY)
             validateTokenWithPublicKeys(command.idToken)
         } catch (e: Exception) {
             e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용

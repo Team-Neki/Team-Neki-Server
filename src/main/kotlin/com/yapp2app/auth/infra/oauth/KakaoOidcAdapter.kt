@@ -4,7 +4,8 @@ import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
 import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.redis.CacheKeys
-import com.yapp2app.common.redis.RedisCacheService
+import com.yapp2app.common.redis.RedisCacheAdapter
+import com.yapp2app.common.redis.port.CachePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -17,7 +18,7 @@ import java.time.Duration
  * description    : 카카오 OAuth 외부 연동 Adapter
  *
  * OIDC 공개키 캐싱 전략:
- * - RedisCacheService를 통한 캐시 제어 (TTL 6시간)
+ * - RedisCacheService를 통한 캐시 제어
  * - 카카오 측에서 요청 트래픽이 많으면 차단하므로 캐싱 필수
  * - 서명 검증 실패 시 UseCase에서 캐시 무효화 후 재조회 패턴 적용
  */
@@ -25,7 +26,7 @@ import java.time.Duration
 class KakaoOidcAdapter(
     private val restClient: RestClient,
     private val oauthProperties: OauthProperties,
-    private val redisCacheService: RedisCacheService,
+    private val cachePort: CachePort,
 ) : OidcPort {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -38,7 +39,7 @@ class KakaoOidcAdapter(
      */
     override fun getOIDCPublicKey(): OIDCPublicKeysResponse {
         // 1. 캐시 조회
-        val cached = redisCacheService.get(CacheKeys.KAKAO_OIDC_KEY, OIDCPublicKeysResponse::class.java)
+        val cached = cachePort.get(CacheKeys.KAKAO_OIDC_KEY, OIDCPublicKeysResponse::class.java)
         if (cached != null) {
             log.info("Found cached OIDC key") // TODO 임시 코드
             return cached
@@ -51,7 +52,7 @@ class KakaoOidcAdapter(
             .body(OIDCPublicKeysResponse::class.java)!!
 
         // 3. 캐시 저장 (TTL 14일)
-        redisCacheService.set(CacheKeys.KAKAO_OIDC_KEY, publicKeys, Duration.ofDays(14))
+        cachePort.set(CacheKeys.KAKAO_OIDC_KEY, publicKeys, Duration.ofDays(14))
 
         return publicKeys
     }
