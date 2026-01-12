@@ -13,5 +13,4 @@ interface CachePort {
     fun set(key: String, value: Any, ttl: Duration)
     fun evict(key: String)
     fun exists(key: String): Boolean
-
 }

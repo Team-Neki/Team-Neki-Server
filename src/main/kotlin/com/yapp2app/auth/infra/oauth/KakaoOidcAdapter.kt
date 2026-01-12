@@ -4,7 +4,6 @@ import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
 import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.redis.CacheKeys
-import com.yapp2app.common.redis.RedisCacheAdapter
 import com.yapp2app.common.redis.port.CachePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
