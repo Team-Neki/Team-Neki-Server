@@ -83,19 +83,17 @@ class KakaoRegisterUseCase(
      * - 1차 시도: 캐시된 공개키로 토큰 검증
      * - BusinessException 발생 시: 캐시 무효화 후 재시도 (공개키 로테이션 대응)
      */
-    private fun validateTokenWithCacheRetry(idToken: String): OauthInfoResponse {
-        return try {
-            // 1차 시도: 캐시된 공개키로 토큰 검증
-            validateTokenWithPublicKeys(idToken)
-        } catch (e: BusinessException) {
-            log.info("Kakao OIDC token expired. 갱신 로직")
-            // 캐시 무효화 후 재시도
-            cachePort.clearPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
-            validateTokenWithPublicKeys(idToken)
-        } catch (e: Exception) {
-            e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용
-            throw e
-        }
+    private fun validateTokenWithCacheRetry(idToken: String): OauthInfoResponse = try {
+        // 1차 시도: 캐시된 공개키로 토큰 검증
+        validateTokenWithPublicKeys(idToken)
+    } catch (e: BusinessException) {
+        log.info("Kakao OIDC token expired. 갱신 로직")
+        // 캐시 무효화 후 재시도
+        cachePort.clearPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
+        validateTokenWithPublicKeys(idToken)
+    } catch (e: Exception) {
+        e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용
+        throw e
     }
 
     /**
