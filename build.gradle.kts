@@ -81,6 +81,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
 
+    // querydsl
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
+
     // flyway (DB schema migration)
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
@@ -120,6 +124,14 @@ tasks.withType<KotlinCompile> {
     compilerOptions {
         freeCompilerArgs.addAll(listOf("-Xjsr305=strict"))
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
+}
+
+// kapt가 생성한 QueryDSL Q클래스를 IDE가 인식하도록 설정
+idea {
+    module {
+        sourceDirs.addAll(files("build/generated/source/kapt/main"))
+        generatedSourceDirs.addAll(files("build/generated/source/kapt/main"))
     }
 }
 
