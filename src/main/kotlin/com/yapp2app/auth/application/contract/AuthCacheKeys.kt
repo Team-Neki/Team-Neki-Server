@@ -1,4 +1,4 @@
-package com.yapp2app.common.redis
+package com.yapp2app.auth.application.contract
 
 /**
  * fileName       : CacheKeys
@@ -9,8 +9,7 @@ package com.yapp2app.common.redis
  * 모든 캐시 키는 이 클래스에서 관리하여 일관성 유지
  * 포맷: {category}:{identifier}
  */
-object CacheKeys {
-
-    public const val KAKAO_OIDC_KEY = "oidcPublicKeys:kakao"
-    public const val APPLE_OIDC_KEY = "oidcPublicKeys:apple"
+object AuthCacheKeys {
+    const val KAKAO_OIDC_KEY = "oidcPublicKeys:kakao"
+    const val APPLE_OIDC_KEY = "oidcPublicKeys:apple"
 }

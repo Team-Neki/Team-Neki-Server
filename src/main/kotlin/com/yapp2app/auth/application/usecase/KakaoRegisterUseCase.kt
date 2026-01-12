@@ -2,8 +2,10 @@ package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.yapp2app.auth.application.command.RegisterKakaoUserCommand
+import com.yapp2app.auth.application.contract.AuthCacheKeys
 import com.yapp2app.auth.application.contract.GetKakaoTokenResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
+import com.yapp2app.auth.application.port.AuthCachePort
 import com.yapp2app.auth.application.port.OauthHelperPort
 import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.application.result.GetAuthResult
@@ -11,8 +13,6 @@ import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.exception.BusinessException
-import com.yapp2app.common.redis.CacheKeys
-import com.yapp2app.common.redis.port.CachePort
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
@@ -34,7 +34,7 @@ class KakaoRegisterUseCase(
     private val oauthProperties: OauthProperties,
     @Qualifier("kakaoOidcAdapter") private val oidcPort: OidcPort,
     @Qualifier("kakaoOauthHelper") private val oauthHelperPort: OauthHelperPort,
-    private val cachePort: CachePort,
+    private val cachePort: AuthCachePort,
     private val restClient: RestClient,
     private val tokenProvider: AuthTokenProvider,
     private val userRepositoryPort: UserRepositoryPort,
@@ -54,19 +54,7 @@ class KakaoRegisterUseCase(
      * - 2차 시도 실패 시: 진짜 실패로 처리
      */
     fun execute(command: RegisterKakaoUserCommand): GetAuthResult {
-        val oauthInfoResponse = try {
-            // 1차 시도: 캐시된 공개키로 토큰 검증
-            validateTokenWithPublicKeys(command.idToken)
-        } catch (e: BusinessException) {
-            log.info("Kakao OIDC token expired. 갱신 로직")
-            // 캐시 무효화 후 재시도
-            cachePort.evict(CacheKeys.KAKAO_OIDC_KEY)
-            validateTokenWithPublicKeys(command.idToken)
-        } catch (e: Exception) {
-            e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용
-            throw e
-        }
-
+        val oauthInfoResponse = validateTokenWithCacheRetry(command.idToken)
         val user = transactionRunner.run { registerKakaoUserIfEmpty(oauthInfoResponse) }
 
         // JWT 토큰 생성
@@ -88,6 +76,26 @@ class KakaoRegisterUseCase(
             accessToken = accessToken,
             refreshToken = refreshToken,
         )
+    }
+
+    /**
+     * 캐시된 공개키로 토큰 검증 시도 및 실패 시 재시도 로직
+     * - 1차 시도: 캐시된 공개키로 토큰 검증
+     * - BusinessException 발생 시: 캐시 무효화 후 재시도 (공개키 로테이션 대응)
+     */
+    private fun validateTokenWithCacheRetry(idToken: String): OauthInfoResponse {
+        return try {
+            // 1차 시도: 캐시된 공개키로 토큰 검증
+            validateTokenWithPublicKeys(idToken)
+        } catch (e: BusinessException) {
+            log.info("Kakao OIDC token expired. 갱신 로직")
+            // 캐시 무효화 후 재시도
+            cachePort.clearPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
+            validateTokenWithPublicKeys(idToken)
+        } catch (e: Exception) {
+            e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용
+            throw e
+        }
     }
 
     /**
