@@ -46,6 +46,7 @@ dependencies {
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     // Kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -83,6 +84,10 @@ dependencies {
     // JPA
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
+
+    // querydsl
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
 
     // flyway (DB schema migration)
     implementation("org.flywaydb:flyway-core")
@@ -126,6 +131,14 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+// kapt가 생성한 QueryDSL Q클래스를 IDE가 인식하도록 설정
+idea {
+    module {
+        sourceDirs.addAll(files("build/generated/source/kapt/main"))
+        generatedSourceDirs.addAll(files("build/generated/source/kapt/main"))
+    }
+}
+
 tasks.processResources {
     filesMatching("application.yaml") {
         filter<org.apache.tools.ant.filters.ReplaceTokens>(
@@ -140,4 +153,11 @@ tasks.withType<Test> {
 
 tasks.jar {
     enabled = false
+}
+
+tasks.bootJar {
+    // Spring Boot Layered JAR 활성화 (Docker 캐싱 최적화)
+    layered {
+        enabled = true
+    }
 }

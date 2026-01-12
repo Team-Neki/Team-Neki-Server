@@ -27,6 +27,27 @@ jasypt:
     password: ${JASYPT_PASSWORD}
 
 app:
+  server:
+    url: https://dev-yapp.suitestudy.com:4641
   auth:
-    tokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
-    tokenExpiry: 7776000000 #3?
+    accessTokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
+    accessTokenExpiry: 60000 #1분
+    refreshTokenSecret: ENC(fJ09aRyNLygqwQI3I0HfzIzvuVpsnOMauvW/1/qR5YIvmQS2JtKZiKsvoijbVAl25HE1bDZ29uYPjqFUTMuCdTh8zp+PczJ1FaYao3SgQ/iiodtxmleizF22NLwpwIyvIswND7ANcrS0IVgHTFinViJMFhb6rKgm6z1JK54Mbbg=)
+    refreshTokenExpiry: 180000 #3분
+
+oauth:
+  kakao:
+    clientId: 8964db6054f3f0beb0f534673f93eab7
+    clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
+    jwksUri: https://kauth.kakao.com/.well-known/jwks.json
+    issuer: https://kauth.kakao.com
+  apple:
+    key: test
+
+aws:
+  s3:
+    access-key: ENC(fXervUuOTP2A4AwymiZDlo3+l5nZjZ5ObhKMMzGXrNEaqo1MTZaHE+bEnMBsooHmjPiUqg5Jc502FETsVGDB5A==)
+    secret-key: ENC(/rlccjRKWaheGJ2eDHBAnTMKu6pWkQ6D4LhrKjniCKMMHH8tkoQ7l0VpZEr9UO8GmiMdmjrcK5pGznCZlzVGSf/9mGAcxa9Ezdoql7A/B2c=)
+    region: ap-northeast-2
+    bucket: koosco-commerce-performance-results-ap-northeast-2
+    base-url: http://localhost:4566/yapp-local

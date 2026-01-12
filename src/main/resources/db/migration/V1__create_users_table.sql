@@ -1,10 +1,12 @@
 -- Create users table
 CREATE TABLE TB_USERS (
     id BIGSERIAL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NULL,
     password VARCHAR(255),
-    name VARCHAR(100) NOT NULL,
+    oid BIGINT NOT NULL,
+    name VARCHAR(100) NULL,
     provider_type VARCHAR(10) NOT NULL,
+    image_url VARCHAR(255) NULL,
     role VARCHAR(255) NOT NULL DEFAULT 'ROLE_USER',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -13,10 +15,12 @@ CREATE TABLE TB_USERS (
 -- Add comments for documentation
 COMMENT ON TABLE TB_USERS IS '사용자 정보 테이블';
 COMMENT ON COLUMN TB_USERS.id IS '사용자 고유 ID';
-COMMENT ON COLUMN TB_USERS.email IS '사용자 이메일 (unique)';
+COMMENT ON COLUMN TB_USERS.email IS '사용자 이메일';
 COMMENT ON COLUMN TB_USERS.password IS '사용자 비밀번호 (OAuth 사용자는 NO_PASS)';
+COMMENT ON COLUMN TB_USERS.oid IS 'OAuth 제공자의 사용자 고유 ID';
 COMMENT ON COLUMN TB_USERS.name IS '사용자 이름';
 COMMENT ON COLUMN TB_USERS.provider_type IS 'OAuth 제공자 타입 (APPLE, KAKAO)';
+COMMENT ON COLUMN TB_USERS.image_url IS '프로필 이미지';
 COMMENT ON COLUMN TB_USERS.role IS '사용자 역할 (ROLE_USER, ROLE_ADMIN 등)';
 COMMENT ON COLUMN TB_USERS.created_at IS '생성일시';
 COMMENT ON COLUMN TB_USERS.updated_at IS '수정일시';
