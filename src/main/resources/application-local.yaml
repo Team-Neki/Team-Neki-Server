@@ -23,6 +23,10 @@ spring:
     enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 logging:
   level:
