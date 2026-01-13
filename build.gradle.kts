@@ -23,6 +23,7 @@ val bouncyCastleVersion = "1.78"
 val awsSdkVersion = "2.27.0"
 val springDocVersion = "2.6.0"
 val jasyptVersion = "3.0.5"
+val logstashEncoderVersion = "8.0"
 val kotestVersion = "5.9.1"
 val kotestExtensionsVersion = "1.3.0"
 val mockkVersion = "1.13.10"
@@ -77,13 +78,23 @@ dependencies {
     // Jasypt (암호화)
     implementation("com.github.ulisesbocchio:jasypt-spring-boot-starter:$jasyptVersion")
 
+    // Logback JSON Encoder (구조화된 로그 출력)
+    implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
+
     // JPA
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
 
+    // querydsl
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
+
     // flyway (DB schema migration)
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
+
+    // Redis Cache
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -120,6 +131,14 @@ tasks.withType<KotlinCompile> {
     compilerOptions {
         freeCompilerArgs.addAll(listOf("-Xjsr305=strict"))
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
+}
+
+// kapt가 생성한 QueryDSL Q클래스를 IDE가 인식하도록 설정
+idea {
+    module {
+        sourceDirs.addAll(files("build/generated/source/kapt/main"))
+        generatedSourceDirs.addAll(files("build/generated/source/kapt/main"))
     }
 }
 

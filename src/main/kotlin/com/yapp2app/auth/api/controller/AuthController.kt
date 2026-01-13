@@ -5,11 +5,8 @@ import com.yapp2app.auth.api.converter.AuthResultConverter
 import com.yapp2app.auth.api.dto.CreateAuthRequest
 import com.yapp2app.auth.api.dto.GetAuthResponse
 import com.yapp2app.auth.api.dto.GetKakaoTokenResponse
-import com.yapp2app.auth.api.dto.GetTokenResponse
-import com.yapp2app.auth.api.dto.LoginRequest
 import com.yapp2app.auth.api.dto.RefreshTokenRequest
 import com.yapp2app.auth.application.usecase.KakaoRegisterUseCase
-import com.yapp2app.auth.application.usecase.LoginUseCase
 import com.yapp2app.auth.application.usecase.RefreshTokenUseCase
 import com.yapp2app.common.api.dto.BaseResponse
 import io.swagger.v3.oas.annotations.Hidden
@@ -36,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class AuthController(
     private val kakaoRegisterUseCase: KakaoRegisterUseCase,
-    private val loginUseCase: LoginUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
     private val commandConverter: AuthCommandConverter,
     private val resultConverter: AuthResultConverter,
@@ -62,26 +58,6 @@ class AuthController(
         [staging] https://kauth.kakao.com/oauth/authorize?client_id=4db94315d17162e99b36029f6f9775c6&redirect_uri=https://dev-yapp.suitestudy.com:4641/api/auth/test/kakao/redirect&response_type=code&scope=openid,profile_nickname,profile_image
 
         응답의 `id_token` 필드 값을 이 API의 `idToken`으로 사용하세요.
-        """,
-    )
-    @ApiResponses(
-        ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
-    )
-    @PostMapping("/kakao/register")
-    fun kakaoRegister(@RequestBody @Valid request: CreateAuthRequest): BaseResponse<GetAuthResponse> {
-        val command = commandConverter.toCreateAuthCommand(request)
-
-        val result = kakaoRegisterUseCase.execute(command)
-
-        val response = resultConverter.toCreateAuthResponse(result)
-
-        return BaseResponse(data = response)
-    }
-
-    @Operation(
-        summary = "로그인",
-        description = """
-        ## 로그인 API
 
         사용자의 OID와 ProviderType을 사용하여 로그인을 수행합니다.
 
@@ -95,11 +71,8 @@ class AuthController(
         ```
 
         ### 토큰 만료 시 처리 방법
-        1. 인가가 필요한 API 호출 시 **401 Unauthorized** 응답을 받은 경우
-        2. 응답의 `code` 필드를 확인:
-           - **D-997** (토큰 만료): `/api/auth/refresh` API로 토큰 갱신
-           - **D-998** (토큰 무효): 재로그인 필요
-           - **D-999** (인증 실패): 재로그인 필요
+        1. 인가가 필요한 API 호출 시 **[HttpStatus] 401 Unauthorized** 응답을 받은 경우 -> 토큰 갱신 API 호출
+        2. **HttpStatus 403 Forbidden** 응답을 받은 경우 -> 로그인 페이지로 리다이렉트
 
         ### 토큰 저장 권장사항
         - **accessToken**: 메모리 또는 안전한 저장소 (탈취 위험 최소화)
@@ -107,16 +80,15 @@ class AuthController(
         """,
     )
     @ApiResponses(
-        ApiResponse(responseCode = "200", description = "로그인 성공"),
-        ApiResponse(responseCode = "400", description = "인증 실패 - 가입되지 않은 사용자"),
+        ApiResponse(responseCode = "200", description = "카카오 OIDC 엔드포인트가 정상적으로 작동합니다."),
     )
-    @PostMapping("/login")
-    fun login(@RequestBody @Valid request: LoginRequest): BaseResponse<GetTokenResponse> {
-        val command = commandConverter.toLoginAuthCommand(request)
+    @PostMapping("/kakao/login")
+    fun kakaoRegister(@RequestBody @Valid request: CreateAuthRequest): BaseResponse<GetAuthResponse> {
+        val command = commandConverter.toCreateAuthCommand(request)
 
-        val result = loginUseCase.execute(command)
+        val result = kakaoRegisterUseCase.execute(command)
 
-        val response = resultConverter.toLoginAuthResponse(result)
+        val response = resultConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -129,9 +101,8 @@ class AuthController(
         RefreshToken을 사용하여 새로운 AccessToken과 RefreshToken을 발급받습니다.
 
         ### 사용 시나리오
-        1. 보호된 API 호출 시 **401 Unauthorized** 응답을 받음
-        2. 응답의 `resultCode` 필드가 **D-997** (토큰 만료)인 경우
-        3. 저장된 RefreshToken으로 이 API를 호출하여 새로운 토큰 발급
+        1. 인가가 필요한 API 호출 시 **401 Unauthorized** 응답을 받음
+        2. 저장된 RefreshToken으로 이 API를 호출하여 새로운 토큰 발급
 
         ### Refresh Token Rotation (보안 강화)
         ⚠️ **중요**: 보안을 위해 Refresh Token Rotation을 적용합니다.
@@ -146,16 +117,16 @@ class AuthController(
         ApiResponse(responseCode = "200", description = "토큰 갱신 성공 - 새로운 AccessToken과 RefreshToken 발급"),
         ApiResponse(
             responseCode = "400",
-            description = "D-998: RefreshToken 만료 (재로그인 필요) 로그인 페이지로 이동",
+            description = "D-998: RefreshToken 만료 (재로그인 필요 HttpStatus 403 반환) 로그인 페이지로 이동",
         ),
     )
     @PostMapping("/refresh")
-    fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetTokenResponse> {
+    fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetAuthResponse> {
         val command = commandConverter.toRefreshTokenCommand(request)
 
         val result = refreshTokenUseCase.execute(command)
 
-        val response = resultConverter.toLoginAuthResponse(result)
+        val response = resultConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }
