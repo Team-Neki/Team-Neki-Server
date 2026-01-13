@@ -25,24 +25,38 @@ class GetPhotosUseCase(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun execute(command: GetPhotosCommand): GetPhotosResult {
+        // size + 1개 조회하여 hasNext 판단
+        val fetchSize = command.size + 1
+
         val photos = transactionRunner.readOnly {
             photoImageRepository.listOwnedPhotos(
                 userId = command.userId,
                 folderId = command.folderId,
+                offset = command.page * command.size,
+                limit = fetchSize,
             )
         }
 
         if (photos.isEmpty()) {
-            return GetPhotosResult(emptyList())
+            return GetPhotosResult(emptyList(), hasNext = false)
         }
 
-        // 실제 binary 조회
-        val mediaContents = mediaClient.getMediaBinaries(command.userId, photos.map { it.mediaId })
+        // hasNext 판단: size + 1개 조회했는데 실제로 그만큼 있으면 다음 페이지 존재
+        val hasNext = photos.size > command.size
+
+        // 실제 반환할 사진 목록 (size개만)
+        val photosToReturn = if (hasNext) photos.dropLast(1) else photos
+
+        // 실제 binary 조회 (페이징된 결과에 대해서만)
+        val mediaContents = mediaClient.getMediaBinaries(
+            command.userId,
+            photosToReturn.map { it.mediaId },
+        )
 
         val mediaByFileId = mediaContents.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result = photos.mapNotNull {
+        val result = photosToReturn.mapNotNull {
             val media = mediaByFileId[it.mediaId]
                 ?: run {
                     log.info(
@@ -62,6 +76,6 @@ class GetPhotosUseCase(
             )
         }.toList()
 
-        return GetPhotosResult(result)
+        return GetPhotosResult(result, hasNext)
     }
 }

@@ -18,7 +18,7 @@ class PhotoImageResultConverter {
     fun toUploadPhotoResponse(result: UploadPhotoResult): UploadPhotoResponse = UploadPhotoResponse(result.photoId)
 
     fun toGetPhotosResponse(result: GetPhotosResult): GetPhotosResponse = GetPhotosResponse(
-        result.photos.map {
+        items = result.photos.map {
             GetPhotosResponse.PhotoInfo(
                 photoId = it.photoId,
                 imageBinary = it.imageBinary,
@@ -26,5 +26,6 @@ class PhotoImageResultConverter {
                 createdAt = it.createdAt,
             )
         },
+        hasNext = result.hasNext,
     )
 }

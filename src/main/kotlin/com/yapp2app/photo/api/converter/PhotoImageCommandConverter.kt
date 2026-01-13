@@ -26,9 +26,11 @@ class PhotoImageCommandConverter {
         memo = request.memo,
     )
 
-    fun toGetPhotosCommand(userId: Long, folderId: Long?): GetPhotosCommand = GetPhotosCommand(
+    fun toGetPhotosCommand(userId: Long, folderId: Long?, page: Int, size: Int): GetPhotosCommand = GetPhotosCommand(
         userId = userId,
         folderId = folderId,
+        page = page,
+        size = size,
     )
 
     fun toDeletePhotoCommand(userId: Long, photoId: Long): DeletePhotoCommand = DeletePhotoCommand(

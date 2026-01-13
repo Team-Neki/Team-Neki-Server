@@ -8,7 +8,7 @@ package com.yapp2app.photo.application.result
  */
 data class UploadPhotoResult(val photoId: Long)
 
-data class GetPhotosResult(val photos: List<PhotoInfo>) {
+data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean) {
 
     data class PhotoInfo(val photoId: Long, val imageBinary: ByteArray, val folderId: Long?, val createdAt: String) {
 

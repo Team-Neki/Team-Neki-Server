@@ -13,7 +13,11 @@ import com.yapp2app.photo.application.usecase.DeletePhotoUseCase
 import com.yapp2app.photo.application.usecase.GetPhotosUseCase
 import com.yapp2app.photo.application.usecase.UpdatePhotoUseCase
 import com.yapp2app.photo.application.usecase.UploadPhotoUseCase
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -32,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController
  * description    : PhotoImage api endpoint
  */
 @RequiresSecurity
+@Tag(name = "photo image", description = "아카이빙 사진 API")
 @RestController
 @RequestMapping("/api/photos")
 class PhotoController(
@@ -44,6 +49,11 @@ class PhotoController(
     private val resultConverter: PhotoImageResultConverter,
 ) {
 
+    @Operation(
+        summary = "사진 등록 API",
+        description = """presigned 발급 API로 url을 발급받아 S3에 이미지를 업로드한 후에 호출합니다.
+            S3 이미지 업로드가 보장되지 않으므로 S3 이미지 업로드가 완료되었는지 서버에서 검증 후에 메타데이터를 데이터베이스에 저장됩니다.""",
+    )
     @PostMapping
     fun uploadPhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
@@ -58,12 +68,18 @@ class PhotoController(
         return BaseResponse(data = response)
     }
 
+    @Operation(
+        summary = "사진 목록 API",
+        description = "사진 목록을 조회합니다. Offset 기반 페이징을 지원합니다.",
+    )
     @GetMapping
     fun photoList(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @RequestParam(required = false) folderId: Long?,
+        @RequestParam(defaultValue = "0") @Min(0) page: Int,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
     ): BaseResponse<GetPhotosResponse> {
-        val command = commandConverter.toGetPhotosCommand(userId, folderId)
+        val command = commandConverter.toGetPhotosCommand(userId, folderId, page, size)
 
         val result = getPhotosUseCase.execute(command)
 
@@ -72,6 +88,10 @@ class PhotoController(
         return BaseResponse(data = response)
     }
 
+    @Operation(
+        summary = "사진 삭제 API",
+        description = "지정된 사진 한 장을 삭제합니다.",
+    )
     @DeleteMapping("/{photoId}")
     fun deletePhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
@@ -84,6 +104,10 @@ class PhotoController(
         return BaseResponse()
     }
 
+    @Operation(
+        summary = "사진 선택 삭제 API",
+        description = "body에 포함된 사진들을 삭제합니다.",
+    )
     @DeleteMapping
     fun deletePhotos(
         @AuthenticationPrincipal(expression = "id") userId: Long,
@@ -96,6 +120,10 @@ class PhotoController(
         return BaseResponse()
     }
 
+    @Operation(
+        summary = "사진 갱신 API",
+        description = "사진 정보를 갱신합니다.",
+    )
     @PatchMapping("/{photoId}")
     fun updatePhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,

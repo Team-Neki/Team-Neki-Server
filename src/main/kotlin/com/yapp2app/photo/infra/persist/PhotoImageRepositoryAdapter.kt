@@ -3,6 +3,7 @@ package com.yapp2app.photo.infra.persist
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 import com.yapp2app.photo.domain.entity.PhotoImage
 import com.yapp2app.photo.infra.persist.jpa.JpaPhotoImageRepository
+import com.yapp2app.photo.infra.persist.jpa.PhotoImageQueryRepository
 import org.springframework.stereotype.Repository
 
 /**
@@ -12,16 +13,15 @@ import org.springframework.stereotype.Repository
  * description    : Photo image Repository Adapter
  */
 @Repository
-class PhotoImageRepositoryAdapter(private val jpaRepository: JpaPhotoImageRepository) : PhotoImageRepositoryPort {
+class PhotoImageRepositoryAdapter(
+    private val jpaRepository: JpaPhotoImageRepository,
+    private val queryRepository: PhotoImageQueryRepository,
+) : PhotoImageRepositoryPort {
 
     override fun save(photoImage: PhotoImage): PhotoImage = jpaRepository.save(photoImage)
 
-    // TODO : querydsl 교체
-    override fun listOwnedPhotos(userId: Long, folderId: Long?): List<PhotoImage> = if (folderId != null) {
-        jpaRepository.findAllByUserIdAndFolderId(userId, folderId)
-    } else {
-        jpaRepository.findAllByUserId(userId)
-    }
+    override fun listOwnedPhotos(userId: Long, folderId: Long?, offset: Int, limit: Int): List<PhotoImage> =
+        queryRepository.findOwnedPhotos(userId, folderId, offset, limit)
 
     override fun deleteOwnedPhoto(userId: Long, photoId: Long): PhotoImage? {
         val photo = jpaRepository.findByUserIdAndId(userId, photoId)

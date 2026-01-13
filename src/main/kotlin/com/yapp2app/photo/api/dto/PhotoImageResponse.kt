@@ -8,6 +8,6 @@ package com.yapp2app.photo.api.dto
  */
 data class UploadPhotoResponse(val photoId: Long)
 
-data class GetPhotosResponse(val items: List<PhotoInfo>) {
+data class GetPhotosResponse(val items: List<PhotoInfo>, val hasNext: Boolean) {
     data class PhotoInfo(val photoId: Long, val imageBinary: ByteArray, val folderId: Long?, val createdAt: String)
 }
