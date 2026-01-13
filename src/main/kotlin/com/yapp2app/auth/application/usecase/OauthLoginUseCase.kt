@@ -2,18 +2,24 @@ package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.yapp2app.auth.application.command.RegisterOauthUserCommand
+import com.yapp2app.auth.application.contract.AuthCacheKeys
 import com.yapp2app.auth.application.contract.GetKakaoTokenResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
+import com.yapp2app.auth.application.port.AuthCachePort
+import com.yapp2app.auth.application.port.AuthTokenProviderPort
+import com.yapp2app.auth.application.port.OauthHelperPort
+import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.application.result.GetAuthResult
 import com.yapp2app.auth.infra.oauth.OauthHelperAdapterRegistry
 import com.yapp2app.auth.infra.oauth.OidcAdapterRegistry
 import com.yapp2app.auth.infra.security.properties.OauthProperties
-import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.common.annotation.UseCase
+import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.RoleType
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
@@ -29,11 +35,13 @@ class OauthLoginUseCase(
     private val oauthProperties: OauthProperties,
     private val oidcAdapterRegistry: OidcAdapterRegistry,
     private val oauthHelperAdapterRegistry: OauthHelperAdapterRegistry,
+    private val cachePort: AuthCachePort,
     private val restClient: RestClient,
-    private val tokenProvider: AuthTokenProvider,
+    private val tokenProviderPort: AuthTokenProviderPort,
     private val userRepositoryPort: UserRepositoryPort,
     private val transactionRunner: TransactionRunner,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     /**
      * 1. ProviderType에 따라 적절한 Adapter 선택
@@ -46,27 +54,20 @@ class OauthLoginUseCase(
         val oidcAdapter = oidcAdapterRegistry.getAdapter(command.providerType)
         val oauthHelperAdapter = oauthHelperAdapterRegistry.getAdapter(command.providerType)
 
-        // 공개키 조회
-        val oidcPublicKeysResult = oidcAdapter.getOIDCPublicKey()
-
-        // ID Token 검증 및 Claims 추출
-        val oauthInfoResponse: OauthInfoResponse = oauthHelperAdapter.getOauthInfoByIdToken(
-            idToken = command.idToken,
-            publicKeys = oidcPublicKeysResult,
-        )
+        val oauthInfoResponse = validateTokenWithCacheRetry(command.idToken, oidcAdapter, oauthHelperAdapter)
 
         // 회원가입 또는 로그인
         val user = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoResponse) }
 
         // JWT 토큰 생성
-        val accessToken = tokenProvider.createAccessToken(
+        val accessToken = tokenProviderPort.createAccessToken(
             id = user.id.toString(),
             roles = user.roles.split(","),
             name = user.name,
             providerType = user.providerType,
         )
 
-        val refreshToken = tokenProvider.createRefreshToken(
+        val refreshToken = tokenProviderPort.createRefreshToken(
             id = user.id.toString(),
             roles = user.roles.split(","),
             name = user.name,
@@ -76,6 +77,45 @@ class OauthLoginUseCase(
         return GetAuthResult(
             accessToken = accessToken,
             refreshToken = refreshToken,
+        )
+    }
+
+    /**
+     * 캐시된 공개키로 토큰 검증 시도 및 실패 시 재시도 로직
+     * - 1차 시도: 캐시된 공개키로 토큰 검증
+     * - BusinessException 발생 시: 캐시 무효화 후 재시도 (공개키 로테이션 대응)
+     */
+    private fun validateTokenWithCacheRetry(
+        idToken: String,
+        oidcPort: OidcPort,
+        oauthHelperPort: OauthHelperPort,
+    ): OauthInfoResponse = try {
+        // 1차 시도: 캐시된 공개키로 토큰 검증
+        validateTokenWithPublicKeys(idToken, oidcPort, oauthHelperPort)
+    } catch (e: BusinessException) {
+        log.info("Kakao OIDC token expired. 갱신 로직")
+        // 캐시 무효화 후 재시도
+        cachePort.clearPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
+        validateTokenWithPublicKeys(idToken, oidcPort, oauthHelperPort)
+    } catch (e: Exception) {
+        e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용
+        throw e
+    }
+
+    /**
+     * OIDC 공개키를 조회하여 ID Token을 검증합니다.
+     * - 공개키는 Redis에 캐싱되어 있을 수 있음
+     * - 검증 실패 시 BusinessException 발생
+     */
+    private fun validateTokenWithPublicKeys(
+        idToken: String,
+        oidcPort: OidcPort,
+        oauthHelperPort: OauthHelperPort,
+    ): OauthInfoResponse {
+        val publicKeys = oidcPort.getOIDCPublicKey()
+        return oauthHelperPort.getOauthInfoByIdToken(
+            idToken = idToken,
+            publicKeys = publicKeys,
         )
     }
 

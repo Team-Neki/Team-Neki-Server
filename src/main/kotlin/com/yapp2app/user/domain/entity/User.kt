@@ -38,7 +38,7 @@ class User(
     @Column(nullable = false, length = 10)
     val providerType: ProviderType,
 
-    @Column(name = "image_url", nullable = true, length = 100)
+    @Column(name = "image_url", nullable = true, length = 255)
     var imageUrl: String?,
 
     @Column(name = "role", nullable = false, length = 255)

@@ -13,16 +13,20 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
         show_sql: true
     open-in-view: false
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 logging:
   level:

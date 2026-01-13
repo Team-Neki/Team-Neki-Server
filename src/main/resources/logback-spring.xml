@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- 로그 패턴 정의 -->
+    <!-- 개발 환경 (local, test): 색상이 포함된 읽기 쉬운 형식 -->
+    <property name="CONSOLE_LOG_PATTERN_DEV"
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} [%X{requestId:-NO_REQUEST_ID}] [%X{userId:-ANONYMOUS}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
+    <!-- 개발 환경용 콘솔 출력 (사람이 읽기 좋은 형식) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN_DEV}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 운영 환경용 JSON 콘솔 출력 (Loki 최적화) -->
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- 타임스탬프 형식 -->
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</timestampPattern>
+
+            <!-- MDC 값을 JSON 필드로 포함 -->
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+            <includeMdcKeyName>userId</includeMdcKeyName>
+            <includeMdcKeyName>requestMethod</includeMdcKeyName>
+            <includeMdcKeyName>requestUri</includeMdcKeyName>
+            <includeMdcKeyName>clientIp</includeMdcKeyName>
+
+            <!-- 기본 필드명 커스터마이징 -->
+            <fieldNames>
+                <timestamp>timestamp</timestamp>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+
+            <!-- 추가 정적 필드 -->
+            <customFields>{"application":"yapp"}</customFields>
+
+            <!-- 스택 트레이스 포함 -->
+            <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                <maxLength>2048</maxLength>
+                <shortenedClassNameLength>20</shortenedClassNameLength>
+                <exclude>^sun\.reflect\..*\.invoke</exclude>
+                <exclude>^net\.sf\.cglib\.proxy\.MethodProxy\.invoke</exclude>
+                <rootCauseFirst>true</rootCauseFirst>
+            </throwableConverter>
+        </encoder>
+    </appender>
+
+    <!-- 프로파일별 설정 -->
+
+    <!-- local 프로파일: 개발 환경 (색상 포함, 상세 로그) -->
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <!-- 개발 시 디버그 로그 활성화 -->
+        <logger name="com.yapp2app" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.springframework.security" level="DEBUG"/>
+    </springProfile>
+
+    <!-- test 프로파일: 테스트 환경 -->
+    <springProfile name="test">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="com.yapp2app" level="DEBUG"/>
+    </springProfile>
+
+    <!-- staging 프로파일: 스테이징 환경 (k8s + Loki, JSON 로그) -->
+    <springProfile name="staging">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </root>
+
+        <logger name="com.yapp2app" level="INFO"/>
+        <logger name="org.springframework" level="WARN"/>
+    </springProfile>
+
+    <!-- production 프로파일: 운영 환경 (k8s + Loki, JSON 로그) -->
+    <springProfile name="prod,production">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </root>
+
+        <logger name="com.yapp2app" level="INFO"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+    </springProfile>
+
+    <!-- 기본 설정 (프로파일 미지정) -->
+    <springProfile name="!local &amp; !test &amp; !staging &amp; !prod &amp; !production">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="com.yapp2app" level="DEBUG"/>
+    </springProfile>
+
+</configuration>

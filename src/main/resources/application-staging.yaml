@@ -11,12 +11,22 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       leak-detection-threshold: 60000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
     validate-on-migrate: true
     out-of-order: false
+  data:
+    redis:
+      host: ENC(RJVGRKgJQdjvDbg/TdCFtG/vJojISi+WwlXIEu8ijVsyi3//bW7/a2nAqe7iFvVA)
+      port: 6379
+      password: ENC(0ohhdfdfOZN9TS4bQdBZiLsg9gRJtWpDSWEbD5nXgfhPorPeTXAG9MqcRsxJrY5E)
+
 
 logging:
   level:

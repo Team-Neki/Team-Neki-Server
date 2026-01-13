@@ -1,5 +1,6 @@
 package com.yapp2app.auth.infra.security.token
 
+import com.yapp2app.auth.application.port.AuthTokenProviderPort
 import com.yapp2app.auth.infra.security.properties.AppProperties
 import com.yapp2app.user.domain.enums.ProviderType
 import io.jsonwebtoken.Claims
@@ -20,7 +21,7 @@ import javax.crypto.SecretKey
  * description    : JWT 토큰 제공 클래스
  */
 @Component
-class AuthTokenProvider(private val appProperties: AppProperties) {
+class AuthTokenProvider(private val appProperties: AppProperties) : AuthTokenProviderPort {
 
     companion object {
         private const val AUTHORITIES_KEY = "roles"
@@ -36,7 +37,12 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
         Keys.hmacShaKeyFor(appProperties.auth.refreshTokenSecret?.toByteArray() ?: byteArrayOf())
     }
 
-    fun createAccessToken(id: String, name: String?, roles: Collection<String>, providerType: ProviderType): String {
+    override fun createAccessToken(
+        id: String,
+        name: String?,
+        roles: Collection<String>,
+        providerType: ProviderType,
+    ): String {
         val now = Instant.now()
         val expiryMillis = appProperties.auth.accessTokenExpiry ?: 0L
 
@@ -53,7 +59,12 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
             .compact()
     }
 
-    fun createRefreshToken(id: String, name: String?, roles: Collection<String>, providerType: ProviderType): String {
+    override fun createRefreshToken(
+        id: String,
+        name: String?,
+        roles: Collection<String>,
+        providerType: ProviderType,
+    ): String {
         val now = Instant.now()
         val expiryMillis = appProperties.auth.refreshTokenExpiry ?: 0L
 
@@ -68,6 +79,39 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
             .expiration(Date.from(now.plusMillis(expiryMillis)))
             .signWith(refreshTokenSecretKey)
             .compact()
+    }
+
+    override fun getAuthenticationFromRefreshToken(token: String): Authentication {
+        val claims = getRefreshTokenClaims(token)
+
+        @Suppress("UNCHECKED_CAST")
+        val roles = (claims[AUTHORITIES_KEY] as? List<*>)
+            ?.filterIsInstance<String>()
+            ?: emptyList()
+
+        val name = claims[NAME_KEY] as? String ?: ""
+        val providerTypeStr = claims[PROVIDER_TYPE_KEY] as? String
+            ?: throw IllegalArgumentException("Provider type not found in token")
+
+        val authorities = roles.map { SimpleGrantedAuthority(it) }
+
+        val principal = UserPrincipal(
+            id = claims.subject.toLong(),
+            name = name,
+            providerType = ProviderType.valueOf(providerTypeStr),
+            email = "",
+            roles = roles.toSet(),
+            password = "NO_PASS",
+        )
+
+        return UsernamePasswordAuthenticationToken(principal, token, authorities)
+    }
+
+    override fun validateRefreshToken(token: String): Boolean = try {
+        getRefreshTokenClaims(token)
+        true
+    } catch (e: Exception) {
+        false
     }
 
     fun getAuthentication(token: String): Authentication {
@@ -107,37 +151,4 @@ class AuthTokenProvider(private val appProperties: AppProperties) {
         .build()
         .parseSignedClaims(token)
         .payload
-
-    fun validateRefreshToken(token: String): Boolean = try {
-        getRefreshTokenClaims(token)
-        true
-    } catch (e: Exception) {
-        false
-    }
-
-    fun getAuthenticationFromRefreshToken(token: String): Authentication {
-        val claims = getRefreshTokenClaims(token)
-
-        @Suppress("UNCHECKED_CAST")
-        val roles = (claims[AUTHORITIES_KEY] as? List<*>)
-            ?.filterIsInstance<String>()
-            ?: emptyList()
-
-        val name = claims[NAME_KEY] as? String ?: ""
-        val providerTypeStr = claims[PROVIDER_TYPE_KEY] as? String
-            ?: throw IllegalArgumentException("Provider type not found in token")
-
-        val authorities = roles.map { SimpleGrantedAuthority(it) }
-
-        val principal = UserPrincipal(
-            id = claims.subject.toLong(),
-            name = name,
-            providerType = ProviderType.valueOf(providerTypeStr),
-            email = "",
-            roles = roles.toSet(),
-            password = "NO_PASS",
-        )
-
-        return UsernamePasswordAuthenticationToken(principal, token, authorities)
-    }
 }

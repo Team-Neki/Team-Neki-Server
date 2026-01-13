@@ -1,5 +1,6 @@
 package com.yapp2app.auth.infra.security.config
 
+import com.yapp2app.auth.infra.security.filter.AuthMdcFilter
 import com.yapp2app.auth.infra.security.filter.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -52,5 +53,6 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
             it.anyRequest().authenticated()
         }
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+        .addFilterAfter(AuthMdcFilter(), JwtAuthenticationFilter::class.java)
         .build()
 }

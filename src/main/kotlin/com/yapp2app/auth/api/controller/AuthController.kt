@@ -73,11 +73,8 @@ class AuthController(
         ```
 
         ### 토큰 만료 시 처리 방법
-        1. 인가가 필요한 API 호출 시 **401 Unauthorized** 응답을 받은 경우
-        2. 응답의 `code` 필드를 확인:
-           - **D-997** (토큰 만료): `/api/auth/refresh` API로 토큰 갱신
-           - **D-998** (토큰 무효): 재로그인 필요
-           - **D-999** (인증 실패): 재로그인 필요
+        1. 인가가 필요한 API 호출 시 **[HttpStatus] 401 Unauthorized** 응답을 받은 경우 -> 토큰 갱신 API 호출
+        2. **HttpStatus 403 Forbidden** 응답을 받은 경우 -> 로그인 페이지로 리다이렉트
 
         ### 토큰 저장 권장사항
         - **accessToken**: 메모리 또는 안전한 저장소 (탈취 위험 최소화)
@@ -111,9 +108,8 @@ class AuthController(
         RefreshToken을 사용하여 새로운 AccessToken과 RefreshToken을 발급받습니다.
 
         ### 사용 시나리오
-        1. 보호된 API 호출 시 **401 Unauthorized** 응답을 받음
-        2. 응답의 `resultCode` 필드가 **D-997** (토큰 만료)인 경우
-        3. 저장된 RefreshToken으로 이 API를 호출하여 새로운 토큰 발급
+        1. 인가가 필요한 API 호출 시 **401 Unauthorized** 응답을 받음
+        2. 저장된 RefreshToken으로 이 API를 호출하여 새로운 토큰 발급
 
         ### Refresh Token Rotation (보안 강화)
         ⚠️ **중요**: 보안을 위해 Refresh Token Rotation을 적용합니다.
@@ -128,7 +124,7 @@ class AuthController(
         ApiResponse(responseCode = "200", description = "토큰 갱신 성공 - 새로운 AccessToken과 RefreshToken 발급"),
         ApiResponse(
             responseCode = "400",
-            description = "D-998: RefreshToken 만료 (재로그인 필요) 로그인 페이지로 이동",
+            description = "D-998: RefreshToken 만료 (재로그인 필요 HttpStatus 403 반환) 로그인 페이지로 이동",
         ),
     )
     @PostMapping("/refresh")
