@@ -29,7 +29,7 @@ class User(
     var password: String,
 
     @Column(nullable = false)
-    val oid: Long,
+    val oid: String,
 
     @Column(nullable = false, length = 100)
     var name: String?,
@@ -38,7 +38,7 @@ class User(
     @Column(nullable = false, length = 10)
     val providerType: ProviderType,
 
-    @Column(name = "image_url", nullable = true, length = 100)
+    @Column(name = "image_url", nullable = true, length = 255)
     var imageUrl: String?,
 
     @Column(name = "role", nullable = false, length = 255)
@@ -55,7 +55,7 @@ class User(
     constructor(
         email: String?,
         name: String?,
-        oid: Long,
+        oid: String,
         roles: String,
         providerType: ProviderType,
         imageUrl: String?,
