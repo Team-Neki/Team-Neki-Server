@@ -12,6 +12,7 @@ import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.user.domain.enums.ProviderType
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -44,9 +45,13 @@ class AuthController(
      * OIDC 방식 회원가입
      */
     @Operation(
-        summary = "카카오 OIDC 회원가입",
+        summary = "카카오/애플 OIDC 회원가입",
         description = """
-        ## 카카오 OIDC 회원가입 API
+        ## 카카오/애플 OIDC 회원가입 API
+
+        [========== 카카오 REST 방식 구간(Start) ==========]
+
+        (SDK 방식은 안읽으셔도 되요)
 
         앱에서 카카오 SDK로 획득한 idToken을 검증하고 회원가입을 처리합니다.
 
@@ -60,6 +65,8 @@ class AuthController(
         [staging] https://kauth.kakao.com/oauth/authorize?client_id=4db94315d17162e99b36029f6f9775c6&redirect_uri=https://dev-yapp.suitestudy.com:4641/api/auth/test/kakao/redirect&response_type=code&scope=openid,profile_nickname,profile_image
 
         응답의 `id_token` 필드 값을 이 API의 `idToken`으로 사용하세요.
+
+        [========== 카카오 REST 방식 구간(End) ==========]
 
         사용자의 OID와 ProviderType을 사용하여 로그인을 수행합니다.
 
@@ -80,6 +87,22 @@ class AuthController(
         - **accessToken**: 메모리 또는 안전한 저장소 (탈취 위험 최소화)
         - **refreshToken**: 안전한 저장소 (Keychain, EncryptedSharedPreferences 등)
 
+        인가가 필요한 API 요청
+           ↓
+        응답 수신
+           ↓
+        ┌──────────────┐
+        │ Status Code? │
+        └──────────────┘
+           ↓
+           ├─ 200 → 정상 처리
+           │
+           ├─ 403 → 로그인 페이지 이동
+           │
+           ├─ 401 → resultCode 확인
+           │
+           └─ 400 → message를 모달로 표시
+
         providerType LOCAL, TEST는 무시해주세요 ~
         """,
     )
@@ -88,6 +111,7 @@ class AuthController(
     )
     @PostMapping("/{providerType}/login")
     fun oauthLogin(
+        @Parameter(description = "로그인 제공자 타입", example = "KAKAO")
         @PathVariable(name = "providerType") providerType: ProviderType,
         @RequestBody @Valid request: CreateAuthRequest,
     ): BaseResponse<GetAuthResponse> {
