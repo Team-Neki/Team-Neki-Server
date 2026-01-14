@@ -1,8 +1,8 @@
-package com.yapp2app.auth.infra.oauth
+package com.yapp2app.auth.infra.oauth.oidc
 
 import com.yapp2app.auth.application.contract.AuthCacheKeys
 import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
-import com.yapp2app.auth.application.port.OidcPort
+import com.yapp2app.auth.infra.oauth.oidc.Oidc
 import com.yapp2app.auth.infra.redis.AuthRedisCacheAdapter
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import org.slf4j.LoggerFactory
@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClient
 import java.time.Duration
 
 /**
- * fileName       : KakaoOidcAdapter
+ * fileName       : KakaoOidc
  * author         : darren
  * date           : 2025. 12. 26. 18:20
  * description    : 카카오 OAuth 외부 연동 Adapter
@@ -22,11 +22,11 @@ import java.time.Duration
  * - 서명 검증 실패 시 UseCase에서 캐시 무효화 후 재조회 패턴 적용
  */
 @Component
-class KakaoOidcAdapter(
+class KakaoOidc(
     private val restClient: RestClient,
     private val oauthProperties: OauthProperties,
     private val authRedisCacheAdapter: AuthRedisCacheAdapter,
-) : OidcPort {
+) : Oidc {
 
     private val log = LoggerFactory.getLogger(javaClass)
 

@@ -2,9 +2,11 @@ package com.yapp2app.auth.infra.oauth
 
 import com.yapp2app.auth.application.contract.AuthCacheKeys
 import com.yapp2app.auth.application.contract.OauthInfoResponse
-import com.yapp2app.auth.application.port.OauthHelperPort
-import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.application.port.OidcTokenValidatorPort
+import com.yapp2app.auth.infra.oauth.helper.OauthHelper
+import com.yapp2app.auth.infra.oauth.oidc.Oidc
+import com.yapp2app.auth.infra.oauth.registry.OauthHelperRegistry
+import com.yapp2app.auth.infra.oauth.registry.OidcRegistry
 import com.yapp2app.auth.infra.redis.AuthRedisCacheAdapter
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.user.domain.enums.ProviderType
@@ -19,8 +21,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class OidcTokenValidator(
-    private val oidcAdapterRegistry: OidcAdapterRegistry,
-    private val oauthHelperAdapterRegistry: OauthHelperAdapterRegistry,
+    private val oidcRegistry: OidcRegistry,
+    private val oauthHelperRegistry: OauthHelperRegistry,
     private val authRedisCacheAdapter: AuthRedisCacheAdapter,
 ) : OidcTokenValidatorPort {
 
@@ -32,8 +34,8 @@ class OidcTokenValidator(
      * - BusinessException 발생 시: 캐시 무효화 후 재시도 (공개키 로테이션 대응)
      */
     override fun validateIdToken(idToken: String, providerType: ProviderType): OauthInfoResponse {
-        val oidcAdapter = oidcAdapterRegistry.getAdapter(providerType)
-        val oauthHelperAdapter = oauthHelperAdapterRegistry.getAdapter(providerType)
+        val oidcAdapter = oidcRegistry.getAdapter(providerType)
+        val oauthHelperAdapter = oauthHelperRegistry.getAdapter(providerType)
 
         return try {
             // 1차 시도: 캐시된 공개키로 토큰 검증
@@ -54,13 +56,9 @@ class OidcTokenValidator(
      * - 공개키는 Redis에 캐싱되어 있을 수 있음
      * - 검증 실패 시 BusinessException 발생
      */
-    private fun validateTokenWithPublicKeys(
-        idToken: String,
-        oidcPort: OidcPort,
-        oauthHelperPort: OauthHelperPort,
-    ): OauthInfoResponse {
-        val publicKeys = oidcPort.getOIDCPublicKey()
-        return oauthHelperPort.getOauthInfoByIdToken(
+    private fun validateTokenWithPublicKeys(idToken: String, oidc: Oidc, oauthHelper: OauthHelper): OauthInfoResponse {
+        val publicKeys = oidc.getOIDCPublicKey()
+        return oauthHelper.getOauthInfoByIdToken(
             idToken = idToken,
             publicKeys = publicKeys,
         )

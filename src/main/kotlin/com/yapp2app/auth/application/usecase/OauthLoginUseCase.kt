@@ -5,8 +5,8 @@ import com.yapp2app.auth.application.command.RegisterOauthUserCommand
 import com.yapp2app.auth.application.contract.GetKakaoTokenResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
 import com.yapp2app.auth.application.port.AuthTokenProviderPort
+import com.yapp2app.auth.application.port.OidcTokenValidatorPort
 import com.yapp2app.auth.application.result.GetAuthResult
-import com.yapp2app.auth.infra.oauth.OidcTokenValidator
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.transaction.TransactionRunner
@@ -27,7 +27,7 @@ import org.springframework.web.client.RestClient
 @UseCase
 class OauthLoginUseCase(
     private val oauthProperties: OauthProperties,
-    private val oidcTokenValidator: OidcTokenValidator,
+    private val oidcTokenValidatorPort: OidcTokenValidatorPort,
     private val restClient: RestClient,
     private val tokenProviderPort: AuthTokenProviderPort,
     private val userRepositoryPort: UserRepositoryPort,
@@ -42,7 +42,7 @@ class OauthLoginUseCase(
      * 4. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
     fun execute(command: RegisterOauthUserCommand): GetAuthResult {
-        val oauthInfoResponse = oidcTokenValidator.validateIdToken(command.idToken, command.providerType)
+        val oauthInfoResponse = oidcTokenValidatorPort.validateIdToken(command.idToken, command.providerType)
 
         // 회원가입 또는 로그인
         val user = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoResponse) }
