@@ -30,10 +30,11 @@ class KakaoApiClient(
      * @param query 검색 키워드
      * @param page 페이지 번호 (1~45)
      * @param size 한 페이지에 보여질 문서의 개수 (1~15)
+     * @param rect 사각형 범위 (x1,y1,x2,y2 - 좌하단 경도,위도,우상단 경도,위도)
      * @return KakaoLocalSearchResponse
      */
-    fun searchByKeyword(query: String, page: Int = 1, size: Int = 15): KakaoLocalSearchResponse {
-        log.info("Kakao API Request - query: {}, page: {}, size: {}", query, page, size)
+    fun searchByKeyword(query: String, page: Int = 1, size: Int = 15, rect: String? = null): KakaoLocalSearchResponse {
+        log.info("Kakao API Request - query: {}, page: {}, size: {}, rect: {}", query, page, size, rect)
 
         // Rate limiting: 요청 사이에 랜덤 지연 (300ms ~ 700ms)
         val delayMillis = (300L..700L).random()
@@ -48,6 +49,11 @@ class KakaoApiClient(
                     .queryParam("query", query)
                     .queryParam("page", page)
                     .queryParam("size", size)
+                    .apply {
+                        if (rect != null) {
+                            queryParam("rect", rect)
+                        }
+                    }
                     .build()
             }
             .header(HttpHeaders.AUTHORIZATION, "KakaoAK $apiKey")
