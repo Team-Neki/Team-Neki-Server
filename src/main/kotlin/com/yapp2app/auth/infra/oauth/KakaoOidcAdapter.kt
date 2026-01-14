@@ -2,8 +2,8 @@ package com.yapp2app.auth.infra.oauth
 
 import com.yapp2app.auth.application.contract.AuthCacheKeys
 import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
-import com.yapp2app.auth.application.port.AuthCachePort
 import com.yapp2app.auth.application.port.OidcPort
+import com.yapp2app.auth.infra.redis.AuthRedisCacheAdapter
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -25,7 +25,7 @@ import java.time.Duration
 class KakaoOidcAdapter(
     private val restClient: RestClient,
     private val oauthProperties: OauthProperties,
-    private val cachePort: AuthCachePort,
+    private val authRedisCacheAdapter: AuthRedisCacheAdapter,
 ) : OidcPort {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -38,7 +38,7 @@ class KakaoOidcAdapter(
      */
     override fun getOIDCPublicKey(): OIDCPublicKeysResponse {
         // 1. 캐시 조회
-        val cached = cachePort.getPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
+        val cached = authRedisCacheAdapter.getPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
 
         if (cached != null) {
             log.info("Found cached OIDC key") // TODO 임시 코드
@@ -52,7 +52,7 @@ class KakaoOidcAdapter(
             .body(OIDCPublicKeysResponse::class.java)!!
 
         // 3. 캐시 저장 (TTL 14일)
-        cachePort.setPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY, publicKeys, Duration.ofDays(14))
+        authRedisCacheAdapter.setPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY, publicKeys, Duration.ofDays(14))
 
         return publicKeys
     }

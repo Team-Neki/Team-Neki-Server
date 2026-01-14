@@ -2,19 +2,13 @@ package com.yapp2app.auth.application.usecase
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.yapp2app.auth.application.command.RegisterOauthUserCommand
-import com.yapp2app.auth.application.contract.AuthCacheKeys
 import com.yapp2app.auth.application.contract.GetKakaoTokenResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
-import com.yapp2app.auth.application.port.AuthCachePort
 import com.yapp2app.auth.application.port.AuthTokenProviderPort
-import com.yapp2app.auth.application.port.OauthHelperPort
-import com.yapp2app.auth.application.port.OidcPort
 import com.yapp2app.auth.application.result.GetAuthResult
-import com.yapp2app.auth.infra.oauth.OauthHelperAdapterRegistry
-import com.yapp2app.auth.infra.oauth.OidcAdapterRegistry
+import com.yapp2app.auth.infra.oauth.OidcTokenValidator
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
@@ -33,9 +27,7 @@ import org.springframework.web.client.RestClient
 @UseCase
 class OauthLoginUseCase(
     private val oauthProperties: OauthProperties,
-    private val oidcAdapterRegistry: OidcAdapterRegistry,
-    private val oauthHelperAdapterRegistry: OauthHelperAdapterRegistry,
-    private val cachePort: AuthCachePort,
+    private val oidcTokenValidator: OidcTokenValidator,
     private val restClient: RestClient,
     private val tokenProviderPort: AuthTokenProviderPort,
     private val userRepositoryPort: UserRepositoryPort,
@@ -50,11 +42,7 @@ class OauthLoginUseCase(
      * 4. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
     fun execute(command: RegisterOauthUserCommand): GetAuthResult {
-        // Registry로부터 providerType에 맞는 Adapter 선택
-        val oidcAdapter = oidcAdapterRegistry.getAdapter(command.providerType)
-        val oauthHelperAdapter = oauthHelperAdapterRegistry.getAdapter(command.providerType)
-
-        val oauthInfoResponse = validateTokenWithCacheRetry(command.idToken, oidcAdapter, oauthHelperAdapter)
+        val oauthInfoResponse = oidcTokenValidator.validateIdToken(command.idToken, command.providerType)
 
         // 회원가입 또는 로그인
         val user = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoResponse) }
@@ -80,45 +68,6 @@ class OauthLoginUseCase(
         )
     }
 
-    /**
-     * 캐시된 공개키로 토큰 검증 시도 및 실패 시 재시도 로직
-     * - 1차 시도: 캐시된 공개키로 토큰 검증
-     * - BusinessException 발생 시: 캐시 무효화 후 재시도 (공개키 로테이션 대응)
-     */
-    private fun validateTokenWithCacheRetry(
-        idToken: String,
-        oidcPort: OidcPort,
-        oauthHelperPort: OauthHelperPort,
-    ): OauthInfoResponse = try {
-        // 1차 시도: 캐시된 공개키로 토큰 검증
-        validateTokenWithPublicKeys(idToken, oidcPort, oauthHelperPort)
-    } catch (e: BusinessException) {
-        log.info("Kakao OIDC token expired. 갱신 로직")
-        // 캐시 무효화 후 재시도
-        cachePort.clearPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
-        validateTokenWithPublicKeys(idToken, oidcPort, oauthHelperPort)
-    } catch (e: Exception) {
-        e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용
-        throw e
-    }
-
-    /**
-     * OIDC 공개키를 조회하여 ID Token을 검증합니다.
-     * - 공개키는 Redis에 캐싱되어 있을 수 있음
-     * - 검증 실패 시 BusinessException 발생
-     */
-    private fun validateTokenWithPublicKeys(
-        idToken: String,
-        oidcPort: OidcPort,
-        oauthHelperPort: OauthHelperPort,
-    ): OauthInfoResponse {
-        val publicKeys = oidcPort.getOIDCPublicKey()
-        return oauthHelperPort.getOauthInfoByIdToken(
-            idToken = idToken,
-            publicKeys = publicKeys,
-        )
-    }
-
     private fun registerOauthUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User {
         val user = userRepositoryPort.findByOid(
             oid = oauthInfoResponse.oid,
@@ -132,7 +81,7 @@ class OauthLoginUseCase(
             imageUrl = oauthInfoResponse.imageUrl,
         )
 
-        return userRepositoryPort.save(user)
+        return user
     }
 
     /**
