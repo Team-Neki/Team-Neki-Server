@@ -68,21 +68,19 @@ class OauthLoginUseCase(
         )
     }
 
-    private fun registerOauthUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User {
-        val user = userRepositoryPort.findByOid(
-            oid = oauthInfoResponse.oid,
-            provider = oauthInfoResponse.providerType,
-        ) ?: User(
+    private fun registerOauthUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User = userRepositoryPort.findByOid(
+        oid = oauthInfoResponse.oid,
+        provider = oauthInfoResponse.providerType,
+    ) ?: userRepositoryPort.save(
+        User(
             email = oauthInfoResponse.email,
             oid = oauthInfoResponse.oid,
             name = oauthInfoResponse.name,
             roles = RoleType.USER.role,
             providerType = oauthInfoResponse.providerType,
             imageUrl = oauthInfoResponse.imageUrl,
-        )
-
-        return user
-    }
+        ),
+    )
 
     /**
      * [TEST 용도]
