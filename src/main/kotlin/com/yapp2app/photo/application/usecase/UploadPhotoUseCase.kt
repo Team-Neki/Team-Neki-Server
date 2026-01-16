@@ -5,8 +5,8 @@ import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.photo.application.command.UploadPhotoCommand
+import com.yapp2app.photo.application.contract.MediaAvailability
 import com.yapp2app.photo.application.port.MediaClientPort
-import com.yapp2app.photo.application.port.MediaClientPort.MediaAvailability.*
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 import com.yapp2app.photo.application.result.UploadPhotoResult
 import com.yapp2app.photo.domain.entity.PhotoImage
@@ -33,7 +33,7 @@ class UploadPhotoUseCase(
 
         // TODO : 실패한 경우 처리, 재시도 or 실패 간주
         // 현재는 전체 usecase 실패로 간주
-        if (availability != AVAILABLE) {
+        if (availability != MediaAvailability.AVAILABLE) {
             throw BusinessException(ResultCode.UPLOAD_FAILED)
         }
 

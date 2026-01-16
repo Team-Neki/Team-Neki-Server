@@ -7,6 +7,8 @@ import com.yapp2app.media.application.command.GetMediasCommand
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.yapp2app.media.application.usecase.DeleteMediaUseCase
 import com.yapp2app.media.application.usecase.GetMediasUseCase
+import com.yapp2app.photo.application.contract.MediaAvailability
+import com.yapp2app.photo.application.contract.MediaInfo
 import com.yapp2app.photo.application.port.MediaClientPort
 import com.yapp2app.photo.application.port.MediaClientPort.*
 import org.springframework.stereotype.Component
