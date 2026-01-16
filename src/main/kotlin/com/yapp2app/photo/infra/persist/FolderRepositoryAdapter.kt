@@ -2,6 +2,7 @@ package com.yapp2app.photo.infra.persist
 
 import com.yapp2app.photo.application.port.FolderRepositoryPort
 import com.yapp2app.photo.domain.entity.Folder
+import com.yapp2app.photo.infra.persist.jpa.FolderQueryRepository
 import com.yapp2app.photo.infra.persist.jpa.JpaFolderRepository
 import org.springframework.stereotype.Repository
 
@@ -12,15 +13,18 @@ import org.springframework.stereotype.Repository
  * description    : File 영속성에 대한 Adapter (command + query)
  */
 @Repository
-class FolderRepositoryAdapter(private val jpaRepository: JpaFolderRepository) : FolderRepositoryPort {
+class FolderRepositoryAdapter(
+    private val jpaRepository: JpaFolderRepository,
+    private val queryRepository: FolderQueryRepository,
+) : FolderRepositoryPort {
 
     override fun save(folder: Folder): Folder = jpaRepository.save(folder)
 
     override fun deleteOwnedFolder(userId: Long, folderId: Long): Int =
-        jpaRepository.deleteByUserIdAndId(userId, folderId)
+        queryRepository.deleteOwnedFolder(userId, folderId)
 
     override fun deleteOwnedFolders(userId: Long, folderIds: List<Long>): Int =
-        jpaRepository.deleteAllByUserIdAndIdIn(userId, folderIds)
+        queryRepository.deleteOwnedFolders(userId, folderIds)
 
     override fun listOwnedFolders(userId: Long): List<Folder> = jpaRepository.findAllByUserId(userId)
 
