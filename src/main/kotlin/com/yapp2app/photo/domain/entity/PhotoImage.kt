@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.DynamicUpdate
 
 /**
  * fileName       : PhotoImage
@@ -15,6 +16,7 @@ import jakarta.persistence.Table
  * description    : 사용자의 사진 엔티티. url 대신 mediaId로 접근
  */
 @Entity
+@DynamicUpdate
 @Table(name = "TB_photo_image")
 class PhotoImage(
     @Id
