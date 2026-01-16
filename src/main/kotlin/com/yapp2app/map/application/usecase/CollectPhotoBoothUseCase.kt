@@ -3,11 +3,11 @@ package com.yapp2app.map.application.usecase
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.map.application.contract.KakaoLocalSearchResponse
 import com.yapp2app.map.application.contract.KakaoPlace
+import com.yapp2app.map.application.port.BrandRepositoryPort
+import com.yapp2app.map.application.port.MapApiClientPort
+import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
 import com.yapp2app.map.application.result.Rectangle
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
-import com.yapp2app.map.infra.client.KakaoApiClient
-import com.yapp2app.map.infra.persist.jpa.JpaBrandRepository
-import com.yapp2app.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.PrecisionModel
@@ -22,9 +22,9 @@ import org.springframework.transaction.annotation.Transactional
  */
 @UseCase
 class CollectPhotoBoothUseCase(
-    private val kakaoApiClient: KakaoApiClient,
-    private val brandRepository: JpaBrandRepository,
-    private val photoBoothLocationRepository: JpaPhotoBoothLocationRepository,
+    private val mapApiClient: MapApiClientPort,
+    private val brandRepository: BrandRepositoryPort,
+    private val photoBoothLocationRepository: PhotoBoothLocationRepositoryPort,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
@@ -32,7 +32,7 @@ class CollectPhotoBoothUseCase(
     companion object {
         private const val PAGE_SIZE = 15
         private const val MAX_RETRIES = 5
-        private const val GRID_SIZE = 0.3
+        private const val GRID_SIZE = 0.25
 
         // Rate limiting 설정
         private const val PAGE_DELAY_MIN = 1000L // 페이지 간 최소 딜레이 (ms)
@@ -53,10 +53,10 @@ class CollectPhotoBoothUseCase(
     fun execute(keyword: String, brandCode: String): CollectResult {
         log.info("Start collecting photo booth locations - keyword: {}, brandCode: {}", keyword, brandCode)
 
-        val brand = brandRepository.findByCode(brandCode)
+        val brand = brandRepository.getBrand(brandCode)
             ?: throw IllegalArgumentException("Brand not found: $brandCode")
 
-        val existingLocations = photoBoothLocationRepository.findAllByBrandId(brand.id!!)
+        val existingLocations = photoBoothLocationRepository.getPhotoBoothLocations(brand.id!!)
             .associateBy { it.mapId }
         log.info("Existing locations count: {}", existingLocations.size)
 
@@ -130,7 +130,7 @@ class CollectPhotoBoothUseCase(
     }
 
     private fun fetchLastPage(keyword: String, rect: String): Int {
-        val firstPageResponse = kakaoApiClient.searchByKeyword(
+        val firstPageResponse = mapApiClient.kakaoSearchByKeyword(
             query = keyword,
             page = 1,
             size = PAGE_SIZE,
@@ -159,7 +159,7 @@ class CollectPhotoBoothUseCase(
                     log.debug("Delayed {}ms before requesting page {}", delayMillis, page)
                 }
 
-                return kakaoApiClient.searchByKeyword(
+                return mapApiClient.kakaoSearchByKeyword(
                     query = keyword,
                     page = page,
                     size = PAGE_SIZE,
