@@ -1,0 +1,48 @@
+package com.yapp2app.map.infra.persist
+
+import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
+import com.yapp2app.map.domain.entity.PhotoBoothLocation
+import com.yapp2app.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
+import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationDto
+import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
+import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationWithDistanceDto
+import org.springframework.stereotype.Repository
+
+/**
+ * fileName       : PhotoBoothLocationAdapter
+ * author         : darren
+ * date           : 2026. 1. 16. 11:25
+ * description    : PhotoBoothLocation 영속성에 대한 Adapter (command + query)
+ */
+@Repository
+class PhotoBoothLocationRepositoryAdapter(
+    private val jpaRepository: JpaPhotoBoothLocationRepository,
+    private val queryRepository: PhotoBoothLocationQueryRepository,
+) : PhotoBoothLocationRepositoryPort {
+
+    override fun saveAll(photoBoothLocations: Collection<PhotoBoothLocation>): Collection<PhotoBoothLocation> =
+        jpaRepository.saveAll(photoBoothLocations)
+
+    override fun deleteAll(photoBoothLocations: Collection<PhotoBoothLocation>) =
+        jpaRepository.deleteAll(photoBoothLocations)
+
+    override fun getPhotoBoothLocations(brandId: Long): List<PhotoBoothLocation> =
+        jpaRepository.findAllByBrandId(brandId)
+
+    override fun listPolygonLocations(
+        coordinates: List<Pair<Double, Double>>,
+        brandId: Long?,
+        offset: Int,
+        limit: Int,
+    ): List<PhotoBoothLocationDto> = queryRepository.findByPolygon(coordinates, brandId, offset, limit)
+
+    override fun listPointLocations(
+        longitude: Double,
+        latitude: Double,
+        radiusInMeters: Int,
+        brandId: Long?,
+        offset: Int,
+        limit: Int,
+    ): List<PhotoBoothLocationWithDistanceDto> =
+        queryRepository.findByDistanceFromPoint(longitude, latitude, radiusInMeters, brandId, offset, limit)
+}

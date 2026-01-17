@@ -6,7 +6,7 @@ import com.yapp2app.map.application.contract.KakaoPlace
 import com.yapp2app.map.application.port.BrandRepositoryPort
 import com.yapp2app.map.application.port.MapApiClientPort
 import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
-import com.yapp2app.map.application.result.Rectangle
+import com.yapp2app.map.application.result.PhotoBoothResult
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
@@ -15,13 +15,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 
 /**
- * fileName       : CollectPhotoBoothUseCase
+ * fileName       : CollectPhotoBoothLocationUseCase
  * author         : darren
  * date           : 2026. 01. 13.
  * description    : 포토부스 위치 정보 수집 UseCase
  */
 @UseCase
-class CollectPhotoBoothUseCase(
+class CollectPhotoBoothLocationUseCase(
     private val mapApiClient: MapApiClientPort,
     private val brandRepository: BrandRepositoryPort,
     private val photoBoothLocationRepository: PhotoBoothLocationRepositoryPort,
@@ -104,7 +104,7 @@ class CollectPhotoBoothUseCase(
         keyword: String,
         brandId: Long,
         existingLocations: Map<String, PhotoBoothLocation>,
-        grid: Rectangle,
+        grid: PhotoBoothResult,
     ): Map<String, PhotoBoothLocation> {
         val rect = grid.toRect()
 
@@ -202,7 +202,7 @@ class CollectPhotoBoothUseCase(
         throw IllegalStateException("Unexpected state in fetchPageWithRetry")
     }
 
-    private fun Rectangle.toRect(): String = "$x1,$y1,$x2,$y2"
+    private fun PhotoBoothResult.toRect(): String = "$x1,$y1,$x2,$y2"
 
     private fun mapToPhotoBoothLocation(
         place: KakaoPlace,
@@ -267,14 +267,14 @@ class CollectPhotoBoothUseCase(
      * @param gridSize 그리드 크기 (도 단위, 예: 0.1 = 약 10km)
      * @return 그리드 사각형 리스트
      */
-    fun divideKoreaIntoGrids(gridSize: Double): MutableList<Rectangle> {
-        val grids: MutableList<Rectangle> = ArrayList<Rectangle>()
+    fun divideKoreaIntoGrids(gridSize: Double): MutableList<PhotoBoothResult> {
+        val grids: MutableList<PhotoBoothResult> = ArrayList<PhotoBoothResult>()
 
         var lat = KOREA_MIN_LAT
         while (lat < KOREA_MAX_LAT) {
             var lng = KOREA_MIN_LNG
             while (lng < KOREA_MAX_LNG) {
-                val grid = Rectangle(x1 = lng, y1 = lat, x2 = lng + gridSize, y2 = lat + gridSize)
+                val grid = PhotoBoothResult(x1 = lng, y1 = lat, x2 = lng + gridSize, y2 = lat + gridSize)
 
                 grids.add(grid)
                 lng += gridSize
