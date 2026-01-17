@@ -32,13 +32,15 @@ class CollectPhotoBoothUseCase(
     companion object {
         private const val PAGE_SIZE = 15
         private const val MAX_RETRIES = 5
-        private const val GRID_SIZE = 0.25
+        private const val GRID_SIZE = 0.1
 
-        // Rate limiting 설정
+        // Rate limiting 설정 (카카오 API 제한 방지)
+        private const val INITIAL_DELAY = 1000L // 첫 API 호출 전 딜레이 (ms)
         private const val PAGE_DELAY_MIN = 1000L // 페이지 간 최소 딜레이 (ms)
         private const val PAGE_DELAY_MAX = 2000L // 페이지 간 최대 딜레이 (ms)
-        private const val GRID_DELAY_MIN = 2000L // 그리드 간 최소 딜레이 (ms)
-        private const val GRID_DELAY_MAX = 4000L // 그리드 간 최대 딜레이 (ms)
+        private const val GRID_DELAY_MIN = 1000L // 그리드 간 최소 딜레이 (ms)
+        private const val GRID_DELAY_MAX = 2000L // 그리드 간 최대 딜레이 (ms)
+        private const val RETRY_BACKOFF_BASE = 10000L // Retry 시 기본 딜레이 (10초)
 
         // 대한민국 좌표 범위
         private const val KOREA_MIN_LAT = 33.0 // 최남단 (제주 마라도 근처)
@@ -105,11 +107,34 @@ class CollectPhotoBoothUseCase(
         grid: Rectangle,
     ): Map<String, PhotoBoothLocation> {
         val rect = grid.toRect()
-        val lastPage = fetchLastPage(keyword, rect)
+
+        // 첫 API 호출 전 딜레이
+        Thread.sleep(INITIAL_DELAY)
+        log.debug("Initial delay {}ms before first API call", INITIAL_DELAY)
+
+        // 첫 페이지 조회 (중복 호출 방지)
+        val firstPageResponse = fetchPageWithRetry(keyword, 1, rect, skipDelay = true)
+        val lastPage = firstPageResponse.meta.pageableCount
+
+        log.debug(
+            "Total count: {}, Pageable count: {}, Last page: {}",
+            firstPageResponse.meta.totalCount,
+            PAGE_SIZE,
+            lastPage,
+        )
+
         val processed = mutableMapOf<String, PhotoBoothLocation>()
         var previousPageIds: Set<String>? = null
 
-        pageLoop@ for (page in 1..lastPage) {
+        // 첫 페이지 처리
+        val firstPageIds = firstPageResponse.documents.map { it.id }.toSet()
+        firstPageResponse.documents.forEach { place ->
+            processed[place.id] = mapToPhotoBoothLocation(place, brandId, existingLocations[place.id])
+        }
+        previousPageIds = firstPageIds
+
+        // 2페이지부터 조회
+        pageLoop@ for (page in 2..lastPage) {
             val response = fetchPageWithRetry(keyword, page, rect)
 
             log.debug("Page {} - Documents: {}", page, response.documents.size)
@@ -129,31 +154,18 @@ class CollectPhotoBoothUseCase(
         return processed
     }
 
-    private fun fetchLastPage(keyword: String, rect: String): Int {
-        val firstPageResponse = mapApiClient.kakaoSearchByKeyword(
-            query = keyword,
-            page = 1,
-            size = PAGE_SIZE,
-            rect = rect,
-        )
-
-        log.debug(
-            "Total count: {}, Pageable count: {}, Last page: {}",
-            firstPageResponse.meta.totalCount,
-            PAGE_SIZE,
-            firstPageResponse.meta.pageableCount,
-        )
-
-        return firstPageResponse.meta.pageableCount
-    }
-
-    private fun fetchPageWithRetry(keyword: String, page: Int, rect: String): KakaoLocalSearchResponse {
+    private fun fetchPageWithRetry(
+        keyword: String,
+        page: Int,
+        rect: String,
+        skipDelay: Boolean = false,
+    ): KakaoLocalSearchResponse {
         var retryCount = 0
 
         while (retryCount < MAX_RETRIES) {
             try {
-                // 페이지 간 딜레이
-                if (page > 1) {
+                // 페이지 간 딜레이 (skipDelay가 true면 건너뜀)
+                if (!skipDelay && page > 1) {
                     val delayMillis = (PAGE_DELAY_MIN..PAGE_DELAY_MAX).random()
                     Thread.sleep(delayMillis)
                     log.debug("Delayed {}ms before requesting page {}", delayMillis, page)
@@ -176,9 +188,9 @@ class CollectPhotoBoothUseCase(
                 )
 
                 if (retryCount < MAX_RETRIES) {
-                    // Exponential backoff: 5초, 10초, 15초, 20초...
-                    val backoffMillis = 5000L * retryCount
-                    log.info("Rate limited. Retrying after {}ms...", backoffMillis)
+                    // Exponential backoff: 10초, 20초, 30초, 40초...
+                    val backoffMillis = RETRY_BACKOFF_BASE * retryCount
+                    log.info("Rate limited or error occurred. Retrying after {}ms...", backoffMillis)
                     Thread.sleep(backoffMillis)
                 } else {
                     log.error("Failed to collect page {} after {} attempts", page, MAX_RETRIES)

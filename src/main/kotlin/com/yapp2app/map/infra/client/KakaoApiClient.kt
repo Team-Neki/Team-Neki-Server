@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
-import java.util.concurrent.TimeUnit
 
 /**
  * fileName       : KakaoApiClient
@@ -35,10 +34,6 @@ class KakaoApiClient(
      */
     fun searchByKeyword(query: String, page: Int = 1, size: Int = 15, rect: String? = null): KakaoLocalSearchResponse {
         log.info("Kakao API Request - query: {}, page: {}, size: {}, rect: {}", query, page, size, rect)
-
-        // Rate limiting: 요청 사이에 랜덤 지연 (300ms ~ 700ms)
-        val delayMillis = (300L..700L).random()
-        TimeUnit.MILLISECONDS.sleep(delayMillis)
 
         return restClient.get()
             .uri { uriBuilder ->
