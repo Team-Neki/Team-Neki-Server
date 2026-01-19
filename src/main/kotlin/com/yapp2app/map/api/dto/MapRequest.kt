@@ -33,7 +33,7 @@ data class CollectPhotoBoothRequest(
                 {"longitude": 127.023675, "latitude": 37.494257},
                 {"longitude": 127.019128, "latitude": 37.502456}
             ],
-            "brandId": 1,
+            "brandIds": [],
             "page": 0,
             "size": 20
         }
@@ -44,8 +44,8 @@ data class GetPolygonLocationRequest(
     @field:NotEmpty
     val coordinates: List<Coordinate>,
 
-    @field:Schema(description = "브랜드 ID (nullable)", example = "1")
-    val brandId: Long? = null,
+    @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드)", example = "[1, 2, 3]")
+    val brandIds: List<Long>? = null,
 
     @field:Schema(description = "페이지 번호 (0부터 시작)", example = "0")
     @field:Min(0)
@@ -77,8 +77,8 @@ data class GetPointLocationRequest(
     @field:Max(50000)
     val radiusInMeters: Int = 1000,
 
-    @field:Schema(description = "브랜드 ID (nullable)", example = "1")
-    val brandId: Long? = null,
+    @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드) ", example = "[1, 2, 3]")
+    val brandIds: List<Long>? = null,
 
     @field:Schema(description = "페이지 번호 (0부터 시작)", example = "0", defaultValue = "0")
     @field:Min(0)

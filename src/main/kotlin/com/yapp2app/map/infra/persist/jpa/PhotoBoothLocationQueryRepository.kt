@@ -24,13 +24,13 @@ class PhotoBoothLocationQueryRepository(
     /**
      * 다각형 내부의 포토부스 조회
      * @param coordinates 다각형을 구성하는 좌표 리스트 (경도, 위도)
-     * @param brandId 브랜드 ID (nullable)
+     * @param brandIds 브랜드 ID 리스트 (nullable)
      * @param offset 페이지네이션 offset
      * @param limit 페이지네이션 limit
      */
     fun findByPolygon(
         coordinates: List<Pair<Double, Double>>,
-        brandId: Long?,
+        brandIds: List<Long>?,
         offset: Int,
         limit: Int,
     ): List<PhotoBoothLocationDto> {
@@ -54,7 +54,7 @@ class PhotoBoothLocationQueryRepository(
                     "ST_Contains(ST_MakePolygon(ST_GeomFromText('LINESTRING($lineString)', 4326)), {0}) = true",
                     photoBoothLocation.location,
                 ),
-                brandId?.let { photoBoothLocation.brandId.eq(it) },
+                brandIds?.takeIf { it.isNotEmpty() }?.let { photoBoothLocation.brandId.`in`(it) },
             )
             .offset(offset.toLong())
             .limit(limit.toLong())
@@ -68,7 +68,7 @@ class PhotoBoothLocationQueryRepository(
      * @param longitude 경도
      * @param latitude 위도
      * @param radiusInMeters 검색 반경 (미터)
-     * @param brandId 브랜드 ID (nullable)
+     * @param brandIds 브랜드 ID 리스트 (nullable)
      * @param offset 페이지네이션 offset
      * @param limit 페이지네이션 limit
      */
@@ -76,7 +76,7 @@ class PhotoBoothLocationQueryRepository(
         longitude: Double,
         latitude: Double,
         radiusInMeters: Int,
-        brandId: Long?,
+        brandIds: List<Long>?,
         offset: Int,
         limit: Int,
     ): List<PhotoBoothLocationWithDistanceDto> {
@@ -93,7 +93,7 @@ class PhotoBoothLocationQueryRepository(
                 ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
                 :radiusInMeters
             )
-            ${if (brandId != null) "AND brand_id = :brandId" else ""}
+            ${if (!brandIds.isNullOrEmpty()) "AND brand_id IN (:brandIds)" else ""}
             ORDER BY distance_meters
             LIMIT :limit OFFSET :offset
         """.trimIndent()
@@ -105,8 +105,8 @@ class PhotoBoothLocationQueryRepository(
             .setParameter("limit", limit)
             .setParameter("offset", offset)
 
-        if (brandId != null) {
-            query.setParameter("brandId", brandId)
+        if (!brandIds.isNullOrEmpty()) {
+            query.setParameter("brandIds", brandIds)
         }
 
         @Suppress("UNCHECKED_CAST")

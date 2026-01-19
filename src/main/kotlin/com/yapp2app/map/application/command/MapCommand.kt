@@ -8,7 +8,7 @@ package com.yapp2app.map.application.command
  */
 data class GetPolygonLocationCommand(
     val coordinates: List<Pair<Double, Double>>,
-    val brandId: Long?,
+    val brandIds: List<Long>?,
     val page: Int = 0,
     val size: Int = 20,
 )
@@ -17,7 +17,7 @@ data class GetPointLocationCommand(
     val longitude: Double,
     val latitude: Double,
     val radiusInMeters: Int = 1000,
-    val brandId: Long?,
+    val brandIds: List<Long>?,
     val page: Int = 0,
     val size: Int = 20,
 )

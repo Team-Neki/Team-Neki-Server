@@ -20,7 +20,7 @@ interface PhotoBoothLocationRepositoryPort {
 
     fun listPolygonLocations(
         coordinates: List<Pair<Double, Double>>,
-        brandId: Long?,
+        brandIds: List<Long>?,
         offset: Int,
         limit: Int,
     ): List<PhotoBoothLocationDto>
@@ -29,7 +29,7 @@ interface PhotoBoothLocationRepositoryPort {
         longitude: Double,
         latitude: Double,
         radiusInMeters: Int,
-        brandId: Long?,
+        brandIds: List<Long>?,
         offset: Int,
         limit: Int,
     ): List<PhotoBoothLocationWithDistanceDto>

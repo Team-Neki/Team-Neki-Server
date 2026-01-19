@@ -19,7 +19,7 @@ class MapCommandConverter {
         val coordinates = request.coordinates.map { it.longitude to it.latitude }
         return GetPolygonLocationCommand(
             coordinates = coordinates,
-            brandId = request.brandId,
+            brandIds = request.brandIds,
             page = request.page,
             size = request.size,
         )
@@ -29,7 +29,7 @@ class MapCommandConverter {
         longitude = request.longitude,
         latitude = request.latitude,
         radiusInMeters = request.radiusInMeters,
-        brandId = request.brandId,
+        brandIds = request.brandIds,
         page = request.page,
         size = request.size,
     )

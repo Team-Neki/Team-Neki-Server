@@ -33,7 +33,7 @@ class GetPhotoBoothLocationUseCase(
         val locations = transactionRunner.readOnly {
             photoBoothLocationRepository.listPolygonLocations(
                 coordinates = command.coordinates,
-                brandId = command.brandId,
+                brandIds = command.brandIds,
                 offset = command.page * command.size,
                 limit = fetchSize,
             )
@@ -63,7 +63,7 @@ class GetPhotoBoothLocationUseCase(
                 longitude = command.longitude,
                 latitude = command.latitude,
                 radiusInMeters = command.radiusInMeters,
-                brandId = command.brandId,
+                brandIds = command.brandIds,
                 offset = command.page * command.size,
                 limit = fetchSize,
             )
