@@ -27,19 +27,14 @@ class AuthMdcFilter : OncePerRequestFilter() {
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        // SecurityContext에서 인증 정보 가져오기
         val authentication = SecurityContextHolder.getContext().authentication
 
-        // 인증된 사용자인 경우 MDC에 userId 추가
-        if (authentication != null && authentication.isAuthenticated && authentication.principal != "anonymousUser") {
-            val userPrincipal = authentication.principal as UserPrincipal
-
-            // DB상 name을 가져오는 코드 (택 1)
-            val userId = userPrincipal.id.toString()
-
-            MDC.put(USER_ID, userId)
+        val principal = authentication?.principal
+        if (authentication?.isAuthenticated == true && principal is UserPrincipal) {
+            MDC.put(USER_ID, principal.id.toString())
         }
 
         filterChain.doFilter(request, response)
+        // RequestMdcFilter에서 MDC Context clear
     }
 }
