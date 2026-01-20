@@ -44,8 +44,13 @@ class UploadPhotoUseCase(
             memo = command.memo,
         )
 
-        val savedPhoto = transactionRunner.run { photoImageRepository.save(photo) }
-
-        return UploadPhotoResult(savedPhoto.id!!)
+        try {
+            val savedPhoto = transactionRunner.run { photoImageRepository.save(photo) }
+            return UploadPhotoResult(savedPhoto.id!!)
+        } catch (e: Exception) {
+            // 보상 트랜잭션: media 상태를 INITIATED로 롤백
+            mediaClient.rollbackMediaUploaded(command.userId, command.mediaId)
+            throw e
+        }
     }
 }

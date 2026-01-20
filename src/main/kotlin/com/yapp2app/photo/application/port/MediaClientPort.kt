@@ -18,4 +18,10 @@ interface MediaClientPort {
     fun deleteMedia(ownerId: Long, mediaId: Long)
 
     fun deleteMedias(ownerId: Long, mediaIds: List<Long>)
+
+    /**
+     * 보상 트랜잭션: media 상태를 INITIATED로 롤백
+     * PhotoImage 저장 실패 시 호출
+     */
+    fun rollbackMediaUploaded(ownerId: Long, mediaId: Long)
 }

@@ -60,4 +60,10 @@ class LocalMediaClient(
     override fun deleteMedias(ownerId: Long, mediaIds: List<Long>) {
         deleteMediaUseCase.execute(DeleteMediasCommand(ownerId, mediaIds))
     }
+
+    override fun rollbackMediaUploaded(ownerId: Long, mediaId: Long) {
+        confirmMediaUploadedUseCase.rollback(
+            ConfirmMediaUploadedCommand(ownerId = ownerId, mediaId = mediaId),
+        )
+    }
 }

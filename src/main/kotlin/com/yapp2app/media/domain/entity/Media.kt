@@ -58,6 +58,10 @@ class Media(
         this.status = MediaStatus.DELETED
     }
 
+    fun markAsInitiated() {
+        this.status = MediaStatus.INITIATED
+    }
+
     fun isUploaded(): Boolean = status == MediaStatus.UPLOADED
 }
 

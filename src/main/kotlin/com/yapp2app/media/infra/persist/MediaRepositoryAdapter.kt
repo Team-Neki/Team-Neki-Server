@@ -25,7 +25,7 @@ class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : Me
         jpaRepository.findByOwnerIdAndIdAndStatusIn(
             ownerId,
             id,
-            listOf(MediaStatus.FAILED, MediaStatus.INITIATED, MediaStatus.UPLOADED),
+            listOf(MediaStatus.INITIATED, MediaStatus.UPLOADED),
         )
 
     override fun save(media: Media): Media = jpaRepository.save(media)

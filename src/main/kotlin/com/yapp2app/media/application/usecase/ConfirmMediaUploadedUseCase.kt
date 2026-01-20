@@ -42,9 +42,20 @@ class ConfirmMediaUploadedUseCase(
                 media.markAsUploaded()
                 ConfirmMediaUploadedResult(true)
             } else {
-                media.markAsFailed()
                 ConfirmMediaUploadedResult(false)
             }
+        }
+    }
+
+    /**
+     * 보상 트랜잭션: media 상태를 INITIATED로 롤백
+     * PhotoImage 저장 실패 시 호출
+     */
+    fun rollback(command: ConfirmMediaUploadedCommand) {
+        transactionRunner.runNew {
+            val media = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaId)
+                ?: return@runNew
+            media.markAsInitiated()
         }
     }
 }
