@@ -1,7 +1,13 @@
-package com.yapp2app.auth.infra.security.properties
+package com.yapp2app.common.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
+/**
+ * fileName       : AppProperties
+ * author         : koo
+ * date           : 2026. 1. 21.
+ * description    : 애플리케이션 전역 설정
+ */
 @ConfigurationProperties(prefix = "app")
 class AppProperties(
     var version: String = "",

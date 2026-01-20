@@ -39,8 +39,19 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
             .authorizeHttpRequests { it.anyRequest().permitAll() }
             .build()
 
+    /**
+     * 정적 파일 (이미지) 엔드포인트 보안 설정
+     */
     @Bean
     @Order(2)
+    fun staticFileSecurityFilterChain(http: HttpSecurity): SecurityFilterChain = http.securityMatcher("/file/**")
+        .csrf { it.disable() }
+        .cors { it.configurationSource(corsConfigurationSource) }
+        .authorizeHttpRequests { it.anyRequest().permitAll() }
+        .build()
+
+    @Bean
+    @Order(3)
     fun apiSecurityFilterChain(
         http: HttpSecurity,
         jwtAuthenticationFilter: JwtAuthenticationFilter,

@@ -1,6 +1,6 @@
 package com.yapp2app.media.infra.storage.s3
 
-import com.yapp2app.auth.infra.security.properties.AppProperties
+import com.yapp2app.common.properties.AppProperties
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
