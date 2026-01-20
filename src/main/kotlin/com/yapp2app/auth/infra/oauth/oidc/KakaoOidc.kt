@@ -1,9 +1,9 @@
-package com.yapp2app.auth.infra.oauth
+package com.yapp2app.auth.infra.oauth.oidc
 
 import com.yapp2app.auth.application.contract.AuthCacheKeys
 import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
-import com.yapp2app.auth.application.port.AuthCachePort
-import com.yapp2app.auth.application.port.OidcPort
+import com.yapp2app.auth.infra.oauth.oidc.Oidc
+import com.yapp2app.auth.infra.redis.AuthRedisCacheAdapter
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClient
 import java.time.Duration
 
 /**
- * fileName       : KakaoOidcAdapter
+ * fileName       : KakaoOidc
  * author         : darren
  * date           : 2025. 12. 26. 18:20
  * description    : 카카오 OAuth 외부 연동 Adapter
@@ -22,11 +22,11 @@ import java.time.Duration
  * - 서명 검증 실패 시 UseCase에서 캐시 무효화 후 재조회 패턴 적용
  */
 @Component
-class KakaoOidcAdapter(
+class KakaoOidc(
     private val restClient: RestClient,
     private val oauthProperties: OauthProperties,
-    private val cachePort: AuthCachePort,
-) : OidcPort {
+    private val authRedisCacheAdapter: AuthRedisCacheAdapter,
+) : Oidc {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -38,7 +38,7 @@ class KakaoOidcAdapter(
      */
     override fun getOIDCPublicKey(): OIDCPublicKeysResponse {
         // 1. 캐시 조회
-        val cached = cachePort.getPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
+        val cached = authRedisCacheAdapter.getPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
 
         if (cached != null) {
             log.info("Found cached OIDC key") // TODO 임시 코드
@@ -52,7 +52,7 @@ class KakaoOidcAdapter(
             .body(OIDCPublicKeysResponse::class.java)!!
 
         // 3. 캐시 저장 (TTL 14일)
-        cachePort.setPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY, publicKeys, Duration.ofDays(14))
+        authRedisCacheAdapter.setPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY, publicKeys, Duration.ofDays(14))
 
         return publicKeys
     }

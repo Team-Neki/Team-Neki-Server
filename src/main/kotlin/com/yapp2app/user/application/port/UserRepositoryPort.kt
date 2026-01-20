@@ -12,5 +12,5 @@ import com.yapp2app.user.domain.enums.ProviderType
 interface UserRepositoryPort {
     fun save(user: User): User
 
-    fun findByOid(oid: Long, provider: ProviderType): User?
+    fun findByOid(oid: String, provider: ProviderType): User?
 }

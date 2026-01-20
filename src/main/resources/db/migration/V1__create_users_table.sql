@@ -3,7 +3,7 @@ CREATE TABLE TB_USERS (
     id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) NULL,
     password VARCHAR(255),
-    oid BIGINT NOT NULL,
+    oid VARCHAR(255) NOT NULL,
     name VARCHAR(100) NULL,
     provider_type VARCHAR(10) NOT NULL,
     image_url VARCHAR(255) NULL,

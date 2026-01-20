@@ -10,9 +10,4 @@ import java.io.Serializable
  */
 data class FieldErrorDetail(var field: String, var message: String)
 
-data class ExceptionMsg(
-    val message: String,
-    val resultCode: String,
-    val success: Boolean,
-    val errors: List<FieldErrorDetail>? = null,
-) : Serializable
+data class ExceptionMsg(val resultCode: String, val message: String, val data: String? = null) : Serializable

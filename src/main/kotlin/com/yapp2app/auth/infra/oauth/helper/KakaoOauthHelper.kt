@@ -1,11 +1,10 @@
-package com.yapp2app.auth.infra.oauth
+package com.yapp2app.auth.infra.oauth.helper
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.yapp2app.auth.application.contract.OIDCDecodePayloadResponse
 import com.yapp2app.auth.application.contract.OIDCPublicKeyDto
 import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
-import com.yapp2app.auth.application.port.OauthHelperPort
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
@@ -20,6 +19,7 @@ import java.security.KeyFactory
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.RSAPublicKeySpec
 import java.util.Base64
+import kotlin.collections.get
 
 /**
  * fileName       : KakaoOauthHelper
@@ -39,7 +39,7 @@ import java.util.Base64
  */
 @Component
 class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val objectMapper: ObjectMapper) :
-    OauthHelperPort {
+    OauthHelper {
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
@@ -129,7 +129,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         return OIDCDecodePayloadResponse(
             iss = claims.issuer,
             aud = claims.audience.toString(),
-            sub = claims.subject.toLong(),
+            sub = claims.subject,
             email = claims[CLAIM_EMAIL, String::class.java],
             nickname = claims[CLAIM_NICKNAME, String::class.java],
             imageUrl = claims[CLAIM_PROFILEIMAGE, String::class.java],

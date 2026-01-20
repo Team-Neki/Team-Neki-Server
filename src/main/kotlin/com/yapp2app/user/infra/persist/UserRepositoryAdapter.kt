@@ -17,6 +17,6 @@ class UserRepositoryAdapter(private val jpaRepository: UserRepository) : UserRep
 
     override fun save(user: User): User = jpaRepository.save(user)
 
-    override fun findByOid(oid: Long, providerType: ProviderType): User? =
+    override fun findByOid(oid: String, providerType: ProviderType): User? =
         jpaRepository.findByOidAndProviderType(oid, providerType)
 }
