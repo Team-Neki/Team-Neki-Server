@@ -21,6 +21,13 @@ class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : Me
     override fun getActiveMedias(ownerId: Long, ids: List<Long>): List<Media> =
         jpaRepository.findAllByOwnerIdAndIdInAndStatus(ownerId, ids, MediaStatus.UPLOADED)
 
+    override fun getMediaForUploadConfirmation(ownerId: Long, id: Long): Media? =
+        jpaRepository.findByOwnerIdAndIdAndStatusIn(
+            ownerId,
+            id,
+            listOf(MediaStatus.FAILED, MediaStatus.INITIATED, MediaStatus.UPLOADED),
+        )
+
     override fun save(media: Media): Media = jpaRepository.save(media)
 
     override fun delete(id: Long) {

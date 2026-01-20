@@ -100,12 +100,14 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("미디어가 업로드되지 않은 경우 NOT_FOUND 에러를 반환한다")
-    fun givenMediaNotUploaded_whenUploadPhoto_thenReturnsNotFound() {
+    @DisplayName("INITIATED 상태의 미디어로 사진 업로드 시 자동으로 UPLOADED로 전환되어 성공한다")
+    fun givenMediaInitiated_whenUploadPhoto_thenMediaBecomesUploadedAndSuccess() {
         // given
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.INITIATED)
 
         // when & then
+        // FakeMediaStorageAdapter.exists()가 항상 true를 반환하므로
+        // INITIATED → UPLOADED 전환 후 성공해야 함
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
@@ -113,9 +115,9 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
             .`when`()
             .post("/api/photos")
             .then()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
-            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+            .statusCode(HttpStatus.OK.value())
+            .body("success", equalTo(true))
+            .body("data.photoId", notNullValue())
     }
 
     @Test

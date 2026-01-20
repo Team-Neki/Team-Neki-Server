@@ -24,7 +24,7 @@ class GenerateUploadTicketUseCase(
 
     fun execute(command: GenerateUploadTicketCommand): GenerateUploadTicketResult {
         // storageKey 생성
-        val storageKey = MediaKey.generate(command.mediaType, command.filename)
+        val storageKey = MediaKey.generate(command.mediaType, command.filename, command.contentType)
 
         // Media 엔티티 생성 및 저장
         val media = Media(

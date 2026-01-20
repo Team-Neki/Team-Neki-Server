@@ -23,7 +23,7 @@ class ConfirmMediaUploadedUseCase(
 ) {
 
     fun execute(command: ConfirmMediaUploadedCommand): ConfirmMediaUploadedResult {
-        val media = mediaRepository.getActiveMedia(command.ownerId, command.mediaId)
+        val media = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaId)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
         // 이미 업로드된 경우 무시
@@ -35,7 +35,7 @@ class ConfirmMediaUploadedUseCase(
         val exists = mediaStorage.exists(media.storageKey)
 
         return transactionRunner.runNew {
-            val media = mediaRepository.getActiveMedia(command.ownerId, command.mediaId)
+            val media = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND)
 
             if (media.isUploaded() || exists) {

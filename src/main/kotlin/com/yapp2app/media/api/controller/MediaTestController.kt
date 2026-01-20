@@ -49,7 +49,7 @@ class MediaTestController(private val mediaStorage: MediaStoragePort) {
         // filename이 없는 경우 contentType에서 확장자 추출하여 기본 파일명 생성
         val effectiveFilename = filename ?: "upload.${contentType.substringAfter("/", "jpg")}"
 
-        val key = MediaKey.generate(MediaType.TEMP, effectiveFilename)
+        val key = MediaKey.generate(MediaType.TEMP, effectiveFilename, contentType)
 
         // Presigned URL 생성
         val uploadTicket = mediaStorage.generateUploadTicket(
