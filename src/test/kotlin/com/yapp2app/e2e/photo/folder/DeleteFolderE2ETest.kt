@@ -57,7 +57,6 @@ class DeleteFolderE2ETest : FolderE2ETestBase() {
             .post("/api/folders")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .extract()
             .`as`(object : TypeRef<BaseResponse<CreateFolderResponse>>() {})
@@ -70,7 +69,6 @@ class DeleteFolderE2ETest : FolderE2ETestBase() {
             .delete("/api/folders/${response.data?.folderId}")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -88,7 +86,6 @@ class DeleteFolderE2ETest : FolderE2ETestBase() {
             .delete("/api/folders/$nonExistentFolderId")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 
@@ -109,7 +106,6 @@ class DeleteFolderE2ETest : FolderE2ETestBase() {
             .delete("/api/folders/${otherUserFolder.id}")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 }

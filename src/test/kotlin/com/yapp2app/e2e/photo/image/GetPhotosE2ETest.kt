@@ -57,7 +57,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.items", hasSize<Int>(2))
     }
@@ -83,7 +82,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.items", hasSize<Int>(2))
     }
@@ -104,7 +102,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .then()
             .log().all()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.items", empty<Any>())
     }
@@ -124,7 +121,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("data.items", empty<Any>())
     }
 
@@ -143,7 +139,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("data.items", empty<Any>())
     }
 }

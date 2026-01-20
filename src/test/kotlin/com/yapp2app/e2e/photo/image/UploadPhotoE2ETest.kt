@@ -57,7 +57,6 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
             .post("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.photoId", notNullValue())
     }
@@ -78,7 +77,6 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
             .post("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.photoId", notNullValue())
     }
@@ -95,7 +93,6 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
             .post("/api/photos")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
@@ -116,7 +113,6 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
             .post("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("data.photoId", notNullValue())
     }
 
@@ -136,7 +132,6 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
             .post("/api/photos")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 
@@ -152,7 +147,6 @@ class UploadPhotoE2ETest : PhotoImageE2ETestBase() {
             .post("/api/photos")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 }

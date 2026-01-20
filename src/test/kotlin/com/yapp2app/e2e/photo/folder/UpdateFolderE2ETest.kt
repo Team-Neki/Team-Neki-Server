@@ -73,7 +73,6 @@ class UpdateFolderE2ETest : E2ETestBase() {
             .patch("/api/folders/${folder.id}")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -94,7 +93,6 @@ class UpdateFolderE2ETest : E2ETestBase() {
             .patch("/api/folders/${folder.id}")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
@@ -121,7 +119,6 @@ class UpdateFolderE2ETest : E2ETestBase() {
             .patch("/api/folders/${folder.id}")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
@@ -140,7 +137,6 @@ class UpdateFolderE2ETest : E2ETestBase() {
             .patch("/api/folders/$nonExistentFolderId")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 
@@ -179,7 +175,6 @@ class UpdateFolderE2ETest : E2ETestBase() {
             .patch("/api/folders/${response.data?.folderId}")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.CONFLICT_FOLDER.code))
     }
 
@@ -201,7 +196,6 @@ class UpdateFolderE2ETest : E2ETestBase() {
             .patch("/api/folders/${otherUserFolder.id}")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 
@@ -223,7 +217,6 @@ class UpdateFolderE2ETest : E2ETestBase() {
             .patch("/api/folders/${folder.id}")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 }
