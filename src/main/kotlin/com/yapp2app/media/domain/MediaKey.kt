@@ -1,6 +1,5 @@
 package com.yapp2app.media.domain
 
-import com.yapp2app.media.domain.MediaType
 import java.util.UUID
 
 /**
@@ -11,9 +10,26 @@ import java.util.UUID
  */
 object MediaKey {
 
-    fun generate(type: MediaType, filename: String): String {
-        val extension = filename.substringAfterLast('.', "")
+    private val CONTENT_TYPE_EXTENSIONS = mapOf(
+        "image/jpeg" to "jpg",
+        "image/png" to "png",
+        "image/gif" to "gif",
+        "image/webp" to "webp",
+        "image/heic" to "heic",
+        "image/heif" to "heif",
+    )
 
+    fun generate(type: MediaType, filename: String, contentType: String): String {
+        val extension = extractExtension(filename, contentType)
         return "${type.prefix}/${UUID.randomUUID()}.$extension"
+    }
+
+    private fun extractExtension(filename: String, contentType: String): String {
+        val filenameExtension = filename.substringAfterLast('.', "")
+        if (filenameExtension.isNotBlank()) {
+            return filenameExtension
+        }
+        return CONTENT_TYPE_EXTENSIONS[contentType]
+            ?: contentType.substringAfterLast('/', "")
     }
 }
