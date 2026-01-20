@@ -12,18 +12,9 @@ data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean) {
 
     data class PhotoInfo(
         val photoId: Long,
-        val imageBinary: ByteArray,
+        val imageUrl: String,
         val folderId: Long?,
         val contentType: String,
         val createdAt: String,
-    ) {
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is PhotoInfo) return false
-            return photoId == other.photoId
-        }
-
-        override fun hashCode(): Int = photoId.hashCode()
-    }
+    )
 }
