@@ -59,5 +59,4 @@ aws:
     access-key: ENC(fXervUuOTP2A4AwymiZDlo3+l5nZjZ5ObhKMMzGXrNEaqo1MTZaHE+bEnMBsooHmjPiUqg5Jc502FETsVGDB5A==)
     secret-key: ENC(/rlccjRKWaheGJ2eDHBAnTMKu6pWkQ6D4LhrKjniCKMMHH8tkoQ7l0VpZEr9UO8GmiMdmjrcK5pGznCZlzVGSf/9mGAcxa9Ezdoql7A/B2c=)
     region: ap-northeast-2
-    bucket: koosco-commerce-performance-results-ap-northeast-2
-    base-url: http://localhost:4566/yapp-local
+    bucket: yapp-neki-staging-ap-northeast-2
