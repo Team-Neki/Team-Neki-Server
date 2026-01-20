@@ -1,4 +1,4 @@
-package com.yapp2app.media.api
+package com.yapp2app.media.api.controller
 
 import com.yapp2app.media.application.port.MediaStoragePort
 import com.yapp2app.media.domain.MediaKey
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.time.Instant
 
 /**
  * fileName       : MediaTestController
@@ -44,24 +45,23 @@ class MediaTestController(private val mediaStorage: MediaStoragePort) {
     fun generatePresignedUrl(
         @RequestParam(required = false) filename: String?,
         @RequestParam(defaultValue = "image/jpeg") contentType: String,
-        @RequestParam(defaultValue = "15") expirationMinutes: Long,
     ): PresignedUrlResponse {
         // filename이 없는 경우 contentType에서 확장자 추출하여 기본 파일명 생성
         val effectiveFilename = filename ?: "upload.${contentType.substringAfter("/", "jpg")}"
 
-        val key = MediaKey.generate(MediaType.TEMP, effectiveFilename)
+        val key = MediaKey.generate(MediaType.TEMP, effectiveFilename, contentType)
 
         // Presigned URL 생성
-        val presignedUrl = mediaStorage.generatePresignedUrl(
+        val uploadTicket = mediaStorage.generateUploadTicket(
             key = key,
             contentType = contentType,
-            expirationMinutes = expirationMinutes,
         )
 
         return PresignedUrlResponse(
             key = key,
-            presignedUrl = presignedUrl,
-            expiresIn = expirationMinutes,
+            presignedUrl = uploadTicket.url,
+            method = uploadTicket.method,
+            expiresAt = uploadTicket.expiresAt,
             contentType = contentType,
         )
     }
@@ -107,6 +107,7 @@ data class MediaItem(val key: String, val url: String, val type: String)
 data class PresignedUrlResponse(
     val key: String,
     val presignedUrl: String,
-    val expiresIn: Long,
+    val method: String,
+    val expiresAt: Instant,
     val contentType: String,
 )

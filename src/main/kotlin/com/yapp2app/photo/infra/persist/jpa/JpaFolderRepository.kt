@@ -18,8 +18,4 @@ interface JpaFolderRepository : JpaRepository<Folder, Long> {
     fun findAllByUserIdAndIdIn(userId: Long, folderIds: List<Long>): List<Folder>
 
     fun existsByUserIdAndName(userId: Long, name: String): Boolean
-
-    fun deleteByUserIdAndId(userId: Long, folderId: Long)
-
-    fun deleteAllByUserIdAndIdIn(userId: Long, folderIds: List<Long>)
 }

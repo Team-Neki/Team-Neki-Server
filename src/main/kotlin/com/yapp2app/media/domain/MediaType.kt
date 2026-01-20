@@ -24,7 +24,7 @@ enum class MediaType(val prefix: String) {
     ATTACHMENT("attachments"),
 
     /**
-     * presigned나 업로드 검증, 변환 전 원본 등
+     * 업로드 검증, 테스트 등
      */
     TEMP("temp"),
 }
