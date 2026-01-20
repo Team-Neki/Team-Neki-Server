@@ -72,6 +72,7 @@ class GetPhotosUseCase(
                 photoId = it.id!!,
                 imageBinary = media.binaryData,
                 folderId = it.folderId,
+                contentType = media.contentType,
                 createdAt = it.createdAt.toString(),
             )
         }.toList()

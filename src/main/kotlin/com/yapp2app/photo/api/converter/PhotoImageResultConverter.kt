@@ -23,6 +23,7 @@ class PhotoImageResultConverter {
                 photoId = it.photoId,
                 imageBinary = it.imageBinary,
                 folderId = it.folderId,
+                contentType = it.contentType,
                 createdAt = it.createdAt,
             )
         },

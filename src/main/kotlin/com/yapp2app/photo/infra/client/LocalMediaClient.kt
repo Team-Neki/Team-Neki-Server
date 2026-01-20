@@ -48,6 +48,7 @@ class LocalMediaClient(
         return result.medias.map {
             MediaInfo(
                 mediaId = it.mediaId,
+                contentType = it.contentType,
                 binaryData = it.binaryData,
             )
         }.toList()

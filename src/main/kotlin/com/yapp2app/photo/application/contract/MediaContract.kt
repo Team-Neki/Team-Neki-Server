@@ -11,7 +11,7 @@ enum class MediaAvailability {
     UNAVAILABLE,
 }
 
-data class MediaInfo(val mediaId: Long, val binaryData: ByteArray) {
+data class MediaInfo(val mediaId: Long, val contentType: String, val binaryData: ByteArray) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is MediaInfo) return false
