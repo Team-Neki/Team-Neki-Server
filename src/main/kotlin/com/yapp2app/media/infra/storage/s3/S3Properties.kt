@@ -1,6 +1,7 @@
-package com.yapp2app.media.infra.s3
+package com.yapp2app.media.infra.storage.s3
 
 import org.springframework.boot.context.properties.ConfigurationProperties
+import java.time.Duration
 
 /**
  * fileName       : S3Properties
@@ -16,4 +17,5 @@ data class S3Properties(
     val bucket: String,
     val endpoint: String? = null,
     val baseUrl: String = "",
+    val presignedUrlExpiration: Duration,
 )

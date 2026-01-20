@@ -1,6 +1,7 @@
 package com.yapp2app.media.application.port
 
 import com.yapp2app.media.application.dto.MediaRef
+import java.time.Instant
 
 /**
  * fileName       : MediaStorage
@@ -14,7 +15,14 @@ interface MediaStoragePort {
 
     fun findByKey(key: String): String
 
+    fun fetchBinaryByKey(key: String): ByteArray
+
     fun findAll(prefix: String): List<MediaRef>
 
-    fun generatePresignedUrl(key: String, contentType: String, expirationMinutes: Long = 10): String
+    fun exists(key: String): Boolean
+
+    fun generateUploadTicket(key: String, contentType: String): UploadTicket
+
+    // contract
+    data class UploadTicket(val url: String, val method: String, val expiresAt: Instant, val contentType: String)
 }

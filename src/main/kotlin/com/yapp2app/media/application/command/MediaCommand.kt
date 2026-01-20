@@ -1,0 +1,24 @@
+package com.yapp2app.media.application.command
+
+import com.yapp2app.media.domain.MediaType
+
+/**
+ * fileName       : MediaCommand
+ * author         : koo
+ * date           : 2026. 1. 3. 오전 12:04
+ * description    : Media domain command
+ */
+data class ConfirmMediaUploadedCommand(val ownerId: Long, val mediaId: Long)
+
+data class GenerateUploadTicketCommand(
+    val ownerId: Long,
+    val filename: String,
+    val contentType: String,
+    val mediaType: MediaType,
+)
+
+data class DeleteMediaCommand(val ownerId: Long, val mediaId: Long)
+
+data class DeleteMediasCommand(val ownerId: Long, val mediaIds: List<Long>)
+
+data class GetMediasCommand(val ownerId: Long, val mediaIds: List<Long>)

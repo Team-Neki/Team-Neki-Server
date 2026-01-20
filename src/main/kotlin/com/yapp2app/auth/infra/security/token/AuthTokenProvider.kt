@@ -51,7 +51,7 @@ class AuthTokenProvider(private val appProperties: AppProperties) : AuthTokenPro
             .claim(AUTHORITIES_KEY, roles)
             .apply {
                 name?.let { claim(NAME_KEY, it) }
-                providerType?.let { claim(PROVIDER_TYPE_KEY, it) }
+                providerType?.let { claim(PROVIDER_TYPE_KEY, it.name) }
             }
             .issuedAt(Date.from(now))
             .expiration(Date.from(now.plusMillis(expiryMillis)))

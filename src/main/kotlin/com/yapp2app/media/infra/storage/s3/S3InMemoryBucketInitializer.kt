@@ -1,4 +1,4 @@
-package com.yapp2app.media.infra.s3
+package com.yapp2app.media.infra.storage.s3
 
 import com.yapp2app.auth.infra.security.properties.AppProperties
 import jakarta.annotation.PostConstruct
