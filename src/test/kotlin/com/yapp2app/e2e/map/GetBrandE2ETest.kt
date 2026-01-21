@@ -84,5 +84,4 @@ class GetBrandE2ETest : MapE2ETestBase() {
         val baseResponse = response.`as`(BaseResponse::class.java)
         assertThat(baseResponse.resultCode).isEqualTo(ResultCode.SUCCESS.code)
     }
-
 }
