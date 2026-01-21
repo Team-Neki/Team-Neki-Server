@@ -22,13 +22,13 @@ class User(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     val email: String?,
 
     @Column(nullable = true)
     var password: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     val oid: String,
 
     @Column(nullable = false, length = 100)

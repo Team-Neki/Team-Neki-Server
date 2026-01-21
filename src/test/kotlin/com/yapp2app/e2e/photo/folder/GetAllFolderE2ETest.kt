@@ -1,6 +1,7 @@
 package com.yapp2app.e2e.photo.folder
 
 import com.yapp2app.common.api.dto.BaseResponse
+import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.photo.domain.entity.Folder
 import com.yapp2app.user.domain.entity.User
 import io.restassured.RestAssured
@@ -71,7 +72,7 @@ class GetAllFolderE2ETest : FolderE2ETestBase() {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
 
         val baseResponse = response.`as`(BaseResponse::class.java)
-        assertThat(baseResponse.success).isTrue()
+        assertThat(baseResponse.resultCode).isEqualTo(ResultCode.SUCCESS.code)
     }
 
     @Test
@@ -93,7 +94,7 @@ class GetAllFolderE2ETest : FolderE2ETestBase() {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
 
         val baseResponse = response.`as`(BaseResponse::class.java)
-        assertThat(baseResponse.success).isTrue()
+        assertThat(baseResponse.resultCode).isEqualTo(ResultCode.SUCCESS.code)
     }
 
     @Test
@@ -116,6 +117,6 @@ class GetAllFolderE2ETest : FolderE2ETestBase() {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
 
         val baseResponse = response.`as`(BaseResponse::class.java)
-        assertThat(baseResponse.success).isTrue()
+        assertThat(baseResponse.resultCode).isEqualTo(ResultCode.SUCCESS.code)
     }
 }

@@ -64,7 +64,7 @@ abstract class E2ETestBase {
         email = email,
         name = name,
         password = password,
-        oid = System.currentTimeMillis(),
+        oid = System.currentTimeMillis().toString(),
         providerType = providerType,
         roles = roles,
         imageUrl = null,

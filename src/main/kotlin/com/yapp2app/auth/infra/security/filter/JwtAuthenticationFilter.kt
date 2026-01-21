@@ -1,6 +1,5 @@
 package com.yapp2app.auth.infra.security.filter
 
-import com.nimbusds.jose.shaded.gson.JsonArray
 import com.nimbusds.jose.shaded.gson.JsonObject
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
 import com.yapp2app.common.api.dto.ResultCode
@@ -97,8 +96,7 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
 
         jsonObject.addProperty("resultCode", resultCode.code)
         jsonObject.addProperty("message", resultCode.message)
-        jsonObject.addProperty("success", false)
-        jsonObject.add("errors", JsonArray())
+        jsonObject.add("data", null)
 
         response.writer.print(jsonObject)
     }

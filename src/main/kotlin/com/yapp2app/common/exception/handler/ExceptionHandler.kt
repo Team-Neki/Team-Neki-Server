@@ -39,8 +39,6 @@ class ExceptionHandler {
                 ExceptionMsg(
                     resultCode = ex.resultCode.code,
                     message = ex.resultCode.message,
-                    success = false,
-                    errors = emptyList(),
                 ),
                 HttpStatus.FORBIDDEN,
             )
@@ -50,8 +48,21 @@ class ExceptionHandler {
             ExceptionMsg(
                 resultCode = ex.resultCode.code,
                 message = ex.resultCode.message,
-                success = false,
-                errors = emptyList(),
+            ),
+            HttpStatus.BAD_REQUEST,
+        )
+
+        return temp
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun exceptionHandler(ex: Exception): ResponseEntity<ExceptionMsg> {
+        log.error("No Handler ex message = {}", ex)
+
+        val temp = ResponseEntity(
+            ExceptionMsg(
+                resultCode = ResultCode.ERROR.code,
+                message = ResultCode.ERROR.message,
             ),
             HttpStatus.BAD_REQUEST,
         )
@@ -77,8 +88,6 @@ class ExceptionHandler {
             ExceptionMsg(
                 resultCode = ResultCode.INVALID_PARAMETER.code,
                 message = errors.get(0).message,
-                success = false,
-                errors = errors,
             ),
             HttpStatus.BAD_REQUEST,
         )
@@ -122,8 +131,6 @@ class ExceptionHandler {
             ExceptionMsg(
                 resultCode = ResultCode.INVALID_PARAMETER.code,
                 message = ResultCode.INVALID_PARAMETER.message,
-                success = false,
-                errors = errors,
             ),
             HttpStatus.BAD_REQUEST,
         )
@@ -137,13 +144,6 @@ class ExceptionHandler {
         ExceptionMsg(
             resultCode = ResultCode.INVALID_PARAMETER.code,
             message = ResultCode.INVALID_PARAMETER.message,
-            success = false,
-            errors = listOf(
-                FieldErrorDetail(
-                    field = ex.parameterName,
-                    message = ex.message,
-                ),
-            ),
         ),
         HttpStatus.BAD_REQUEST,
     )
@@ -151,18 +151,10 @@ class ExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleTypeMismatchHandler(ex: MethodArgumentTypeMismatchException): ResponseEntity<ExceptionMsg> =
         if (ex.requiredType?.isEnum == true) {
-            val enumValues = ex.requiredType!!.enumConstants?.joinToString(", ")
             ResponseEntity(
                 ExceptionMsg(
                     resultCode = ResultCode.INVALID_PARAMETER.code,
                     message = ResultCode.INVALID_PARAMETER.message,
-                    success = false,
-                    errors = listOf(
-                        FieldErrorDetail(
-                            field = ex.name,
-                            message = enumValues.toString(),
-                        ),
-                    ),
                 ),
                 HttpStatus.BAD_REQUEST,
             )
@@ -171,13 +163,6 @@ class ExceptionHandler {
                 ExceptionMsg(
                     resultCode = ResultCode.INVALID_PARAMETER.code,
                     message = ResultCode.INVALID_PARAMETER.message,
-                    success = false,
-                    errors = listOf(
-                        FieldErrorDetail(
-                            field = ex.name,
-                            message = "Invalid value for parameter '${ex.name}'",
-                        ),
-                    ),
                 ),
                 HttpStatus.BAD_REQUEST,
             )

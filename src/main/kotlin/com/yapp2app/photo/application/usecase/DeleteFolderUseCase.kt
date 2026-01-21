@@ -19,20 +19,20 @@ class DeleteFolderUseCase(private val folderRepository: FolderRepositoryPort) {
 
     @Transactional
     fun execute(command: DeleteFolderCommand) {
-        val folder = folderRepository.getOwnedFolder(command.userId, command.folderId)
-            ?: throw BusinessException(ResultCode.NOT_FOUND)
+        val deletedCount = folderRepository.deleteOwnedFolder(command.userId, command.folderId)
 
-        folderRepository.deleteOwnedFolder(command.userId, command.folderId)
+        if (deletedCount == 0) throw BusinessException(ResultCode.NOT_FOUND)
     }
 
     @Transactional
     fun execute(command: DeleteFoldersCommand) {
-        val folders = folderRepository.getOwnedFolders(command.userId, command.folderIds)
+        val deletedCount = folderRepository.deleteOwnedFolders(
+            command.userId,
+            command.folderIds,
+        )
 
-        if (folders.size != command.folderIds.size) {
+        if (deletedCount != command.folderIds.size) {
             throw BusinessException(ResultCode.NOT_FOUND)
         }
-
-        folderRepository.deleteOwnedFolders(command.userId, command.folderIds)
     }
 }
