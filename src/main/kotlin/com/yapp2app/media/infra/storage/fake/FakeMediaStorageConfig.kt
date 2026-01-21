@@ -48,4 +48,13 @@ class FakeMediaStorageAdapter : MediaStoragePort {
             expiresAt = Instant.now().plusSeconds(3600),
             contentType = contentType,
         )
+
+    // 테스트용 메서드
+    fun putTestData(key: String, data: ByteArray) {
+        storage[key] = data
+    }
+
+    fun clearTestData() {
+        storage.clear()
+    }
 }

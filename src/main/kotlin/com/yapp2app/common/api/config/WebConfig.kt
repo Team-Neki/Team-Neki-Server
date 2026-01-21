@@ -1,6 +1,6 @@
 package com.yapp2app.common.api.config
 
-import com.yapp2app.auth.infra.security.properties.AppProperties
+import com.yapp2app.common.properties.AppProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.cors.CorsConfiguration
