@@ -3,6 +3,8 @@ package com.yapp2app.map.infra.persist.jpa
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.yapp2app.map.application.contract.PhotoBoothLocationDto
+import com.yapp2app.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.yapp2app.map.domain.entity.QPhotoBoothLocation.photoBoothLocation
 import jakarta.persistence.EntityManager
 import org.locationtech.jts.geom.Point
@@ -130,26 +132,3 @@ class PhotoBoothLocationQueryRepository(
         }
     }
 }
-
-/**
- * 포토부스 위치 DTO
- */
-data class PhotoBoothLocationDto(
-    val id: Long,
-    val brandId: Long,
-    val name: String,
-    val address: String,
-    val location: Point,
-)
-
-/**
- * 거리 정보를 포함한 포토부스 위치 DTO
- */
-data class PhotoBoothLocationWithDistanceDto(
-    val id: Long,
-    val brandId: Long,
-    val name: String,
-    val address: String,
-    val location: Point,
-    val distance: Int,
-)

@@ -1,7 +1,9 @@
 package com.yapp2app.map.api.converter
 
+import com.yapp2app.map.api.dto.GetBrandResponse
 import com.yapp2app.map.api.dto.GetPointLocationResponse
 import com.yapp2app.map.api.dto.GetPolygonLocationResponse
+import com.yapp2app.map.application.result.GetBrandResult
 import com.yapp2app.map.application.result.GetPointLocationResult
 import com.yapp2app.map.application.result.GetPolygonLocationResult
 import org.springframework.stereotype.Component
@@ -14,6 +16,15 @@ import org.springframework.stereotype.Component
  */
 @Component
 class MapResultConverter {
+
+    fun toGetBrandResponse(result: List<GetBrandResult>): List<GetBrandResponse> = result.map {
+        GetBrandResponse(
+            id = it.id,
+            name = it.name,
+            code = it.code,
+            imageUrl = it.imageUrl,
+        )
+    }
 
     fun toGetPolygonLocationResponse(result: GetPolygonLocationResult): GetPolygonLocationResponse {
         val items = result.locations.map {

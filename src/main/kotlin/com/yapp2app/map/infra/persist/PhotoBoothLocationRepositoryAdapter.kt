@@ -1,11 +1,11 @@
 package com.yapp2app.map.infra.persist
 
+import com.yapp2app.map.application.contract.PhotoBoothLocationDto
+import com.yapp2app.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
 import com.yapp2app.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
-import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationDto
 import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
-import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationWithDistanceDto
 import org.springframework.stereotype.Repository
 
 /**

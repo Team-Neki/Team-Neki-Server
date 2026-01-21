@@ -1,7 +1,9 @@
 package com.yapp2app.map.infra.persist
 
+import com.yapp2app.map.application.contract.BrandDto
 import com.yapp2app.map.application.port.BrandRepositoryPort
 import com.yapp2app.map.domain.entity.Brand
+import com.yapp2app.map.infra.persist.jpa.BrandQueryRepository
 import com.yapp2app.map.infra.persist.jpa.JpaBrandRepository
 import org.springframework.stereotype.Repository
 
@@ -12,7 +14,12 @@ import org.springframework.stereotype.Repository
  * description    :
  */
 @Repository
-class BrandRepositoryAdapter(private val jpaRepository: JpaBrandRepository) : BrandRepositoryPort {
+class BrandRepositoryAdapter(
+    private val jpaRepository: JpaBrandRepository,
+    private val brandQueryRepository: BrandQueryRepository,
+) : BrandRepositoryPort {
 
     override fun getBrand(code: String): Brand? = jpaRepository.findByCode(code)
+
+    override fun findAll(): List<BrandDto> = brandQueryRepository.findAll()
 }

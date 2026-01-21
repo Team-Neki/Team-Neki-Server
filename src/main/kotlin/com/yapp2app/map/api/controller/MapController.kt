@@ -6,15 +6,18 @@ import com.yapp2app.map.api.converter.MapCommandConverter
 import com.yapp2app.map.api.converter.MapResultConverter
 import com.yapp2app.map.api.dto.CollectPhotoBoothRequest
 import com.yapp2app.map.api.dto.CollectPhotoBoothResponse
+import com.yapp2app.map.api.dto.GetBrandResponse
 import com.yapp2app.map.api.dto.GetPointLocationRequest
 import com.yapp2app.map.api.dto.GetPointLocationResponse
 import com.yapp2app.map.api.dto.GetPolygonLocationRequest
 import com.yapp2app.map.api.dto.GetPolygonLocationResponse
 import com.yapp2app.map.application.usecase.CollectPhotoBoothLocationUseCase
+import com.yapp2app.map.application.usecase.GetBrandUseCase
 import com.yapp2app.map.application.usecase.GetPhotoBoothLocationUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -31,11 +34,27 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/photo-booths")
 class MapController(
+    private val getBrandUseCase: GetBrandUseCase,
     private val collectPhotoBoothLocationUseCase: CollectPhotoBoothLocationUseCase,
     private val getPhotoBoothLocationUseCase: GetPhotoBoothLocationUseCase,
     private val commandConverter: MapCommandConverter,
     private val resultConverter: MapResultConverter,
 ) {
+
+    @Operation(
+        summary = "브랜드 종류 조회 API",
+        description = """
+            브랜드 종류 및 이미지를 조회합니다.
+            """,
+    )
+    @GetMapping("/brand")
+    fun getBrand(): BaseResponse<List<GetBrandResponse>> {
+        val result = getBrandUseCase.execute()
+
+        val response = resultConverter.toGetBrandResponse(result)
+
+        return BaseResponse(data = response)
+    }
 
     @Operation(
         summary = "포토부스 위치 수집 API",

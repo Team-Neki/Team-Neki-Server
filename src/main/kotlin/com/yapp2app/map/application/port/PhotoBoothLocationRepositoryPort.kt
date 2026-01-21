@@ -1,8 +1,8 @@
 package com.yapp2app.map.application.port
 
+import com.yapp2app.map.application.contract.PhotoBoothLocationDto
+import com.yapp2app.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
-import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationDto
-import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationWithDistanceDto
 
 /**
  * fileName       : PhotoBoothLocationRepositoryPort

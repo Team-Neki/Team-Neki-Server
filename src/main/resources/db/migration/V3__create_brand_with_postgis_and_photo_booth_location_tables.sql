@@ -9,7 +9,7 @@ CREATE TABLE TB_BRAND (
                           id BIGSERIAL PRIMARY KEY,
                           name VARCHAR(50) NOT NULL,
                           code VARCHAR(30) NOT NULL,
-                          photo_image_id BIGINT NULL,
+                          media_id BIGINT NULL,
                           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                           updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

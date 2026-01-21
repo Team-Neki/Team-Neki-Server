@@ -1,12 +1,22 @@
 package com.yapp2app.map.application.contract
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.locationtech.jts.geom.Point
 
 /**
  * fileName       : KakaoLocalSearchResponse
  * author         : darren
  * date           : 2026. 01. 13.
  * description    : Kakao Local API 키워드 검색 응답 DTO
+ */
+
+/**
+ * 브랜드 조회 QueryDsl DTO
+ */
+data class BrandDto(val id: Long, val name: String, val code: String, val storageKey: String?)
+
+/**
+ * 카카오 맵 수집 데이터 DTO
  */
 data class KakaoLocalSearchResponse(
     @JsonProperty("documents")
@@ -16,6 +26,9 @@ data class KakaoLocalSearchResponse(
     val meta: KakaoMeta,
 )
 
+/**
+ * 카카오 맵 수집 데이터 DTO
+ */
 data class KakaoPlace(
     @JsonProperty("id")
     val id: String,
@@ -42,6 +55,9 @@ data class KakaoPlace(
     val categoryName: String?,
 )
 
+/**
+ * 카카오 맵 수집 데이터 DTO
+ */
 data class KakaoMeta(
     @JsonProperty("total_count")
     val totalCount: Int,
@@ -51,4 +67,27 @@ data class KakaoMeta(
 
     @JsonProperty("is_end")
     val isEnd: Boolean,
+)
+
+/**
+ * 포토부스 위치 QueryDsl DTO
+ */
+data class PhotoBoothLocationDto(
+    val id: Long,
+    val brandId: Long,
+    val name: String,
+    val address: String,
+    val location: Point,
+)
+
+/**
+ * 거리 정보를 포함한 포토부스 위치 QueryDsl DTO
+ */
+data class PhotoBoothLocationWithDistanceDto(
+    val id: Long,
+    val brandId: Long,
+    val name: String,
+    val address: String,
+    val location: Point,
+    val distance: Int,
 )

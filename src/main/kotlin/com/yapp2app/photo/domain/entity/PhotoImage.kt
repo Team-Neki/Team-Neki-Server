@@ -24,8 +24,8 @@ class PhotoImage(
     @Column(name = "user_id", nullable = false)
     val userId: Long,
 
-    @Column(name = "file_id", nullable = false, length = 64, unique = true)
-    val fileId: String,
+    @Column(name = "media_id", nullable = false, length = 64, unique = true)
+    val mediaId: String,
 
     @Column(name = "folder_id", nullable = true)
     var folderId: Long? = null,

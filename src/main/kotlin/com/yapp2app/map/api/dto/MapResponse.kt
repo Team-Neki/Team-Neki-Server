@@ -8,6 +8,20 @@ import io.swagger.v3.oas.annotations.media.Schema
  * date           : 2026. 01. 13.
  * description    : Map 관련 응답 DTO
  */
+data class GetBrandResponse(
+    @field:Schema(description = "브랜드 ID", example = "1")
+    val id: Long,
+
+    @field:Schema(description = "브랜드 이름", example = "포토이즘")
+    val name: String,
+
+    @field:Schema(description = "브랜드 코드", example = "PHOTOISM")
+    val code: String,
+
+    @field:Schema(description = "브랜드 이미지", example = "https://domain/file/image/xxx.png")
+    val imageUrl: String?,
+)
+
 data class CollectPhotoBoothResponse(
     @field:Schema(description = "수집된 포토부스 수", example = "45")
     val collectedCount: Int,

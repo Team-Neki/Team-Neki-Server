@@ -27,7 +27,7 @@ class Brand(
     @Column(name = "code", nullable = false, length = 30, unique = true)
     val code: String,
 
-    @Column(name = "photo_image_id", nullable = true)
-    var photoImageId: Long? = null,
+    @Column(name = "media_id", nullable = true)
+    var mediaId: Long? = null,
 
 ) : BaseTimeEntity()
