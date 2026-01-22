@@ -27,13 +27,13 @@ COMMENT ON COLUMN TB_BRAND.created_at IS '생성일시';
 COMMENT ON COLUMN TB_BRAND.updated_at IS '수정일시';
 
 -- Insert initial brand data
-INSERT INTO TB_BRAND (name, code)
-VALUES ('포토이즘', 'PHOTOISM'),
-       ('인생네컷', 'LIFEFOURCUTS'),
-       ('포토그레이', 'PHOTOGRAY'),
-       ('포토시그니처', 'PHOTOSIGNATURE'),
-       ('하루필름', 'HARUFILM'),
-       ('플랜비 스튜디오', 'PLANB_STUDIO');
+INSERT INTO TB_BRAND (name, code, created_at, updated_at)
+VALUES ('포토이즘', 'PHOTOISM', now(), now()),
+       ('인생네컷', 'LIFEFOURCUTS', now(), now()),
+       ('포토그레이', 'PHOTOGRAY', now(), now()),
+       ('포토시그니처', 'PHOTOSIGNATURE', now(), now()),
+       ('하루필름', 'HARUFILM', now(), now()),
+       ('플랜비 스튜디오', 'PLANB_STUDIO', now(), now());
 
 
 -- Create photo_booth_location table

@@ -13,6 +13,34 @@ services:
       - yapp-net
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d yapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db-init:
+    image: postgis/postgis:14-3.4
+    container_name: postgres-init
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - yapp-net
+    command:
+      - bash
+      - -c
+      - |
+        until psql -h db -U admin -d yapp -c 'SELECT 1' > /dev/null 2>&1; do
+          echo 'Waiting for database...'
+          sleep 1
+        done
+        echo 'Database is ready. Creating PostGIS extension...'
+        psql -h db -U admin -d yapp -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+        echo 'PostGIS extension created successfully.'
+    environment:
+      PGPASSWORD: admin1234
+    restart: "no"
 
   localstack:
     image: localstack/localstack:latest
