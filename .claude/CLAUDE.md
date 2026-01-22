@@ -49,6 +49,20 @@ docker compose down                # Stop containers
 
 ---
 
+## Pre-Task Checklist (Mandatory)
+
+Before starting any task, load the relevant context document:
+
+| Task Type | Required Document |
+|-----------|-------------------|
+| Writing tests | `@.claude/docs/TESTING.md` |
+| API development | `@.claude/docs/API_PATTERNS.md` |
+| Architecture/Design | `@.claude/docs/ARCHITECTURE.md` |
+| Configuration | `@.claude/docs/CONFIGURATION.md` |
+| Logging/Metrics | `@.claude/docs/OBSERVABILITY.md` |
+
+---
+
 ## Critical Constraints
 
 ### ❌ NEVER DO

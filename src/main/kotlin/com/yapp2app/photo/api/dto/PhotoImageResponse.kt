@@ -11,7 +11,7 @@ data class UploadPhotoResponse(val photoId: Long)
 data class GetPhotosResponse(val items: List<PhotoInfo>, val hasNext: Boolean) {
     data class PhotoInfo(
         val photoId: Long,
-        val imageBinary: ByteArray,
+        val imageUrl: String,
         val folderId: Long?,
         val contentType: String,
         val createdAt: String,

@@ -22,3 +22,7 @@ data class DeleteMediaCommand(val ownerId: Long, val mediaId: Long)
 data class DeleteMediasCommand(val ownerId: Long, val mediaIds: List<Long>)
 
 data class GetMediasCommand(val ownerId: Long, val mediaIds: List<Long>)
+
+data class GetImageByKeyCommand(val objectKey: String)
+
+data class GetMediaStorageInfosCommand(val ownerId: Long, val mediaIds: List<Long>)

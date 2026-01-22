@@ -1,7 +1,7 @@
 package com.yapp2app.auth.infra.security.token
 
 import com.yapp2app.auth.application.port.AuthTokenProviderPort
-import com.yapp2app.auth.infra.security.properties.AppProperties
+import com.yapp2app.common.properties.AppProperties
 import com.yapp2app.user.domain.enums.ProviderType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts

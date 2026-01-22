@@ -29,3 +29,17 @@ data class GetMediasResult(val medias: List<MediaInfo>) {
         override fun hashCode(): Int = mediaId.hashCode()
     }
 }
+
+data class GetImageByKeyResult(val binaryData: ByteArray, val contentType: String) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is GetImageByKeyResult) return false
+        return binaryData.contentEquals(other.binaryData) && contentType == other.contentType
+    }
+
+    override fun hashCode(): Int = 31 * binaryData.contentHashCode() + contentType.hashCode()
+}
+
+data class GetMediaStorageInfosResult(val storageInfos: List<StorageInfo>) {
+    data class StorageInfo(val mediaId: Long, val storageKey: String, val contentType: String)
+}

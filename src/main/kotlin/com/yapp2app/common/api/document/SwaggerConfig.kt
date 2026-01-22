@@ -1,6 +1,6 @@
 package com.yapp2app.common.api.document
 
-import com.yapp2app.auth.infra.security.properties.AppProperties
+import com.yapp2app.common.properties.AppProperties
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
