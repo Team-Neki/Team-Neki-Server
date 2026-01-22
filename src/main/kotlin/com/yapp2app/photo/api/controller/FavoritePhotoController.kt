@@ -5,12 +5,16 @@ import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.api.converter.FavoritePhotoCommandConverter
 import com.yapp2app.photo.api.converter.PhotoImageResultConverter
+import com.yapp2app.photo.api.dto.GetFavoriteSummaryResponse
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UpdatePhotoFavoriteRequest
 import com.yapp2app.photo.application.command.GetFavoritePhotosCommand
+import com.yapp2app.photo.application.command.GetFavoriteSummaryCommand
 import com.yapp2app.photo.application.command.UpdatePhotoFavoriteCommand
+import com.yapp2app.photo.application.result.GetFavoriteSummaryResult
 import com.yapp2app.photo.application.result.GetPhotosResult
 import com.yapp2app.photo.application.usecase.GetFavoritePhotosUseCase
+import com.yapp2app.photo.application.usecase.GetFavoriteSummaryUseCase
 import com.yapp2app.photo.application.usecase.UpdatePhotoFavoriteUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -38,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/photos")
 class FavoritePhotoController(
     private val getFavoritePhotosUseCase: GetFavoritePhotosUseCase,
+    private val getFavoriteSummaryUseCase: GetFavoriteSummaryUseCase,
     private val updatePhotoFavoriteUseCase: UpdatePhotoFavoriteUseCase,
 
     private val commandConverter: FavoritePhotoCommandConverter,
@@ -59,6 +64,23 @@ class FavoritePhotoController(
         updatePhotoFavoriteUseCase.execute(command)
 
         return BaseResponse()
+    }
+
+    @Operation(
+        summary = "즐겨찾기 사진 요약 정보 조회",
+        description = "가장 최근에 즐겨찾기한 사진의 이미지 URL과 총 즐겨찾기 개수를 조회합니다.",
+    )
+    @GetMapping("/favorite/summary")
+    fun getFavoriteSummary(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+    ): BaseResponse<GetFavoriteSummaryResponse> {
+        val command: GetFavoriteSummaryCommand = commandConverter.toGetFavoriteSummaryCommand(userId)
+
+        val result: GetFavoriteSummaryResult = getFavoriteSummaryUseCase.execute(command)
+
+        val response: GetFavoriteSummaryResponse = resultConverter.toGetFavoriteSummaryResponse(result)
+
+        return BaseResponse(data = response)
     }
 
     @Operation(

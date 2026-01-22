@@ -13,4 +13,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface JpaFavoriteImageRepository : JpaRepository<FavoritePhoto, FavoritePhotoId> {
 
     fun findAllByIdUserId(userId: Long): List<FavoritePhoto>
+
+    fun countByIdUserId(userId: Long): Long
 }

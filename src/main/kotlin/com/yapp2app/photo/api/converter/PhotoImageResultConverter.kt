@@ -1,7 +1,9 @@
 package com.yapp2app.photo.api.converter
 
+import com.yapp2app.photo.api.dto.GetFavoriteSummaryResponse
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UploadPhotoResponse
+import com.yapp2app.photo.application.result.GetFavoriteSummaryResult
 import com.yapp2app.photo.application.result.GetPhotosResult
 import com.yapp2app.photo.application.result.UploadPhotoResult
 import org.springframework.stereotype.Component
@@ -30,4 +32,10 @@ class PhotoImageResultConverter {
         },
         hasNext = result.hasNext,
     )
+
+    fun toGetFavoriteSummaryResponse(result: GetFavoriteSummaryResult): GetFavoriteSummaryResponse =
+        GetFavoriteSummaryResponse(
+            latestImageUrl = result.latestImageUrl,
+            totalCount = result.totalCount,
+        )
 }

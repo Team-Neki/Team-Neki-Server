@@ -56,4 +56,12 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
             .offset(offset.toLong())
             .limit(limit.toLong())
             .fetch()
+
+    fun findLatestOwnedPhoto(userId: Long): PhotoImage? = queryFactory.selectFrom(photoImage)
+        .where(
+            photoImage.userId.eq(userId),
+        )
+        .orderBy(photoImage.createdAt.desc())
+        .limit(1)
+        .fetchOne()
 }

@@ -18,3 +18,5 @@ data class GetPhotosResponse(val items: List<PhotoInfo>, val hasNext: Boolean) {
         val createdAt: String,
     )
 }
+
+data class GetFavoriteSummaryResponse(val latestImageUrl: String?, val totalCount: Long)

@@ -23,4 +23,6 @@ interface PhotoImageRepositoryPort {
     fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
 
     fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean
+
+    fun getLatestOwnedPhoto(userId: Long): PhotoImage?
 }

@@ -15,4 +15,6 @@ interface FavoriteImageRepositoryPort {
     fun exists(userId: Long, photoId: Long): Boolean
 
     fun findPhotoIdsByUserId(userId: Long): Set<Long>
+
+    fun countByUserId(userId: Long): Long
 }

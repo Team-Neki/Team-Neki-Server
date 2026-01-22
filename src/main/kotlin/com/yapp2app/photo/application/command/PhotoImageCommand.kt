@@ -32,3 +32,5 @@ data class DeletePhotosCommand(val userId: Long, val photoIds: List<Long>)
 data class UpdatePhotoCommand(val userId: Long, val photoId: Long, val memo: String?)
 
 data class UpdatePhotoFavoriteCommand(val userId: Long, val photoId: Long, val favorite: Boolean)
+
+data class GetFavoriteSummaryCommand(val userId: Long)

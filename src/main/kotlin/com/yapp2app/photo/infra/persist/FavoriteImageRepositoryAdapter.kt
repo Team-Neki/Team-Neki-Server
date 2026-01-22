@@ -36,4 +36,6 @@ class FavoriteImageRepositoryAdapter(private val jpaRepository: JpaFavoriteImage
     override fun findPhotoIdsByUserId(userId: Long): Set<Long> = jpaRepository.findAllByIdUserId(userId)
         .map { it.id.photoId }
         .toSet()
+
+    override fun countByUserId(userId: Long): Long = jpaRepository.countByIdUserId(userId)
 }
