@@ -10,13 +10,13 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 
 /**
- * fileName       : KakaoApiClient
+ * fileName       : MapApiClient
  * author         : darren
  * date           : 2026. 01. 13.
  * description    : Kakao Local API 클라이언트
  */
 @Component
-class KakaoApiClient(
+class MapApiClient(
     @Value("\${kakao.api.key}")
     private val apiKey: String,
 
