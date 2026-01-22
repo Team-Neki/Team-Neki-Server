@@ -194,6 +194,20 @@ interface JpaFolderRepository : JpaRepository<Folder, Long> {
 }
 ```
 
+### Port Method Naming Conventions
+
+Use consistent verb names across all ports:
+
+| Operation | Method Name | Example |
+|-----------|-------------|---------|
+| Create | `add`, `save`, `create` | `add(userId, photoId)` |
+| Read | `find*`, `get*`, `exists` | `findById(id)`, `existsByName(name)` |
+| Update | `update`, `modify` | `update(entity)` |
+| Delete | `delete`, `remove` | `delete(userId, photoId)` |
+| Count | `count*` | `countByUserId(userId)` |
+
+**Prefer `delete` over `remove` for consistency with SQL terminology.**
+
 ---
 
 ## Command/Result Pattern
@@ -225,6 +239,89 @@ data class GetFoldersResult(
     val folders: List<FolderInfo>,
 )
 ```
+
+---
+
+## QueryDSL for Batch Operations
+
+When you need batch operations (delete/update multiple records), use QueryDSL instead of Spring Data JPA for better performance.
+
+### Naming Convention
+- **Spring Data JPA**: `Jpa*Repository` (e.g., `JpaFolderRepository`)
+- **QueryDSL**: `*QueryRepository` (e.g., `FolderQueryRepository`)
+
+### Example: Batch Delete
+
+```kotlin
+// QueryDSL repository
+@Repository
+class FavoritePhotoQueryRepository(private val queryFactory: JPAQueryFactory) {
+    fun deleteAllByUserIdAndPhotoIds(userId: Long, photoIds: List<Long>): Long =
+        queryFactory.delete(favoritePhoto)
+            .where(
+                favoritePhoto.id.userId.eq(userId),
+                favoritePhoto.id.photoId.`in`(photoIds),
+            )
+            .execute()
+}
+
+// Adapter using both JPA and QueryDSL
+@Repository
+class FavoriteImageRepositoryAdapter(
+    private val jpaRepository: JpaFavoriteImageRepository,
+    private val queryRepository: FavoritePhotoQueryRepository,
+) : FavoriteImageRepositoryPort {
+
+    override fun delete(userId: Long, photoId: Long) =
+        jpaRepository.deleteById(FavoritePhotoId(userId, photoId))
+
+    override fun deleteAll(userId: Long, photoIds: List<Long>) {
+        if (photoIds.isEmpty()) return
+        queryRepository.deleteAllByUserIdAndPhotoIds(userId, photoIds)
+    }
+}
+```
+
+**Performance**: Single DELETE query vs N individual deletes
+
+---
+
+## Entity Deletion Patterns
+
+### Cascade Deletion Order
+
+When deleting entities with relationships, delete dependent entities FIRST to prevent orphan records.
+
+**Example: Photo with Favorites**
+
+```kotlin
+@UseCase
+class DeletePhotoUseCase(
+    private val photoImageRepository: PhotoImageRepositoryPort,
+    private val favoriteImageRepository: FavoriteImageRepositoryPort,
+    private val mediaClient: MediaClientPort,
+    private val transactionRunner: TransactionRunner,
+) {
+    fun execute(command: DeletePhotoCommand) {
+        val photo = transactionRunner.run {
+            // 1. Delete favorites FIRST (dependent)
+            favoriteImageRepository.delete(command.userId, command.photoId)
+
+            // 2. Delete photo SECOND (parent)
+            photoImageRepository.deleteOwnedPhoto(command.userId, command.photoId)
+        } ?: throw BusinessException(ResultCode.NOT_FOUND)
+
+        // 3. External cleanup LAST (outside transaction)
+        mediaClient.deleteMedia(command.userId, photo.mediaId)
+    }
+}
+```
+
+**Key Points:**
+- Delete dependent entities before parent entities
+- Use transactions to ensure atomicity
+- External service calls (S3, etc.) happen AFTER transaction commits
+- Prevents orphan records in the database
 
 ---
 
