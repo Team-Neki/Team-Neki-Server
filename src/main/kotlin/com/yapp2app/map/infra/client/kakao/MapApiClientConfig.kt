@@ -1,4 +1,4 @@
-package com.yapp2app.map.infra.client
+package com.yapp2app.map.infra.client.kakao
 
 import com.yapp2app.map.application.port.MapApiClientPort
 import org.springframework.beans.factory.annotation.Value
@@ -11,8 +11,6 @@ import org.springframework.web.client.RestClient
 @Configuration
 class MapApiClientConfig {
     @Bean
-    fun mapApiClient(
-        @Value("\${kakao.api.key}") apiKey: String,
-        restClient: RestClient,
-    ): MapApiClientPort = MapApiClientAdapter(apiKey, restClient)
+    fun mapApiClient(@Value("\${kakao.api.key}") apiKey: String, restClient: RestClient): MapApiClientPort =
+        MapApiClientAdapter(apiKey, restClient)
 }

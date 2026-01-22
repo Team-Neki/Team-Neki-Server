@@ -2,8 +2,7 @@ package com.yapp2app.map.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.map.application.command.CollectPhotoBoothCommand
-import com.yapp2app.map.application.contract.KakaoLocalSearchResponse
-import com.yapp2app.map.application.contract.KakaoPlace
+import com.yapp2app.map.application.contract.LocalSearchResponse
 import com.yapp2app.map.application.port.BrandRepositoryPort
 import com.yapp2app.map.application.port.MapApiClientPort
 import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
@@ -163,7 +162,7 @@ class CollectPhotoBoothLocationUseCase(
         page: Int,
         rect: String,
         skipDelay: Boolean = false,
-    ): KakaoLocalSearchResponse {
+    ): LocalSearchResponse {
         var retryCount = 0
 
         while (retryCount < MAX_RETRIES) {
@@ -209,7 +208,7 @@ class CollectPhotoBoothLocationUseCase(
     private fun PhotoBoothResult.toRect(): String = "$x1,$y1,$x2,$y2"
 
     private fun mapToPhotoBoothLocation(
-        place: KakaoPlace,
+        place: LocalSearchResponse.Place,
         brandId: Long,
         existing: PhotoBoothLocation?,
     ): PhotoBoothLocation {
