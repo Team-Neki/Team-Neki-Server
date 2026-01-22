@@ -1,5 +1,6 @@
 package com.yapp2app.map.api.converter
 
+import com.yapp2app.common.properties.AppProperties
 import com.yapp2app.map.api.dto.CollectPhotoBoothResponse
 import com.yapp2app.map.api.dto.GetBrandResponse
 import com.yapp2app.map.api.dto.GetPointLocationResponse
@@ -17,16 +18,21 @@ import org.springframework.stereotype.Component
  * description    : Map Result Converter
  */
 @Component
-class MapResultConverter {
+class MapResultConverter(private val appProperties: AppProperties) {
+    companion object {
+        private const val IMAGE_URL_PATH = "/file/image/"
+    }
 
     fun toGetBrandResponse(result: List<GetBrandResult>): List<GetBrandResponse> = result.map {
         GetBrandResponse(
             id = it.id,
             name = it.name,
             code = it.code,
-            imageUrl = it.imageUrl,
+            imageUrl = it.storageKey?.let { key -> toImageUrl(key) },
         )
     }
+
+    private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
 
     fun toCollectPhotoBoothResponse(result: CollectPhotoBoothResult): CollectPhotoBoothResponse =
         CollectPhotoBoothResponse(

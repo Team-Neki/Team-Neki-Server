@@ -9,7 +9,7 @@ import com.yapp2app.map.application.contract.PhotoBoothLocationWithDistanceDto
  * date           : 2026. 1. 14. 13:31
  * description    :
  */
-data class GetBrandResult(val id: Long, val name: String, val code: String, val imageUrl: String?)
+data class GetBrandResult(val id: Long, val name: String, val code: String, val storageKey: String?)
 
 data class CollectPhotoBoothResult(val collectedCount: Int, val duplicatedCount: Int, val totalProcessed: Int)
 

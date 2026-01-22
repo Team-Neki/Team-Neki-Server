@@ -12,7 +12,7 @@ data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean) {
 
     data class PhotoInfo(
         val photoId: Long,
-        val imageUrl: String,
+        val storageKey: String,
         val folderId: Long?,
         val contentType: String,
         val createdAt: String,

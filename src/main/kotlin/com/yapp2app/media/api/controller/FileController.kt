@@ -25,11 +25,6 @@ class FileController(
     private val commandConverter: FileCommandConverter,
     private val resultConverter: FileResultConverter,
 ) {
-
-    companion object {
-        const val IMAGE_URL_PATH = "/file/image/"
-    }
-
     @Operation(
         summary = "이미지 파일 조회",
         description = """
