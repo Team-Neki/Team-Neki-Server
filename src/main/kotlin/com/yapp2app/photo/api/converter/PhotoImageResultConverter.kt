@@ -23,6 +23,7 @@ class PhotoImageResultConverter {
                 photoId = it.photoId,
                 imageUrl = it.imageUrl,
                 folderId = it.folderId,
+                favorite = it.favorite,
                 contentType = it.contentType,
                 createdAt = it.createdAt,
             )

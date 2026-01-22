@@ -7,6 +7,7 @@ import com.yapp2app.media.domain.entity.MediaStatus
 import com.yapp2app.media.infra.persist.jpa.JpaMediaRepository
 import com.yapp2app.photo.domain.entity.Folder
 import com.yapp2app.photo.domain.entity.PhotoImage
+import com.yapp2app.photo.infra.persist.jpa.JpaFavoriteImageRepository
 import com.yapp2app.photo.infra.persist.jpa.JpaFolderRepository
 import com.yapp2app.photo.infra.persist.jpa.JpaPhotoImageRepository
 import org.junit.jupiter.api.AfterEach
@@ -28,6 +29,9 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
 
     @Autowired
     protected lateinit var mediaRepository: JpaMediaRepository
+
+    @Autowired
+    protected lateinit var favoritePhotoRepository: JpaFavoriteImageRepository
 
     @AfterEach
     override fun tearDown() {

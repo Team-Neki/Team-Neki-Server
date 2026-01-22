@@ -1,5 +1,6 @@
 package com.yapp2app.photo.api.converter
 
+import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.api.dto.DeletePhotosRequest
 import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
@@ -26,11 +27,18 @@ class PhotoImageCommandConverter {
         memo = request.memo,
     )
 
-    fun toGetPhotosCommand(userId: Long, folderId: Long?, page: Int, size: Int): GetPhotosCommand = GetPhotosCommand(
+    fun toGetPhotosCommand(
+        userId: Long,
+        folderId: Long?,
+        page: Int,
+        size: Int,
+        sortOrder: SortOrder,
+    ): GetPhotosCommand = GetPhotosCommand(
         userId = userId,
         folderId = folderId,
         page = page,
         size = size,
+        sortOrder = sortOrder,
     )
 
     fun toDeletePhotoCommand(userId: Long, photoId: Long): DeletePhotoCommand = DeletePhotoCommand(

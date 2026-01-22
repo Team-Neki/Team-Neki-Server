@@ -2,6 +2,7 @@ package com.yapp2app.photo.api.controller
 
 import com.yapp2app.common.api.document.RequiresSecurity
 import com.yapp2app.common.api.dto.BaseResponse
+import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.api.converter.PhotoImageCommandConverter
 import com.yapp2app.photo.api.converter.PhotoImageResultConverter
 import com.yapp2app.photo.api.dto.DeletePhotosRequest
@@ -78,8 +79,9 @@ class PhotoController(
         @RequestParam(required = false) folderId: Long?,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
+        @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<GetPhotosResponse> {
-        val command = commandConverter.toGetPhotosCommand(userId, folderId, page, size)
+        val command = commandConverter.toGetPhotosCommand(userId, folderId, page, size, sortOrder)
 
         val result = getPhotosUseCase.execute(command)
 
