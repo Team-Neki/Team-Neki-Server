@@ -30,7 +30,3 @@ aws:
     secret-key: test
     region: ap-northeast-2
     bucket: yapp-local
-
-kakao:
-  api:
-    key: test-kakao-api-key
