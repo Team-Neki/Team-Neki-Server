@@ -14,6 +14,7 @@ import com.yapp2app.map.api.dto.GetPolygonLocationResponse
 import com.yapp2app.map.application.usecase.CollectPhotoBoothLocationUseCase
 import com.yapp2app.map.application.usecase.GetBrandUseCase
 import com.yapp2app.map.application.usecase.GetPhotoBoothLocationUseCase
+import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -63,6 +64,7 @@ class MapController(
             첫 페이지 조회 후 meta.pageable_count를 기반으로 자동으로 모든 페이지를 순회합니다.
             """,
     )
+    @Hidden
     @PostMapping("/collect")
     fun collectPhotoBooths(
         @Valid @RequestBody request: CollectPhotoBoothRequest,
