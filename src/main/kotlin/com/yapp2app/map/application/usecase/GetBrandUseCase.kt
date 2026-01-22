@@ -2,8 +2,8 @@ package com.yapp2app.map.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.map.application.port.BrandRepositoryPort
+import com.yapp2app.map.application.port.MediaClientPort
 import com.yapp2app.map.application.result.GetBrandResult
-import com.yapp2app.photo.application.port.MediaClientPort
 import org.slf4j.LoggerFactory
 
 /**
