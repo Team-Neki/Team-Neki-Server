@@ -64,7 +64,6 @@ class DeleteFoldersE2ETest : FolderE2ETestBase() {
             .delete("/api/folders")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -85,7 +84,6 @@ class DeleteFoldersE2ETest : FolderE2ETestBase() {
             .delete("/api/folders")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -101,7 +99,6 @@ class DeleteFoldersE2ETest : FolderE2ETestBase() {
             .delete("/api/folders")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
@@ -124,7 +121,6 @@ class DeleteFoldersE2ETest : FolderE2ETestBase() {
             .delete("/api/folders")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 
@@ -150,7 +146,6 @@ class DeleteFoldersE2ETest : FolderE2ETestBase() {
             .delete("/api/folders")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
 }

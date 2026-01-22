@@ -21,7 +21,7 @@ class PhotoImageResultConverter {
         items = result.photos.map {
             GetPhotosResponse.PhotoInfo(
                 photoId = it.photoId,
-                imageBinary = it.imageBinary,
+                imageUrl = it.imageUrl,
                 folderId = it.folderId,
                 contentType = it.contentType,
                 createdAt = it.createdAt,

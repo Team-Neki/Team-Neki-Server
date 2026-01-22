@@ -1,4 +1,4 @@
-package com.yapp2app.auth.application.port
+package com.yapp2app.auth.infra.oauth.helper
 
 import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
@@ -9,6 +9,6 @@ import com.yapp2app.auth.application.contract.OauthInfoResponse
  * date           : 2025. 12. 31. 10:21
  * description    : OAuth OIDC 검증을 위한 Port
  */
-interface OauthHelperPort {
+interface OauthHelper {
     fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysResponse): OauthInfoResponse
 }

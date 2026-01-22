@@ -61,7 +61,9 @@ oauth:
     issuer: https://kauth.kakao.com
 
   apple:
-    key: test
+    clientId: swainyun.SignInWithAppleTestApp
+    jwksUri: https://appleid.apple.com/auth/keys
+    issuer: https://appleid.apple.com
 
 aws:
   s3:

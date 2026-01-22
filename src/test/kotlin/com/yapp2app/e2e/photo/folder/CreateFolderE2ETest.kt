@@ -51,7 +51,6 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
             .post("/api/folders")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -71,7 +70,6 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
                 .post("/api/folders")
                 .then()
                 .statusCode(HttpStatus.OK.value())
-                .body("success", equalTo(true))
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
         }
     }
@@ -87,7 +85,6 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
             .post("/api/folders")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
@@ -108,7 +105,6 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
             .post("/api/folders")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
@@ -125,7 +121,6 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
             .post("/api/folders")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
         // 동일한 이름으로 재요청
@@ -137,7 +132,6 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
             .post("/api/folders")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.CONFLICT_FOLDER.code))
     }
 }

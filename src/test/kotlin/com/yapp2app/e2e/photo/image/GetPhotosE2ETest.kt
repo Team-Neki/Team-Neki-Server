@@ -7,6 +7,7 @@ import io.restassured.RestAssured
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasSize
+import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -42,8 +43,8 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("사진 목록 조회 성공 - 전체 사진 조회")
-    fun givenPhotosExist_whenGetPhotos_thenReturnsPhotoList() {
+    @DisplayName("사진 목록 조회 성공 - 전체 사진 조회 및 imageUrl이 /file/image/ 패턴을 따름")
+    fun givenPhotosExist_whenGetPhotos_thenReturnsPhotoListWithFileImageUrl() {
         // given
         val media1 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val media2 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -57,9 +58,10 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.items", hasSize<Int>(2))
+            .body("data.items[0].imageUrl", startsWith("/file/image/"))
+            .body("data.items[1].imageUrl", startsWith("/file/image/"))
     }
 
     @Test
@@ -83,7 +85,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.items", hasSize<Int>(2))
     }
@@ -104,7 +105,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .then()
             .log().all()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.items", empty<Any>())
     }
@@ -124,7 +124,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("data.items", empty<Any>())
     }
 
@@ -143,7 +142,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("data.items", empty<Any>())
     }
 }

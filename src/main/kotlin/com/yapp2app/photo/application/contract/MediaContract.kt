@@ -20,3 +20,5 @@ data class MediaInfo(val mediaId: Long, val contentType: String, val binaryData:
 
     override fun hashCode(): Int = mediaId.hashCode()
 }
+
+data class MediaStorageInfo(val mediaId: Long, val storageKey: String, val contentType: String)

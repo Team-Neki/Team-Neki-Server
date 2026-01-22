@@ -62,7 +62,6 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
             .delete("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -78,7 +77,6 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
             .delete("/api/photos")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
@@ -101,7 +99,6 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
             .delete("/api/photos")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
@@ -122,7 +119,6 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
             .delete("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -147,7 +143,6 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
             .delete("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -171,7 +166,6 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
             .delete("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 }

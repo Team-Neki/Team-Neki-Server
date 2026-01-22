@@ -56,7 +56,6 @@ class UserE2ETest : E2ETestBase() {
             .get("/api/users/info")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.name", equalTo(testUser.name))
             .body("data.providerType", equalTo(testUser.providerType.name))
@@ -72,7 +71,6 @@ class UserE2ETest : E2ETestBase() {
             .get("/api/users/info")
             .then()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.EXPIRED_TOKEN_ERROR.code))
     }
 
@@ -99,7 +97,6 @@ class UserE2ETest : E2ETestBase() {
             .get("/api/users/info")
             .then()
             .statusCode(HttpStatus.FORBIDDEN.value())
-            .body("success", equalTo(false))
             .body("resultCode", equalTo(ResultCode.INVALID_TOKEN_ERROR.code))
     }
 

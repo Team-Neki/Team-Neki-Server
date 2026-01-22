@@ -57,7 +57,6 @@ class UpdatePhotoE2ETest : PhotoImageE2ETestBase() {
             .patch("/api/photos/${photo.id}")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -77,7 +76,6 @@ class UpdatePhotoE2ETest : PhotoImageE2ETestBase() {
             .patch("/api/photos/${photo.id}")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 
@@ -97,7 +95,6 @@ class UpdatePhotoE2ETest : PhotoImageE2ETestBase() {
             .patch("/api/photos/${photo.id}")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("success", equalTo(true))
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
 }

@@ -7,4 +7,4 @@ class OauthProperties(var kakao: Kakao = Kakao(), var apple: Apple = Apple())
 
 class Kakao(var clientId: String = "", var clientSecret: String = "", var jwksUri: String = "", var issuer: String = "")
 
-class Apple(var key: String = "")
+class Apple(var clientId: String = "", var jwksUri: String = "", var issuer: String = "")

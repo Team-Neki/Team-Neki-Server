@@ -10,7 +10,7 @@ enum class ResultCode(val code: String, val message: String) {
 
     SUCCESS("D-0", "OK"),
 
-    ERROR("D-99", "ERROR"),
+    ERROR("D-99", "일시적인 오류가 발생했어요."),
     INVALID_PARAMETER("D-01", "입력값이 올바르지 않습니다."),
     ALREADY_SIGNUP("D-02", "이미 회원가입된 계정입니다."),
     NOT_FOUND_USER("D-03", "가입된 계정이 없습니다."),

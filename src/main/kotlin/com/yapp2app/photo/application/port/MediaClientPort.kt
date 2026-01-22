@@ -2,6 +2,7 @@ package com.yapp2app.photo.application.port
 
 import com.yapp2app.photo.application.contract.MediaAvailability
 import com.yapp2app.photo.application.contract.MediaInfo
+import com.yapp2app.photo.application.contract.MediaStorageInfo
 
 /**
  * fileName       : MediaClient
@@ -14,6 +15,8 @@ interface MediaClientPort {
     fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability
 
     fun getMediaBinaries(ownerId: Long, mediaIds: List<Long>): List<MediaInfo>
+
+    fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaStorageInfo>
 
     fun deleteMedia(ownerId: Long, mediaId: Long)
 
