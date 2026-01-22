@@ -13,6 +13,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class MapApiClientAdapter(private val mapApiClient: MapApiClient) : MapApiClientPort {
-    override fun kakaoSearchByKeyword(query: String, page: Int, size: Int, rect: String?): KakaoLocalSearchResponse =
+    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): KakaoLocalSearchResponse =
         mapApiClient.searchByKeyword(query, page, size, rect)
 }

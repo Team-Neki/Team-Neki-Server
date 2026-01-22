@@ -175,7 +175,7 @@ class CollectPhotoBoothLocationUseCase(
                     log.debug("Delayed {}ms before requesting page {}", delayMillis, page)
                 }
 
-                return mapApiClient.kakaoSearchByKeyword(
+                return mapApiClient.searchByKeyword(
                     query = keyword,
                     page = page,
                     size = PAGE_SIZE,
