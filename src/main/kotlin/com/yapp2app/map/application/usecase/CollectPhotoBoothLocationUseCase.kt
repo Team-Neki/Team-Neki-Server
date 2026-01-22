@@ -7,11 +7,11 @@ import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.map.application.command.CollectPhotoBoothCommand
 import com.yapp2app.map.application.contract.LocalSearchResponse
 import com.yapp2app.map.application.port.BrandRepositoryPort
-import com.yapp2app.map.application.port.GeometryPort
 import com.yapp2app.map.application.port.MapSearchPort
 import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
 import com.yapp2app.map.application.result.CollectPhotoBoothResult
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
+import com.yapp2app.map.domain.vo.CoordinateVO
 import org.slf4j.LoggerFactory
 
 /**
@@ -26,7 +26,6 @@ class CollectPhotoBoothLocationUseCase(
     private val photoBoothLocationRepository: PhotoBoothLocationRepositoryPort,
     private val transactionRunner: TransactionRunner,
     private val mapSearch: MapSearchPort,
-    private val geometry: GeometryPort,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -65,10 +64,10 @@ class CollectPhotoBoothLocationUseCase(
         brandId: Long,
         existing: PhotoBoothLocation?,
     ): PhotoBoothLocation {
-        val point = geometry.createPoint(
-            place.longitude.toDouble(),
-            place.latitude.toDouble(),
-        )
+        val point = CoordinateVO(
+            longitude = place.longitude.toDouble(),
+            latitude = place.latitude.toDouble(),
+        ).toPoint()
 
         return existing?.apply {
             this.brandId = brandId
