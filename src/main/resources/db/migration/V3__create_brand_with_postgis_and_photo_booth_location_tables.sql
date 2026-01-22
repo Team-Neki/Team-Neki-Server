@@ -1,19 +1,21 @@
 -- Enable PostGIS extension for spatial data support
-CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE
+EXTENSION IF NOT EXISTS postgis;
 
 -- Add comment
 COMMENT ON EXTENSION postgis IS 'PostGIS extension for spatial data support';
 
 -- Create brand table
-CREATE TABLE TB_BRAND (
-                          id BIGSERIAL PRIMARY KEY,
-                          name VARCHAR(50) NOT NULL,
-                          code VARCHAR(30) NOT NULL,
-                          media_id BIGINT NULL,
-                          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE TB_BRAND
+(
+    id BIGSERIAL PRIMARY KEY,
+    name       VARCHAR(50) NOT NULL,
+    code       VARCHAR(30) NOT NULL,
+    media_id   BIGINT      NULL,
+    created_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-                          CONSTRAINT uk_brand_code UNIQUE (code)
+    CONSTRAINT uk_brand_code UNIQUE (code)
 );
 
 -- Add comments for brand table
@@ -25,25 +27,26 @@ COMMENT ON COLUMN TB_BRAND.created_at IS '생성일시';
 COMMENT ON COLUMN TB_BRAND.updated_at IS '수정일시';
 
 -- Insert initial brand data
-INSERT INTO TB_BRAND (name, code) VALUES
-                                      ('포토이즘', 'PHOTOISM'),
-                                      ('인생네컷', 'LIFEFOURCUTS'),
-                                      ('포토그레이', 'PHOTOGRAY'),
-                                      ('포토시그니처', 'PHOTOSIGNATURE'),
-                                      ('하루필름', 'HARUFILM'),
-                                      ('플랜비 스튜디오', 'PLANB_STUDIO');
+INSERT INTO TB_BRAND (name, code)
+VALUES ('포토이즘', 'PHOTOISM'),
+       ('인생네컷', 'LIFEFOURCUTS'),
+       ('포토그레이', 'PHOTOGRAY'),
+       ('포토시그니처', 'PHOTOSIGNATURE'),
+       ('하루필름', 'HARUFILM'),
+       ('플랜비 스튜디오', 'PLANB_STUDIO');
 
 
 -- Create photo_booth_location table
-CREATE TABLE TB_PHOTO_BOOTH_LOCATION (
-                                         id BIGSERIAL PRIMARY KEY,
-                                         map_id VARCHAR(100) NOT NULL,
-                                         brand_id BIGINT NOT NULL,
-                                         name VARCHAR(100) NOT NULL,
-                                         address VARCHAR(255) NOT NULL,
-                                         location geometry(Point, 4326) NOT NULL,
-                                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE TB_PHOTO_BOOTH_LOCATION
+(
+    id BIGSERIAL PRIMARY KEY,
+    map_id     VARCHAR(100) NOT NULL,
+    brand_id   BIGINT       NOT NULL,
+    name       VARCHAR(100) NOT NULL,
+    address    VARCHAR(255) NOT NULL,
+    location   geometry(Point, 4326) NOT NULL,
+    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create spatial index for location column (for efficient spatial queries)
