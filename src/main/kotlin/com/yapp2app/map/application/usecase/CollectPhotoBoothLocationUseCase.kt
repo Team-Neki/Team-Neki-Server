@@ -1,6 +1,9 @@
 package com.yapp2app.map.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
+import com.yapp2app.common.api.dto.ResultCode
+import com.yapp2app.common.exception.BusinessException
+import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.map.application.command.CollectPhotoBoothCommand
 import com.yapp2app.map.application.contract.LocalSearchResponse
 import com.yapp2app.map.application.port.BrandRepositoryPort
@@ -9,11 +12,11 @@ import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
 import com.yapp2app.map.application.result.CollectPhotoBoothResult
 import com.yapp2app.map.application.result.PhotoBoothResult
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
+import com.yapp2app.map.domain.vo.GeographicBounds
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.PrecisionModel
 import org.slf4j.LoggerFactory
-import org.springframework.transaction.annotation.Transactional
 
 /**
  * fileName       : CollectPhotoBoothLocationUseCase
@@ -26,6 +29,7 @@ class CollectPhotoBoothLocationUseCase(
     private val mapApiClient: MapApiClientPort,
     private val brandRepository: BrandRepositoryPort,
     private val photoBoothLocationRepository: PhotoBoothLocationRepositoryPort,
+    private val transactionRunner: TransactionRunner,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
@@ -42,15 +46,8 @@ class CollectPhotoBoothLocationUseCase(
         private const val GRID_DELAY_MIN = 1000L // 그리드 간 최소 딜레이 (ms)
         private const val GRID_DELAY_MAX = 2000L // 그리드 간 최대 딜레이 (ms)
         private const val RETRY_BACKOFF_BASE = 10000L // Retry 시 기본 딜레이 (10초)
-
-        // 대한민국 좌표 범위
-        private const val KOREA_MIN_LAT = 33.0 // 최남단 (제주 마라도 근처)
-        private const val KOREA_MAX_LAT = 38.6 // 최북단 (DMZ 근처)
-        private const val KOREA_MIN_LNG = 124.5 // 최서단 (백령도 근처)
-        private const val KOREA_MAX_LNG = 132.0 // 최동단 (독도 근처)
     }
 
-    @Transactional
     fun execute(command: CollectPhotoBoothCommand): CollectPhotoBoothResult {
         log.info(
             "Start collecting photo booth locations - keyword: {}, brandCode: {}",
@@ -58,14 +55,17 @@ class CollectPhotoBoothLocationUseCase(
             command.brandCode,
         )
 
-        val brand = brandRepository.getBrand(command.brandCode)
-            ?: throw IllegalArgumentException("Brand not found: $command.randCode")
+        val (brand, existingLocations) = transactionRunner.readOnly {
+            val brand = brandRepository.getBrand(command.brandCode)
+                ?: throw BusinessException(ResultCode.NOT_FOUND)
+            val locations = photoBoothLocationRepository.getPhotoBoothLocations(brand.id!!)
+                .associateBy { it.mapId }
+            brand to locations
+        }
 
-        val existingLocations = photoBoothLocationRepository.getPhotoBoothLocations(brand.id!!)
-            .associateBy { it.mapId }
         log.info("Existing locations count: {}", existingLocations.size)
 
-        val processed = collectFromAllGrids(command.keyword, brand.id, existingLocations)
+        val processed = collectFromAllGrids(command.keyword, brand.id!!, existingLocations)
 
         return persistChanges(processed, existingLocations)
     }
@@ -240,14 +240,16 @@ class CollectPhotoBoothLocationUseCase(
 
         log.info("Batch processing - insert: {}, update: {}, delete: {}", insertCount, updateCount, toDelete.size)
 
-        if (processed.isNotEmpty()) {
-            photoBoothLocationRepository.saveAll(processed.values)
-            log.info("Saved {} locations (insert: {}, update: {})", processed.size, insertCount, updateCount)
-        }
+        transactionRunner.run {
+            if (processed.isNotEmpty()) {
+                photoBoothLocationRepository.saveAll(processed.values)
+                log.info("Saved {} locations (insert: {}, update: {})", processed.size, insertCount, updateCount)
+            }
 
-        if (toDelete.isNotEmpty()) {
-            photoBoothLocationRepository.deleteAll(toDelete)
-            log.info("Deleted {} locations", toDelete.size)
+            if (toDelete.isNotEmpty()) {
+                photoBoothLocationRepository.deleteAll(toDelete)
+                log.info("Deleted {} locations", toDelete.size)
+            }
         }
 
         log.info(
@@ -271,12 +273,13 @@ class CollectPhotoBoothLocationUseCase(
      * @return 그리드 사각형 리스트
      */
     fun divideKoreaIntoGrids(gridSize: Double): MutableList<PhotoBoothResult> {
+        val bounds = GeographicBounds.KOREA
         val grids: MutableList<PhotoBoothResult> = ArrayList<PhotoBoothResult>()
 
-        var lat = KOREA_MIN_LAT
-        while (lat < KOREA_MAX_LAT) {
-            var lng = KOREA_MIN_LNG
-            while (lng < KOREA_MAX_LNG) {
+        var lat = bounds.minLatitude
+        while (lat < bounds.maxLatitude) {
+            var lng = bounds.minLongitude
+            while (lng < bounds.maxLongitude) {
                 val grid = PhotoBoothResult(x1 = lng, y1 = lat, x2 = lng + gridSize, y2 = lat + gridSize)
 
                 grids.add(grid)
