@@ -176,6 +176,54 @@ fun jasyptGeneratTest() {
 
 ---
 
+## Test Helper Methods
+
+### Organization Rules
+
+1. **Shared helpers go in base classes** - Don't duplicate helper methods across test files
+2. **Domain-specific helpers in domain base** - E.g., `createFavoritePhotoImage` in `PhotoImageE2ETestBase`
+3. **Test-specific helpers stay local** - Only create local helpers if truly test-specific
+
+**Example:**
+```kotlin
+// ✅ GOOD: Helper in base class
+abstract class PhotoImageE2ETestBase : E2ETestBase() {
+    protected fun createFavoritePhotoImage(
+        userId: Long,
+        mediaId: Long,
+        folderId: Long? = null
+    ): PhotoImage {
+        val photo = createPhotoImage(userId, mediaId, folderId)
+        favoritePhotoRepository.save(
+            FavoritePhoto(userId = userId, imageId = photo.id!!)
+        )
+        return photo
+    }
+}
+
+// ❌ BAD: Duplicating same helper in multiple test files
+class GetFavoritePhotosE2ETest : PhotoImageE2ETestBase() {
+    fun createFavoritePhotoImage(...) { /* duplicate! */ }
+}
+```
+
+### Cleanup Order in tearDown
+
+Delete dependent entities FIRST to respect foreign key constraints:
+
+```kotlin
+@AfterEach
+override fun tearDown() {
+    favoritePhotoRepository.deleteAllInBatch()  // Dependent first
+    photoImageRepository.deleteAllInBatch()     // Parent second
+    folderRepository.deleteAllInBatch()
+    mediaRepository.deleteAllInBatch()
+    super.tearDown()
+}
+```
+
+---
+
 ## Checklist for New Endpoints
 
 - [ ] Create E2E test class extending appropriate base
@@ -183,4 +231,4 @@ fun jasyptGeneratTest() {
 - [ ] Test authentication required (401 without token)
 - [ ] Test validation errors (400 with invalid input)
 - [ ] Test business rule violations (appropriate error codes)
-- [ ] Clean up test data in `@AfterEach`
+- [ ] Clean up test data in `@AfterEach` (delete dependent entities first)
