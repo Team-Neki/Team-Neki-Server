@@ -35,6 +35,7 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
 
     @AfterEach
     override fun tearDown() {
+        favoritePhotoRepository.deleteAllInBatch()
         photoImageRepository.deleteAllInBatch()
         folderRepository.deleteAllInBatch()
         mediaRepository.deleteAllInBatch()
@@ -71,4 +72,15 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
                 folderId = folderId,
             ),
         )
+
+    protected fun createFavoritePhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage {
+        val photo = createPhotoImage(userId, mediaId, folderId)
+        favoritePhotoRepository.save(
+            com.yapp2app.photo.domain.entity.FavoritePhoto(
+                userId = userId,
+                imageId = photo.id!!,
+            ),
+        )
+        return photo
+    }
 }

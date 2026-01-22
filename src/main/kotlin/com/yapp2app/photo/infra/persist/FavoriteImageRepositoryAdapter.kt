@@ -3,6 +3,7 @@ package com.yapp2app.photo.infra.persist
 import com.yapp2app.photo.application.port.FavoriteImageRepositoryPort
 import com.yapp2app.photo.domain.entity.FavoritePhoto
 import com.yapp2app.photo.domain.entity.FavoritePhotoId
+import com.yapp2app.photo.infra.persist.jpa.FavoritePhotoQueryRepository
 import com.yapp2app.photo.infra.persist.jpa.JpaFavoriteImageRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Repository
@@ -14,8 +15,10 @@ import org.springframework.stereotype.Repository
  * description    :
  */
 @Repository
-class FavoriteImageRepositoryAdapter(private val jpaRepository: JpaFavoriteImageRepository) :
-    FavoriteImageRepositoryPort {
+class FavoriteImageRepositoryAdapter(
+    private val jpaRepository: JpaFavoriteImageRepository,
+    private val queryRepository: FavoritePhotoQueryRepository,
+) : FavoriteImageRepositoryPort {
 
     override fun add(userId: Long, photoId: Long) {
         try {
@@ -25,9 +28,14 @@ class FavoriteImageRepositoryAdapter(private val jpaRepository: JpaFavoriteImage
         }
     }
 
-    override fun remove(userId: Long, photoId: Long) = jpaRepository.deleteById(
+    override fun delete(userId: Long, photoId: Long) = jpaRepository.deleteById(
         FavoritePhotoId(userId, photoId),
     )
+
+    override fun deleteAll(userId: Long, photoIds: List<Long>) {
+        if (photoIds.isEmpty()) return
+        queryRepository.deleteAllByUserIdAndPhotoIds(userId, photoIds)
+    }
 
     override fun exists(userId: Long, photoId: Long): Boolean = jpaRepository.existsById(
         FavoritePhotoId(userId, photoId),

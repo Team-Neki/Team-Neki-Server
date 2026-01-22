@@ -2,8 +2,6 @@ package com.yapp2app.e2e.photo.image
 
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.media.domain.entity.MediaStatus
-import com.yapp2app.photo.domain.entity.FavoritePhoto
-import com.yapp2app.photo.domain.entity.PhotoImage
 import com.yapp2app.user.domain.entity.User
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.containsString
@@ -144,17 +142,5 @@ class GetFavoriteSummaryE2ETest : PhotoImageE2ETestBase() {
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.totalCount", equalTo(3))
             .body("data.latestImageUrl", containsString(latestMedia.storageKey))
-    }
-
-    fun createFavoritePhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage {
-        val photo = photoImageRepository.save(
-            PhotoImage(
-                userId = userId,
-                mediaId = mediaId,
-                folderId = folderId,
-            ),
-        )
-        favoritePhotoRepository.save(FavoritePhoto(userId = userId, imageId = photo.id!!))
-        return photo
     }
 }

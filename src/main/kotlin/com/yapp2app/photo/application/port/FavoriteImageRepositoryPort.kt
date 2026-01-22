@@ -10,7 +10,9 @@ interface FavoriteImageRepositoryPort {
 
     fun add(userId: Long, photoId: Long)
 
-    fun remove(userId: Long, photoId: Long)
+    fun delete(userId: Long, photoId: Long)
+
+    fun deleteAll(userId: Long, photoIds: List<Long>)
 
     fun exists(userId: Long, photoId: Long): Boolean
 

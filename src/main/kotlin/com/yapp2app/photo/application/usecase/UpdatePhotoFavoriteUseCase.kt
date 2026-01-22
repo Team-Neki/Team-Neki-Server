@@ -30,7 +30,7 @@ class UpdatePhotoFavoriteUseCase(
         if (command.favorite) {
             favoriteImageRepository.add(command.userId, command.photoId)
         } else {
-            favoriteImageRepository.remove(command.userId, command.photoId)
+            favoriteImageRepository.delete(command.userId, command.photoId)
         }
     }
 }
