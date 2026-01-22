@@ -6,6 +6,8 @@ package com.yapp2app.map.application.command
  * date           : 2026. 1. 17.
  * description    : Map domain command
  */
+data class CollectPhotoBoothCommand(val keyword: String, val brandCode: String)
+
 data class GetPolygonLocationCommand(
     val coordinates: List<Pair<Double, Double>>,
     val brandIds: List<Long>?,

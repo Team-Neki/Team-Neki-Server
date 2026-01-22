@@ -1,8 +1,10 @@
 package com.yapp2app.map.api.converter
 
+import com.yapp2app.map.api.dto.CollectPhotoBoothResponse
 import com.yapp2app.map.api.dto.GetBrandResponse
 import com.yapp2app.map.api.dto.GetPointLocationResponse
 import com.yapp2app.map.api.dto.GetPolygonLocationResponse
+import com.yapp2app.map.application.result.CollectPhotoBoothResult
 import com.yapp2app.map.application.result.GetBrandResult
 import com.yapp2app.map.application.result.GetPointLocationResult
 import com.yapp2app.map.application.result.GetPolygonLocationResult
@@ -25,6 +27,13 @@ class MapResultConverter {
             imageUrl = it.imageUrl,
         )
     }
+
+    fun toCollectPhotoBoothResponse(result: CollectPhotoBoothResult): CollectPhotoBoothResponse =
+        CollectPhotoBoothResponse(
+            collectedCount = result.collectedCount,
+            duplicatedCount = result.duplicatedCount,
+            totalProcessed = result.totalProcessed,
+        )
 
     fun toGetPolygonLocationResponse(result: GetPolygonLocationResult): GetPolygonLocationResponse {
         val items = result.locations.map {

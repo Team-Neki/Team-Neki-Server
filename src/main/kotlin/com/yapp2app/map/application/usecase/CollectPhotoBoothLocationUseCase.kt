@@ -1,11 +1,13 @@
 package com.yapp2app.map.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
+import com.yapp2app.map.application.command.CollectPhotoBoothCommand
 import com.yapp2app.map.application.contract.KakaoLocalSearchResponse
 import com.yapp2app.map.application.contract.KakaoPlace
 import com.yapp2app.map.application.port.BrandRepositoryPort
 import com.yapp2app.map.application.port.MapApiClientPort
 import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
+import com.yapp2app.map.application.result.CollectPhotoBoothResult
 import com.yapp2app.map.application.result.PhotoBoothResult
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
 import org.locationtech.jts.geom.Coordinate
@@ -49,20 +51,22 @@ class CollectPhotoBoothLocationUseCase(
         private const val KOREA_MAX_LNG = 132.0 // 최동단 (독도 근처)
     }
 
-    data class CollectResult(val collectedCount: Int, val duplicatedCount: Int, val totalProcessed: Int)
-
     @Transactional
-    fun execute(keyword: String, brandCode: String): CollectResult {
-        log.info("Start collecting photo booth locations - keyword: {}, brandCode: {}", keyword, brandCode)
+    fun execute(command: CollectPhotoBoothCommand): CollectPhotoBoothResult {
+        log.info(
+            "Start collecting photo booth locations - keyword: {}, brandCode: {}",
+            command.keyword,
+            command.brandCode,
+        )
 
-        val brand = brandRepository.getBrand(brandCode)
-            ?: throw IllegalArgumentException("Brand not found: $brandCode")
+        val brand = brandRepository.getBrand(command.brandCode)
+            ?: throw IllegalArgumentException("Brand not found: $command.randCode")
 
         val existingLocations = photoBoothLocationRepository.getPhotoBoothLocations(brand.id!!)
             .associateBy { it.mapId }
         log.info("Existing locations count: {}", existingLocations.size)
 
-        val processed = collectFromAllGrids(keyword, brand.id, existingLocations)
+        val processed = collectFromAllGrids(command.keyword, brand.id, existingLocations)
 
         return persistChanges(processed, existingLocations)
     }
@@ -230,7 +234,7 @@ class CollectPhotoBoothLocationUseCase(
     private fun persistChanges(
         processed: Map<String, PhotoBoothLocation>,
         existingLocations: Map<String, PhotoBoothLocation>,
-    ): CollectResult {
+    ): CollectPhotoBoothResult {
         val insertCount = processed.keys.count { it !in existingLocations }
         val updateCount = processed.keys.count { it in existingLocations }
         val toDelete = existingLocations.values.filter { it.mapId !in processed }
@@ -255,7 +259,7 @@ class CollectPhotoBoothLocationUseCase(
             processed.size,
         )
 
-        return CollectResult(
+        return CollectPhotoBoothResult(
             collectedCount = insertCount,
             duplicatedCount = updateCount,
             totalProcessed = processed.size,

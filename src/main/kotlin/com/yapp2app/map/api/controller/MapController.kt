@@ -67,16 +67,11 @@ class MapController(
     fun collectPhotoBooths(
         @Valid @RequestBody request: CollectPhotoBoothRequest,
     ): BaseResponse<CollectPhotoBoothResponse> {
-        val result = collectPhotoBoothLocationUseCase.execute(
-            keyword = request.keyword,
-            brandCode = request.brandCode,
-        )
+        val command = commandConverter.toCollectPhotoBoothCommand(request)
 
-        val response = CollectPhotoBoothResponse(
-            collectedCount = result.collectedCount,
-            duplicatedCount = result.duplicatedCount,
-            totalProcessed = result.totalProcessed,
-        )
+        val result = collectPhotoBoothLocationUseCase.execute(command)
+
+        val response = resultConverter.toCollectPhotoBoothResponse(result)
 
         return BaseResponse(data = response)
     }
