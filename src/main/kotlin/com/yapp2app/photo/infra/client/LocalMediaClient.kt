@@ -58,6 +58,18 @@ class LocalMediaClient(
         }.toList()
     }
 
+    override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo> {
+        val result = getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(null, mediaIds))
+
+        return result.storageInfos.map {
+            MediaStorageInfo(
+                mediaId = it.mediaId,
+                storageKey = it.storageKey,
+                contentType = it.contentType,
+            )
+        }
+    }
+
     override fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaStorageInfo> {
         val result = getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(ownerId, mediaIds))
 

@@ -3,6 +3,7 @@ package com.yapp2app.photo.application.usecase
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.properties.AppProperties
 import com.yapp2app.common.transaction.TransactionRunner
+import com.yapp2app.media.api.controller.FileController.Companion.IMAGE_URL_PATH
 import com.yapp2app.photo.application.command.GetPhotosCommand
 import com.yapp2app.photo.application.port.MediaClientPort
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
@@ -80,9 +81,5 @@ class GetPhotosUseCase(
         }.toList()
 
         return GetPhotosResult(result, hasNext)
-    }
-
-    companion object {
-        private const val IMAGE_URL_PATH = "/file/image/"
     }
 }

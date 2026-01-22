@@ -25,4 +25,4 @@ data class GetMediasCommand(val ownerId: Long, val mediaIds: List<Long>)
 
 data class GetImageByKeyCommand(val objectKey: String)
 
-data class GetMediaStorageInfosCommand(val ownerId: Long, val mediaIds: List<Long>)
+data class GetMediaStorageInfosCommand(val ownerId: Long?, val mediaIds: List<Long>)

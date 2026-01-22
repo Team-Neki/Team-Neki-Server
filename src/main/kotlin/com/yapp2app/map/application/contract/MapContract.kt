@@ -9,12 +9,6 @@ import org.locationtech.jts.geom.Point
  * date           : 2026. 01. 13.
  * description    : Kakao Local API 키워드 검색 응답 DTO
  */
-
-/**
- * 브랜드 조회 QueryDsl DTO
- */
-data class BrandDto(val id: Long, val name: String, val code: String, val storageKey: String?)
-
 /**
  * 카카오 맵 수집 데이터 DTO
  */

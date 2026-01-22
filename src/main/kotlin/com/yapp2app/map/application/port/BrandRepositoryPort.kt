@@ -1,6 +1,5 @@
 package com.yapp2app.map.application.port
 
-import com.yapp2app.map.application.contract.BrandDto
 import com.yapp2app.map.domain.entity.Brand
 
 /**
@@ -13,5 +12,5 @@ interface BrandRepositoryPort {
 
     fun getBrand(code: String): Brand?
 
-    fun findAll(): List<BrandDto>
+    fun findAll(): List<Brand>
 }

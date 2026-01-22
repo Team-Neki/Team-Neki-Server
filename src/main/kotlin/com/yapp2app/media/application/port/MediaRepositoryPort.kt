@@ -11,6 +11,7 @@ import com.yapp2app.media.domain.entity.Media
 interface MediaRepositoryPort {
 
     fun getActiveMedia(ownerId: Long, id: Long): Media?
+    fun getActiveMedias(ids: List<Long>): List<Media>
     fun getActiveMedias(ownerId: Long, ids: List<Long>): List<Media>
     fun getMediaForUploadConfirmation(ownerId: Long, id: Long): Media?
 
