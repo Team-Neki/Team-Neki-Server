@@ -14,9 +14,7 @@ import org.springframework.stereotype.Service
  * description    : 카카오 맵 검색 서비스 (Rate limiting, Retry 로직 포함)
  */
 @Service
-class KakaoMapSearchAdapter(
-    private val mapApiClient: MapApiClientPort,
-) : MapSearchPort {
+class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSearchPort {
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
@@ -33,7 +31,9 @@ class KakaoMapSearchAdapter(
 
         grids.forEachIndexed { index, grid ->
             if (index > 0) {
-                val gridDelay = (KakaoApiRateLimitProperties.DEFAULT.gridDelayMin..KakaoApiRateLimitProperties.DEFAULT.gridDelayMax).random()
+                val delayMin = KakaoApiRateLimitProperties.DEFAULT.gridDelayMin
+                val delayMax = KakaoApiRateLimitProperties.DEFAULT.gridDelayMax
+                val gridDelay = (delayMin..delayMax).random()
                 log.debug("Waiting {}ms before next grid...", gridDelay)
                 Thread.sleep(gridDelay)
             }
@@ -116,7 +116,9 @@ class KakaoMapSearchAdapter(
             try {
                 // 페이지 간 딜레이
                 if (!skipDelay && page > 1) {
-                    val delayMillis = (KakaoApiRateLimitProperties.DEFAULT.pageDelayMin..KakaoApiRateLimitProperties.DEFAULT.pageDelayMax).random()
+                    val pageDelayMin = KakaoApiRateLimitProperties.DEFAULT.pageDelayMin
+                    val pageDelayMax = KakaoApiRateLimitProperties.DEFAULT.pageDelayMax
+                    val delayMillis = (pageDelayMin..pageDelayMax).random()
                     Thread.sleep(delayMillis)
                     log.debug("Delayed {}ms before requesting page {}", delayMillis, page)
                 }

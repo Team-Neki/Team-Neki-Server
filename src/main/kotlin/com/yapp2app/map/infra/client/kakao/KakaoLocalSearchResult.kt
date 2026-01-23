@@ -19,7 +19,7 @@ data class KakaoLocalSearchResult(
     @JsonProperty("meta")
     val meta: KakaoPaginationMeta,
 
-    ) {
+) {
     data class KakaoPlace(
         @JsonProperty("id")
         val id: String,
