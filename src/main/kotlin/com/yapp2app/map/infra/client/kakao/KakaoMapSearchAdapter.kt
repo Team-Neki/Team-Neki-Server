@@ -1,6 +1,6 @@
 package com.yapp2app.map.infra.client.kakao
 
-import com.yapp2app.map.application.contract.LocalSearchResponse
+import com.yapp2app.map.application.contract.LocalSearchResult
 import com.yapp2app.map.application.port.MapApiClientPort
 import com.yapp2app.map.application.port.MapSearchPort
 import com.yapp2app.map.domain.vo.GeographicKoreaBoundsVO
@@ -28,9 +28,9 @@ class KakaoMapSearchAdapter(
     /**
      * 한국 전역을 그리드로 나누어 검색
      */
-    override fun searchAllKorea(keyword: String): List<LocalSearchResponse.Place> {
+    override fun searchAllKorea(keyword: String): List<LocalSearchResult.Place> {
         val grids = GeographicKoreaBoundsVO.divideIntoGrids()
-        val allPlaces = mutableMapOf<String, LocalSearchResponse.Place>()
+        val allPlaces = mutableMapOf<String, LocalSearchResult.Place>()
 
         grids.forEachIndexed { index, grid ->
             if (index > 0) {
@@ -61,23 +61,23 @@ class KakaoMapSearchAdapter(
     /**
      * 특정 그리드 내에서 검색 (페이징 처리 포함)
      */
-    private fun searchInGrid(keyword: String, rect: String): List<LocalSearchResponse.Place> {
+    private fun searchInGrid(keyword: String, rect: String): List<LocalSearchResult.Place> {
         // 첫 API 호출 전 딜레이
         Thread.sleep(rateLimitConfig.initialDelay)
         log.debug("Initial delay {}ms before first API call", rateLimitConfig.initialDelay)
 
         // 첫 페이지 조회
         val firstPageResponse = fetchPageWithRetry(keyword, 1, rect, skipDelay = true)
-        val lastPage = firstPageResponse.meta.pageableCount
+        val lastPage = firstPageResponse.searchPaginationMeta.pageableCount
 
         log.debug(
             "Total count: {}, Pageable count: {}, Last page: {}",
-            firstPageResponse.meta.totalCount,
+            firstPageResponse.searchPaginationMeta.totalCount,
             PAGE_SIZE,
             lastPage,
         )
 
-        val allPlaces = mutableListOf<LocalSearchResponse.Place>()
+        val allPlaces = mutableListOf<LocalSearchResult.Place>()
         var previousPageIds: Set<String>? = null
 
         // 첫 페이지 처리
@@ -112,7 +112,7 @@ class KakaoMapSearchAdapter(
         page: Int,
         rect: String,
         skipDelay: Boolean = false,
-    ): LocalSearchResponse {
+    ): LocalSearchResult {
         repeat(MAX_RETRIES) { attempt ->
             try {
                 // 페이지 간 딜레이

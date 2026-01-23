@@ -1,6 +1,6 @@
 package com.yapp2app.map.application.port
 
-import com.yapp2app.map.application.contract.LocalSearchResponse
+import com.yapp2app.map.application.contract.LocalSearchResult
 
 /**
  * fileName       : MapSearchPort
@@ -9,5 +9,5 @@ import com.yapp2app.map.application.contract.LocalSearchResponse
  * description    :
  */
 interface MapSearchPort {
-    fun searchAllKorea(keyword: String): List<LocalSearchResponse.Place>
+    fun searchAllKorea(keyword: String): List<LocalSearchResult.Place>
 }

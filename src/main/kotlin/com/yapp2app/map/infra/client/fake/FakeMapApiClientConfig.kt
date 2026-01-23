@@ -1,6 +1,6 @@
 package com.yapp2app.map.infra.client.fake
 
-import com.yapp2app.map.application.contract.LocalSearchResponse
+import com.yapp2app.map.application.contract.LocalSearchResult
 import com.yapp2app.map.application.port.MapApiClientPort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -23,12 +23,12 @@ class FakeMapApiClientConfig {
 
 class FakeMapApiClientAdapter : MapApiClientPort {
 
-    private val searchResults = ConcurrentHashMap<String, LocalSearchResponse>()
+    private val searchResults = ConcurrentHashMap<String, LocalSearchResult>()
 
-    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): LocalSearchResponse =
-        searchResults[query] ?: LocalSearchResponse(
+    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): LocalSearchResult =
+        searchResults[query] ?: LocalSearchResult(
             documents = emptyList(),
-            meta = LocalSearchResponse.Meta(
+            searchPaginationMeta = LocalSearchResult.SearchPaginationMeta(
                 totalCount = 0,
                 pageableCount = 0,
                 isEnd = true,

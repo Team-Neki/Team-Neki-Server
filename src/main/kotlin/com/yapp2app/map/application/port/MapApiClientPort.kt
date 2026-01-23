@@ -1,6 +1,6 @@
 package com.yapp2app.map.application.port
 
-import com.yapp2app.map.application.contract.LocalSearchResponse
+import com.yapp2app.map.application.contract.LocalSearchResult
 
 /**
  * fileName       : MapApiClientPort
@@ -9,5 +9,5 @@ import com.yapp2app.map.application.contract.LocalSearchResponse
  * description    :
  */
 interface MapApiClientPort {
-    fun searchByKeyword(query: String, page: Int = 1, size: Int = 15, rect: String? = null): LocalSearchResponse
+    fun searchByKeyword(query: String, page: Int = 1, size: Int = 15, rect: String? = null): LocalSearchResult
 }

@@ -5,7 +5,7 @@ import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.map.application.command.CollectPhotoBoothCommand
-import com.yapp2app.map.application.contract.LocalSearchResponse
+import com.yapp2app.map.application.contract.LocalSearchResult
 import com.yapp2app.map.application.port.BrandRepositoryPort
 import com.yapp2app.map.application.port.MapSearchPort
 import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
@@ -60,7 +60,7 @@ class CollectPhotoBoothLocationUseCase(
     }
 
     private fun mapToPhotoBoothLocation(
-        place: LocalSearchResponse.Place,
+        place: LocalSearchResult.Place,
         brandId: Long,
         existing: PhotoBoothLocation?,
     ): PhotoBoothLocation {

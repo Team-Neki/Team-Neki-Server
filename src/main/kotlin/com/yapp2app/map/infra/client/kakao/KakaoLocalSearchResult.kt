@@ -12,14 +12,14 @@ import com.fasterxml.jackson.annotation.JsonProperty
 /**
  * 카카오 맵 수집 데이터 DTO
  */
-data class KakaoLocalSearchResponse(
+data class KakaoLocalSearchResult(
     @JsonProperty("documents")
     val documents: List<KakaoPlace>,
 
     @JsonProperty("meta")
-    val meta: KakaoMeta,
+    val meta: KakaoPaginationMeta,
 
-) {
+    ) {
     data class KakaoPlace(
         @JsonProperty("id")
         val id: String,
@@ -46,7 +46,7 @@ data class KakaoLocalSearchResponse(
         val categoryName: String?,
     )
 
-    data class KakaoMeta(
+    data class KakaoPaginationMeta(
         @JsonProperty("total_count")
         val totalCount: Int,
 

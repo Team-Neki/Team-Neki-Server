@@ -12,7 +12,7 @@ import org.locationtech.jts.geom.Point
 /**
  * 맵 수집 데이터 DTO
  */
-data class LocalSearchResponse(val documents: List<Place>, val meta: Meta) {
+data class LocalSearchResult(val documents: List<Place>, val searchPaginationMeta: SearchPaginationMeta) {
     data class Place(
         val id: String,
         val placeName: String,
@@ -24,7 +24,7 @@ data class LocalSearchResponse(val documents: List<Place>, val meta: Meta) {
         val categoryName: String?,
     )
 
-    data class Meta(val totalCount: Int, val pageableCount: Int, val isEnd: Boolean)
+    data class SearchPaginationMeta(val totalCount: Int, val pageableCount: Int, val isEnd: Boolean)
 }
 
 /**

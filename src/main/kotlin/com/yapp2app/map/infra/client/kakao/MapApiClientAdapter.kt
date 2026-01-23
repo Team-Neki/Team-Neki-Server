@@ -2,7 +2,7 @@ package com.yapp2app.map.infra.client.kakao
 
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
-import com.yapp2app.map.application.contract.LocalSearchResponse
+import com.yapp2app.map.application.contract.LocalSearchResult
 import com.yapp2app.map.application.port.MapApiClientPort
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
@@ -25,7 +25,7 @@ class MapApiClientAdapter(private val apiKey: String, private val restClient: Re
      * @param rect 사각형 범위 (x1,y1,x2,y2 - 좌하단 경도,위도,우상단 경도,위도)
      * @return KakaoLocalSearchResponse
      */
-    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): LocalSearchResponse {
+    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): LocalSearchResult {
         log.info("Kakao API Request - query: {}, page: {}, size: {}, rect: {}", query, page, size, rect)
 
         val response = restClient.get()
@@ -46,12 +46,12 @@ class MapApiClientAdapter(private val apiKey: String, private val restClient: Re
             }
             .header(HttpHeaders.AUTHORIZATION, "KakaoAK $apiKey")
             .retrieve()
-            .body(KakaoLocalSearchResponse::class.java)
+            .body(KakaoLocalSearchResult::class.java)
             ?: throw BusinessException(ResultCode.ERROR)
 
-        return LocalSearchResponse(
+        return LocalSearchResult(
             documents = response.documents.map { kakaoPlace ->
-                LocalSearchResponse.Place(
+                LocalSearchResult.Place(
                     id = kakaoPlace.id,
                     placeName = kakaoPlace.placeName,
                     roadAddressName = kakaoPlace.roadAddressName,
@@ -62,7 +62,7 @@ class MapApiClientAdapter(private val apiKey: String, private val restClient: Re
                     categoryName = kakaoPlace.categoryName,
                 )
             },
-            meta = LocalSearchResponse.Meta(
+            searchPaginationMeta = LocalSearchResult.SearchPaginationMeta(
                 totalCount = response.meta.totalCount,
                 pageableCount = response.meta.pageableCount,
                 isEnd = response.meta.isEnd,
