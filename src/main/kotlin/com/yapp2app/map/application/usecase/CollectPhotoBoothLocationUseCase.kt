@@ -11,7 +11,7 @@ import com.yapp2app.map.application.port.MapSearchPort
 import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
 import com.yapp2app.map.application.result.CollectPhotoBoothResult
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
-import com.yapp2app.map.domain.vo.CoordinateVO
+import com.yapp2app.map.domain.vo.GeoPoint
 import org.slf4j.LoggerFactory
 
 /**
@@ -64,10 +64,7 @@ class CollectPhotoBoothLocationUseCase(
         brandId: Long,
         existing: PhotoBoothLocation?,
     ): PhotoBoothLocation {
-        val point = CoordinateVO(
-            longitude = place.longitude.toDouble(),
-            latitude = place.latitude.toDouble(),
-        ).toPoint()
+        val point = GeoPoint.of(place.latitude.toDouble(), place.longitude.toDouble()).point
 
         return existing?.apply {
             this.brandId = brandId

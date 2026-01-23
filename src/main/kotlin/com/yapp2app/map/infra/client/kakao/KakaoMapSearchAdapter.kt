@@ -3,8 +3,7 @@ package com.yapp2app.map.infra.client.kakao
 import com.yapp2app.map.application.contract.LocalSearchResponse
 import com.yapp2app.map.application.port.MapApiClientPort
 import com.yapp2app.map.application.port.MapSearchPort
-import com.yapp2app.map.domain.vo.GeographicBoundsVO
-import com.yapp2app.map.domain.vo.GeographicRectVO
+import com.yapp2app.map.domain.vo.GeographicKoreaBoundsVO
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -30,7 +29,7 @@ class KakaoMapSearchAdapter(
      * 한국 전역을 그리드로 나누어 검색
      */
     override fun searchAllKorea(keyword: String): List<LocalSearchResponse.Place> {
-        val grids = GeographicBoundsVO.KOREA.divideIntoGrids()
+        val grids = GeographicKoreaBoundsVO.divideIntoGrids()
         val allPlaces = mutableMapOf<String, LocalSearchResponse.Place>()
 
         grids.forEachIndexed { index, grid ->
@@ -42,7 +41,7 @@ class KakaoMapSearchAdapter(
 
             log.info("Processing grid {}/{} - rect: {}", index + 1, grids.size, grid.toRectString())
 
-            val gridPlaces = searchInGrid(keyword, grid)
+            val gridPlaces = searchInGrid(keyword, grid.toRectString())
             gridPlaces.forEach { place ->
                 allPlaces[place.id] = place
             }
@@ -62,9 +61,7 @@ class KakaoMapSearchAdapter(
     /**
      * 특정 그리드 내에서 검색 (페이징 처리 포함)
      */
-    private fun searchInGrid(keyword: String, grid: GeographicRectVO): List<LocalSearchResponse.Place> {
-        val rect = grid.toRectString()
-
+    private fun searchInGrid(keyword: String, rect: String): List<LocalSearchResponse.Place> {
         // 첫 API 호출 전 딜레이
         Thread.sleep(rateLimitConfig.initialDelay)
         log.debug("Initial delay {}ms before first API call", rateLimitConfig.initialDelay)
