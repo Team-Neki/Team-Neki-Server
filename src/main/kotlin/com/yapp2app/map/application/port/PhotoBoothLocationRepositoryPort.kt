@@ -3,6 +3,7 @@ package com.yapp2app.map.application.port
 import com.yapp2app.map.application.contract.PhotoBoothLocationDto
 import com.yapp2app.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
+import org.locationtech.jts.geom.Coordinate
 
 /**
  * fileName       : PhotoBoothLocationRepositoryPort
@@ -19,15 +20,14 @@ interface PhotoBoothLocationRepositoryPort {
     fun getPhotoBoothLocations(brandId: Long): List<PhotoBoothLocation>
 
     fun listPolygonLocations(
-        coordinates: List<Pair<Double, Double>>,
+        coordinates: List<Coordinate>,
         brandIds: List<Long>?,
         offset: Int,
         limit: Int,
     ): List<PhotoBoothLocationDto>
 
     fun listPointLocations(
-        longitude: Double,
-        latitude: Double,
+        coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
         offset: Int,

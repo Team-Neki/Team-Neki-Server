@@ -60,8 +60,7 @@ class GetPhotoBoothLocationUseCase(
 
         val locations = transactionRunner.readOnly {
             photoBoothLocationRepository.listPointLocations(
-                longitude = command.longitude,
-                latitude = command.latitude,
+                coordinate = command.coordinate,
                 radiusInMeters = command.radiusInMeters,
                 brandIds = command.brandIds,
                 offset = command.page * command.size,

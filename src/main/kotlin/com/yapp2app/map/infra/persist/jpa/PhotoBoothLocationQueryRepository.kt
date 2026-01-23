@@ -7,6 +7,7 @@ import com.yapp2app.map.application.contract.PhotoBoothLocationDto
 import com.yapp2app.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.yapp2app.map.domain.entity.QPhotoBoothLocation.photoBoothLocation
 import jakarta.persistence.EntityManager
+import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Point
 import org.locationtech.jts.io.WKTReader
 import org.springframework.stereotype.Repository
@@ -31,13 +32,13 @@ class PhotoBoothLocationQueryRepository(
      * @param limit 페이지네이션 limit
      */
     fun findByPolygon(
-        coordinates: List<Pair<Double, Double>>,
+        coordinates: List<Coordinate>,
         brandIds: List<Long>?,
         offset: Int,
         limit: Int,
     ): List<PhotoBoothLocationDto> {
         // LINESTRING 생성을 위한 좌표 문자열 생성
-        val lineString = coordinates.joinToString(", ") { "${it.first} ${it.second}" }
+        val lineString = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
 
         val query = queryFactory
             .select(
@@ -75,8 +76,7 @@ class PhotoBoothLocationQueryRepository(
      * @param limit 페이지네이션 limit
      */
     fun findByDistanceFromPoint(
-        longitude: Double,
-        latitude: Double,
+        coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
         offset: Int,
@@ -101,8 +101,8 @@ class PhotoBoothLocationQueryRepository(
         """.trimIndent()
 
         val query = entityManager.createNativeQuery(sql)
-            .setParameter("longitude", longitude)
-            .setParameter("latitude", latitude)
+            .setParameter("longitude", coordinate.x)
+            .setParameter("latitude", coordinate.y)
             .setParameter("radiusInMeters", radiusInMeters)
             .setParameter("limit", limit)
             .setParameter("offset", offset)

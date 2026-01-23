@@ -6,6 +6,7 @@ import com.yapp2app.map.application.port.PhotoBoothLocationRepositoryPort
 import com.yapp2app.map.domain.entity.PhotoBoothLocation
 import com.yapp2app.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.yapp2app.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
+import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Repository
 
 /**
@@ -30,19 +31,18 @@ class PhotoBoothLocationRepositoryAdapter(
         jpaRepository.findAllByBrandId(brandId)
 
     override fun listPolygonLocations(
-        coordinates: List<Pair<Double, Double>>,
+        coordinates: List<Coordinate>,
         brandIds: List<Long>?,
         offset: Int,
         limit: Int,
     ): List<PhotoBoothLocationDto> = queryRepository.findByPolygon(coordinates, brandIds, offset, limit)
 
     override fun listPointLocations(
-        longitude: Double,
-        latitude: Double,
+        coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
         offset: Int,
         limit: Int,
     ): List<PhotoBoothLocationWithDistanceDto> =
-        queryRepository.findByDistanceFromPoint(longitude, latitude, radiusInMeters, brandIds, offset, limit)
+        queryRepository.findByDistanceFromPoint(coordinate, radiusInMeters, brandIds, offset, limit)
 }

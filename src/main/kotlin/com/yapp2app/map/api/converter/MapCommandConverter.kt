@@ -6,6 +6,7 @@ import com.yapp2app.map.api.dto.GetPolygonLocationRequest
 import com.yapp2app.map.application.command.CollectPhotoBoothCommand
 import com.yapp2app.map.application.command.GetPointLocationCommand
 import com.yapp2app.map.application.command.GetPolygonLocationCommand
+import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Component
 
 /**
@@ -21,7 +22,7 @@ class MapCommandConverter {
         CollectPhotoBoothCommand(keyword = request.keyword, brandCode = request.brandCode)
 
     fun toGetPolygonLocationCommand(request: GetPolygonLocationRequest): GetPolygonLocationCommand {
-        val coordinates = request.coordinates.map { it.longitude to it.latitude }
+        val coordinates = request.coordinates.map { Coordinate(it.longitude, it.latitude) }
         return GetPolygonLocationCommand(
             coordinates = coordinates,
             brandIds = request.brandIds,
@@ -31,8 +32,7 @@ class MapCommandConverter {
     }
 
     fun toGetPointLocationCommand(request: GetPointLocationRequest): GetPointLocationCommand = GetPointLocationCommand(
-        longitude = request.longitude,
-        latitude = request.latitude,
+        coordinate = Coordinate(request.longitude, request.latitude),
         radiusInMeters = request.radiusInMeters,
         brandIds = request.brandIds,
         page = request.page,
