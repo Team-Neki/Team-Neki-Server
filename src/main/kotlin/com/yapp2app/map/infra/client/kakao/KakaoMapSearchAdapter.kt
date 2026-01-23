@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service
 @Service
 class KakaoMapSearchAdapter(
     private val mapApiClient: MapApiClientPort,
-    private val rateLimitConfig: KakaoApiRateLimitConfig = KakaoApiRateLimitConfig.DEFAULT,
 ) : MapSearchPort {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -34,7 +33,7 @@ class KakaoMapSearchAdapter(
 
         grids.forEachIndexed { index, grid ->
             if (index > 0) {
-                val gridDelay = (rateLimitConfig.gridDelayMin..rateLimitConfig.gridDelayMax).random()
+                val gridDelay = (KakaoApiRateLimitProperties.DEFAULT.gridDelayMin..KakaoApiRateLimitProperties.DEFAULT.gridDelayMax).random()
                 log.debug("Waiting {}ms before next grid...", gridDelay)
                 Thread.sleep(gridDelay)
             }
@@ -63,8 +62,8 @@ class KakaoMapSearchAdapter(
      */
     private fun searchInGrid(keyword: String, rect: String): List<LocalSearchResult.Place> {
         // 첫 API 호출 전 딜레이
-        Thread.sleep(rateLimitConfig.initialDelay)
-        log.debug("Initial delay {}ms before first API call", rateLimitConfig.initialDelay)
+        Thread.sleep(KakaoApiRateLimitProperties.DEFAULT.initialDelay)
+        log.debug("Initial delay {}ms before first API call", KakaoApiRateLimitProperties.DEFAULT.initialDelay)
 
         // 첫 페이지 조회
         val firstPageResponse = fetchPageWithRetry(keyword, 1, rect, skipDelay = true)
@@ -117,7 +116,7 @@ class KakaoMapSearchAdapter(
             try {
                 // 페이지 간 딜레이
                 if (!skipDelay && page > 1) {
-                    val delayMillis = (rateLimitConfig.pageDelayMin..rateLimitConfig.pageDelayMax).random()
+                    val delayMillis = (KakaoApiRateLimitProperties.DEFAULT.pageDelayMin..KakaoApiRateLimitProperties.DEFAULT.pageDelayMax).random()
                     Thread.sleep(delayMillis)
                     log.debug("Delayed {}ms before requesting page {}", delayMillis, page)
                 }
@@ -145,7 +144,7 @@ class KakaoMapSearchAdapter(
                 }
 
                 // Exponential backoff
-                val backoffMillis = rateLimitConfig.retryBackoffBase * attemptNumber
+                val backoffMillis = KakaoApiRateLimitProperties.DEFAULT.retryBackoffBase * attemptNumber
                 log.info("Rate limited or error occurred. Retrying after {}ms...", backoffMillis)
                 Thread.sleep(backoffMillis)
             }
