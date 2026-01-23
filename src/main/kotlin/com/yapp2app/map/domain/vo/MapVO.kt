@@ -38,7 +38,7 @@ data class GeoPoint(val point: Point) {
 /**
  * 지리적 경계 범위를 나타내는 Value Object
  */
-data class GeographicKoreaBoundsVO(val southWest: Coordinate, val northEast: Coordinate) {
+data class GeographicKoreaBounds(val southWest: Coordinate, val northEast: Coordinate) {
 
     companion object {
         private const val DEFAULT_GRID_SIZE = 0.1 // 약 10km
@@ -52,14 +52,14 @@ data class GeographicKoreaBoundsVO(val southWest: Coordinate, val northEast: Coo
          * @param gridSize 그리드 크기 (도 단위, 예: 0.1 = 약 10km)
          * @return 그리드 사각형 리스트
          */
-        fun divideIntoGrids(): List<GeographicKoreaBoundsVO> {
-            val grids = mutableListOf<GeographicKoreaBoundsVO>()
+        fun divideIntoGrids(): List<GeographicKoreaBounds> {
+            val grids = mutableListOf<GeographicKoreaBounds>()
 
             var lat = KOREA_MIN_LATITUDE
             while (lat < KOREA_MAX_LATITUDE) {
                 var lng = KOREA_MIN_LONGITUDE
                 while (lng < KOREA_MAX_LONGITUDE) {
-                    val bound = GeographicKoreaBoundsVO(
+                    val bound = GeographicKoreaBounds(
                         southWest = Coordinate(lng, lat),
                         northEast = Coordinate(
                             (lng + DEFAULT_GRID_SIZE).coerceAtMost(KOREA_MAX_LONGITUDE),

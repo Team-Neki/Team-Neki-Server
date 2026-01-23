@@ -3,7 +3,7 @@ package com.yapp2app.map.infra.client.kakao
 import com.yapp2app.map.application.contract.LocalSearchResult
 import com.yapp2app.map.application.port.MapApiClientPort
 import com.yapp2app.map.application.port.MapSearchPort
-import com.yapp2app.map.domain.vo.GeographicKoreaBoundsVO
+import com.yapp2app.map.domain.vo.GeographicKoreaBounds
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -26,7 +26,7 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
      * 한국 전역을 그리드로 나누어 검색
      */
     override fun searchAllKorea(keyword: String): List<LocalSearchResult.Place> {
-        val grids = GeographicKoreaBoundsVO.divideIntoGrids()
+        val grids = GeographicKoreaBounds.divideIntoGrids()
         val allPlaces = mutableMapOf<String, LocalSearchResult.Place>()
 
         grids.forEachIndexed { index, grid ->
