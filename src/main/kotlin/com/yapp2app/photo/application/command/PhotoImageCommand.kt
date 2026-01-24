@@ -13,15 +13,15 @@ data class UploadPhotoCommand(val userId: Long, val mediaId: Long, val folderId:
 data class GetPhotosCommand(
     val userId: Long,
     val folderId: Long?,
-    val page: Int = 0,
-    val size: Int = 20,
+    val page: Int,
+    val size: Int,
     val sortOrder: SortOrder = SortOrder.DESC,
 )
 
 data class GetFavoritePhotosCommand(
     val userId: Long,
-    val page: Int = 0,
-    val size: Int = 20,
+    val page: Int,
+    val size: Int,
     val sortOrder: SortOrder = SortOrder.DESC,
 )
 
