@@ -1,7 +1,6 @@
 package com.yapp2app.photo.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.properties.AppProperties
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.photo.application.command.GetFavoritePhotosCommand
 import com.yapp2app.photo.application.port.MediaClientPort
@@ -20,7 +19,6 @@ class GetFavoritePhotosUseCase(
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val mediaClient: MediaClientPort,
     private val transactionRunner: TransactionRunner,
-    private val appProperties: AppProperties,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -71,18 +69,14 @@ class GetFavoritePhotosUseCase(
 
             GetPhotosResult.PhotoInfo(
                 photoId = it.id!!,
-                imageUrl = "${appProperties.server.url}$IMAGE_URL_PATH${media.storageKey}",
+                storageKey = media.storageKey,
                 folderId = it.folderId,
                 favorite = true,
                 contentType = media.contentType,
-                createdAt = it.createdAt.toString(),
+                createdAt = it.createdAt!!,
             )
         }.toList()
 
         return GetPhotosResult(result, hasNext)
-    }
-
-    companion object {
-        private const val IMAGE_URL_PATH = "/file/image/"
     }
 }

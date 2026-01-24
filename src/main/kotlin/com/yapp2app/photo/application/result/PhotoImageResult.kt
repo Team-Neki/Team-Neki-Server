@@ -1,5 +1,7 @@
 package com.yapp2app.photo.application.result
 
+import java.time.LocalDateTime
+
 /**
  * fileName       : PhotoImageResult
  * author         : koo
@@ -16,7 +18,7 @@ data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean = f
         val folderId: Long?,
         val favorite: Boolean,
         val contentType: String,
-        val createdAt: String,
+        val createdAt: LocalDateTime,
     )
 }
 

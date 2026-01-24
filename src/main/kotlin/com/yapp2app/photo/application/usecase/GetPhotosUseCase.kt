@@ -80,7 +80,7 @@ class GetPhotosUseCase(
                 folderId = it.folderId,
                 favorite = favoritePhotoIds.contains(it.id),
                 contentType = media.contentType,
-                createdAt = it.createdAt.toString(),
+                createdAt = it.createdAt!!,
             )
         }.toList()
 
