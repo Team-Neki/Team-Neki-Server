@@ -73,17 +73,17 @@ class PhotoBoothLocationQueryRepository(
     ): List<PhotoBoothLocationWithDistanceDto> {
         val sql = """
             SELECT
-                tb_photo_booth_location.id,
-                tb_brand.name,
-                tb_photo_booth_location.branch_name,
-                tb_photo_booth_location.address,
-                ST_AsText(tb_photo_booth_location.location) as location_wkt,
+                TB_PHOTO_BOOTH_LOCATION.id,
+                TB_BRAND.name,
+                TB_PHOTO_BOOTH_LOCATION.branch_name,
+                TB_PHOTO_BOOTH_LOCATION.address,
+                ST_AsText(TB_PHOTO_BOOTH_LOCATION.location) as location_wkt,
                 CAST(ST_Distance(
                     location::geography,
                     ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography
                 ) AS integer) AS distance_meters
-            FROM tb_photo_booth_location
-            LEFT JOIN tb_brand on tb_brand.id = tb_photo_booth_location.brand_id
+            FROM TB_PHOTO_BOOTH_LOCATION
+            LEFT JOIN TB_BRAND on TB_BRAND.id = TB_PHOTO_BOOTH_LOCATION.brand_id
             WHERE ST_DWithin(
                 location::geography,
                 ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
