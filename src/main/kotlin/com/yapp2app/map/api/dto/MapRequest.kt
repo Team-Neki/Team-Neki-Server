@@ -68,7 +68,4 @@ data class GetPointLocationRequest(
 
     @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드) ", example = "[1, 2, 3]")
     val brandIds: List<Long>? = null,
-) {
-    fun getLongitudeOrDefault(): Double = longitude ?: 127.0276
-    fun getLatitudeOrDefault(): Double = latitude ?: 37.4979
-}
+)
