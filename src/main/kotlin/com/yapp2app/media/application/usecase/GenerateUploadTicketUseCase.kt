@@ -8,6 +8,7 @@ import com.yapp2app.media.application.port.MediaStoragePort
 import com.yapp2app.media.application.result.GenerateUploadTicketResult
 import com.yapp2app.media.domain.MediaKey
 import com.yapp2app.media.domain.entity.Media
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * fileName       : GenerateUploadTicketUseCase
@@ -22,50 +23,47 @@ class GenerateUploadTicketUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
+    @Transactional
     fun execute(command: GenerateUploadTicketCommand): GenerateUploadTicketResult {
         // 전체 벌크 작업을 단일 트랜잭션으로 처리
-        return transactionRunner.run {
-            var method: String? = null
-            var expiresAt: java.time.Instant? = null
+        var method: String? = null
+        var expiresAt: java.time.Instant? = null
 
-            val tickets = command.items.map { item ->
-                // 1. storageKey 생성
-                val storageKey = MediaKey.generate(item.mediaType, item.filename, item.contentType)
+        val tickets = command.items.map { item ->
+            // storageKey 생성
+            val storageKey = MediaKey.generate(item.mediaType, item.filename, item.contentType)
 
-                // 2. Media 엔티티 생성 및 저장 (상태: INITIATED)
-                val media = Media(
-                    storageKey = storageKey,
-                    ownerId = command.ownerId,
-                    mediaType = item.mediaType,
-                    contentType = item.contentType,
-                )
-                val savedMedia = mediaRepository.save(media)
+            val media = Media(
+                storageKey = storageKey,
+                ownerId = command.ownerId,
+                mediaType = item.mediaType,
+                contentType = item.contentType,
+            )
+            val savedMedia = mediaRepository.save(media)
 
-                // 3. Upload Ticket 발급
-                val uploadTicket = mediaStorage.generateUploadTicket(
-                    key = storageKey,
-                    contentType = item.contentType,
-                )
+            // Upload Ticket 발급
+            val uploadTicket = mediaStorage.generateUploadTicket(
+                key = storageKey,
+                contentType = item.contentType,
+            )
 
-                // 4. 첫 번째 티켓에서 method와 expiresAt 추출
-                if (method == null) {
-                    method = uploadTicket.method
-                    expiresAt = uploadTicket.expiresAt
-                }
-
-                // 5. 결과 항목 생성
-                GenerateUploadTicketResult.UploadTicketInfo(
-                    mediaId = savedMedia.id!!,
-                    uploadUrl = uploadTicket.url,
-                    contentType = item.contentType,
-                )
+            // 첫 번째 티켓에서 method와 expiresAt 추출
+            if (method == null) {
+                method = uploadTicket.method
+                expiresAt = uploadTicket.expiresAt
             }
 
-            GenerateUploadTicketResult(
-                method = method!!,
-                expiresAt = expiresAt!!,
-                tickets = tickets,
+            GenerateUploadTicketResult.UploadTicketInfo(
+                mediaId = savedMedia.id!!,
+                uploadUrl = uploadTicket.url,
+                contentType = item.contentType,
             )
         }
+
+        return GenerateUploadTicketResult(
+            method = method!!,
+            expiresAt = expiresAt!!,
+            tickets = tickets,
+        )
     }
 }
