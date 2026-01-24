@@ -1,7 +1,7 @@
 package com.yapp2app.photo.api.converter
 
-import com.yapp2app.photo.api.dto.GetFavoriteSummaryResponse
 import com.yapp2app.common.properties.AppProperties
+import com.yapp2app.photo.api.dto.GetFavoriteSummaryResponse
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UploadPhotoResponse
 import com.yapp2app.photo.application.result.GetFavoriteSummaryResult
