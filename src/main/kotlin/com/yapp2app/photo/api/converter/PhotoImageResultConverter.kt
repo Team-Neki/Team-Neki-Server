@@ -1,5 +1,6 @@
 package com.yapp2app.photo.api.converter
 
+import com.yapp2app.common.properties.AppProperties
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UploadPhotoResponse
 import com.yapp2app.photo.application.result.GetPhotosResult
@@ -13,7 +14,10 @@ import org.springframework.stereotype.Component
  * description    : Photo image api layer response 변경을 위한 converter
  */
 @Component
-class PhotoImageResultConverter {
+class PhotoImageResultConverter(private val appProperties: AppProperties) {
+    companion object {
+        private const val IMAGE_URL_PATH = "/file/image/"
+    }
 
     fun toUploadPhotoResponse(result: UploadPhotoResult): UploadPhotoResponse = UploadPhotoResponse(result.photoId)
 
@@ -21,7 +25,7 @@ class PhotoImageResultConverter {
         items = result.photos.map {
             GetPhotosResponse.PhotoInfo(
                 photoId = it.photoId,
-                imageUrl = it.imageUrl,
+                imageUrl = toImageUrl(it.storageKey),
                 folderId = it.folderId,
                 contentType = it.contentType,
                 createdAt = it.createdAt,
@@ -29,4 +33,6 @@ class PhotoImageResultConverter {
         },
         hasNext = result.hasNext,
     )
+
+    private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
 }
