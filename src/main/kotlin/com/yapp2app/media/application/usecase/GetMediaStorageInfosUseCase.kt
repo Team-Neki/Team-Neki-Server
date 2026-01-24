@@ -15,7 +15,9 @@ import com.yapp2app.media.application.result.GetMediaStorageInfosResult
 class GetMediaStorageInfosUseCase(private val mediaRepository: MediaRepositoryPort) {
 
     fun execute(command: GetMediaStorageInfosCommand): GetMediaStorageInfosResult {
-        val medias = mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
+        val medias = command.ownerId?.let {
+            mediaRepository.getActiveMedias(it, command.mediaIds)
+        } ?: mediaRepository.getActiveMedias(command.mediaIds)
 
         val storageInfos = medias.map {
             GetMediaStorageInfosResult.StorageInfo(

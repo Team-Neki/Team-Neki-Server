@@ -13,18 +13,17 @@ import com.yapp2app.photo.application.contract.MediaAvailability
 import com.yapp2app.photo.application.contract.MediaInfo
 import com.yapp2app.photo.application.contract.MediaStorageInfo
 import com.yapp2app.photo.application.port.MediaClientPort
-import com.yapp2app.photo.application.port.MediaClientPort.*
 import org.springframework.stereotype.Component
 
 /**
- * fileName       : LocalMediaClient
+ * fileName       : PhotoMediaClient
  * author         : koo
  * date           : 2026. 1. 3. 오전 12:00
  * description    : monolithic architecture media client
  * - media service 분리 시 OpenFeign, EventPublisher/Consumer로 변경
  */
 @Component
-class LocalMediaClient(
+class PhotoMediaClient(
     private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
     private val getMediasUseCase: GetMediasUseCase,
     private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,

@@ -24,7 +24,7 @@ class JasyptTest {
     }
 
     @Test
-    fun jasyptGeneratTest() {
+    fun jasyptGenerateTest() {
         println("=== Jasypt 암호화 유틸리티 ===")
         println()
 
