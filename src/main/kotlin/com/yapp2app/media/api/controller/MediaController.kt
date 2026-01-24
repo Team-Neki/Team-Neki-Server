@@ -33,9 +33,9 @@ class MediaController(
 ) {
 
     @Operation(
-        summary = "여러 개 미디어 업로드 ticket 발급",
+        summary = "미디어 업로드 ticket 발급",
         description = """
-            한 번에 최대 10개의 미디어 업로드 ticket을 발급받습니다.
+            미디어 업로드를 위한 ticket을 발급받습니다.
 
             Workflow:
             1. 이 API를 호출하여 업로드 ticket 발급
@@ -54,7 +54,7 @@ class MediaController(
             * image/png
         """,
     )
-    @PostMapping
+    @PostMapping("/upload")
     fun generateUploadTicket(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
         @Valid @RequestBody request: UploadTicketRequest,

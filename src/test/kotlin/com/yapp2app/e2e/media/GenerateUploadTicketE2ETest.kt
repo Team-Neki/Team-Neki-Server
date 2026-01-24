@@ -21,7 +21,7 @@ import org.springframework.test.context.ActiveProfiles
  * fileName       : GenerateUploadTicketE2ETest
  * author         : koo
  * date           : 2026. 1. 23.
- * description    : POST /api/media E2E 테스트
+ * description    : POST /api/media/upload E2E 테스트
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -83,15 +83,15 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .post("/api/media")
+            .post("/api/media/upload")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.items", hasSize<Any>(5))
             .body("data.items[0].mediaId", notNullValue())
             .body("data.items[0].uploadTicket", notNullValue())
-            .body("data.items[0].method", equalTo("PUT"))
-            .body("data.items[0].expiresIn", notNullValue())
+            .body("data.method", equalTo("PUT"))
+            .body("data.expiresIn", notNullValue())
             .body("data.items[0].contentType", notNullValue())
             .extract()
             .jsonPath()
@@ -119,7 +119,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .post("/api/media")
+            .post("/api/media/upload")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -142,7 +142,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .post("/api/media")
+            .post("/api/media/upload")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
     }
@@ -167,7 +167,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .post("/api/media")
+            .post("/api/media/upload")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
     }
@@ -192,7 +192,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .post("/api/media")
+            .post("/api/media/upload")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
@@ -218,7 +218,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .post("/api/media")
+            .post("/api/media/upload")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
@@ -244,7 +244,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .post("/api/media")
+            .post("/api/media/upload")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
@@ -269,7 +269,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .contentType(ContentType.JSON)
             .body(request)
             .`when`()
-            .post("/api/media")
+            .post("/api/media/upload")
             .then()
             .statusCode(HttpStatus.FORBIDDEN.value())
     }
