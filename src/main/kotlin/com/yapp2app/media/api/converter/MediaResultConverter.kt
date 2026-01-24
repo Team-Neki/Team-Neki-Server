@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component
 class MediaResultConverter {
 
     fun toUploadTicketResponse(result: GenerateUploadTicketResult): UploadTicketResponse = UploadTicketResponse(
+        method = result.method,
+        expiresIn = result.expiresAt,
         items = result.tickets.map { ticket ->
             UploadTicketResponse.UploadTicketInfo(
                 mediaId = ticket.mediaId,
                 uploadTicket = ticket.uploadUrl,
-                method = ticket.method,
-                expiresIn = ticket.expiresAt,
                 contentType = ticket.contentType,
             )
         },

@@ -25,6 +25,9 @@ class GenerateUploadTicketUseCase(
     fun execute(command: GenerateUploadTicketCommand): GenerateUploadTicketResult {
         // 전체 벌크 작업을 단일 트랜잭션으로 처리
         return transactionRunner.run {
+            var method: String? = null
+            var expiresAt: java.time.Instant? = null
+
             val tickets = command.items.map { item ->
                 // 1. storageKey 생성
                 val storageKey = MediaKey.generate(item.mediaType, item.filename, item.contentType)
@@ -44,17 +47,25 @@ class GenerateUploadTicketUseCase(
                     contentType = item.contentType,
                 )
 
-                // 4. 결과 항목 생성
+                // 4. 첫 번째 티켓에서 method와 expiresAt 추출
+                if (method == null) {
+                    method = uploadTicket.method
+                    expiresAt = uploadTicket.expiresAt
+                }
+
+                // 5. 결과 항목 생성
                 GenerateUploadTicketResult.UploadTicketInfo(
                     mediaId = savedMedia.id!!,
                     uploadUrl = uploadTicket.url,
-                    method = uploadTicket.method,
-                    expiresAt = uploadTicket.expiresAt,
                     contentType = item.contentType,
                 )
             }
 
-            GenerateUploadTicketResult(tickets = tickets)
+            GenerateUploadTicketResult(
+                method = method!!,
+                expiresAt = expiresAt!!,
+                tickets = tickets,
+            )
         }
     }
 }

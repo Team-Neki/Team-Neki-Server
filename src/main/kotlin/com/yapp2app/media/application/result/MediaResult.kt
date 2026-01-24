@@ -10,14 +10,12 @@ import java.time.Instant
  */
 data class ConfirmMediaUploadedResult(val success: Boolean)
 
-data class GenerateUploadTicketResult(val tickets: List<UploadTicketInfo>) {
-    data class UploadTicketInfo(
-        val mediaId: Long,
-        val uploadUrl: String,
-        val method: String,
-        val expiresAt: Instant,
-        val contentType: String,
-    )
+data class GenerateUploadTicketResult(
+    val method: String,
+    val expiresAt: Instant,
+    val tickets: List<UploadTicketInfo>,
+) {
+    data class UploadTicketInfo(val mediaId: Long, val uploadUrl: String, val contentType: String)
 }
 
 data class GetMediasResult(val medias: List<MediaInfo>) {

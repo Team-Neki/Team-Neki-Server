@@ -8,12 +8,6 @@ import java.time.Instant
  * date           : 2026. 1. 24. 오후 2:34
  * description    :
  */
-data class UploadTicketResponse(val items: List<UploadTicketInfo>) {
-    data class UploadTicketInfo(
-        val mediaId: Long,
-        val uploadTicket: String,
-        val method: String,
-        val expiresIn: Instant,
-        val contentType: String,
-    )
+data class UploadTicketResponse(val method: String, val expiresIn: Instant, val items: List<UploadTicketInfo>) {
+    data class UploadTicketInfo(val mediaId: Long, val uploadTicket: String, val contentType: String)
 }
