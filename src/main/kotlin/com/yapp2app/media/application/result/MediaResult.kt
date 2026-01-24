@@ -18,6 +18,16 @@ data class GenerateUploadTicketResult(
     val contentType: String,
 )
 
+data class BulkGenerateUploadTicketResult(val tickets: List<UploadTicketInfo>) {
+    data class UploadTicketInfo(
+        val mediaId: Long,
+        val uploadUrl: String,
+        val method: String,
+        val expiresAt: Instant,
+        val contentType: String,
+    )
+}
+
 data class GetMediasResult(val medias: List<MediaInfo>) {
     data class MediaInfo(val mediaId: Long, val binaryData: ByteArray, val contentType: String) {
         override fun equals(other: Any?): Boolean {

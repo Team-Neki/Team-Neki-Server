@@ -17,6 +17,10 @@ data class GenerateUploadTicketCommand(
     val mediaType: MediaType,
 )
 
+data class BulkGenerateUploadTicketCommand(val ownerId: Long, val items: List<UploadTicketItem>) {
+    data class UploadTicketItem(val filename: String, val contentType: String, val mediaType: MediaType)
+}
+
 data class DeleteMediaCommand(val ownerId: Long, val mediaId: Long)
 
 data class DeleteMediasCommand(val ownerId: Long, val mediaIds: List<Long>)
