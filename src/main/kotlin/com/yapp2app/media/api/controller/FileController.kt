@@ -25,7 +25,6 @@ class FileController(
     private val commandConverter: FileCommandConverter,
     private val resultConverter: FileResultConverter,
 ) {
-
     @Operation(
         summary = "이미지 파일 조회",
         description = """

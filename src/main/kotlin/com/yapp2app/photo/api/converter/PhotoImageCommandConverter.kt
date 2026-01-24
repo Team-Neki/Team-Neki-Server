@@ -1,5 +1,6 @@
 package com.yapp2app.photo.api.converter
 
+import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.api.dto.DeletePhotosRequest
 import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
@@ -19,11 +20,29 @@ import org.springframework.stereotype.Component
 @Component
 class PhotoImageCommandConverter {
 
-    fun toGetPhotosCommand(userId: Long, folderId: Long?, page: Int, size: Int): GetPhotosCommand = GetPhotosCommand(
+    fun toUploadPhotoCommand(userId: Long, request: UploadPhotoRequest) = UploadPhotoCommand(
+        userId = userId,
+        uploads = request.uploads.map { item ->
+            UploadPhotoCommand.UploadItem(
+                mediaId = item.mediaId!!,
+                folderId = item.folderId,
+                memo = item.memo,
+            )
+        },
+    )
+
+    fun toGetPhotosCommand(
+        userId: Long,
+        folderId: Long?,
+        page: Int,
+        size: Int,
+        sortOrder: SortOrder,
+    ): GetPhotosCommand = GetPhotosCommand(
         userId = userId,
         folderId = folderId,
         page = page,
         size = size,
+        sortOrder = sortOrder,
     )
 
     fun toDeletePhotoCommand(userId: Long, photoId: Long): DeletePhotoCommand = DeletePhotoCommand(
@@ -40,16 +59,5 @@ class PhotoImageCommandConverter {
         userId = userId,
         photoId = photoId,
         memo = request.memo,
-    )
-
-    fun toUploadPhotoCommand(userId: Long, request: UploadPhotoRequest) = UploadPhotoCommand(
-        userId = userId,
-        uploads = request.uploads.map { item ->
-            UploadPhotoCommand.UploadItem(
-                mediaId = item.mediaId!!,
-                folderId = item.folderId,
-                memo = item.memo,
-            )
-        },
     )
 }

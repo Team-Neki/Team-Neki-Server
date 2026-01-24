@@ -10,6 +10,7 @@ import org.hamcrest.Matchers.hasSize
 import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -115,7 +116,7 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
         // given
         val (otherUser, _) = createTestUserAndToken(email = "other@example.com")
         val media = createMedia(ownerId = otherUser.id!!, status = MediaStatus.UPLOADED)
-        createPhotoImage(userId = otherUser.id!!, mediaId = media.id!!)
+        createPhotoImage(userId = otherUser.id, mediaId = media.id!!)
 
         // when & then
         RestAssured.given()
@@ -143,5 +144,262 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("data.items", empty<Any>())
+    }
+
+    // =====================
+    // 페이징 테스트
+    // =====================
+
+    @Test
+    @DisplayName("사진 목록 페이징 조회 - 첫 페이지")
+    fun givenMultiplePhotos_whenGetFirstPage_thenReturnsPagedResults() {
+        // given: 3개의 사진 생성
+        repeat(3) {
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+        }
+
+        // when & then: page=0, size=2 조회 시 2개 반환 + hasNext=true
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("page", 0)
+            .queryParam("size", 2)
+            .`when`()
+            .get("/api/photos")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+            .body("data.items", hasSize<Int>(2))
+            .body("data.hasNext", equalTo(true))
+    }
+
+    @Test
+    @DisplayName("사진 목록 페이징 조회 - 마지막 페이지")
+    fun givenMultiplePhotos_whenGetLastPage_thenReturnsRemainingResults() {
+        // given: 3개의 사진 생성
+        repeat(3) {
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+        }
+
+        // when & then: page=1, size=2 조회 시 1개 반환 + hasNext=false
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("page", 1)
+            .queryParam("size", 2)
+            .`when`()
+            .get("/api/photos")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+            .body("data.items", hasSize<Int>(1))
+            .body("data.hasNext", equalTo(false))
+    }
+
+    @Test
+    @DisplayName("사진 목록 페이징 조회 - 빈 페이지")
+    fun givenMultiplePhotos_whenGetEmptyPage_thenReturnsEmptyList() {
+        // given: 2개의 사진 생성
+        repeat(2) {
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+        }
+
+        // when & then: page=5, size=2 조회 시 빈 목록 + hasNext=false
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("page", 5)
+            .queryParam("size", 2)
+            .`when`()
+            .get("/api/photos")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+            .body("data.items", hasSize<Int>(0))
+            .body("data.hasNext", equalTo(false))
+    }
+
+    @Test
+    @DisplayName("사진 목록 페이징 조회 - 기본 파라미터")
+    fun givenMultiplePhotos_whenGetWithoutPagination_thenReturnsDefaultPageSize() {
+        // given: 25개의 사진 생성 (default size=20보다 많음)
+        repeat(25) {
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+        }
+
+        // when & then: 파라미터 없이 조회 시 20개 반환 + hasNext=true
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .get("/api/photos")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+            .body("data.items", hasSize<Int>(20))
+            .body("data.hasNext", equalTo(true))
+    }
+
+    @Nested
+    @DisplayName("정렬 테스트")
+    inner class SortingTests {
+
+        @Test
+        @DisplayName("사진 목록 정렬 - 최신순(DESC) 기본값")
+        fun givenMultiplePhotos_whenGetWithDefaultSort_thenReturnsDescOrder() {
+            // given: 순서대로 3개의 사진 생성 (생성 시간 차이 확보)
+            val photos = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10) // 생성 시간 차이 확보
+                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then: 기본 정렬(DESC)로 조회 시 최신 사진이 먼저 나옴
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(3))
+                .body("data.items[0].photoId", equalTo(photos[2].id!!.toInt()))
+                .body("data.items[1].photoId", equalTo(photos[1].id!!.toInt()))
+                .body("data.items[2].photoId", equalTo(photos[0].id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("사진 목록 정렬 - 최신순(DESC) 명시적 지정")
+        fun givenMultiplePhotos_whenGetWithDescSort_thenReturnsDescOrder() {
+            // given: 순서대로 3개의 사진 생성
+            val photos = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then: DESC 정렬로 조회 시 최신 사진이 먼저 나옴
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sortOrder", "DESC")
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(3))
+                .body("data.items[0].photoId", equalTo(photos[2].id!!.toInt()))
+                .body("data.items[1].photoId", equalTo(photos[1].id!!.toInt()))
+                .body("data.items[2].photoId", equalTo(photos[0].id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("사진 목록 정렬 - 오래된순(ASC)")
+        fun givenMultiplePhotos_whenGetWithAscSort_thenReturnsAscOrder() {
+            // given: 순서대로 3개의 사진 생성
+            val photos = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then: ASC 정렬로 조회 시 오래된 사진이 먼저 나옴
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sortOrder", "ASC")
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(3))
+                .body("data.items[0].photoId", equalTo(photos[0].id!!.toInt()))
+                .body("data.items[1].photoId", equalTo(photos[1].id!!.toInt()))
+                .body("data.items[2].photoId", equalTo(photos[2].id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("사진 목록 정렬과 페이징 조합 - DESC + 첫 페이지")
+        fun givenMultiplePhotos_whenGetFirstPageWithDescSort_thenReturnsPagedDescOrder() {
+            // given: 5개의 사진 생성
+            val photos = (1..5).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then: page=0, size=2, DESC 조회 시 최신 2개 반환
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("page", 0)
+                .queryParam("size", 2)
+                .queryParam("sortOrder", "DESC")
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(2))
+                .body("data.hasNext", equalTo(true))
+                .body("data.items[0].photoId", equalTo(photos[4].id!!.toInt()))
+                .body("data.items[1].photoId", equalTo(photos[3].id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("사진 목록 정렬과 페이징 조합 - ASC + 첫 페이지")
+        fun givenMultiplePhotos_whenGetFirstPageWithAscSort_thenReturnsPagedAscOrder() {
+            // given: 5개의 사진 생성
+            val photos = (1..5).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then: page=0, size=2, ASC 조회 시 오래된 2개 반환
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("page", 0)
+                .queryParam("size", 2)
+                .queryParam("sortOrder", "ASC")
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(2))
+                .body("data.hasNext", equalTo(true))
+                .body("data.items[0].photoId", equalTo(photos[0].id!!.toInt()))
+                .body("data.items[1].photoId", equalTo(photos[1].id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("폴더별 사진 조회와 정렬 조합")
+        fun givenPhotosInFolder_whenGetWithSort_thenReturnsFilteredAndSortedPhotos() {
+            // given
+            val folder = createFolder(userId = testUser.id!!)
+            val photos = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folder.id)
+            }
+            // 폴더 외 사진 1개 추가
+            val outsideMedia = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            createPhotoImage(userId = testUser.id!!, mediaId = outsideMedia.id!!, folderId = null)
+
+            // when & then: folderId + ASC 정렬로 조회
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("folderId", folder.id)
+                .queryParam("sortOrder", "ASC")
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(3))
+                .body("data.items[0].photoId", equalTo(photos[0].id!!.toInt()))
+                .body("data.items[1].photoId", equalTo(photos[1].id!!.toInt()))
+                .body("data.items[2].photoId", equalTo(photos[2].id!!.toInt()))
+        }
     }
 }

@@ -1,10 +1,10 @@
 -- Create folder table
 CREATE TABLE TB_FOLDER
 (
-    id             BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     user_id        BIGINT       NOT NULL,
     name           VARCHAR(255) NOT NULL,
-    cover_photo_id BIGINT NULL,
+    cover_photo_id BIGINT       NULL,
     created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -30,13 +30,13 @@ ON COLUMN TB_FOLDER.updated_at IS '수정일시';
 -- Create photo_image table
 CREATE TABLE TB_PHOTO_IMAGE
 (
-    id         BIGSERIAL PRIMARY KEY,
-    user_id    BIGINT      NOT NULL,
-    media_id   BIGINT      NOT NULL,
+    id BIGSERIAL PRIMARY KEY,
+    user_id    BIGINT    NOT NULL,
+    media_id   BIGINT    NOT NULL,
     folder_id  BIGINT,
     memo       VARCHAR(255),
-    created_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Add comments for photo_image table
@@ -60,7 +60,7 @@ ON COLUMN TB_PHOTO_IMAGE.updated_at IS '수정일시';
 -- Create media table
 CREATE TABLE TB_MEDIA
 (
-    id           BIGSERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     storage_key  VARCHAR(255) NOT NULL,
     owner_id     BIGINT       NOT NULL,
     media_type   VARCHAR(30)  NOT NULL,

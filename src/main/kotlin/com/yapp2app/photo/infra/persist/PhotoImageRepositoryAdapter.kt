@@ -1,5 +1,6 @@
 package com.yapp2app.photo.infra.persist
 
+import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 import com.yapp2app.photo.domain.entity.PhotoImage
 import com.yapp2app.photo.infra.persist.jpa.JpaPhotoImageRepository
@@ -20,8 +21,20 @@ class PhotoImageRepositoryAdapter(
 
     override fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage> = jpaRepository.saveAll(photoImages)
 
-    override fun listOwnedPhotos(userId: Long, folderId: Long?, offset: Int, limit: Int): List<PhotoImage> =
-        queryRepository.findOwnedPhotos(userId, folderId, offset, limit)
+    override fun listOwnedPhotos(
+        userId: Long,
+        folderId: Long?,
+        offset: Int,
+        limit: Int,
+        sortOrder: SortOrder,
+    ): List<PhotoImage> = queryRepository.findOwnedPhotos(userId, folderId, offset, limit, sortOrder)
+
+    override fun listOwnedFavoritePhotos(
+        userId: Long,
+        offset: Int,
+        limit: Int,
+        sortOrder: SortOrder,
+    ): List<PhotoImage> = queryRepository.findOwnedFavoritePhotos(userId, offset, limit, sortOrder)
 
     override fun deleteOwnedPhoto(userId: Long, photoId: Long): PhotoImage? {
         val photo = jpaRepository.findByUserIdAndId(userId, photoId)
@@ -46,4 +59,9 @@ class PhotoImageRepositoryAdapter(
 
     override fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage? =
         jpaRepository.findByUserIdAndId(userId, photoId)
+
+    override fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean =
+        jpaRepository.existsByUserIdAndId(userId, photoId)
+
+    override fun getLatestOwnedPhoto(userId: Long): PhotoImage? = queryRepository.findLatestOwnedPhoto(userId)
 }

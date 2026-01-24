@@ -24,6 +24,11 @@ enum class MediaType(val prefix: String) {
     ATTACHMENT("attachments"),
 
     /**
+     * 로고 이미지
+     */
+    LOGO("logo"),
+
+    /**
      * 업로드 검증, 테스트 등
      */
     TEMP("temp"),

@@ -82,6 +82,7 @@ Before starting any task, load the relevant context document:
 | Write E2E tests for new endpoints | Quality assurance |
 | Follow existing package structure | Maintainability |
 | Run `spotlessApply` before commit | Code style consistency |
+| Delete dependent entities first | Prevents orphan records and FK violations |
 
 ---
 

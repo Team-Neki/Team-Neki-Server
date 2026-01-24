@@ -1,5 +1,7 @@
 package com.yapp2app.photo.application.command
 
+import com.yapp2app.common.domain.vo.SortOrder
+
 /**
  * fileName       : PhotoImageCommand
  * author         : koo
@@ -10,10 +12,27 @@ data class UploadPhotoCommand(val userId: Long, val uploads: List<UploadItem>) {
     data class UploadItem(val mediaId: Long, val folderId: Long?, val memo: String?)
 }
 
-data class GetPhotosCommand(val userId: Long, val folderId: Long?, val page: Int = 0, val size: Int = 20)
+data class GetPhotosCommand(
+    val userId: Long,
+    val folderId: Long?,
+    val page: Int,
+    val size: Int,
+    val sortOrder: SortOrder = SortOrder.DESC,
+)
+
+data class GetFavoritePhotosCommand(
+    val userId: Long,
+    val page: Int,
+    val size: Int,
+    val sortOrder: SortOrder = SortOrder.DESC,
+)
 
 data class DeletePhotoCommand(val userId: Long, val photoId: Long)
 
 data class DeletePhotosCommand(val userId: Long, val photoIds: List<Long>)
 
 data class UpdatePhotoCommand(val userId: Long, val photoId: Long, val memo: String?)
+
+data class UpdatePhotoFavoriteCommand(val userId: Long, val photoId: Long, val favorite: Boolean)
+
+data class GetFavoriteSummaryCommand(val userId: Long)

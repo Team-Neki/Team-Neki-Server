@@ -1,9 +1,9 @@
 package com.yapp2app.photo.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.properties.AppProperties
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.photo.application.command.GetPhotosCommand
+import com.yapp2app.photo.application.port.FavoriteImageRepositoryPort
 import com.yapp2app.photo.application.port.MediaClientPort
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 import com.yapp2app.photo.application.result.GetPhotosResult
@@ -19,9 +19,10 @@ import org.slf4j.LoggerFactory
 @UseCase
 class GetPhotosUseCase(
     private val photoImageRepository: PhotoImageRepositoryPort,
+    private val favoriteImageRepository: FavoriteImageRepositoryPort,
+
     private val mediaClient: MediaClientPort,
     private val transactionRunner: TransactionRunner,
-    private val appProperties: AppProperties,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -30,13 +31,16 @@ class GetPhotosUseCase(
         // size + 1개 조회하여 hasNext 판단
         val fetchSize = command.size + 1
 
-        val photos = transactionRunner.readOnly {
-            photoImageRepository.listOwnedPhotos(
+        val (photos, favoritePhotoIds) = transactionRunner.readOnly {
+            val photos = photoImageRepository.listOwnedPhotos(
                 userId = command.userId,
                 folderId = command.folderId,
                 offset = command.page * command.size,
                 limit = fetchSize,
+                sortOrder = command.sortOrder,
             )
+            val favoritePhotoIds = favoriteImageRepository.findPhotoIdsByUserId(command.userId)
+            photos to favoritePhotoIds
         }
 
         if (photos.isEmpty()) {
@@ -72,17 +76,14 @@ class GetPhotosUseCase(
 
             GetPhotosResult.PhotoInfo(
                 photoId = it.id!!,
-                imageUrl = "${appProperties.server.url}$IMAGE_URL_PATH${media.storageKey}",
+                storageKey = media.storageKey,
                 folderId = it.folderId,
+                favorite = favoritePhotoIds.contains(it.id),
                 contentType = media.contentType,
                 createdAt = it.createdAt.toString(),
             )
         }.toList()
 
         return GetPhotosResult(result, hasNext)
-    }
-
-    companion object {
-        private const val IMAGE_URL_PATH = "/file/image/"
     }
 }

@@ -46,6 +46,7 @@ class MediaController(
             * USER_PROFILE("user-profiles") : 사용자 프로필
             * PHOTO_BOOTH("photo-booth") : 인생네컷
             * ATTACHMENT("attachments") : 확장성을 고려한 첨부 이미지
+            * LOGO("logo") : 로고
             * TEMP("temp") : 업로드 검증, 테스트 등
 
             contentType:

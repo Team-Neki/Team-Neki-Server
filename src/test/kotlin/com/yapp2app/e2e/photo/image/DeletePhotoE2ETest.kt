@@ -107,4 +107,29 @@ class DeletePhotoE2ETest : PhotoImageE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
+
+    @Test
+    @DisplayName("즐겨찾기된 사진 삭제 시 즐겨찾기도 함께 삭제된다")
+    fun givenFavoritePhoto_whenDeletePhoto_thenFavoriteAlsoDeleted() {
+        // given
+        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val photo = createFavoritePhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+
+        // when
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .delete("/api/photos/${photo.id}")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+
+        // then
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .get("/api/photos/favorite/summary")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("data.totalCount", equalTo(0))
+    }
 }

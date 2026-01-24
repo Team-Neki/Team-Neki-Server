@@ -18,6 +18,9 @@ class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : Me
     override fun getActiveMedia(ownerId: Long, id: Long): Media? =
         jpaRepository.findByOwnerIdAndIdAndStatus(ownerId, id, MediaStatus.UPLOADED)
 
+    override fun getActiveMedias(ids: List<Long>): List<Media> =
+        jpaRepository.findAllByIdInAndStatus(ids, MediaStatus.UPLOADED)
+
     override fun getActiveMedias(ownerId: Long, ids: List<Long>): List<Media> =
         jpaRepository.findAllByOwnerIdAndIdInAndStatus(ownerId, ids, MediaStatus.UPLOADED)
 

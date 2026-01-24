@@ -3,11 +3,9 @@ package com.yapp2app.e2e.media
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.media.api.dto.UploadTicketRequest
 import com.yapp2app.media.domain.MediaType
-import com.yapp2app.media.domain.entity.MediaStatus
 import com.yapp2app.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
-import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasSize
 import org.hamcrest.Matchers.notNullValue
