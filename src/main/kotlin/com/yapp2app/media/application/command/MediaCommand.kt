@@ -10,14 +10,7 @@ import com.yapp2app.media.domain.MediaType
  */
 data class ConfirmMediaUploadedCommand(val ownerId: Long, val mediaId: Long)
 
-data class GenerateUploadTicketCommand(
-    val ownerId: Long,
-    val filename: String,
-    val contentType: String,
-    val mediaType: MediaType,
-)
-
-data class BulkGenerateUploadTicketCommand(val ownerId: Long, val items: List<UploadTicketItem>) {
+data class GenerateUploadTicketCommand(val ownerId: Long, val items: List<UploadTicketItem>) {
     data class UploadTicketItem(val filename: String, val contentType: String, val mediaType: MediaType)
 }
 

@@ -8,14 +8,12 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 
 /**
- * fileName       : MediaRequest
+ * fileName       : UploadTicketRequest
  * author         : koo
  * date           : 2026. 1. 24. 오후 2:33
  * description    :
  */
-data class GenerateUploadTicketRequest(val filename: String, val contentType: String, val mediaType: MediaType)
-
-data class BulkGenerateUploadTicketRequest(
+data class UploadTicketRequest(
     @field:Valid
     @field:NotEmpty(message = "업로드 항목이 비어있습니다.")
     @field:Size(min = 1, max = 10, message = "한 번에 1개에서 10개까지 업로드할 수 있습니다.")

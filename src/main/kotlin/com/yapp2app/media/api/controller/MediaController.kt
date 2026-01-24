@@ -4,11 +4,12 @@ import com.yapp2app.common.api.document.RequiresSecurity
 import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.media.api.converter.MediaCommandConverter
 import com.yapp2app.media.api.converter.MediaResultConverter
-import com.yapp2app.media.api.dto.GenerateUploadTicketRequest
-import com.yapp2app.media.api.dto.GenerateUploadTicketResponse
+import com.yapp2app.media.api.dto.UploadTicketRequest
+import com.yapp2app.media.api.dto.UploadTicketResponse
 import com.yapp2app.media.application.usecase.GenerateUploadTicketUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -32,8 +33,15 @@ class MediaController(
 ) {
 
     @Operation(
-        summary = "미디어 업로드 ticket 발급",
+        summary = "여러 개 미디어 업로드 ticket 발급",
         description = """
+            한 번에 최대 10개의 미디어 업로드 ticket을 발급받습니다.
+
+            Workflow:
+            1. 이 API를 호출하여 업로드 ticket 발급
+            2. 각 ticket의 uploadTicket URL로 파일 업로드 (S3 직접 업로드)
+            3. POST /api/photos/bulk API 호출하여 메타데이터 등록
+
             mediaType:
             * USER_PROFILE("user-profiles") : 사용자 프로필
             * PHOTO_BOOTH("photo-booth") : 인생네컷
@@ -45,16 +53,16 @@ class MediaController(
             * image/png
         """,
     )
-    @PostMapping("/upload")
+    @PostMapping
     fun generateUploadTicket(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
-        @RequestBody request: GenerateUploadTicketRequest,
-    ): BaseResponse<GenerateUploadTicketResponse> {
+        @Valid @RequestBody request: UploadTicketRequest,
+    ): BaseResponse<UploadTicketResponse> {
         val command = commandConverter.toGenerateUploadTicketCommand(ownerId, request)
 
         val result = generateUploadTicketUseCase.execute(command)
 
-        val response = resultConverter.toGenerateUploadTicketResponse(result)
+        val response = resultConverter.toUploadTicketResponse(result)
 
         return BaseResponse(data = response)
     }
