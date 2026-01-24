@@ -17,7 +17,7 @@ import org.hibernate.annotations.DynamicUpdate
  */
 @Entity
 @DynamicUpdate
-@Table(name = "TB_photo_image")
+@Table(name = "TB_PHOTO_IMAGE")
 class PhotoImage(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -15,7 +15,7 @@ import java.io.Serializable
  * description    :
  */
 @Entity
-@Table(name = "TB_favorite_image")
+@Table(name = "TB_FAVORITE_IMAGE")
 class FavoritePhoto(
 
     @EmbeddedId
