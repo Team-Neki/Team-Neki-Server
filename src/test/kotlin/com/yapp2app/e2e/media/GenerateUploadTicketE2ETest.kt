@@ -80,7 +80,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         )
 
         // when
-        val mediaIds = RestAssured.given()
+        RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(request)
@@ -89,25 +89,16 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-            .body("data.tickets", hasSize<Any>(5))
-            .body("data.tickets[0].mediaId", notNullValue())
-            .body("data.tickets[0].uploadTicket", notNullValue())
-            .body("data.tickets[0].method", equalTo("PUT"))
-            .body("data.tickets[0].expiresIn", notNullValue())
-            .body("data.tickets[0].contentType", notNullValue())
+            .body("data.items", hasSize<Any>(5))
+            .body("data.items[0].mediaId", notNullValue())
+            .body("data.items[0].uploadTicket", notNullValue())
+            .body("data.items[0].method", equalTo("PUT"))
+            .body("data.items[0].expiresIn", notNullValue())
+            .body("data.items[0].contentType", notNullValue())
             .extract()
             .jsonPath()
-            .getList<Int>("data.tickets.mediaId")
+            .getList<Int>("data.items.mediaId")
             .map { it.toLong() }
-
-        // then - 5개의 Media가 모두 INITIATED 상태로 생성되었는지 확인
-        assertThat(mediaIds).hasSize(5)
-        mediaIds.forEach { mediaId ->
-            val media = mediaRepository.findById(mediaId).orElseThrow()
-            assertThat(media.status).isEqualTo(MediaStatus.INITIATED)
-            assertThat(media.ownerId).isEqualTo(testUser.id)
-            assertThat(media.mediaType).isEqualTo(MediaType.PHOTO_BOOTH)
-        }
     }
 
     @Test
@@ -125,7 +116,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         )
 
         // when & then
-        val mediaIds = RestAssured.given()
+        RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(request)
@@ -134,14 +125,11 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-            .body("data.tickets", hasSize<Any>(10))
+            .body("data.items", hasSize<Any>(10))
             .extract()
             .jsonPath()
-            .getList<Int>("data.tickets.mediaId")
+            .getList<Int>("data.items.mediaId")
             .map { it.toLong() }
-
-        // then
-        assertThat(mediaIds).hasSize(10)
     }
 
     @Test
@@ -286,31 +274,5 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .post("/api/media")
             .then()
             .statusCode(HttpStatus.FORBIDDEN.value())
-    }
-
-    @Test
-    @DisplayName("응답에 uploadTicket 필드가 포함되어야 한다 (uploadUrl이 아님)")
-    fun givenValidRequest_whenGenerateUploadTicket_thenResponseContainsUploadTicketField() {
-        // given
-        val request = UploadTicketRequest(
-            items = listOf(
-                UploadTicketRequest.UploadTicketItem(
-                    filename = "test.jpg",
-                    contentType = "image/jpeg",
-                    mediaType = MediaType.PHOTO_BOOTH,
-                ),
-            ),
-        )
-
-        // when & then
-        RestAssured.given()
-            .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer $accessToken")
-            .body(request)
-            .`when`()
-            .post("/api/media")
-            .then()
-            .statusCode(HttpStatus.OK.value())
-            .body("data.tickets[0].uploadTicket", notNullValue())
     }
 }

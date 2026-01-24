@@ -78,10 +78,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             .post("/api/media")
             .then()
             .statusCode(HttpStatus.OK.value())
-            .body("data.tickets", hasSize<Any>(3))
+            .body("data.items", hasSize<Any>(3))
             .extract()
             .jsonPath()
-            .getList<Int>("data.tickets.mediaId")
+            .getList<Int>("data.items.mediaId")
             .map { it.toLong() }
 
         // Step 2: S3 업로드 시뮬레이션 (LocalMediaClient가 자동으로 UPLOADED로 변경)
@@ -152,7 +152,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .extract()
             .jsonPath()
-            .getList<Int>("data.tickets.mediaId")
+            .getList<Int>("data.items.mediaId")
             .map { it.toLong() }
 
         // Step 2: POST /api/photos/bulk 호출하여 folderId와 함께 메타데이터 등록
@@ -216,7 +216,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .extract()
             .jsonPath()
-            .getList<Int>("data.tickets.mediaId")
+            .getList<Int>("data.items.mediaId")
             .map { it.toLong() }
 
         // Step 2: photo 등록
