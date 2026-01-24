@@ -13,7 +13,10 @@ data class GetPhotosResponse(val items: List<PhotoInfo>, val hasNext: Boolean) {
         val photoId: Long,
         val imageUrl: String,
         val folderId: Long?,
+        val favorite: Boolean,
         val contentType: String,
         val createdAt: String,
     )
 }
+
+data class GetFavoriteSummaryResponse(val latestImageUrl: String?, val totalCount: Long)

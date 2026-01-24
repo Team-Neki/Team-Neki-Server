@@ -1,4 +1,4 @@
-package com.yapp2app.common.infra.media.fake
+package com.yapp2app.media.infra.storage.fake
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile

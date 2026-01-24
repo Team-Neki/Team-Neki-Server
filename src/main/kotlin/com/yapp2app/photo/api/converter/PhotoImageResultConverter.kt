@@ -1,8 +1,10 @@
 package com.yapp2app.photo.api.converter
 
 import com.yapp2app.common.properties.AppProperties
+import com.yapp2app.photo.api.dto.GetFavoriteSummaryResponse
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UploadPhotoResponse
+import com.yapp2app.photo.application.result.GetFavoriteSummaryResult
 import com.yapp2app.photo.application.result.GetPhotosResult
 import com.yapp2app.photo.application.result.UploadPhotoResult
 import org.springframework.stereotype.Component
@@ -27,12 +29,19 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
                 photoId = it.photoId,
                 imageUrl = toImageUrl(it.storageKey),
                 folderId = it.folderId,
+                favorite = it.favorite,
                 contentType = it.contentType,
                 createdAt = it.createdAt,
             )
         },
         hasNext = result.hasNext,
     )
+
+    fun toGetFavoriteSummaryResponse(result: GetFavoriteSummaryResult): GetFavoriteSummaryResponse =
+        GetFavoriteSummaryResponse(
+            latestImageUrl = result.latestImageUrl,
+            totalCount = result.totalCount,
+        )
 
     private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
 }

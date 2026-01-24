@@ -1,5 +1,6 @@
 package com.yapp2app.photo.application.port
 
+import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.domain.entity.PhotoImage
 
 /**
@@ -12,10 +13,16 @@ interface PhotoImageRepositoryPort {
 
     fun save(photoImage: PhotoImage): PhotoImage
 
-    fun listOwnedPhotos(userId: Long, folderId: Long?, offset: Int, limit: Int): List<PhotoImage>
+    fun listOwnedPhotos(userId: Long, folderId: Long?, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
+
+    fun listOwnedFavoritePhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
 
     fun deleteOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
     fun deleteOwnedPhotos(userId: Long, photoIds: List<Long>): List<PhotoImage>
 
     fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
+
+    fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean
+
+    fun getLatestOwnedPhoto(userId: Long): PhotoImage?
 }
