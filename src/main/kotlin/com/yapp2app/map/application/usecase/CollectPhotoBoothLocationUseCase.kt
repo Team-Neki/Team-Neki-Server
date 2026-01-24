@@ -68,13 +68,13 @@ class CollectPhotoBoothLocationUseCase(
 
         return existing?.apply {
             this.brandId = brandId
-            this.name = place.placeName
+            this.branchName = place.placeName
             this.address = place.roadAddressName
             this.location = point
         } ?: PhotoBoothLocation(
             mapId = place.id,
             brandId = brandId,
-            name = place.placeName,
+            branchName = place.placeName,
             address = place.roadAddressName,
             location = point,
         )

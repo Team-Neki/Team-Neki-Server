@@ -48,7 +48,7 @@ abstract class MapE2ETestBase : E2ETestBase() {
         PhotoBoothLocation(
             mapId = "test-map-id-${System.currentTimeMillis()}",
             brandId = brandId,
-            name = name,
+            branchName = name,
             address = address,
             location = geometryFactory.createPoint(Coordinate(longitude, latitude)),
         ),

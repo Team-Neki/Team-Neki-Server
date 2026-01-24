@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.yapp2app.map.application.contract.PhotoBoothLocationDto
 import com.yapp2app.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.yapp2app.map.domain.entity.QBrand.brand
 import com.yapp2app.map.domain.entity.QPhotoBoothLocation.photoBoothLocation
 import jakarta.persistence.EntityManager
 import org.locationtech.jts.geom.Coordinate
@@ -38,13 +39,14 @@ class PhotoBoothLocationQueryRepository(
                 Projections.constructor(
                     PhotoBoothLocationDto::class.java,
                     photoBoothLocation.id,
-                    photoBoothLocation.brandId,
-                    photoBoothLocation.name,
+                    brand.name,
+                    photoBoothLocation.branchName,
                     photoBoothLocation.address,
                     photoBoothLocation.location,
                 ),
             )
             .from(photoBoothLocation)
+            .leftJoin(brand).on(brand.id.eq(photoBoothLocation.brandId))
             .where(
                 Expressions.booleanTemplate(
                     "ST_Contains(ST_MakePolygon(ST_GeomFromText('LINESTRING($lineString)', 4326)), {0}) = true",
@@ -71,12 +73,17 @@ class PhotoBoothLocationQueryRepository(
     ): List<PhotoBoothLocationWithDistanceDto> {
         val sql = """
             SELECT
-                id, brand_id, name, address, ST_AsText(location) as location_wkt,
+                tb_photo_booth_location.id,
+                tb_brand.name,
+                tb_photo_booth_location.branch_name,
+                tb_photo_booth_location.address,
+                ST_AsText(tb_photo_booth_location.location) as location_wkt,
                 CAST(ST_Distance(
                     location::geography,
                     ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography
                 ) AS integer) AS distance_meters
             FROM tb_photo_booth_location
+            LEFT JOIN tb_brand on tb_brand.id = tb_photo_booth_location.brand_id
             WHERE ST_DWithin(
                 location::geography,
                 ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
@@ -107,8 +114,8 @@ class PhotoBoothLocationQueryRepository(
 
             PhotoBoothLocationWithDistanceDto(
                 id = (row[0] as Number).toLong(),
-                brandId = (row[1] as Number).toLong(),
-                name = row[2] as String,
+                brandName = row[1] as String,
+                branchName = row[2] as String,
                 address = row[3] as String,
                 location = jtsPoint,
                 distance = (row[5] as Number).toInt(),
