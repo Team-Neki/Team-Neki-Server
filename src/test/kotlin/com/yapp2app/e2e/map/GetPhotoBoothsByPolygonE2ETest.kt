@@ -63,8 +63,6 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
         val request = GetPolygonLocationRequest(
             coordinates = gangnamPolygonCoordinates,
             brandIds = null,
-            page = 0,
-            size = 20,
         )
 
         // When: 다각형 영역 내 포토부스 조회 API 호출
@@ -106,8 +104,6 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
         val request = GetPolygonLocationRequest(
             coordinates = gangnamPolygonCoordinates,
             brandIds = null,
-            page = 0,
-            size = 20,
         )
 
         // When: 다각형 영역 내 포토부스 조회 API 호출
@@ -151,8 +147,6 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
         val request = GetPolygonLocationRequest(
             coordinates = gangnamPolygonCoordinates,
             brandIds = listOf(testBrand.id!!),
-            page = 0,
-            size = 20,
         )
 
         // When: 특정 브랜드로 필터링하여 조회
@@ -187,8 +181,6 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
         val request = GetPolygonLocationRequest(
             coordinates = gangnamPolygonCoordinates,
             brandIds = null,
-            page = 0,
-            size = 20,
         )
 
         // When: 다각형 영역 내 포토부스 조회 API 호출

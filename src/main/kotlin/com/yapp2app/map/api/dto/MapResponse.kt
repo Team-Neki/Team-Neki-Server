@@ -36,19 +36,16 @@ data class CollectPhotoBoothResponse(
 data class GetPolygonLocationResponse(
     @field:Schema(description = "포토부스 위치 목록")
     val items: List<PhotoBoothLocationInfo>,
-
-    @field:Schema(description = "다음 페이지 존재 여부")
-    val hasNext: Boolean,
 ) {
     data class PhotoBoothLocationInfo(
         @field:Schema(description = "포토부스 ID", example = "1")
         val id: Long,
 
         @field:Schema(description = "브랜드 ID", example = "1")
-        val brandId: Long,
+        val brandName: String,
 
         @field:Schema(description = "포토부스 이름", example = "인생네컷 강남역점")
-        val name: String,
+        val branchName: String,
 
         @field:Schema(description = "주소", example = "서울 강남구 강남대로 지하 396")
         val address: String,
@@ -64,19 +61,16 @@ data class GetPolygonLocationResponse(
 data class GetPointLocationResponse(
     @field:Schema(description = "포토부스 위치 목록 (거리순 정렬)")
     val items: List<PhotoBoothLocationWithDistanceInfo>,
-
-    @field:Schema(description = "다음 페이지 존재 여부")
-    val hasNext: Boolean,
 ) {
     data class PhotoBoothLocationWithDistanceInfo(
         @field:Schema(description = "포토부스 ID", example = "1")
         val id: Long,
 
         @field:Schema(description = "브랜드 ID", example = "1")
-        val brandId: Long,
+        val brandName: String,
 
         @field:Schema(description = "포토부스 이름", example = "인생네컷 강남역점")
-        val name: String,
+        val branchName: String,
 
         @field:Schema(description = "주소", example = "서울 강남구 강남대로 지하 396")
         val address: String,

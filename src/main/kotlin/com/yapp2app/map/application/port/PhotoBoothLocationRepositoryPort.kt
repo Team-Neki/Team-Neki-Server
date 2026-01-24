@@ -19,18 +19,11 @@ interface PhotoBoothLocationRepositoryPort {
 
     fun getPhotoBoothLocations(brandId: Long): List<PhotoBoothLocation>
 
-    fun listPolygonLocations(
-        coordinates: List<Coordinate>,
-        brandIds: List<Long>?,
-        offset: Int,
-        limit: Int,
-    ): List<PhotoBoothLocationDto>
+    fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationDto>
 
     fun listPointLocations(
         coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
-        offset: Int,
-        limit: Int,
     ): List<PhotoBoothLocationWithDistanceDto>
 }

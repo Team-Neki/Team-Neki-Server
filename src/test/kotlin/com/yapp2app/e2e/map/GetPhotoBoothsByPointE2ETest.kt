@@ -60,8 +60,6 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = gangnamLatitude,
             radiusInMeters = 1000,
             brandIds = null,
-            page = 0,
-            size = 20,
         )
 
         // When: 반경 내 포토부스 조회 API 호출
@@ -105,8 +103,6 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = gangnamLatitude,
             radiusInMeters = 1000,
             brandIds = null,
-            page = 0,
-            size = 20,
         )
 
         // When: 반경 내 포토부스 조회 API 호출
@@ -152,8 +148,6 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = gangnamLatitude,
             radiusInMeters = 1000,
             brandIds = listOf(testBrand.id!!),
-            page = 0,
-            size = 20,
         )
 
         // When: 특정 브랜드로 필터링하여 조회
@@ -190,8 +184,6 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = gangnamLatitude,
             radiusInMeters = 1000,
             brandIds = null,
-            page = 0,
-            size = 20,
         )
 
         // When: 반경 내 포토부스 조회 API 호출
@@ -228,8 +220,6 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = gangnamLatitude,
             radiusInMeters = 500,
             brandIds = null,
-            page = 0,
-            size = 20,
         )
 
         // When: 500m 반경으로 조회
