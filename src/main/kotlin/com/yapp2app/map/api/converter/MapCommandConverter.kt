@@ -30,7 +30,7 @@ class MapCommandConverter {
     }
 
     fun toGetPointLocationCommand(request: GetPointLocationRequest): GetPointLocationCommand = GetPointLocationCommand(
-        coordinate = Coordinate(request.longitude, request.latitude),
+        coordinate = Coordinate(request.getLongitudeOrDefault(), request.getLatitudeOrDefault()),
         radiusInMeters = request.radiusInMeters,
         brandIds = request.brandIds,
     )
