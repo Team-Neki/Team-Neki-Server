@@ -12,8 +12,8 @@ import com.yapp2app.media.domain.entity.Media
 /**
  * fileName       : GenerateUploadTicketUseCase
  * author         : koo
- * date           : 2026. 1. 2. 오후 7:43
- * description    : object storage 저장 usecase
+ * date           : 2026. 1. 23.
+ * description    : 여러 개의 미디어 업로드 ticket 발급 usecase
  */
 @UseCase
 class GenerateUploadTicketUseCase(
@@ -23,31 +23,38 @@ class GenerateUploadTicketUseCase(
 ) {
 
     fun execute(command: GenerateUploadTicketCommand): GenerateUploadTicketResult {
-        // storageKey 생성
-        val storageKey = MediaKey.generate(command.mediaType, command.filename, command.contentType)
+        // 전체 벌크 작업을 단일 트랜잭션으로 처리
+        return transactionRunner.run {
+            val tickets = command.items.map { item ->
+                // 1. storageKey 생성
+                val storageKey = MediaKey.generate(item.mediaType, item.filename, item.contentType)
 
-        // Media 엔티티 생성 및 저장
-        val media = Media(
-            storageKey = storageKey,
-            ownerId = command.ownerId,
-            mediaType = command.mediaType,
-            contentType = command.contentType,
-        )
+                // 2. Media 엔티티 생성 및 저장 (상태: INITIATED)
+                val media = Media(
+                    storageKey = storageKey,
+                    ownerId = command.ownerId,
+                    mediaType = item.mediaType,
+                    contentType = item.contentType,
+                )
+                val savedMedia = mediaRepository.save(media)
 
-        val savedMedia = transactionRunner.run { mediaRepository.save(media) }
+                // 3. Upload Ticket 발급
+                val uploadTicket = mediaStorage.generateUploadTicket(
+                    key = storageKey,
+                    contentType = item.contentType,
+                )
 
-        // Upload Ticket 발급
-        val uploadTicket = mediaStorage.generateUploadTicket(
-            key = storageKey,
-            contentType = command.contentType,
-        )
+                // 4. 결과 항목 생성
+                GenerateUploadTicketResult.UploadTicketInfo(
+                    mediaId = savedMedia.id!!,
+                    uploadUrl = uploadTicket.url,
+                    method = uploadTicket.method,
+                    expiresAt = uploadTicket.expiresAt,
+                    contentType = item.contentType,
+                )
+            }
 
-        return GenerateUploadTicketResult(
-            mediaId = savedMedia.id!!,
-            uploadUrl = uploadTicket.url,
-            method = uploadTicket.method,
-            expiresAt = uploadTicket.expiresAt,
-            contentType = command.contentType,
-        )
+            GenerateUploadTicketResult(tickets = tickets)
+        }
     }
 }
