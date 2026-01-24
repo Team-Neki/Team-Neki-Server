@@ -8,14 +8,13 @@ import com.yapp2app.photo.application.command.UploadPhotoCommand
 import com.yapp2app.photo.application.contract.MediaAvailability
 import com.yapp2app.photo.application.port.MediaClientPort
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
-import com.yapp2app.photo.application.result.UploadPhotoResult
 import com.yapp2app.photo.domain.entity.PhotoImage
 
 /**
- * fileName       : UploadPhotoUseCase
+ * fileName       : BulkUploadPhotoUseCase
  * author         : koo
- * date           : 2026. 1. 2. 오후 8:24
- * description    : photoImage upload usecase
+ * date           : 2026. 1. 20.
+ * description    : 다중 사진 업로드 UseCase (최대 10장)
  */
 @UseCase
 class UploadPhotoUseCase(
@@ -24,33 +23,63 @@ class UploadPhotoUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: UploadPhotoCommand): UploadPhotoResult {
-        // media가 object storage에 정상적으로 저장되었는지 확인
-        val availability = mediaClient.verifyMediaUploaded(
+    fun execute(command: UploadPhotoCommand) {
+        validateNoDuplicateMediaIds(command.uploads)
+
+        val mediaIds = command.uploads.map { it.mediaId }
+
+        // 모든 media가 object storage에 정상적으로 저장되었는지 일괄 확인
+        val availabilities = mediaClient.verifyMediasUploaded(
             ownerId = command.userId,
-            mediaId = command.mediaId,
+            mediaIds = mediaIds,
         )
 
-        // TODO : 실패한 경우 처리, 재시도 or 실패 간주
-        // 현재는 전체 usecase 실패로 간주
-        if (availability != MediaAvailability.AVAILABLE) {
+        // 업로드 실패한 media가 있는지 확인
+        val unavailableMediaIds = availabilities
+            .filter { it.value != MediaAvailability.AVAILABLE }
+            .keys
+
+        if (unavailableMediaIds.isNotEmpty()) {
+            // 성공한 media들도 롤백 (상태를 INITIATED로 되돌림)
+            val successfulMediaIds = availabilities
+                .filter { it.value == MediaAvailability.AVAILABLE }
+                .keys
+                .toList()
+
+            if (successfulMediaIds.isNotEmpty()) {
+                mediaClient.rollbackMediasUploaded(command.userId, successfulMediaIds)
+            }
+
             throw BusinessException(ResultCode.UPLOAD_FAILED)
         }
 
-        val photo = PhotoImage(
-            userId = command.userId,
-            mediaId = command.mediaId,
-            folderId = command.folderId,
-            memo = command.memo,
-        )
+        // PhotoImage 엔티티 생성
+        val photos = command.uploads.map { upload ->
+            PhotoImage(
+                userId = command.userId,
+                mediaId = upload.mediaId,
+                folderId = upload.folderId,
+                memo = upload.memo,
+            )
+        }
 
         try {
-            val savedPhoto = transactionRunner.run { photoImageRepository.save(photo) }
-            return UploadPhotoResult(savedPhoto.id!!)
+            transactionRunner.run {
+                photoImageRepository.saveAll(photos)
+            }
         } catch (e: Exception) {
-            // 보상 트랜잭션: media 상태를 INITIATED로 롤백
-            mediaClient.rollbackMediaUploaded(command.userId, command.mediaId)
+            // 보상 트랜잭션: 모든 media 상태를 INITIATED로 롤백
+            mediaClient.rollbackMediasUploaded(command.userId, mediaIds)
             throw e
+        }
+    }
+
+    private fun validateNoDuplicateMediaIds(uploads: List<UploadPhotoCommand.UploadItem>) {
+        val mediaIds = uploads.map { it.mediaId }
+        val duplicates = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
+
+        if (duplicates.isNotEmpty()) {
+            throw BusinessException(ResultCode.INVALID_PARAMETER)
         }
     }
 }

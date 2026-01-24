@@ -13,7 +13,6 @@ import com.yapp2app.photo.application.contract.MediaAvailability
 import com.yapp2app.photo.application.contract.MediaInfo
 import com.yapp2app.photo.application.contract.MediaStorageInfo
 import com.yapp2app.photo.application.port.MediaClientPort
-import com.yapp2app.photo.application.port.MediaClientPort.*
 import org.springframework.stereotype.Component
 
 /**
@@ -30,21 +29,6 @@ class LocalMediaClient(
     private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
     private val deleteMediaUseCase: DeleteMediaUseCase,
 ) : MediaClientPort {
-
-    override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability {
-        val result = confirmMediaUploadedUseCase.execute(
-            ConfirmMediaUploadedCommand(
-                ownerId = ownerId,
-                mediaId = mediaId,
-            ),
-        )
-
-        return if (result.success) {
-            MediaAvailability.AVAILABLE
-        } else {
-            MediaAvailability.UNAVAILABLE
-        }
-    }
 
     override fun getMediaBinaries(ownerId: Long, mediaIds: List<Long>): List<MediaInfo> {
         val result = getMediasUseCase.execute(GetMediasCommand(ownerId, mediaIds))
@@ -78,9 +62,19 @@ class LocalMediaClient(
         deleteMediaUseCase.execute(DeleteMediasCommand(ownerId, mediaIds))
     }
 
-    override fun rollbackMediaUploaded(ownerId: Long, mediaId: Long) {
-        confirmMediaUploadedUseCase.rollback(
-            ConfirmMediaUploadedCommand(ownerId = ownerId, mediaId = mediaId),
-        )
+    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> =
+        mediaIds.associateWith { mediaId ->
+            val result = confirmMediaUploadedUseCase.execute(
+                ConfirmMediaUploadedCommand(ownerId = ownerId, mediaId = mediaId),
+            )
+            if (result.success) MediaAvailability.AVAILABLE else MediaAvailability.UNAVAILABLE
+        }
+
+    override fun rollbackMediasUploaded(ownerId: Long, mediaIds: List<Long>) {
+        mediaIds.forEach { mediaId ->
+            confirmMediaUploadedUseCase.rollback(
+                ConfirmMediaUploadedCommand(ownerId = ownerId, mediaId = mediaId),
+            )
+        }
     }
 }

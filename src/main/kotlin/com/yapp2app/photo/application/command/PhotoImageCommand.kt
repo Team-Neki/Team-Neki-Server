@@ -6,7 +6,9 @@ package com.yapp2app.photo.application.command
  * date           : 2026. 1. 2. 오후 8:28
  * description    : Photo image domain command
  */
-data class UploadPhotoCommand(val userId: Long, val mediaId: Long, val folderId: Long?, val memo: String?)
+data class UploadPhotoCommand(val userId: Long, val uploads: List<UploadItem>) {
+    data class UploadItem(val mediaId: Long, val folderId: Long?, val memo: String?)
+}
 
 data class GetPhotosCommand(val userId: Long, val folderId: Long?, val page: Int = 0, val size: Int = 20)
 

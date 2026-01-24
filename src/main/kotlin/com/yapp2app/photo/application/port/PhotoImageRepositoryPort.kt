@@ -10,7 +10,7 @@ import com.yapp2app.photo.domain.entity.PhotoImage
  */
 interface PhotoImageRepositoryPort {
 
-    fun save(photoImage: PhotoImage): PhotoImage
+    fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage>
 
     fun listOwnedPhotos(userId: Long, folderId: Long?, offset: Int, limit: Int): List<PhotoImage>
 

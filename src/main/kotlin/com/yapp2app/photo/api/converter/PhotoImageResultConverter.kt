@@ -1,9 +1,7 @@
 package com.yapp2app.photo.api.converter
 
 import com.yapp2app.photo.api.dto.GetPhotosResponse
-import com.yapp2app.photo.api.dto.UploadPhotoResponse
 import com.yapp2app.photo.application.result.GetPhotosResult
-import com.yapp2app.photo.application.result.UploadPhotoResult
 import org.springframework.stereotype.Component
 
 /**
@@ -14,8 +12,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class PhotoImageResultConverter {
-
-    fun toUploadPhotoResponse(result: UploadPhotoResult): UploadPhotoResponse = UploadPhotoResponse(result.photoId)
 
     fun toGetPhotosResponse(result: GetPhotosResult): GetPhotosResponse = GetPhotosResponse(
         items = result.photos.map {
