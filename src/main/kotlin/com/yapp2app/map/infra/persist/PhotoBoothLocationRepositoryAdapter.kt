@@ -33,16 +33,12 @@ class PhotoBoothLocationRepositoryAdapter(
     override fun listPolygonLocations(
         coordinates: List<Coordinate>,
         brandIds: List<Long>?,
-        offset: Int,
-        limit: Int,
-    ): List<PhotoBoothLocationDto> = queryRepository.findByPolygon(coordinates, brandIds, offset, limit)
+    ): List<PhotoBoothLocationDto> = queryRepository.findByPolygon(coordinates, brandIds)
 
     override fun listPointLocations(
         coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
-        offset: Int,
-        limit: Int,
     ): List<PhotoBoothLocationWithDistanceDto> =
-        queryRepository.findByDistanceFromPoint(coordinate, radiusInMeters, brandIds, offset, limit)
+        queryRepository.findByDistanceFromPoint(coordinate, radiusInMeters, brandIds)
 }

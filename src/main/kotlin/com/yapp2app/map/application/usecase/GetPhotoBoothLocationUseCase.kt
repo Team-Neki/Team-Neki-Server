@@ -27,56 +27,32 @@ class GetPhotoBoothLocationUseCase(
      * 다각형 기준으로 포토부스 위치 조회
      */
     fun execute(command: GetPolygonLocationCommand): GetPolygonLocationResult {
-        // size + 1개 조회하여 hasNext 판단
-        val fetchSize = command.size + 1
-
         val locations = transactionRunner.readOnly {
             photoBoothLocationRepository.listPolygonLocations(
                 coordinates = command.coordinates,
                 brandIds = command.brandIds,
-                offset = command.page * command.size,
-                limit = fetchSize,
             )
         }
 
         if (locations.isEmpty()) {
-            return GetPolygonLocationResult(emptyList(), hasNext = false)
+            return GetPolygonLocationResult(emptyList())
         }
 
-        // hasNext 판단: size + 1개 조회했는데 실제로 그만큼 있으면 다음 페이지 존재
-        val hasNext = locations.size > command.size
-
-        val locationToReturn = if (hasNext) locations.dropLast(1) else locations
-
-        return GetPolygonLocationResult(locationToReturn, hasNext)
+        return GetPolygonLocationResult(locations)
     }
 
     /**
      * 특정 Point(사용자) 기준으로 포토부스 위치 조회
      */
     fun execute(command: GetPointLocationCommand): GetPointLocationResult {
-        // size + 1개 조회하여 hasNext 판단
-        val fetchSize = command.size + 1
-
         val locations = transactionRunner.readOnly {
             photoBoothLocationRepository.listPointLocations(
                 coordinate = command.coordinate,
                 radiusInMeters = command.radiusInMeters,
                 brandIds = command.brandIds,
-                offset = command.page * command.size,
-                limit = fetchSize,
             )
         }
 
-        if (locations.isEmpty()) {
-            return GetPointLocationResult(emptyList(), hasNext = false)
-        }
-
-        // hasNext 판단: size + 1개 조회했는데 실제로 그만큼 있으면 다음 페이지 존재
-        val hasNext = locations.size > command.size
-
-        val locationToReturn = if (hasNext) locations.dropLast(1) else locations
-
-        return GetPointLocationResult(locationToReturn, hasNext)
+        return GetPointLocationResult(locations)
     }
 }

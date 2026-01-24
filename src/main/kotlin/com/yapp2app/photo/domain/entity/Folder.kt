@@ -15,7 +15,7 @@ import jakarta.persistence.Table
  * description    : 사용자의 사진 폴더 엔티티. 한 사용자는 여러 폴더를 가질 수 있으며, 폴더는 여러 PhotoImage를 포함
  */
 @Entity
-@Table(name = "TB_folder")
+@Table(name = "TB_FOLDER")
 class Folder(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
