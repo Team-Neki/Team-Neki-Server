@@ -5,7 +5,6 @@ import com.yapp2app.photo.domain.entity.FavoritePhoto
 import com.yapp2app.photo.domain.entity.FavoritePhotoId
 import com.yapp2app.photo.infra.persist.jpa.FavoritePhotoQueryRepository
 import com.yapp2app.photo.infra.persist.jpa.JpaFavoriteImageRepository
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Repository
 
 /**
@@ -21,10 +20,10 @@ class FavoriteImageRepositoryAdapter(
 ) : FavoriteImageRepositoryPort {
 
     override fun add(userId: Long, photoId: Long) {
-        try {
-            jpaRepository.save(FavoritePhoto(userId, photoId))
-        } catch (_: DataIntegrityViolationException) {
-            // 이미 존재하는 경우 무시 (멱등성 고려)
+        val id = FavoritePhotoId(userId, photoId)
+
+        if (!jpaRepository.existsById(id)) {
+            jpaRepository.save(FavoritePhoto(id))
         }
     }
 
