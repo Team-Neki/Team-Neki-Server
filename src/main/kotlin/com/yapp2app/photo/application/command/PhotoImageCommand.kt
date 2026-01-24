@@ -8,8 +8,8 @@ import com.yapp2app.common.domain.vo.SortOrder
  * date           : 2026. 1. 2. 오후 8:28
  * description    : Photo image domain command
  */
-data class UploadPhotoCommand(val userId: Long, val uploads: List<UploadItem>) {
-    data class UploadItem(val mediaId: Long, val folderId: Long?, val memo: String?)
+data class UploadPhotoCommand(val userId: Long, val folderId: Long?, val uploads: List<UploadItem>) {
+    data class UploadItem(val mediaId: Long, val memo: String?)
 }
 
 data class GetPhotosCommand(

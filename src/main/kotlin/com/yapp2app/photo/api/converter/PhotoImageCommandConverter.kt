@@ -22,10 +22,10 @@ class PhotoImageCommandConverter {
 
     fun toUploadPhotoCommand(userId: Long, request: UploadPhotoRequest) = UploadPhotoCommand(
         userId = userId,
+        folderId = request.folderId,
         uploads = request.uploads.map { item ->
             UploadPhotoCommand.UploadItem(
                 mediaId = item.mediaId!!,
-                folderId = item.folderId,
                 memo = item.memo,
             )
         },

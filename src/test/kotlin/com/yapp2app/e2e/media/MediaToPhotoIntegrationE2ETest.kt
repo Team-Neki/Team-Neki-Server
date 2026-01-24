@@ -90,10 +90,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
 
         // Step 3: POST /api/photos/bulk 호출하여 메타데이터 등록
         val uploadPhotoRequest = UploadPhotoRequest(
+            folderId = null,
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
-                    folderId = null,
                     memo = null,
                 )
             },
@@ -157,10 +157,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
 
         // Step 2: POST /api/photos/bulk 호출하여 folderId와 함께 메타데이터 등록
         val uploadPhotoRequest = UploadPhotoRequest(
+            folderId = folder.id,
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
-                    folderId = folder.id,
                     memo = "테스트 메모",
                 )
             },
@@ -221,10 +221,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
 
         // Step 2: photo 등록
         val uploadPhotoRequest = UploadPhotoRequest(
+            folderId = null,
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
-                    folderId = null,
                     memo = null,
                 )
             },

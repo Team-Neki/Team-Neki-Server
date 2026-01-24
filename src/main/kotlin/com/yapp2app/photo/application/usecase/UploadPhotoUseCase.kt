@@ -58,7 +58,7 @@ class UploadPhotoUseCase(
             PhotoImage(
                 userId = command.userId,
                 mediaId = upload.mediaId,
-                folderId = upload.folderId,
+                folderId = command.folderId,
                 memo = upload.memo,
             )
         }
