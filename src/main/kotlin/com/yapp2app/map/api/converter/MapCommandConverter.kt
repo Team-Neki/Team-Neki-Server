@@ -26,8 +26,6 @@ class MapCommandConverter {
         return GetPolygonLocationCommand(
             coordinates = coordinates,
             brandIds = request.brandIds,
-            page = request.page,
-            size = request.size,
         )
     }
 
@@ -35,7 +33,5 @@ class MapCommandConverter {
         coordinate = Coordinate(request.longitude, request.latitude),
         radiusInMeters = request.radiusInMeters,
         brandIds = request.brandIds,
-        page = request.page,
-        size = request.size,
     )
 }

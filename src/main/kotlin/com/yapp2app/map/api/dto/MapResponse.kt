@@ -36,9 +36,6 @@ data class CollectPhotoBoothResponse(
 data class GetPolygonLocationResponse(
     @field:Schema(description = "포토부스 위치 목록")
     val items: List<PhotoBoothLocationInfo>,
-
-    @field:Schema(description = "다음 페이지 존재 여부")
-    val hasNext: Boolean,
 ) {
     data class PhotoBoothLocationInfo(
         @field:Schema(description = "포토부스 ID", example = "1")
@@ -64,9 +61,6 @@ data class GetPolygonLocationResponse(
 data class GetPointLocationResponse(
     @field:Schema(description = "포토부스 위치 목록 (거리순 정렬)")
     val items: List<PhotoBoothLocationWithDistanceInfo>,
-
-    @field:Schema(description = "다음 페이지 존재 여부")
-    val hasNext: Boolean,
 ) {
     data class PhotoBoothLocationWithDistanceInfo(
         @field:Schema(description = "포토부스 ID", example = "1")

@@ -52,7 +52,7 @@ class MapResultConverter(private val appProperties: AppProperties) {
                 latitude = it.location.y,
             )
         }
-        return GetPolygonLocationResponse(items = items, hasNext = result.hasNext)
+        return GetPolygonLocationResponse(items = items)
     }
 
     fun toGetPointLocationResponse(result: GetPointLocationResult): GetPointLocationResponse {
@@ -67,6 +67,6 @@ class MapResultConverter(private val appProperties: AppProperties) {
                 distance = it.distance,
             )
         }
-        return GetPointLocationResponse(items = items, hasNext = result.hasNext)
+        return GetPointLocationResponse(items = items)
     }
 }

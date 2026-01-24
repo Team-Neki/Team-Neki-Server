@@ -28,15 +28,8 @@ class PhotoBoothLocationQueryRepository(
      * 다각형 내부의 포토부스 조회
      * @param coordinates 다각형을 구성하는 좌표 리스트 (경도, 위도)
      * @param brandIds 브랜드 ID 리스트 (nullable)
-     * @param offset 페이지네이션 offset
-     * @param limit 페이지네이션 limit
      */
-    fun findByPolygon(
-        coordinates: List<Coordinate>,
-        brandIds: List<Long>?,
-        offset: Int,
-        limit: Int,
-    ): List<PhotoBoothLocationDto> {
+    fun findByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationDto> {
         // LINESTRING 생성을 위한 좌표 문자열 생성
         val lineString = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
 
@@ -59,8 +52,6 @@ class PhotoBoothLocationQueryRepository(
                 ),
                 brandIds?.takeIf { it.isNotEmpty() }?.let { photoBoothLocation.brandId.`in`(it) },
             )
-            .offset(offset.toLong())
-            .limit(limit.toLong())
 
         return query.fetch()
     }
@@ -72,15 +63,11 @@ class PhotoBoothLocationQueryRepository(
      * @param latitude 위도
      * @param radiusInMeters 검색 반경 (미터)
      * @param brandIds 브랜드 ID 리스트 (nullable)
-     * @param offset 페이지네이션 offset
-     * @param limit 페이지네이션 limit
      */
     fun findByDistanceFromPoint(
         coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
-        offset: Int,
-        limit: Int,
     ): List<PhotoBoothLocationWithDistanceDto> {
         val sql = """
             SELECT
@@ -97,15 +84,12 @@ class PhotoBoothLocationQueryRepository(
             )
             ${if (!brandIds.isNullOrEmpty()) "AND brand_id IN (:brandIds)" else ""}
             ORDER BY distance_meters
-            LIMIT :limit OFFSET :offset
         """.trimIndent()
 
         val query = entityManager.createNativeQuery(sql)
             .setParameter("longitude", coordinate.x)
             .setParameter("latitude", coordinate.y)
             .setParameter("radiusInMeters", radiusInMeters)
-            .setParameter("limit", limit)
-            .setParameter("offset", offset)
 
         if (!brandIds.isNullOrEmpty()) {
             query.setParameter("brandIds", brandIds)
