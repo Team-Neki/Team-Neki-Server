@@ -15,6 +15,6 @@ data class CollectPhotoBoothResult(val collectedCount: Int, val duplicatedCount:
 
 data class PhotoBoothResult(val x1: Double, val y1: Double, val x2: Double, val y2: Double)
 
-data class GetPolygonLocationResult(val locations: List<PhotoBoothLocationDto>, val hasNext: Boolean)
+data class GetPolygonLocationResult(val locations: List<PhotoBoothLocationDto>)
 
-data class GetPointLocationResult(val locations: List<PhotoBoothLocationWithDistanceDto>, val hasNext: Boolean)
+data class GetPointLocationResult(val locations: List<PhotoBoothLocationWithDistanceDto>)

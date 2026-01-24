@@ -33,9 +33,7 @@ data class CollectPhotoBoothRequest(
                 {"longitude": 127.023675, "latitude": 37.494257},
                 {"longitude": 127.019128, "latitude": 37.502456}
             ],
-            "brandIds": [],
-            "page": 0,
-            "size": 20
+            "brandIds": []
         }
     """,
 )
@@ -46,15 +44,6 @@ data class GetPolygonLocationRequest(
 
     @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드)", example = "[1, 2, 3]")
     val brandIds: List<Long>? = null,
-
-    @field:Schema(description = "페이지 번호 (0부터 시작)", example = "0")
-    @field:Min(0)
-    val page: Int = 0,
-
-    @field:Schema(description = "페이지 크기", example = "20")
-    @field:Min(1)
-    @field:Max(100)
-    val size: Int = 20,
 ) {
     data class Coordinate(
         @field:Schema(description = "경도", example = "127.019128")
@@ -66,11 +55,11 @@ data class GetPolygonLocationRequest(
 }
 
 data class GetPointLocationRequest(
-    @field:Schema(description = "기준점 경도", example = "127.053472")
-    val longitude: Double,
+    @field:Schema(description = "기준점 경도", example = "127.0276")
+    val longitude: Double? = null,
 
-    @field:Schema(description = "기준점 위도", example = "37.545348")
-    val latitude: Double,
+    @field:Schema(description = "기준점 위도", example = "37.4979")
+    val latitude: Double? = null,
 
     @field:Schema(description = "검색 반경 (미터 단위)", example = "1000", defaultValue = "1000")
     @field:Min(100)
@@ -79,13 +68,4 @@ data class GetPointLocationRequest(
 
     @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드) ", example = "[1, 2, 3]")
     val brandIds: List<Long>? = null,
-
-    @field:Schema(description = "페이지 번호 (0부터 시작)", example = "0", defaultValue = "0")
-    @field:Min(0)
-    val page: Int = 0,
-
-    @field:Schema(description = "페이지 크기", example = "20", defaultValue = "20")
-    @field:Min(1)
-    @field:Max(100)
-    val size: Int = 20,
 )

@@ -32,8 +32,8 @@ data class LocalSearchResult(val documents: List<Place>, val searchPaginationMet
  */
 data class PhotoBoothLocationDto(
     val id: Long,
-    val brandId: Long,
-    val name: String,
+    val brandName: String,
+    val branchName: String,
     val address: String,
     val location: Point,
 )
@@ -43,8 +43,8 @@ data class PhotoBoothLocationDto(
  */
 data class PhotoBoothLocationWithDistanceDto(
     val id: Long,
-    val brandId: Long,
-    val name: String,
+    val brandName: String,
+    val branchName: String,
     val address: String,
     val location: Point,
     val distance: Int,

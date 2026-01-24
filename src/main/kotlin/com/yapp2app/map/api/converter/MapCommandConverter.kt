@@ -18,6 +18,11 @@ import org.springframework.stereotype.Component
 @Component
 class MapCommandConverter {
 
+    companion object {
+        const val GANGNAM_LONGITUDE = 127.0276
+        const val GANGNAM_LATITUDE = 37.4979
+    }
+
     fun toCollectPhotoBoothCommand(request: CollectPhotoBoothRequest): CollectPhotoBoothCommand =
         CollectPhotoBoothCommand(keyword = request.keyword, brandCode = request.brandCode)
 
@@ -26,16 +31,12 @@ class MapCommandConverter {
         return GetPolygonLocationCommand(
             coordinates = coordinates,
             brandIds = request.brandIds,
-            page = request.page,
-            size = request.size,
         )
     }
 
     fun toGetPointLocationCommand(request: GetPointLocationRequest): GetPointLocationCommand = GetPointLocationCommand(
-        coordinate = Coordinate(request.longitude, request.latitude),
+        coordinate = Coordinate(request.longitude ?: GANGNAM_LONGITUDE, request.latitude ?: GANGNAM_LATITUDE),
         radiusInMeters = request.radiusInMeters,
         brandIds = request.brandIds,
-        page = request.page,
-        size = request.size,
     )
 }
