@@ -88,23 +88,7 @@ class PhotoController(
 
     @Operation(
         summary = "사진 삭제 API",
-        description = "지정된 사진 한 장을 삭제합니다.",
-    )
-    @DeleteMapping("/{photoId}")
-    fun deletePhoto(
-        @AuthenticationPrincipal(expression = "id") userId: Long,
-        @PathVariable photoId: Long,
-    ): BaseResponse<Any> {
-        val command = commandConverter.toDeletePhotoCommand(userId, photoId)
-
-        deletePhotoUseCase.execute(command)
-
-        return BaseResponse()
-    }
-
-    @Operation(
-        summary = "사진 선택 삭제 API",
-        description = "body에 포함된 사진들을 삭제합니다.",
+        description = "body에 포함된 사진들을 삭제합니다. 단건 삭제는 photoIds에 하나의 ID만 전달하면 됩니다.",
     )
     @DeleteMapping
     fun deletePhotos(

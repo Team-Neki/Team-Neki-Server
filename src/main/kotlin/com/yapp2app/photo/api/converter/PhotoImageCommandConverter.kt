@@ -4,7 +4,6 @@ import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.api.dto.DeletePhotosRequest
 import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
-import com.yapp2app.photo.application.command.DeletePhotoCommand
 import com.yapp2app.photo.application.command.DeletePhotosCommand
 import com.yapp2app.photo.application.command.GetPhotosCommand
 import com.yapp2app.photo.application.command.UpdatePhotoCommand
@@ -43,11 +42,6 @@ class PhotoImageCommandConverter {
         page = page,
         size = size,
         sortOrder = sortOrder,
-    )
-
-    fun toDeletePhotoCommand(userId: Long, photoId: Long): DeletePhotoCommand = DeletePhotoCommand(
-        userId = userId,
-        photoId = photoId,
     )
 
     fun toDeletePhotosCommand(userId: Long, request: DeletePhotosRequest) = DeletePhotosCommand(
