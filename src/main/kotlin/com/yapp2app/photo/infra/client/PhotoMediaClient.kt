@@ -57,6 +57,11 @@ class PhotoMediaClient(
         }.toList()
     }
 
+    override fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaStorageInfo = getMediaStorageInfo(
+        ownerId = ownerId,
+        mediaId = mediaId,
+    )
+
     override fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaStorageInfo> {
         val result = getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(ownerId, mediaIds))
 
