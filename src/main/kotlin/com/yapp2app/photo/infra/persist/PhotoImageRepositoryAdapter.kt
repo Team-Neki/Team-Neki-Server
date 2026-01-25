@@ -19,7 +19,7 @@ class PhotoImageRepositoryAdapter(
     private val queryRepository: PhotoImageQueryRepository,
 ) : PhotoImageRepositoryPort {
 
-    override fun save(photoImage: PhotoImage): PhotoImage = jpaRepository.save(photoImage)
+    override fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage> = jpaRepository.saveAll(photoImages)
 
     override fun listOwnedPhotos(
         userId: Long,

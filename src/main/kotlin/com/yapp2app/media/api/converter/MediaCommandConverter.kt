@@ -1,6 +1,6 @@
 package com.yapp2app.media.api.converter
 
-import com.yapp2app.media.api.dto.GenerateUploadTicketRequest
+import com.yapp2app.media.api.dto.UploadTicketRequest
 import com.yapp2app.media.application.command.GenerateUploadTicketCommand
 import org.springframework.stereotype.Component
 
@@ -13,13 +13,15 @@ import org.springframework.stereotype.Component
 @Component
 class MediaCommandConverter {
 
-    fun toGenerateUploadTicketCommand(
-        ownerId: Long,
-        request: GenerateUploadTicketRequest,
-    ): GenerateUploadTicketCommand = GenerateUploadTicketCommand(
-        ownerId = ownerId,
-        filename = request.filename,
-        contentType = request.contentType,
-        mediaType = request.mediaType,
-    )
+    fun toGenerateUploadTicketCommand(ownerId: Long, request: UploadTicketRequest): GenerateUploadTicketCommand =
+        GenerateUploadTicketCommand(
+            ownerId = ownerId,
+            items = request.items.map { item ->
+                GenerateUploadTicketCommand.UploadTicketItem(
+                    filename = item.filename,
+                    contentType = item.contentType,
+                    mediaType = item.mediaType!!,
+                )
+            },
+        )
 }

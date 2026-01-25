@@ -24,10 +24,10 @@ class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : Me
     override fun getActiveMedias(ownerId: Long, ids: List<Long>): List<Media> =
         jpaRepository.findAllByOwnerIdAndIdInAndStatus(ownerId, ids, MediaStatus.UPLOADED)
 
-    override fun getMediaForUploadConfirmation(ownerId: Long, id: Long): Media? =
-        jpaRepository.findByOwnerIdAndIdAndStatusIn(
+    override fun getMediaForUploadConfirmation(ownerId: Long, ids: List<Long>): List<Media> =
+        jpaRepository.findAllByOwnerIdAndIdInAndStatusIn(
             ownerId,
-            id,
+            ids,
             listOf(MediaStatus.INITIATED, MediaStatus.UPLOADED),
         )
 
