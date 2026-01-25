@@ -1,6 +1,7 @@
 package com.yapp2app.photo.infra.persist
 
 import com.yapp2app.common.domain.vo.SortOrder
+import com.yapp2app.photo.application.contract.PhotoWithFavorite
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 import com.yapp2app.photo.domain.entity.PhotoImage
 import com.yapp2app.photo.infra.persist.jpa.JpaPhotoImageRepository
@@ -19,15 +20,20 @@ class PhotoImageRepositoryAdapter(
     private val queryRepository: PhotoImageQueryRepository,
 ) : PhotoImageRepositoryPort {
 
+    override fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite? =
+        queryRepository.findOwnedPhotoWithFavorite(userId, photoId)
+
     override fun save(photoImage: PhotoImage): PhotoImage = jpaRepository.save(photoImage)
 
-    override fun listOwnedPhotos(
+    override fun listOwnedPhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage> =
+        queryRepository.findOwnedPhotos(userId, offset, limit, sortOrder)
+
+    override fun listOwnedPhotosWithFavorite(
         userId: Long,
-        folderId: Long?,
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-    ): List<PhotoImage> = queryRepository.findOwnedPhotos(userId, folderId, offset, limit, sortOrder)
+    ): List<PhotoWithFavorite> = queryRepository.findOwnedPhotosWithFavorite(userId, offset, limit, sortOrder)
 
     override fun listOwnedFavoritePhotos(
         userId: Long,
