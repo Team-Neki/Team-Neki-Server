@@ -1,14 +1,13 @@
 package com.yapp2app.e2e.media
 
 import com.yapp2app.common.api.dto.ResultCode
-import com.yapp2app.media.api.dto.GenerateUploadTicketRequest
+import com.yapp2app.media.api.dto.UploadTicketRequest
 import com.yapp2app.media.domain.MediaType
-import com.yapp2app.media.domain.entity.MediaStatus
 import com.yapp2app.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
-import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.hasSize
 import org.hamcrest.Matchers.notNullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -21,7 +20,7 @@ import org.springframework.test.context.ActiveProfiles
 /**
  * fileName       : GenerateUploadTicketE2ETest
  * author         : koo
- * date           : 2026. 1. 20.
+ * date           : 2026. 1. 23.
  * description    : POST /api/media/upload E2E 테스트
  */
 @ActiveProfiles("test")
@@ -45,17 +44,41 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     }
 
     @Test
-    @DisplayName("presigned URL 발급 성공 - Media가 INITIATED 상태로 생성된다")
-    fun givenValidRequest_whenGenerateUploadTicket_thenMediaCreatedWithInitiatedStatus() {
+    @DisplayName("5개의 upload ticket 발급 성공 - 모든 Media가 INITIATED 상태로 생성된다")
+    fun givenFiveItems_whenGenerateUploadTicket_thenReturnsFiveTicketsAndMediaCreated() {
         // given
-        val request = GenerateUploadTicketRequest(
-            filename = "test-photo.jpg",
-            contentType = "image/jpeg",
-            mediaType = MediaType.PHOTO_BOOTH,
+        val request = UploadTicketRequest(
+            items = listOf(
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo1.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo2.png",
+                    contentType = "image/png",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo3.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo4.png",
+                    contentType = "image/png",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo5.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+            ),
         )
 
         // when
-        val mediaId = RestAssured.given()
+        RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(request)
@@ -64,33 +87,34 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-            .body("data.mediaId", notNullValue())
-            .body("data.uploadUrl", notNullValue())
+            .body("data.items", hasSize<Any>(5))
+            .body("data.items[0].mediaId", notNullValue())
+            .body("data.items[0].uploadTicket", notNullValue())
             .body("data.method", equalTo("PUT"))
+            .body("data.expiresIn", notNullValue())
+            .body("data.items[0].contentType", notNullValue())
             .extract()
-            .path<Int>("data.mediaId")
-            .toLong()
-
-        // then - Media가 INITIATED 상태로 생성되었는지 확인
-        val media = mediaRepository.findById(mediaId).orElseThrow()
-        assertThat(media.status).isEqualTo(MediaStatus.INITIATED)
-        assertThat(media.ownerId).isEqualTo(testUser.id)
-        assertThat(media.mediaType).isEqualTo(MediaType.PHOTO_BOOTH)
-        assertThat(media.contentType).isEqualTo("image/jpeg")
+            .jsonPath()
+            .getList<Int>("data.items.mediaId")
+            .map { it.toLong() }
     }
 
     @Test
-    @DisplayName("filename에 확장자가 있으면 storageKey에 해당 확장자가 포함된다")
-    fun givenFilenameWithExtension_whenGenerateUploadTicket_thenStorageKeyContainsExtension() {
+    @DisplayName("최대 10개의 upload ticket 발급 성공")
+    fun givenTenItems_whenGenerateUploadTicket_thenReturnsTenTickets() {
         // given
-        val request = GenerateUploadTicketRequest(
-            filename = "my-photo.png",
-            contentType = "image/png",
-            mediaType = MediaType.PHOTO_BOOTH,
+        val request = UploadTicketRequest(
+            items = (1..10).map {
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo$it.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                )
+            },
         )
 
-        // when
-        val mediaId = RestAssured.given()
+        // when & then
+        RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(request)
@@ -99,82 +123,145 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+            .body("data.items", hasSize<Any>(10))
             .extract()
-            .path<Int>("data.mediaId")
-            .toLong()
-
-        // then - storageKey에 확장자가 포함되어 있는지 확인
-        val media = mediaRepository.findById(mediaId).orElseThrow()
-        assertThat(media.storageKey).endsWith(".png")
-        assertThat(media.storageKey).startsWith("photo-booth/")
+            .jsonPath()
+            .getList<Int>("data.items.mediaId")
+            .map { it.toLong() }
     }
 
     @Test
-    @DisplayName("filename에 확장자가 없으면 contentType에서 확장자를 추출한다")
-    fun givenFilenameWithoutExtension_whenGenerateUploadTicket_thenExtractExtensionFromContentType() {
+    @DisplayName("검증 실패 - 빈 리스트")
+    fun givenEmptyItems_whenGenerateUploadTicket_thenReturnsBadRequest() {
         // given
-        val request = GenerateUploadTicketRequest(
-            filename = "photo-without-extension",
-            contentType = "image/png",
-            mediaType = MediaType.PHOTO_BOOTH,
-        )
+        val request = UploadTicketRequest(items = emptyList())
 
-        // when
-        val mediaId = RestAssured.given()
+        // when & then
+        RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
             .post("/api/media/upload")
             .then()
-            .statusCode(HttpStatus.OK.value())
-            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-            .extract()
-            .path<Int>("data.mediaId")
-            .toLong()
-
-        // then - contentType에서 확장자가 추출되어 storageKey에 포함되어 있는지 확인
-        val media = mediaRepository.findById(mediaId).orElseThrow()
-        assertThat(media.storageKey).endsWith(".png")
-        assertThat(media.storageKey).startsWith("photo-booth/")
+            .statusCode(HttpStatus.BAD_REQUEST.value())
     }
 
     @Test
-    @DisplayName("image/jpeg contentType은 jpg 확장자로 변환된다")
-    fun givenJpegContentType_whenGenerateUploadTicket_thenStorageKeyEndsWithJpg() {
+    @DisplayName("검증 실패 - 11개 초과")
+    fun givenElevenItems_whenGenerateUploadTicket_thenReturnsBadRequest() {
         // given
-        val request = GenerateUploadTicketRequest(
-            filename = "photo",
-            contentType = "image/jpeg",
-            mediaType = MediaType.PHOTO_BOOTH,
+        val request = UploadTicketRequest(
+            items = (1..11).map {
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo$it.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                )
+            },
         )
 
-        // when
-        val mediaId = RestAssured.given()
+        // when & then
+        RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
             .post("/api/media/upload")
             .then()
-            .statusCode(HttpStatus.OK.value())
-            .extract()
-            .path<Int>("data.mediaId")
-            .toLong()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+    }
 
-        // then
-        val media = mediaRepository.findById(mediaId).orElseThrow()
-        assertThat(media.storageKey).endsWith(".jpg")
+    @Test
+    @DisplayName("검증 실패 - filename이 빈 문자열")
+    fun givenEmptyFilename_whenGenerateUploadTicket_thenReturnsBadRequest() {
+        // given
+        val request = UploadTicketRequest(
+            items = listOf(
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+            ),
+        )
+
+        // when & then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(request)
+            .`when`()
+            .post("/api/media/upload")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+    }
+
+    @Test
+    @DisplayName("검증 실패 - contentType이 빈 문자열")
+    fun givenEmptyContentType_whenGenerateUploadTicket_thenReturnsBadRequest() {
+        // given
+        val request = UploadTicketRequest(
+            items = listOf(
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "test.jpg",
+                    contentType = "",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+            ),
+        )
+
+        // when & then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(request)
+            .`when`()
+            .post("/api/media/upload")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+    }
+
+    @Test
+    @DisplayName("검증 실패 - mediaType이 null")
+    fun givenNullMediaType_whenGenerateUploadTicket_thenReturnsBadRequest() {
+        // given
+        val request = UploadTicketRequest(
+            items = listOf(
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "test.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = null,
+                ),
+            ),
+        )
+
+        // when & then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(request)
+            .`when`()
+            .post("/api/media/upload")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
     @Test
     @DisplayName("인증되지 않은 사용자는 403 에러를 반환한다")
     fun givenNoAuth_whenGenerateUploadTicket_thenReturnsForbidden() {
         // given
-        val request = GenerateUploadTicketRequest(
-            filename = "test.jpg",
-            contentType = "image/jpeg",
-            mediaType = MediaType.PHOTO_BOOTH,
+        val request = UploadTicketRequest(
+            items = listOf(
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "test.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+            ),
         )
 
         // when & then

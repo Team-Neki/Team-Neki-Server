@@ -6,9 +6,7 @@ package com.yapp2app.photo.application.result
  * date           : 2026. 1. 2. 오후 8:28
  * description    : photo image application 결과
  */
-data class UploadPhotoResult(val photoId: Long)
-
-data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean = false) {
+data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean) {
 
     data class PhotoInfo(
         val photoId: Long,

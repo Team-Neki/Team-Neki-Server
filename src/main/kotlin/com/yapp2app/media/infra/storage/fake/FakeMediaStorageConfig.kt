@@ -1,5 +1,6 @@
 package com.yapp2app.media.infra.storage.fake
 
+import com.yapp2app.media.application.contract.UploadTicket
 import com.yapp2app.media.application.dto.MediaRef
 import com.yapp2app.media.application.port.MediaStoragePort
 import com.yapp2app.media.domain.MediaType
@@ -41,13 +42,12 @@ class FakeMediaStorageAdapter : MediaStoragePort {
 
     override fun exists(key: String): Boolean = true
 
-    override fun generateUploadTicket(key: String, contentType: String): MediaStoragePort.UploadTicket =
-        MediaStoragePort.UploadTicket(
-            url = "https://fake-storage.test/upload/$key",
-            method = "PUT",
-            expiresAt = Instant.now().plusSeconds(3600),
-            contentType = contentType,
-        )
+    override fun generateUploadTicket(key: String, contentType: String): UploadTicket = UploadTicket(
+        url = "https://fake-storage.test/upload/$key",
+        method = "PUT",
+        expiresAt = Instant.now().plusSeconds(3600),
+        contentType = contentType,
+    )
 
     // 테스트용 메서드
     fun putTestData(key: String, data: ByteArray) {

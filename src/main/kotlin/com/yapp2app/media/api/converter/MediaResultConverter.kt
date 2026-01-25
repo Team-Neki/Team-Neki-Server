@@ -1,6 +1,6 @@
 package com.yapp2app.media.api.converter
 
-import com.yapp2app.media.api.dto.GenerateUploadTicketResponse
+import com.yapp2app.media.api.dto.UploadTicketResponse
 import com.yapp2app.media.application.result.GenerateUploadTicketResult
 import org.springframework.stereotype.Component
 
@@ -13,12 +13,15 @@ import org.springframework.stereotype.Component
 @Component
 class MediaResultConverter {
 
-    fun toGenerateUploadTicketResponse(result: GenerateUploadTicketResult): GenerateUploadTicketResponse =
-        GenerateUploadTicketResponse(
-            mediaId = result.mediaId,
-            uploadUrl = result.uploadUrl,
-            method = result.method,
-            expiresIn = result.expiresAt,
-            contentType = result.contentType,
-        )
+    fun toUploadTicketResponse(result: GenerateUploadTicketResult): UploadTicketResponse = UploadTicketResponse(
+        method = result.method,
+        expiresIn = result.expiresAt,
+        items = result.tickets.map { ticket ->
+            UploadTicketResponse.UploadTicketInfo(
+                mediaId = ticket.mediaId,
+                uploadTicket = ticket.uploadUrl,
+                contentType = ticket.contentType,
+            )
+        },
+    )
 }

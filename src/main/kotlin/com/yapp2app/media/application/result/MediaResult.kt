@@ -8,15 +8,17 @@ import java.time.Instant
  * date           : 2026. 1. 3. 오전 12:04
  * description    : Media domain application result
  */
-data class ConfirmMediaUploadedResult(val success: Boolean)
+data class ConfirmMediaUploadedResult(val results: Map<Long, UploadConfirmStatus>) {
+    enum class UploadConfirmStatus { CONFIRMED, NOT_FOUND, NOT_UPLOADED }
+}
 
 data class GenerateUploadTicketResult(
-    val mediaId: Long,
-    val uploadUrl: String,
     val method: String,
     val expiresAt: Instant,
-    val contentType: String,
-)
+    val tickets: List<UploadTicketInfo>,
+) {
+    data class UploadTicketInfo(val mediaId: Long, val uploadUrl: String, val contentType: String)
+}
 
 data class GetMediasResult(val medias: List<MediaInfo>) {
     data class MediaInfo(val mediaId: Long, val binaryData: ByteArray, val contentType: String) {

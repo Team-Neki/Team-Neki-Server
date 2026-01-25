@@ -1,5 +1,6 @@
 package com.yapp2app.media.infra.storage.s3
 
+import com.yapp2app.media.application.contract.UploadTicket
 import com.yapp2app.media.application.dto.MediaRef
 import com.yapp2app.media.application.port.MediaStoragePort
 import com.yapp2app.media.domain.MediaType
@@ -81,7 +82,7 @@ class S3MediaStorageAdapter(
         }
     }
 
-    override fun generateUploadTicket(key: String, contentType: String): MediaStoragePort.UploadTicket {
+    override fun generateUploadTicket(key: String, contentType: String): UploadTicket {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(props.bucket)
             .key(key)
@@ -95,7 +96,7 @@ class S3MediaStorageAdapter(
 
         val presignedRequest = s3Presigner.presignPutObject(presignRequest)
 
-        return MediaStoragePort.UploadTicket(
+        return UploadTicket(
             url = presignedRequest.url().toString(),
             method = "PUT",
             expiresAt = Instant.now().plus(props.presignedUrlExpiration),
