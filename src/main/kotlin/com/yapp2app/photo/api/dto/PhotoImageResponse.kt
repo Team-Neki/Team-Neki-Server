@@ -25,7 +25,7 @@ data class GetPhotoResponse(
     val imageUrl: String,
     val favorite: Boolean,
     val contentType: String,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
 )
 
 data class GetFavoriteSummaryResponse(val latestImageUrl: String?, val totalCount: Long)

@@ -42,12 +42,9 @@ class PhotoImageCommandConverter {
         sortOrder = sortOrder,
     )
 
-    fun toGetPhotoCommand(
-        userId: Long,
-        photoId: Long
-    ): GetPhotoCommand = GetPhotoCommand(
+    fun toGetPhotoCommand(userId: Long, photoId: Long): GetPhotoCommand = GetPhotoCommand(
         userId = userId,
-        photoId = photoId
+        photoId = photoId,
     )
 
     fun toDeletePhotoCommand(userId: Long, photoId: Long): DeletePhotoCommand = DeletePhotoCommand(

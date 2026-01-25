@@ -97,7 +97,7 @@ class PhotoController(
 
     @Operation(
         summary = "사진 상세 조회 API",
-        description = "사진 상세 정보를 조회합니다."
+        description = "사진 상세 정보를 조회합니다.",
     )
     @GetMapping("/{photoId}")
     fun photoDetail(
