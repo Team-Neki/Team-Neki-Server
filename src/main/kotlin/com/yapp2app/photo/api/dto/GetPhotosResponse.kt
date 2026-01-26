@@ -12,7 +12,8 @@ data class GetPhotosResponse(
     @field:Schema(description = "사진 목록")
     val items: List<PhotoInfo>,
     @field:Schema(description = "다음 페이지 존재 여부", example = "true")
-    val hasNext: Boolean) {
+    val hasNext: Boolean,
+) {
     data class PhotoInfo(
         @field:Schema(description = "사진 ID", example = "1")
         val photoId: Long,

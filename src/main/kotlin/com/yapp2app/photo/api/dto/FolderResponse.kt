@@ -10,17 +10,17 @@ import io.swagger.v3.oas.annotations.media.Schema
  */
 data class CreateFolderResponse(
     @field:Schema(description = "폴더 ID", example = "1")
-    val folderId: Long
+    val folderId: Long,
 )
 
 data class GetAllFolderResponse(
     @field:Schema(description = "폴더 목록")
-    val items: List<FolderInfo>
+    val items: List<FolderInfo>,
 ) {
     data class FolderInfo(
         @field:Schema(description = "폴더 ID", example = "1")
         val folderId: Long,
         @field:Schema(description = "폴더명", example = "즐겨찾기")
-        val name: String
+        val name: String,
     )
 }

@@ -12,7 +12,8 @@ data class GetAuthResponse(
     @field:Schema(description = "AccessToken", example = "ey...")
     val accessToken: String,
     @field:Schema(description = "RefreshToken", example = "ey...")
-    val refreshToken: String)
+    val refreshToken: String,
+)
 
 /**
  * REST_API TEST용 DTO
