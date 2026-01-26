@@ -20,9 +20,6 @@ class FolderRepositoryAdapter(
 
     override fun save(folder: Folder): Folder = jpaRepository.save(folder)
 
-    override fun deleteOwnedFolder(userId: Long, folderId: Long): Int =
-        queryRepository.deleteOwnedFolder(userId, folderId)
-
     override fun deleteOwnedFolders(userId: Long, folderIds: List<Long>): Int =
         queryRepository.deleteOwnedFolders(userId, folderIds)
 
