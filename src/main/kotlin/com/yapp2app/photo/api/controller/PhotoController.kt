@@ -6,10 +6,14 @@ import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.api.converter.PhotoImageCommandConverter
 import com.yapp2app.photo.api.converter.PhotoImageResultConverter
 import com.yapp2app.photo.api.dto.DeletePhotosRequest
+import com.yapp2app.photo.api.dto.GetPhotoResponse
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
+import com.yapp2app.photo.application.command.GetPhotoCommand
+import com.yapp2app.photo.application.result.GetPhotoResult
 import com.yapp2app.photo.application.usecase.DeletePhotosUseCase
+import com.yapp2app.photo.application.usecase.GetPhotoUseCase
 import com.yapp2app.photo.application.usecase.GetPhotosUseCase
 import com.yapp2app.photo.application.usecase.UpdatePhotoUseCase
 import com.yapp2app.photo.application.usecase.UploadPhotosUseCase
@@ -42,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController
 class PhotoController(
     private val uploadPhotosUseCase: UploadPhotosUseCase,
     private val getPhotosUseCase: GetPhotosUseCase,
+    private val getPhotoUseCase: GetPhotoUseCase,
     private val deletePhotosUseCase: DeletePhotosUseCase,
     private val updatePhotoUseCase: UpdatePhotoUseCase,
 
@@ -61,7 +66,9 @@ class PhotoController(
         @Valid @RequestBody request: UploadPhotoRequest,
     ): BaseResponse<Any> {
         val command = commandConverter.toUploadPhotoCommand(userId, request)
+
         uploadPhotosUseCase.execute(command)
+
         return BaseResponse()
     }
 
@@ -87,8 +94,26 @@ class PhotoController(
     }
 
     @Operation(
+        summary = "사진 상세 조회 API",
+        description = "사진 상세 정보를 조회합니다.",
+    )
+    @GetMapping("/{photoId}")
+    fun photoDetail(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @PathVariable photoId: Long,
+    ): BaseResponse<GetPhotoResponse> {
+        val command: GetPhotoCommand = commandConverter.toGetPhotoCommand(userId, photoId)
+
+        val result: GetPhotoResult = getPhotoUseCase.execute(command)
+
+        val response: GetPhotoResponse = resultConverter.toGetPhotoResponse(result)
+
+        return BaseResponse(data = response)
+    }
+
+    @Operation(
         summary = "사진 삭제 API",
-        description = "body에 포함된 사진들을 삭제합니다. 단건 삭제는 photoIds에 하나의 ID만 전달하면 됩니다.",
+        description = "body에 포함된 사진들을 삭제합니다.",
     )
     @DeleteMapping
     fun deletePhotos(

@@ -70,7 +70,6 @@ class GetFavoritePhotosUseCase(
             GetPhotosResult.PhotoInfo(
                 photoId = it.id!!,
                 storageKey = media.storageKey,
-                folderId = it.folderId,
                 favorite = true,
                 contentType = media.contentType,
                 createdAt = it.createdAt!!,
