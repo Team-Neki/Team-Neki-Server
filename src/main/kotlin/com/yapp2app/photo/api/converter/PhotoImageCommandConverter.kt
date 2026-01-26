@@ -21,11 +21,15 @@ import org.springframework.stereotype.Component
 @Component
 class PhotoImageCommandConverter {
 
-    fun toUploadPhotoCommand(userId: Long, request: UploadPhotoRequest): UploadPhotoCommand = UploadPhotoCommand(
+    fun toUploadPhotoCommand(userId: Long, request: UploadPhotoRequest) = UploadPhotoCommand(
         userId = userId,
-        mediaId = request.mediaId!!,
         folderId = request.folderId,
-        memo = request.memo,
+        uploads = request.uploads.map { item ->
+            UploadPhotoCommand.UploadItem(
+                mediaId = item.mediaId!!,
+                memo = item.memo,
+            )
+        },
     )
 
     fun toGetPhotosCommand(

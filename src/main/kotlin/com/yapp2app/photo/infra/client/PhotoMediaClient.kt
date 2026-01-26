@@ -5,6 +5,7 @@ import com.yapp2app.media.application.command.DeleteMediaCommand
 import com.yapp2app.media.application.command.DeleteMediasCommand
 import com.yapp2app.media.application.command.GetMediaStorageInfosCommand
 import com.yapp2app.media.application.command.GetMediasCommand
+import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.yapp2app.media.application.usecase.DeleteMediaUseCase
 import com.yapp2app.media.application.usecase.GetMediaStorageInfosUseCase
@@ -30,21 +31,6 @@ class PhotoMediaClient(
     private val deleteMediaUseCase: DeleteMediaUseCase,
 ) : MediaClientPort {
 
-    override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability {
-        val result = confirmMediaUploadedUseCase.execute(
-            ConfirmMediaUploadedCommand(
-                ownerId = ownerId,
-                mediaId = mediaId,
-            ),
-        )
-
-        return if (result.success) {
-            MediaAvailability.AVAILABLE
-        } else {
-            MediaAvailability.UNAVAILABLE
-        }
-    }
-
     override fun getMediaBinaries(ownerId: Long, mediaIds: List<Long>): List<MediaInfo> {
         val result = getMediasUseCase.execute(GetMediasCommand(ownerId, mediaIds))
 
@@ -63,7 +49,8 @@ class PhotoMediaClient(
     )
 
     override fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaStorageInfo> {
-        val result = getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(ownerId, mediaIds))
+        val result =
+            getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(ownerId, mediaIds))
 
         return result.storageInfos.map {
             MediaStorageInfo(
@@ -82,9 +69,25 @@ class PhotoMediaClient(
         deleteMediaUseCase.execute(DeleteMediasCommand(ownerId, mediaIds))
     }
 
-    override fun rollbackMediaUploaded(ownerId: Long, mediaId: Long) {
+    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
+        if (mediaIds.isEmpty()) return emptyMap()
+
+        val result = confirmMediaUploadedUseCase.execute(
+            ConfirmMediaUploadedCommand(ownerId = ownerId, mediaIds = mediaIds),
+        )
+        return result.results.mapValues { (_, status) ->
+            if (status == UploadConfirmStatus.CONFIRMED) MediaAvailability.AVAILABLE else MediaAvailability.UNAVAILABLE
+        }
+    }
+
+    override fun rollbackMediasUploaded(ownerId: Long, mediaIds: List<Long>) {
+        if (mediaIds.isEmpty()) return
+
         confirmMediaUploadedUseCase.rollback(
-            ConfirmMediaUploadedCommand(ownerId = ownerId, mediaId = mediaId),
+            ConfirmMediaUploadedCommand(
+                ownerId = ownerId,
+                mediaIds = mediaIds,
+            ),
         )
     }
 }

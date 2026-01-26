@@ -5,6 +5,8 @@ import com.yapp2app.media.domain.MediaType
 import com.yapp2app.media.domain.entity.Media
 import com.yapp2app.media.domain.entity.MediaStatus
 import com.yapp2app.media.infra.persist.jpa.JpaMediaRepository
+import com.yapp2app.photo.infra.persist.jpa.JpaFolderRepository
+import com.yapp2app.photo.infra.persist.jpa.JpaPhotoImageRepository
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -19,8 +21,16 @@ abstract class MediaE2ETestBase : E2ETestBase() {
     @Autowired
     protected lateinit var mediaRepository: JpaMediaRepository
 
+    @Autowired
+    protected lateinit var photoImageRepository: JpaPhotoImageRepository
+
+    @Autowired
+    protected lateinit var folderRepository: JpaFolderRepository
+
     @AfterEach
     override fun tearDown() {
+        photoImageRepository.deleteAllInBatch()
+        folderRepository.deleteAllInBatch()
         mediaRepository.deleteAllInBatch()
         super.tearDown()
     }

@@ -12,8 +12,6 @@ import com.yapp2app.photo.application.contract.MediaStorageInfo
  */
 interface MediaClientPort {
 
-    fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability
-
     fun getMediaBinaries(ownerId: Long, mediaIds: List<Long>): List<MediaInfo>
 
     fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaStorageInfo
@@ -25,8 +23,14 @@ interface MediaClientPort {
     fun deleteMedias(ownerId: Long, mediaIds: List<Long>)
 
     /**
-     * 보상 트랜잭션: media 상태를 INITIATED로 롤백
+     * 여러 media가 object storage에 정상적으로 저장되었는지 확인
+     * @return mediaId와 가용 여부의 Map
+     */
+    fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability>
+
+    /**
+     * 보상 트랜잭션: 여러 media 상태를 INITIATED로 롤백
      * PhotoImage 저장 실패 시 호출
      */
-    fun rollbackMediaUploaded(ownerId: Long, mediaId: Long)
+    fun rollbackMediasUploaded(ownerId: Long, mediaIds: List<Long>)
 }

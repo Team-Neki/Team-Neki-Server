@@ -10,7 +10,6 @@ import com.yapp2app.photo.api.dto.GetPhotoResponse
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
-import com.yapp2app.photo.api.dto.UploadPhotoResponse
 import com.yapp2app.photo.application.command.GetPhotoCommand
 import com.yapp2app.photo.application.result.GetPhotoResult
 import com.yapp2app.photo.application.usecase.DeletePhotoUseCase
@@ -57,21 +56,20 @@ class PhotoController(
 
     @Operation(
         summary = "사진 등록 API",
-        description = """presigned 발급 API로 url을 발급받아 S3에 이미지를 업로드한 후에 호출합니다.
-            S3 이미지 업로드가 보장되지 않으므로 S3 이미지 업로드가 완료되었는지 서버에서 검증 후에 메타데이터를 데이터베이스에 저장됩니다.""",
+        description = """presigned 발급 API로 url을 발급받아 S3에 이미지들을 업로드한 후에 호출합니다.
+            한 번에 최대 10장까지 업로드할 수 있습니다.
+            모든 이미지가 S3에 업로드되었는지 검증 후에 메타데이터를 데이터베이스에 일괄 저장합니다.""",
     )
     @PostMapping
     fun uploadPhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: UploadPhotoRequest,
-    ): BaseResponse<UploadPhotoResponse> {
+    ): BaseResponse<Any> {
         val command = commandConverter.toUploadPhotoCommand(userId, request)
 
-        val result = uploadPhotoUseCase.execute(command)
+        uploadPhotoUseCase.execute(command)
 
-        val response = resultConverter.toUploadPhotoResponse(result)
-
-        return BaseResponse(data = response)
+        return BaseResponse()
     }
 
     @Operation(

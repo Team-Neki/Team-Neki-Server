@@ -4,11 +4,9 @@ import com.yapp2app.common.properties.AppProperties
 import com.yapp2app.photo.api.dto.GetFavoriteSummaryResponse
 import com.yapp2app.photo.api.dto.GetPhotoResponse
 import com.yapp2app.photo.api.dto.GetPhotosResponse
-import com.yapp2app.photo.api.dto.UploadPhotoResponse
 import com.yapp2app.photo.application.result.GetFavoriteSummaryResult
 import com.yapp2app.photo.application.result.GetPhotoResult
 import com.yapp2app.photo.application.result.GetPhotosResult
-import com.yapp2app.photo.application.result.UploadPhotoResult
 import org.springframework.stereotype.Component
 
 /**
@@ -22,8 +20,6 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
     companion object {
         private const val IMAGE_URL_PATH = "/file/image/"
     }
-
-    fun toUploadPhotoResponse(result: UploadPhotoResult): UploadPhotoResponse = UploadPhotoResponse(result.photoId)
 
     fun toGetPhotosResponse(result: GetPhotosResult): GetPhotosResponse = GetPhotosResponse(
         items = result.photos.map {

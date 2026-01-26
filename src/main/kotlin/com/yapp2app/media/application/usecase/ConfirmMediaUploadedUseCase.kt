@@ -1,13 +1,12 @@
 package com.yapp2app.media.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.api.dto.ResultCode
-import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
 import com.yapp2app.media.application.port.MediaRepositoryPort
 import com.yapp2app.media.application.port.MediaStoragePort
 import com.yapp2app.media.application.result.ConfirmMediaUploadedResult
+import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
 
 /**
  * fileName       : VerifyMediaUseCase
@@ -23,27 +22,31 @@ class ConfirmMediaUploadedUseCase(
 ) {
 
     fun execute(command: ConfirmMediaUploadedCommand): ConfirmMediaUploadedResult {
-        val media = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaId)
-            ?: throw BusinessException(ResultCode.NOT_FOUND)
+        if (command.mediaIds.isEmpty()) return ConfirmMediaUploadedResult(emptyMap())
 
-        // 이미 업로드된 경우 무시
-        if (media.isUploaded()) {
-            return ConfirmMediaUploadedResult(true)
-        }
+        val medias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
 
-        // 오브젝트 스토리지에 해당 키가 존재하는지 확인
-        val exists = mediaStorage.exists(media.storageKey)
+        val s3ExistsMap = medias
+            .filter { !it.isUploaded() }
+            .associate { it.id!! to mediaStorage.exists(it.storageKey) }
 
         return transactionRunner.runNew {
-            val media = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaId)
-                ?: throw BusinessException(ResultCode.NOT_FOUND)
+            val freshMedias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+            val freshMediaMap = freshMedias.associateBy { it.id!! }
 
-            if (media.isUploaded() || exists) {
-                media.markAsUploaded()
-                ConfirmMediaUploadedResult(true)
-            } else {
-                ConfirmMediaUploadedResult(false)
+            val results = command.mediaIds.associateWith { mediaId ->
+                val media = freshMediaMap[mediaId]
+                when {
+                    media == null -> UploadConfirmStatus.NOT_FOUND
+                    media.isUploaded() -> UploadConfirmStatus.CONFIRMED
+                    s3ExistsMap[mediaId] == true -> {
+                        media.markAsUploaded()
+                        UploadConfirmStatus.CONFIRMED
+                    }
+                    else -> UploadConfirmStatus.NOT_UPLOADED
+                }
             }
+            ConfirmMediaUploadedResult(results)
         }
     }
 
@@ -52,10 +55,11 @@ class ConfirmMediaUploadedUseCase(
      * PhotoImage 저장 실패 시 호출
      */
     fun rollback(command: ConfirmMediaUploadedCommand) {
+        if (command.mediaIds.isEmpty()) return
+
         transactionRunner.runNew {
-            val media = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaId)
-                ?: return@runNew
-            media.markAsInitiated()
+            val medias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+            medias.forEach { it.markAsInitiated() }
         }
     }
 }

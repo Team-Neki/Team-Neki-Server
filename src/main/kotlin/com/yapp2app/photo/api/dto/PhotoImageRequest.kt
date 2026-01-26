@@ -11,14 +11,20 @@ import jakarta.validation.constraints.NotNull
  * description    : Photo image domain 요청
  */
 data class UploadPhotoRequest(
-    @field:NotNull(message = "mediaId는 필수 입력값입니다.")
-    val mediaId: Long?,
-
     @field:Nullable
     val folderId: Long?,
 
-    val memo: String?,
-)
+    @field:NotEmpty(message = "uploads가 비어있습니다.")
+    @field:jakarta.validation.constraints.Size(max = 10, message = "한 번에 최대 10장까지 업로드할 수 있습니다.")
+    val uploads: List<UploadPhotoItem>,
+) {
+    data class UploadPhotoItem(
+        @field:NotNull(message = "mediaId는 필수 입력값입니다.")
+        val mediaId: Long?,
+
+        val memo: String?,
+    )
+}
 
 data class DeletePhotosRequest(
     @field:NotEmpty(message = "photoIds가 비어있습니다.")

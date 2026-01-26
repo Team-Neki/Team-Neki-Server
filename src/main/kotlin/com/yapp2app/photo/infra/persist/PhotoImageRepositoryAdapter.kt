@@ -24,6 +24,7 @@ class PhotoImageRepositoryAdapter(
         queryRepository.findOwnedPhotoWithFavorite(userId, photoId)
 
     override fun save(photoImage: PhotoImage): PhotoImage = jpaRepository.save(photoImage)
+    override fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage> = jpaRepository.saveAll(photoImages)
 
     override fun listOwnedPhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage> =
         queryRepository.findOwnedPhotos(userId, offset, limit, sortOrder)
