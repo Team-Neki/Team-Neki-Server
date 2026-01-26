@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
  * description    : 폴더 삭제 usecase
  */
 @UseCase
-class DeleteFolderUseCase(
+class DeleteFoldersUseCase(
     private val folderRepository: FolderRepositoryPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
 ) {

@@ -9,10 +9,10 @@ import com.yapp2app.photo.api.dto.DeletePhotosRequest
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
-import com.yapp2app.photo.application.usecase.DeletePhotoUseCase
+import com.yapp2app.photo.application.usecase.DeletePhotosUseCase
 import com.yapp2app.photo.application.usecase.GetPhotosUseCase
 import com.yapp2app.photo.application.usecase.UpdatePhotoUseCase
-import com.yapp2app.photo.application.usecase.UploadPhotoUseCase
+import com.yapp2app.photo.application.usecase.UploadPhotosUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -40,9 +40,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/photos")
 class PhotoController(
-    private val bulkUploadPhotoUseCase: UploadPhotoUseCase,
+    private val uploadPhotosUseCase: UploadPhotosUseCase,
     private val getPhotosUseCase: GetPhotosUseCase,
-    private val deletePhotoUseCase: DeletePhotoUseCase,
+    private val deletePhotosUseCase: DeletePhotosUseCase,
     private val updatePhotoUseCase: UpdatePhotoUseCase,
 
     private val commandConverter: PhotoImageCommandConverter,
@@ -61,7 +61,7 @@ class PhotoController(
         @Valid @RequestBody request: UploadPhotoRequest,
     ): BaseResponse<Any> {
         val command = commandConverter.toUploadPhotoCommand(userId, request)
-        bulkUploadPhotoUseCase.execute(command)
+        uploadPhotosUseCase.execute(command)
         return BaseResponse()
     }
 
@@ -97,7 +97,7 @@ class PhotoController(
     ): BaseResponse<Any> {
         val command = commandConverter.toDeletePhotosCommand(userId, request)
 
-        deletePhotoUseCase.execute(command)
+        deletePhotosUseCase.execute(command)
 
         return BaseResponse()
     }

@@ -10,7 +10,7 @@ import com.yapp2app.photo.api.dto.DeleteFoldersRequest
 import com.yapp2app.photo.api.dto.GetAllFolderResponse
 import com.yapp2app.photo.api.dto.UpdateFolderRequest
 import com.yapp2app.photo.application.usecase.CreateFolderUseCase
-import com.yapp2app.photo.application.usecase.DeleteFolderUseCase
+import com.yapp2app.photo.application.usecase.DeleteFoldersUseCase
 import com.yapp2app.photo.application.usecase.GetFoldersUseCase
 import com.yapp2app.photo.application.usecase.UpdateFolderUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RestController
 class FolderController(
     private val createFolderUseCase: CreateFolderUseCase,
     private val getFoldersUseCase: GetFoldersUseCase,
-    private val deleteFolderUseCase: DeleteFolderUseCase,
+    private val deleteFoldersUseCase: DeleteFoldersUseCase,
     private val updateFolderUseCase: UpdateFolderUseCase,
     private val commandConverter: FolderCommandConverter,
     private val resultConverter: FolderResultConverter,
@@ -89,7 +89,7 @@ class FolderController(
     ): BaseResponse<Any> {
         val command = commandConverter.toDeleteFoldersCommand(request, userId)
 
-        deleteFolderUseCase.execute(command)
+        deleteFoldersUseCase.execute(command)
 
         return BaseResponse()
     }

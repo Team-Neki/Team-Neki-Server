@@ -14,7 +14,7 @@ import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
  * description    : 사진 삭제 usecase
  */
 @UseCase
-class DeletePhotoUseCase(
+class DeletePhotosUseCase(
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val favoriteImageRepository: FavoriteImageRepositoryPort,
     private val mediaClient: MediaClientPort,
