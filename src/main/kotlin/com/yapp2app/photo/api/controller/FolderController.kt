@@ -80,23 +80,7 @@ class FolderController(
 
     @Operation(
         summary = "폴더 삭제 API",
-        description = "단건 폴더 삭제를 합니다.",
-    )
-    @DeleteMapping("/{folderId}")
-    fun deleteFolder(
-        @AuthenticationPrincipal(expression = "id") userId: Long,
-        @PathVariable folderId: Long,
-    ): BaseResponse<Any> {
-        val command = commandConverter.toDeleteFolderCommand(userId, folderId)
-
-        deleteFolderUseCase.execute(command)
-
-        return BaseResponse()
-    }
-
-    @Operation(
-        summary = "폴더 선택 삭제 API",
-        description = "여러 개의 폴더를 선택하여 삭제합니다.",
+        description = "폴더를 삭제합니다.",
     )
     @DeleteMapping
     fun deleteFolders(

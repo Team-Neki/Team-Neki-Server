@@ -8,8 +8,6 @@ package com.yapp2app.photo.application.command
  */
 data class CreateFolderCommand(val userId: Long, val name: String)
 
-data class DeleteFolderCommand(val userId: Long, val folderId: Long)
-
 data class DeleteFoldersCommand(val userId: Long, val folderIds: List<Long>)
 
 data class GetFoldersCommand(val userId: Long)

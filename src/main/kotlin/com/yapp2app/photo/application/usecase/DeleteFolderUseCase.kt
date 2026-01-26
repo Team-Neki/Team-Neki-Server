@@ -3,7 +3,6 @@ package com.yapp2app.photo.application.usecase
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
-import com.yapp2app.photo.application.command.DeleteFolderCommand
 import com.yapp2app.photo.application.command.DeleteFoldersCommand
 import com.yapp2app.photo.application.port.FolderRepositoryPort
 import org.springframework.transaction.annotation.Transactional
@@ -16,13 +15,6 @@ import org.springframework.transaction.annotation.Transactional
  */
 @UseCase
 class DeleteFolderUseCase(private val folderRepository: FolderRepositoryPort) {
-
-    @Transactional
-    fun execute(command: DeleteFolderCommand) {
-        val deletedCount = folderRepository.deleteOwnedFolder(command.userId, command.folderId)
-
-        if (deletedCount == 0) throw BusinessException(ResultCode.NOT_FOUND)
-    }
 
     @Transactional
     fun execute(command: DeleteFoldersCommand) {
