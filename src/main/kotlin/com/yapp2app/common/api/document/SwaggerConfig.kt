@@ -72,7 +72,6 @@ class SwaggerConfig(private val appProperties: AppProperties) {
                     ResultCode.INVALID_PARAMETER,
                     "message 값을 모달로 띄워주세요.",
                 )
-                addErrorResponseIfMissing(HttpStatus.INTERNAL_SERVER_ERROR, ResultCode.ERROR)
                 if (isSecured) {
                     addErrorResponseIfMissing(HttpStatus.UNAUTHORIZED, ResultCode.EXPIRED_TOKEN_ERROR)
                     addErrorResponseIfMissing(HttpStatus.FORBIDDEN, ResultCode.INVALID_TOKEN_ERROR)
