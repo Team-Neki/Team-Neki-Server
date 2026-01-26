@@ -6,10 +6,14 @@ import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.photo.api.converter.PhotoImageCommandConverter
 import com.yapp2app.photo.api.converter.PhotoImageResultConverter
 import com.yapp2app.photo.api.dto.DeletePhotosRequest
+import com.yapp2app.photo.api.dto.GetPhotoResponse
 import com.yapp2app.photo.api.dto.GetPhotosResponse
 import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
+import com.yapp2app.photo.application.command.GetPhotoCommand
+import com.yapp2app.photo.application.result.GetPhotoResult
 import com.yapp2app.photo.application.usecase.DeletePhotoUseCase
+import com.yapp2app.photo.application.usecase.GetPhotoUseCase
 import com.yapp2app.photo.application.usecase.GetPhotosUseCase
 import com.yapp2app.photo.application.usecase.UpdatePhotoUseCase
 import com.yapp2app.photo.application.usecase.UploadPhotoUseCase
@@ -40,8 +44,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/photos")
 class PhotoController(
-    private val bulkUploadPhotoUseCase: UploadPhotoUseCase,
+    private val uploadPhotoUseCase: UploadPhotoUseCase,
     private val getPhotosUseCase: GetPhotosUseCase,
+    private val getPhotoUseCase: GetPhotoUseCase,
     private val deletePhotoUseCase: DeletePhotoUseCase,
     private val updatePhotoUseCase: UpdatePhotoUseCase,
 
@@ -61,7 +66,9 @@ class PhotoController(
         @Valid @RequestBody request: UploadPhotoRequest,
     ): BaseResponse<Any> {
         val command = commandConverter.toUploadPhotoCommand(userId, request)
-        bulkUploadPhotoUseCase.execute(command)
+
+        uploadPhotoUseCase.execute(command)
+
         return BaseResponse()
     }
 
@@ -82,6 +89,24 @@ class PhotoController(
         val result = getPhotosUseCase.execute(command)
 
         val response = resultConverter.toGetPhotosResponse(result)
+
+        return BaseResponse(data = response)
+    }
+
+    @Operation(
+        summary = "사진 상세 조회 API",
+        description = "사진 상세 정보를 조회합니다.",
+    )
+    @GetMapping("/{photoId}")
+    fun photoDetail(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @PathVariable photoId: Long,
+    ): BaseResponse<GetPhotoResponse> {
+        val command: GetPhotoCommand = commandConverter.toGetPhotoCommand(userId, photoId)
+
+        val result: GetPhotoResult = getPhotoUseCase.execute(command)
+
+        val response: GetPhotoResponse = resultConverter.toGetPhotoResponse(result)
 
         return BaseResponse(data = response)
     }

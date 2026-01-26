@@ -247,6 +247,110 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         assertThat(media2.mediaType).isEqualTo(MediaType.ATTACHMENT)
     }
 
+    @Test
+    @DisplayName("다른 사용자의 폴더에 업로드 시도 시 NOT_FOUND 반환")
+    fun givenOtherUsersFolder_whenUploadPhoto_thenNotFound() {
+        // given
+        val (otherUser, _) = createTestUserAndToken(email = "other-${System.currentTimeMillis()}@example.com")
+        val otherUsersFolder = createFolder(otherUser.id!!, "다른 사용자의 폴더")
+
+        // ticket 발급
+        val ticketRequest = UploadTicketRequest(
+            items = listOf(
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo1.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+            ),
+        )
+
+        val mediaIds = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(ticketRequest)
+            .`when`()
+            .post("/api/media/upload")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .jsonPath()
+            .getList<Int>("data.items.mediaId")
+            .map { it.toLong() }
+
+        // when
+        val uploadPhotoRequest = UploadPhotoRequest(
+            folderId = otherUsersFolder.id,
+            uploads = mediaIds.map {
+                UploadPhotoRequest.UploadPhotoItem(
+                    mediaId = it,
+                    memo = null,
+                )
+            },
+        )
+
+        // then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(uploadPhotoRequest)
+            .`when`()
+            .post("/api/photos")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 폴더에 업로드 시도 시 NOT_FOUND 반환")
+    fun givenNonExistentFolder_whenUploadPhoto_thenNotFound() {
+        // given
+        val ticketRequest = UploadTicketRequest(
+            items = listOf(
+                UploadTicketRequest.UploadTicketItem(
+                    filename = "photo1.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.PHOTO_BOOTH,
+                ),
+            ),
+        )
+
+        val mediaIds = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(ticketRequest)
+            .`when`()
+            .post("/api/media/upload")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .jsonPath()
+            .getList<Int>("data.items.mediaId")
+            .map { it.toLong() }
+
+        // when
+        val uploadPhotoRequest = UploadPhotoRequest(
+            folderId = 999999L,
+            uploads = mediaIds.map {
+                UploadPhotoRequest.UploadPhotoItem(
+                    mediaId = it,
+                    memo = null,
+                )
+            },
+        )
+
+        // then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(uploadPhotoRequest)
+            .`when`()
+            .post("/api/photos")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+    }
+
     private fun createFolder(userId: Long, name: String): Folder = folderRepository.save(
         Folder(
             userId = userId,
