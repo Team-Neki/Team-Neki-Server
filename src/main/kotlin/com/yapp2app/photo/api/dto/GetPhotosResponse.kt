@@ -30,4 +30,9 @@ data class GetPhotosResponse(
     )
 }
 
-data class GetFavoriteSummaryResponse(val latestImageUrl: String?, val totalCount: Long)
+data class GetFavoriteSummaryResponse(
+    @field:Schema(description = "가장 최근 즐겨찾기 사진 URL", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")
+    val latestImageUrl: String?,
+    @field:Schema(description = "즐겨찾기 갯수", example = "1")
+    val totalCount: Long
+)
