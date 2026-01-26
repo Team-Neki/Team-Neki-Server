@@ -20,6 +20,7 @@ enum class ResultCode(val code: String, val message: String) {
 
     CONFLICT_FOLDER("D-06", message = "해당하는 폴더가 존재합니다."),
 
+    MISSING_TOKEN_ERROR("D-996", "토큰이 존재하지 않습니다."),
     EXPIRED_TOKEN_ERROR("D-997", "토큰이 만료되었습니다."),
     INVALID_TOKEN_ERROR("D-998", "토큰이 올바르지 않습니다."),
     SECURITY_ERROR("D-999", "인증에 실패하였습니다."),

@@ -1,10 +1,8 @@
 package com.yapp2app.auth.infra.security.config
 
-import com.nimbusds.jose.shaded.gson.JsonObject
 import com.yapp2app.auth.infra.security.filter.AuthMdcFilter
 import com.yapp2app.auth.infra.security.filter.JwtAuthenticationFilter
-import com.yapp2app.common.api.dto.ResultCode
-import jakarta.servlet.http.HttpServletResponse
+import com.yapp2app.auth.infra.security.handler.CustomAuthenticationEntryPoint
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -58,6 +56,7 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
     fun apiSecurityFilterChain(
         http: HttpSecurity,
         jwtAuthenticationFilter: JwtAuthenticationFilter,
+        authenticationEntryPoint: CustomAuthenticationEntryPoint,
     ): SecurityFilterChain = http
         .securityMatcher("/**")
         .csrf { it.disable() }
@@ -66,22 +65,7 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
             it.requestMatchers("/api/auth/**", "/api/users/register").permitAll()
             it.anyRequest().authenticated()
         }
-        // 토큰을 아예 입력하지 않았을 경우 아래 로직 수행
-        .exceptionHandling {
-            it.authenticationEntryPoint { _, response, _ ->
-                val jsonObject = JsonObject()
-                response.contentType = "application/json;charset=UTF-8"
-                response.characterEncoding = "utf-8"
-                response.status = HttpServletResponse.SC_FORBIDDEN
-
-                jsonObject.addProperty("resultCode", ResultCode.INVALID_TOKEN_ERROR.code)
-                jsonObject.addProperty("message", ResultCode.INVALID_TOKEN_ERROR.message)
-                jsonObject.add("data", null)
-
-                response.writer.print(jsonObject)
-                response.writer.flush()
-            }
-        }
+        .exceptionHandling { it.authenticationEntryPoint(authenticationEntryPoint) }
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
         .addFilterAfter(AuthMdcFilter(), JwtAuthenticationFilter::class.java)
         .build()

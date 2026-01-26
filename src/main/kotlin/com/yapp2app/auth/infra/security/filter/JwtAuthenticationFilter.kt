@@ -1,7 +1,8 @@
 package com.yapp2app.auth.infra.security.filter
 
-import com.nimbusds.jose.shaded.gson.JsonObject
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.yapp2app.auth.infra.security.token.AuthTokenProvider
+import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.common.api.dto.ResultCode
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.MalformedJwtException
@@ -10,6 +11,7 @@ import io.jsonwebtoken.security.SignatureException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
@@ -22,7 +24,8 @@ import org.springframework.web.filter.OncePerRequestFilter
  * description    : JWT 토큰 검증 필터 (임시 구현)
  */
 @Component
-class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : OncePerRequestFilter() {
+class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider, private val objectMapper: ObjectMapper) :
+    OncePerRequestFilter() {
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -88,17 +91,16 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
      * - **재로그인 필요 여부**: 예
      */
     private fun handleException(response: HttpServletResponse, resultCode: ResultCode, status: Int) {
-        val jsonObject = JsonObject()
-
-        response.contentType = "application/json;charset=UTF-8"
-        response.characterEncoding = "utf-8"
+        response.contentType = MediaType.APPLICATION_JSON_VALUE
+        response.characterEncoding = Charsets.UTF_8.name()
         response.status = status
 
-        jsonObject.addProperty("resultCode", resultCode.code)
-        jsonObject.addProperty("message", resultCode.message)
-        jsonObject.add("data", null)
+        val errorResponse = BaseResponse<Unit>(
+            resultCode = resultCode.code,
+            message = resultCode.message,
+            data = null,
+        )
 
-        response.outputStream.write(jsonObject.toString().toByteArray(Charsets.UTF_8))
-        response.outputStream.flush()
+        objectMapper.writeValue(response.writer, errorResponse)
     }
 }
