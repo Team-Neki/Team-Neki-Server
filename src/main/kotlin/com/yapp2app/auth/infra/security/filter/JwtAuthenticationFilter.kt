@@ -98,6 +98,7 @@ class JwtAuthenticationFilter(private val tokenProvider: AuthTokenProvider) : On
         jsonObject.addProperty("message", resultCode.message)
         jsonObject.add("data", null)
 
-        response.writer.print(jsonObject)
+        response.outputStream.write(jsonObject.toString().toByteArray(Charsets.UTF_8))
+        response.outputStream.flush()
     }
 }
