@@ -24,4 +24,6 @@ interface PhotoImageRepositoryPort {
     fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean
 
     fun getLatestOwnedPhoto(userId: Long): PhotoImage?
+
+    fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int
 }

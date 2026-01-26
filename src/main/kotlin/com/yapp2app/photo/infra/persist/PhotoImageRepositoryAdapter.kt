@@ -55,4 +55,7 @@ class PhotoImageRepositoryAdapter(
         jpaRepository.existsByUserIdAndId(userId, photoId)
 
     override fun getLatestOwnedPhoto(userId: Long): PhotoImage? = queryRepository.findLatestOwnedPhoto(userId)
+
+    override fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int =
+        queryRepository.updatePhotosFolderIdToNull(userId, folderIds)
 }

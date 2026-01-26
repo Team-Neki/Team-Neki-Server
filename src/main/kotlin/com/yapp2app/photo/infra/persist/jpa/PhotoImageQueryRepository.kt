@@ -64,4 +64,14 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         .orderBy(photoImage.createdAt.desc())
         .limit(1)
         .fetchOne()
+
+    fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int {
+        if (folderIds.isEmpty()) return 0
+
+        return queryFactory
+            .update(photoImage)
+            .setNull(photoImage.folderId)
+            .where(photoImage.userId.eq(userId), photoImage.folderId.`in`(folderIds))
+            .execute().toInt()
+    }
 }
