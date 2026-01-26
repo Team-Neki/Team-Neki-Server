@@ -12,11 +12,11 @@ import com.yapp2app.photo.api.dto.UpdatePhotoRequest
 import com.yapp2app.photo.api.dto.UploadPhotoRequest
 import com.yapp2app.photo.application.command.GetPhotoCommand
 import com.yapp2app.photo.application.result.GetPhotoResult
-import com.yapp2app.photo.application.usecase.DeletePhotoUseCase
+import com.yapp2app.photo.application.usecase.DeletePhotosUseCase
 import com.yapp2app.photo.application.usecase.GetPhotoUseCase
 import com.yapp2app.photo.application.usecase.GetPhotosUseCase
 import com.yapp2app.photo.application.usecase.UpdatePhotoUseCase
-import com.yapp2app.photo.application.usecase.UploadPhotoUseCase
+import com.yapp2app.photo.application.usecase.UploadPhotosUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -44,10 +44,10 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/photos")
 class PhotoController(
-    private val uploadPhotoUseCase: UploadPhotoUseCase,
+    private val uploadPhotosUseCase: UploadPhotosUseCase,
     private val getPhotosUseCase: GetPhotosUseCase,
     private val getPhotoUseCase: GetPhotoUseCase,
-    private val deletePhotoUseCase: DeletePhotoUseCase,
+    private val deletePhotosUseCase: DeletePhotosUseCase,
     private val updatePhotoUseCase: UpdatePhotoUseCase,
 
     private val commandConverter: PhotoImageCommandConverter,
@@ -67,7 +67,7 @@ class PhotoController(
     ): BaseResponse<Any> {
         val command = commandConverter.toUploadPhotoCommand(userId, request)
 
-        uploadPhotoUseCase.execute(command)
+        uploadPhotosUseCase.execute(command)
 
         return BaseResponse()
     }
@@ -113,22 +113,6 @@ class PhotoController(
 
     @Operation(
         summary = "사진 삭제 API",
-        description = "지정된 사진 한 장을 삭제합니다.",
-    )
-    @DeleteMapping("/{photoId}")
-    fun deletePhoto(
-        @AuthenticationPrincipal(expression = "id") userId: Long,
-        @PathVariable photoId: Long,
-    ): BaseResponse<Any> {
-        val command = commandConverter.toDeletePhotoCommand(userId, photoId)
-
-        deletePhotoUseCase.execute(command)
-
-        return BaseResponse()
-    }
-
-    @Operation(
-        summary = "사진 선택 삭제 API",
         description = "body에 포함된 사진들을 삭제합니다.",
     )
     @DeleteMapping
@@ -138,7 +122,7 @@ class PhotoController(
     ): BaseResponse<Any> {
         val command = commandConverter.toDeletePhotosCommand(userId, request)
 
-        deletePhotoUseCase.execute(command)
+        deletePhotosUseCase.execute(command)
 
         return BaseResponse()
     }

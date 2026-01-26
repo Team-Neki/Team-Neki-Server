@@ -43,15 +43,6 @@ class PhotoImageRepositoryAdapter(
         sortOrder: SortOrder,
     ): List<PhotoImage> = queryRepository.findOwnedFavoritePhotos(userId, offset, limit, sortOrder)
 
-    override fun deleteOwnedPhoto(userId: Long, photoId: Long): PhotoImage? {
-        val photo = jpaRepository.findByUserIdAndId(userId, photoId)
-            ?: return null
-
-        jpaRepository.delete(photo)
-
-        return photo
-    }
-
     override fun deleteOwnedPhotos(userId: Long, photoIds: List<Long>): List<PhotoImage> {
         val photos = jpaRepository.findAllByUserIdAndIdIn(userId, photoIds)
 
@@ -71,4 +62,7 @@ class PhotoImageRepositoryAdapter(
         jpaRepository.existsByUserIdAndId(userId, photoId)
 
     override fun getLatestOwnedPhoto(userId: Long): PhotoImage? = queryRepository.findLatestOwnedPhoto(userId)
+
+    override fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int =
+        queryRepository.updatePhotosFolderIdToNull(userId, folderIds)
 }

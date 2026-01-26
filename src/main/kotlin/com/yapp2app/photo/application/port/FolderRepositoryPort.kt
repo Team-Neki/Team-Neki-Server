@@ -12,7 +12,6 @@ interface FolderRepositoryPort {
 
     fun save(folder: Folder): Folder
 
-    fun deleteOwnedFolder(userId: Long, folderId: Long): Int
     fun deleteOwnedFolders(userId: Long, folderIds: List<Long>): Int
 
     fun listOwnedFolders(userId: Long): List<Folder>

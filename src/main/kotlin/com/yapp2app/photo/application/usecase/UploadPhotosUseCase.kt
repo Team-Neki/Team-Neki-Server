@@ -18,7 +18,7 @@ import com.yapp2app.photo.domain.entity.PhotoImage
  * description    : 다중 사진 업로드 UseCase (최대 10장)
  */
 @UseCase
-class UploadPhotoUseCase(
+class UploadPhotosUseCase(
     private val mediaClient: MediaClientPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val transactionRunner: TransactionRunner,

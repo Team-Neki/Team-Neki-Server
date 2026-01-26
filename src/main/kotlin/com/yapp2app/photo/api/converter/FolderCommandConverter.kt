@@ -4,7 +4,6 @@ import com.yapp2app.photo.api.dto.CreateFolderRequest
 import com.yapp2app.photo.api.dto.DeleteFoldersRequest
 import com.yapp2app.photo.api.dto.UpdateFolderRequest
 import com.yapp2app.photo.application.command.CreateFolderCommand
-import com.yapp2app.photo.application.command.DeleteFolderCommand
 import com.yapp2app.photo.application.command.DeleteFoldersCommand
 import com.yapp2app.photo.application.command.GetFoldersCommand
 import com.yapp2app.photo.application.command.UpdateFolderCommand
@@ -23,8 +22,6 @@ class FolderCommandConverter {
         CreateFolderCommand(userId, request.name)
 
     fun toGetFoldersCommand(userId: Long): GetFoldersCommand = GetFoldersCommand(userId)
-
-    fun toDeleteFolderCommand(userId: Long, folderId: Long) = DeleteFolderCommand(userId, folderId)
 
     fun toDeleteFoldersCommand(request: DeleteFoldersRequest, userId: Long) =
         DeleteFoldersCommand(userId, request.folderIds)

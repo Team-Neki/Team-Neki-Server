@@ -28,7 +28,6 @@ interface PhotoImageRepositoryPort {
 
     fun listOwnedFavoritePhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
 
-    fun deleteOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
     fun deleteOwnedPhotos(userId: Long, photoIds: List<Long>): List<PhotoImage>
 
     fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
@@ -36,4 +35,6 @@ interface PhotoImageRepositoryPort {
     fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean
 
     fun getLatestOwnedPhoto(userId: Long): PhotoImage?
+
+    fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int
 }

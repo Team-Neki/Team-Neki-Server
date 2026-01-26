@@ -1,7 +1,6 @@
 package com.yapp2app.photo.infra.client
 
 import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
-import com.yapp2app.media.application.command.DeleteMediaCommand
 import com.yapp2app.media.application.command.DeleteMediasCommand
 import com.yapp2app.media.application.command.GetMediaStorageInfoCommand
 import com.yapp2app.media.application.command.GetMediaStorageInfosCommand
@@ -73,10 +72,6 @@ class PhotoMediaClient(
                 contentType = it.contentType,
             )
         }
-    }
-
-    override fun deleteMedia(ownerId: Long, mediaId: Long) {
-        deleteMediaUseCase.execute(DeleteMediaCommand(ownerId, mediaId))
     }
 
     override fun deleteMedias(ownerId: Long, mediaIds: List<Long>) {

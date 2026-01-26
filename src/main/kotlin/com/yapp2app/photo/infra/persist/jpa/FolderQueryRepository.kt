@@ -13,13 +13,12 @@ import org.springframework.stereotype.Repository
 @Repository
 class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
 
-    fun deleteOwnedFolder(userId: Long, folderId: Long): Int = queryFactory
-        .delete(folder)
-        .where(folder.userId.eq(userId), folder.id.eq(folderId))
-        .execute().toInt()
+    fun deleteOwnedFolders(userId: Long, folderIds: List<Long>): Int {
+        if (folderIds.isEmpty()) return 0
 
-    fun deleteOwnedFolders(userId: Long, folderIds: List<Long>): Int = queryFactory
-        .delete(folder)
-        .where(folder.userId.eq(userId), folder.id.`in`(folderIds))
-        .execute().toInt()
+        return queryFactory
+            .delete(folder)
+            .where(folder.userId.eq(userId), folder.id.`in`(folderIds))
+            .execute().toInt()
+    }
 }
