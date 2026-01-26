@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/**/*.kt'
+      - 'build.gradle.kts'
+      - '.github/workflows/ci.yml'
+  push:
+    branches:
+      - main
+      - staging
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        id: test
+        run: ./gradlew test --no-daemon
+        continue-on-error: true
+
+      - name: Comment PR with Test Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const outcome = '${{ steps.test.outcome }}';
+            const icon = outcome === 'success' ? '✅' : '❌';
+            const status = outcome === 'success' ? 'PASSED' : 'FAILED';
+
+            const output = `#### Test ${icon} \`${status}\`
+
+            **Test Result**: \`${{ steps.test.outcome }}\`
+
+            ${outcome === 'failure' ? `
+            ⚠️ **Tests failed!**
+
+            Please check the test output and fix the failing tests.
+
+            \`\`\`bash
+            ./gradlew test
+            \`\`\`
+            ` : '✨ All tests passed!'}
+
+            ---
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Test Status
+        if: steps.test.outcome == 'failure'
+        run: |
+          echo "❌ Tests failed!"
+          exit 1
+
+      - name: Success Message
+        if: steps.test.outcome == 'success'
+        run: echo "✅ All tests passed!"

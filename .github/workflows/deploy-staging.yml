@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-deploy:
-    name: Build, Test and Deploy to K3s
+    name: Build and Deploy to K3s
     runs-on: ubuntu-latest
 
     steps:
@@ -24,9 +24,6 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
-      - name: Run tests
-        run: ./gradlew test --no-daemon
 
       - name: Build with Gradle
         run: ./gradlew bootJar --no-daemon -x test

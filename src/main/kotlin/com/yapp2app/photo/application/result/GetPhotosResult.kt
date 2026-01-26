@@ -13,11 +13,18 @@ data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean) {
     data class PhotoInfo(
         val photoId: Long,
         val storageKey: String,
-        val folderId: Long?,
         val favorite: Boolean,
         val contentType: String,
         val createdAt: LocalDateTime,
     )
 }
+
+data class GetPhotoResult(
+    val photoId: Long,
+    val storageKey: String,
+    val favorite: Boolean,
+    val contentType: String,
+    val createdAt: LocalDateTime,
+)
 
 data class GetFavoriteSummaryResult(val latestImageUrl: String?, val totalCount: Long)

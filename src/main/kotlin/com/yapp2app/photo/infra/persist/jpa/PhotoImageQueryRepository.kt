@@ -1,7 +1,10 @@
 package com.yapp2app.photo.infra.persist.jpa
 
+import com.querydsl.core.types.Projections
+import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.yapp2app.common.domain.vo.SortOrder
+import com.yapp2app.photo.application.contract.PhotoWithFavorite
 import com.yapp2app.photo.domain.entity.PhotoImage
 import com.yapp2app.photo.domain.entity.QFavoritePhoto.favoritePhoto
 import com.yapp2app.photo.domain.entity.QPhotoImage.photoImage
@@ -16,16 +19,44 @@ import org.springframework.stereotype.Repository
 @Repository
 class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
 
-    fun findOwnedPhotos(
+    fun findOwnedPhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage> =
+        queryFactory.selectFrom(photoImage)
+            .where(
+                photoImage.userId.eq(userId),
+            )
+            .orderBy(
+                when (sortOrder) {
+                    SortOrder.ASC -> photoImage.createdAt.asc()
+                    SortOrder.DESC -> photoImage.createdAt.desc()
+                },
+            )
+            .offset(offset.toLong())
+            .limit(limit.toLong())
+            .fetch()
+
+    fun findOwnedPhotosWithFavorite(
         userId: Long,
-        folderId: Long?,
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-    ): List<PhotoImage> = queryFactory.selectFrom(photoImage)
+    ): List<PhotoWithFavorite> = queryFactory
+        .select(
+            Projections.constructor(
+                PhotoWithFavorite::class.java,
+                photoImage,
+                CaseBuilder()
+                    .`when`(favoritePhoto.id.photoId.isNotNull).then(true)
+                    .otherwise(false),
+            ),
+        )
+        .from(photoImage)
+        .leftJoin(favoritePhoto)
+        .on(
+            favoritePhoto.id.userId.eq(photoImage.userId),
+            favoritePhoto.id.photoId.eq(photoImage.id),
+        )
         .where(
             photoImage.userId.eq(userId),
-            folderId?.let { photoImage.folderId.eq(it) },
         )
         .orderBy(
             when (sortOrder) {
@@ -63,5 +94,27 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         )
         .orderBy(photoImage.createdAt.desc())
         .limit(1)
+        .fetchOne()
+
+    fun findOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite? = queryFactory
+        .select(
+            Projections.constructor(
+                PhotoWithFavorite::class.java,
+                photoImage,
+                CaseBuilder()
+                    .`when`(favoritePhoto.id.photoId.isNotNull).then(true)
+                    .otherwise(false),
+            ),
+        )
+        .from(photoImage)
+        .leftJoin(favoritePhoto)
+        .on(
+            favoritePhoto.id.userId.eq(photoImage.userId),
+            favoritePhoto.id.photoId.eq(photoImage.id),
+        )
+        .where(
+            photoImage.userId.eq(userId),
+            photoImage.id.eq(photoId),
+        )
         .fetchOne()
 }
