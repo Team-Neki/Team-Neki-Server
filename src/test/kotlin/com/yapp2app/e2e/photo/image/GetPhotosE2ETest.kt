@@ -66,28 +66,26 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("사진 목록 조회 성공 - 폴더별 사진 조회")
-    fun givenPhotosInFolder_whenGetPhotosByFolderId_thenReturnsFilteredPhotos() {
+    @DisplayName("사진 목록 조회 성공 - 여러 사진 조회")
+    fun givenMultiplePhotos_whenGetPhotos_thenReturnsAllPhotos() {
         // given
-        val folder = createFolder(userId = testUser.id!!)
         val media1 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val media2 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val media3 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
 
-        createPhotoImage(userId = testUser.id!!, mediaId = media1.id!!, folderId = folder.id)
-        createPhotoImage(userId = testUser.id!!, mediaId = media2.id!!, folderId = folder.id)
-        createPhotoImage(userId = testUser.id!!, mediaId = media3.id!!, folderId = null)
+        createPhotoImage(userId = testUser.id!!, mediaId = media1.id!!)
+        createPhotoImage(userId = testUser.id!!, mediaId = media2.id!!)
+        createPhotoImage(userId = testUser.id!!, mediaId = media3.id!!)
 
         // when & then
         RestAssured.given()
             .header("Authorization", "Bearer $accessToken")
-            .queryParam("folderId", folder.id)
             .`when`()
             .get("/api/photos")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-            .body("data.items", hasSize<Int>(2))
+            .body("data.items", hasSize<Int>(3))
     }
 
     @Test
@@ -121,24 +119,6 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
         // when & then
         RestAssured.given()
             .header("Authorization", "Bearer $accessToken")
-            .`when`()
-            .get("/api/photos")
-            .then()
-            .statusCode(HttpStatus.OK.value())
-            .body("data.items", empty<Any>())
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 폴더로 조회 시 빈 목록을 반환한다")
-    fun givenNonExistentFolderId_whenGetPhotos_thenReturnsEmptyList() {
-        // given
-        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
-        createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = null)
-
-        // when & then
-        RestAssured.given()
-            .header("Authorization", "Bearer $accessToken")
-            .queryParam("folderId", 999999L)
             .`when`()
             .get("/api/photos")
             .then()
@@ -373,23 +353,18 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
         }
 
         @Test
-        @DisplayName("폴더별 사진 조회와 정렬 조합")
-        fun givenPhotosInFolder_whenGetWithSort_thenReturnsFilteredAndSortedPhotos() {
+        @DisplayName("사진 목록 조회와 ASC 정렬 조합")
+        fun givenMultiplePhotos_whenGetWithAscSort_thenReturnsSortedPhotos() {
             // given
-            val folder = createFolder(userId = testUser.id!!)
             val photos = (1..3).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
                 Thread.sleep(10)
-                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folder.id)
+                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
             }
-            // 폴더 외 사진 1개 추가
-            val outsideMedia = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
-            createPhotoImage(userId = testUser.id!!, mediaId = outsideMedia.id!!, folderId = null)
 
-            // when & then: folderId + ASC 정렬로 조회
+            // when & then: ASC 정렬로 조회
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("folderId", folder.id)
                 .queryParam("sortOrder", "ASC")
                 .`when`()
                 .get("/api/photos")

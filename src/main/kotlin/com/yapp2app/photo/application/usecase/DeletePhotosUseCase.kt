@@ -1,10 +1,7 @@
 package com.yapp2app.photo.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.api.dto.ResultCode
-import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
-import com.yapp2app.photo.application.command.DeletePhotoCommand
 import com.yapp2app.photo.application.command.DeletePhotosCommand
 import com.yapp2app.photo.application.port.FavoriteImageRepositoryPort
 import com.yapp2app.photo.application.port.MediaClientPort
@@ -17,24 +14,12 @@ import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
  * description    : 사진 삭제 usecase
  */
 @UseCase
-class DeletePhotoUseCase(
+class DeletePhotosUseCase(
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val favoriteImageRepository: FavoriteImageRepositoryPort,
     private val mediaClient: MediaClientPort,
     private val transactionRunner: TransactionRunner,
 ) {
-
-    fun execute(command: DeletePhotoCommand) {
-        val photo = transactionRunner.run {
-            favoriteImageRepository.delete(command.userId, command.photoId)
-            photoImageRepository.deleteOwnedPhoto(
-                command.userId,
-                command.photoId,
-            )
-        } ?: throw BusinessException(ResultCode.NOT_FOUND)
-
-        mediaClient.deleteMedia(command.userId, photo.mediaId)
-    }
 
     fun execute(command: DeletePhotosCommand) {
         val photos = transactionRunner.run {

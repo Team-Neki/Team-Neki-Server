@@ -148,4 +148,43 @@ class DeleteFoldersE2ETest : FolderE2ETestBase() {
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
     }
+
+    @Test
+    @DisplayName("단일 폴더 삭제 시 존재하지 않는 폴더인 경우 400 에러를 반환한다")
+    fun givenNonExistentSingleFolder_whenDeleteFolders_thenReturnsNotFound() {
+        // Given: 존재하지 않는 폴더 ID
+        val nonExistentFolderId = 99999L
+
+        // When & Then: 존재하지 않는 단일 폴더 삭제 요청
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(DeleteFoldersRequest(folderIds = listOf(nonExistentFolderId)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+    }
+
+    @Test
+    @DisplayName("단일 폴더 삭제 시 다른 사용자의 폴더인 경우 400 에러를 반환한다")
+    fun givenOtherUserSingleFolder_whenDeleteFolders_thenReturnsNotFound() {
+        // Given: 다른 사용자 생성 및 해당 사용자의 폴더 생성
+        val (otherUser, _) = createTestUserAndToken(email = "other2@example.com")
+        val otherUserFolder = folderRepository.save(
+            Folder(userId = otherUser.id!!, name = "다른 사용자 폴더"),
+        )
+
+        // When & Then: 다른 사용자의 단일 폴더 삭제 시도 (존재하지 않는 것처럼 처리)
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(DeleteFoldersRequest(folderIds = listOf(otherUserFolder.id!!)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+    }
 }

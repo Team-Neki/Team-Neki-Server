@@ -6,6 +6,7 @@ import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.photo.application.command.UploadPhotoCommand
 import com.yapp2app.photo.application.contract.MediaAvailability
+import com.yapp2app.photo.application.port.FolderRepositoryPort
 import com.yapp2app.photo.application.port.MediaClientPort
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 import com.yapp2app.photo.domain.entity.PhotoImage
@@ -17,14 +18,16 @@ import com.yapp2app.photo.domain.entity.PhotoImage
  * description    : 다중 사진 업로드 UseCase (최대 10장)
  */
 @UseCase
-class UploadPhotoUseCase(
+class UploadPhotosUseCase(
     private val mediaClient: MediaClientPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val transactionRunner: TransactionRunner,
+    private val folderRepository: FolderRepositoryPort,
 ) {
 
     fun execute(command: UploadPhotoCommand) {
         validateNoDuplicateMediaIds(command.uploads)
+        validateFolderOwnership(command.userId, command.folderId)
 
         val mediaIds = command.uploads.map { it.mediaId }
 
@@ -80,6 +83,13 @@ class UploadPhotoUseCase(
 
         if (duplicates.isNotEmpty()) {
             throw BusinessException(ResultCode.INVALID_PARAMETER)
+        }
+    }
+
+    private fun validateFolderOwnership(userId: Long, folderId: Long?) {
+        if (folderId != null) {
+            folderRepository.getOwnedFolder(userId, folderId)
+                ?: throw BusinessException(ResultCode.NOT_FOUND)
         }
     }
 }

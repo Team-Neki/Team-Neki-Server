@@ -1,13 +1,15 @@
 package com.yapp2app.photo.infra.client
 
 import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
-import com.yapp2app.media.application.command.DeleteMediaCommand
 import com.yapp2app.media.application.command.DeleteMediasCommand
+import com.yapp2app.media.application.command.GetMediaStorageInfoCommand
 import com.yapp2app.media.application.command.GetMediaStorageInfosCommand
 import com.yapp2app.media.application.command.GetMediasCommand
 import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
+import com.yapp2app.media.application.result.GetMediaStorageInfoResult
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.yapp2app.media.application.usecase.DeleteMediaUseCase
+import com.yapp2app.media.application.usecase.GetMediaStorageInfoUseCase
 import com.yapp2app.media.application.usecase.GetMediaStorageInfosUseCase
 import com.yapp2app.media.application.usecase.GetMediasUseCase
 import com.yapp2app.photo.application.contract.MediaAvailability
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Component
 class PhotoMediaClient(
     private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
     private val getMediasUseCase: GetMediasUseCase,
+    private val getMediaStorageInfoUseCase: GetMediaStorageInfoUseCase,
     private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
     private val deleteMediaUseCase: DeleteMediaUseCase,
 ) : MediaClientPort {
@@ -43,6 +46,21 @@ class PhotoMediaClient(
         }.toList()
     }
 
+    override fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaStorageInfo {
+        val result: GetMediaStorageInfoResult = getMediaStorageInfoUseCase.execute(
+            GetMediaStorageInfoCommand(
+                ownerId = ownerId,
+                mediaId = mediaId,
+            ),
+        )
+
+        return MediaStorageInfo(
+            mediaId = result.mediaId,
+            storageKey = result.storageKey,
+            contentType = result.contentType,
+        )
+    }
+
     override fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaStorageInfo> {
         val result =
             getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(ownerId, mediaIds))
@@ -54,10 +72,6 @@ class PhotoMediaClient(
                 contentType = it.contentType,
             )
         }
-    }
-
-    override fun deleteMedia(ownerId: Long, mediaId: Long) {
-        deleteMediaUseCase.execute(DeleteMediaCommand(ownerId, mediaId))
     }
 
     override fun deleteMedias(ownerId: Long, mediaIds: List<Long>) {

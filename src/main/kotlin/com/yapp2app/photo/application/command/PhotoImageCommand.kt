@@ -20,14 +20,14 @@ data class GetPhotosCommand(
     val sortOrder: SortOrder = SortOrder.DESC,
 )
 
+data class GetPhotoCommand(val userId: Long, val photoId: Long)
+
 data class GetFavoritePhotosCommand(
     val userId: Long,
     val page: Int,
     val size: Int,
     val sortOrder: SortOrder = SortOrder.DESC,
 )
-
-data class DeletePhotoCommand(val userId: Long, val photoId: Long)
 
 data class DeletePhotosCommand(val userId: Long, val photoIds: List<Long>)
 

@@ -1,6 +1,7 @@
 package com.yapp2app.photo.api.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.time.LocalDateTime
 
 /**
  * fileName       : PhotoImageResponse
@@ -19,16 +20,27 @@ data class GetPhotosResponse(
         val photoId: Long,
         @field:Schema(description = "사진 URL", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")
         val imageUrl: String,
-        @field:Schema(description = "폴더 ID", example = "1")
-        val folderId: Long?,
         @field:Schema(description = "즐겨찾기 여부", example = "true")
         val favorite: Boolean,
         @field:Schema(description = "파일 형식", example = "image/jpeg")
         val contentType: String,
         @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
-        val createdAt: String,
+        val createdAt: LocalDateTime,
     )
 }
+
+data class GetPhotoResponse(
+    @field:Schema(description = "사진 ID", example = "1")
+    val photoId: Long,
+    @field:Schema(description = "사진 URL", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")
+    val imageUrl: String,
+    @field:Schema(description = "즐겨찾기 여부", example = "true")
+    val favorite: Boolean,
+    @field:Schema(description = "파일 형식", example = "image/jpeg")
+    val contentType: String,
+    @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
+    val createdAt: LocalDateTime,
+)
 
 data class GetFavoriteSummaryResponse(
     @field:Schema(description = "가장 최근 즐겨찾기 사진 URL", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")

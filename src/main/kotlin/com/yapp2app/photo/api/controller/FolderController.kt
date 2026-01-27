@@ -10,7 +10,7 @@ import com.yapp2app.photo.api.dto.DeleteFoldersRequest
 import com.yapp2app.photo.api.dto.GetAllFolderResponse
 import com.yapp2app.photo.api.dto.UpdateFolderRequest
 import com.yapp2app.photo.application.usecase.CreateFolderUseCase
-import com.yapp2app.photo.application.usecase.DeleteFolderUseCase
+import com.yapp2app.photo.application.usecase.DeleteFoldersUseCase
 import com.yapp2app.photo.application.usecase.GetFoldersUseCase
 import com.yapp2app.photo.application.usecase.UpdateFolderUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RestController
 class FolderController(
     private val createFolderUseCase: CreateFolderUseCase,
     private val getFoldersUseCase: GetFoldersUseCase,
-    private val deleteFolderUseCase: DeleteFolderUseCase,
+    private val deleteFoldersUseCase: DeleteFoldersUseCase,
     private val updateFolderUseCase: UpdateFolderUseCase,
     private val commandConverter: FolderCommandConverter,
     private val resultConverter: FolderResultConverter,
@@ -80,23 +80,7 @@ class FolderController(
 
     @Operation(
         summary = "폴더 삭제 API",
-        description = "단건 폴더 삭제를 합니다.",
-    )
-    @DeleteMapping("/{folderId}")
-    fun deleteFolder(
-        @AuthenticationPrincipal(expression = "id") userId: Long,
-        @PathVariable folderId: Long,
-    ): BaseResponse<Any> {
-        val command = commandConverter.toDeleteFolderCommand(userId, folderId)
-
-        deleteFolderUseCase.execute(command)
-
-        return BaseResponse()
-    }
-
-    @Operation(
-        summary = "폴더 선택 삭제 API",
-        description = "여러 개의 폴더를 선택하여 삭제합니다.",
+        description = "폴더를 삭제합니다.",
     )
     @DeleteMapping
     fun deleteFolders(
@@ -105,7 +89,7 @@ class FolderController(
     ): BaseResponse<Any> {
         val command = commandConverter.toDeleteFoldersCommand(request, userId)
 
-        deleteFolderUseCase.execute(command)
+        deleteFoldersUseCase.execute(command)
 
         return BaseResponse()
     }

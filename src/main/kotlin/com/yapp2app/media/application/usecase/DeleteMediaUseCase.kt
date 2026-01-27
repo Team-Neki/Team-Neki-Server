@@ -16,7 +16,8 @@ import org.slf4j.LoggerFactory
  * author         : koo
  * date           : 2026. 1. 3. 오전 5:13
  * description    : media delete usecase
- * -
+ * - media delete usecase는 media 단건 삭제를 위한 usecase로 현재 다른 도메인에서 명시적으로 호출되고 있지 않습니다.
+ * 추후 이미지 단건 삭제가 필요한 경우를 고려하여 해당 usecase를 남겨두었습니다.
  */
 @UseCase
 class DeleteMediaUseCase(

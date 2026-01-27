@@ -14,9 +14,9 @@ interface MediaClientPort {
 
     fun getMediaBinaries(ownerId: Long, mediaIds: List<Long>): List<MediaInfo>
 
-    fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaStorageInfo>
+    fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaStorageInfo
 
-    fun deleteMedia(ownerId: Long, mediaId: Long)
+    fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaStorageInfo>
 
     fun deleteMedias(ownerId: Long, mediaIds: List<Long>)
 
