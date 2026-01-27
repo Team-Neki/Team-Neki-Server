@@ -41,7 +41,7 @@ data class GetPolygonLocationResponse(
         @field:Schema(description = "포토부스 ID", example = "1")
         val id: Long,
 
-        @field:Schema(description = "브랜드 ID", example = "1")
+        @field:Schema(description = "브랜드 이름", example = "인생네컷")
         val brandName: String,
 
         @field:Schema(description = "포토부스 이름", example = "인생네컷 강남역점")
@@ -66,7 +66,7 @@ data class GetPointLocationResponse(
         @field:Schema(description = "포토부스 ID", example = "1")
         val id: Long,
 
-        @field:Schema(description = "브랜드 ID", example = "1")
+        @field:Schema(description = "브랜드 이름", example = "인생네컷")
         val brandName: String,
 
         @field:Schema(description = "포토부스 이름", example = "인생네컷 강남역점")

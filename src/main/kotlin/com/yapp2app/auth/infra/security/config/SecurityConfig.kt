@@ -2,6 +2,7 @@ package com.yapp2app.auth.infra.security.config
 
 import com.yapp2app.auth.infra.security.filter.AuthMdcFilter
 import com.yapp2app.auth.infra.security.filter.JwtAuthenticationFilter
+import com.yapp2app.auth.infra.security.handler.CustomAuthenticationEntryPoint
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
@@ -55,6 +56,7 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
     fun apiSecurityFilterChain(
         http: HttpSecurity,
         jwtAuthenticationFilter: JwtAuthenticationFilter,
+        authenticationEntryPoint: CustomAuthenticationEntryPoint,
     ): SecurityFilterChain = http
         .securityMatcher("/**")
         .csrf { it.disable() }
@@ -63,6 +65,7 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
             it.requestMatchers("/api/auth/**", "/api/users/register").permitAll()
             it.anyRequest().authenticated()
         }
+        .exceptionHandling { it.authenticationEntryPoint(authenticationEntryPoint) }
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
         .addFilterAfter(AuthMdcFilter(), JwtAuthenticationFilter::class.java)
         .build()

@@ -1,5 +1,6 @@
 package com.yapp2app.common.api.document
 
+import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.properties.AppProperties
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
@@ -66,10 +67,14 @@ class SwaggerConfig(private val appProperties: AppProperties) {
             .withSecurity(isSecured, SECURITY_SCHEME)
             .ensureResponses()
             .apply {
-                addErrorResponseIfMissing(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error")
+                addErrorResponseIfMissing(
+                    HttpStatus.BAD_REQUEST,
+                    ResultCode.INVALID_PARAMETER,
+                    "message 값을 모달로 띄워주세요.",
+                )
                 if (isSecured) {
-                    addErrorResponseIfMissing(HttpStatus.UNAUTHORIZED, "Unauthorized")
-                    addErrorResponseIfMissing(HttpStatus.FORBIDDEN, "Forbidden")
+                    addErrorResponseIfMissing(HttpStatus.UNAUTHORIZED, ResultCode.EXPIRED_TOKEN_ERROR)
+                    addErrorResponseIfMissing(HttpStatus.FORBIDDEN, ResultCode.INVALID_TOKEN_ERROR)
                 }
             }
     }
@@ -87,38 +92,39 @@ private fun Operation.withSecurity(isSecured: Boolean, schemeName: String): Oper
 
 private fun Operation.ensureResponses(): Operation = apply { responses = responses ?: ApiResponses() }
 
-private fun Operation.addErrorResponseIfMissing(status: HttpStatus, message: String) {
+private fun Operation.addErrorResponseIfMissing(
+    status: HttpStatus,
+    resultCode: ResultCode,
+    clientGuide: String? = null,
+) {
     val code = status.value().toString()
     val existing = responses[code]
 
     if (existing == null) {
-        responses.addApiResponse(code, errorResponse(status, message))
+        responses.addApiResponse(code, errorResponse(resultCode, clientGuide))
     } else if (existing.content == null || existing.content.isEmpty()) {
-        existing.content = errorResponse(status, message).content
+        existing.content = errorResponse(resultCode, clientGuide).content
     }
 }
 
-/**
- * TODO : 공통 응답 스키마로 변경 필요
- */
-private fun errorResponse(status: HttpStatus, message: String): ApiResponse = ApiResponse().apply {
-    description = message
+private fun errorResponse(resultCode: ResultCode, clientGuide: String? = null): ApiResponse = ApiResponse().apply {
+    val messageWithGuide = if (clientGuide != null) {
+        "${resultCode.message} ($clientGuide)"
+    } else {
+        resultCode.message
+    }
+    description = clientGuide ?: resultCode.message
 
     val errorSchema = Schema<Any>()
         .type("object")
-        .addProperty("status", Schema<Int>().type("integer").example(status.value()))
-        .addProperty("message", Schema<String>().type("string").example(message))
-        .addProperty(
-            "timestamp",
-            Schema<String>().type("string")
-                .format("date-time")
-                .example("2025-12-05T00:00:00"),
-        )
+        .addProperty("resultCode", Schema<String>().type("string").example(resultCode.code))
+        .addProperty("message", Schema<String>().type("string").example(messageWithGuide))
+        .addProperty("data", Schema<Any>().nullable(true).example(null))
 
     val exampleBody = mapOf(
-        "status" to status.value(),
-        "message" to message,
-        "timestamp" to "2025-12-05T00:00:00",
+        "resultCode" to resultCode.code,
+        "message" to messageWithGuide,
+        "data" to null,
     )
 
     content = Content().addMediaType(
