@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component
 class FolderCommandConverter {
 
     fun toCreateFolderCommand(request: CreateFolderRequest, userId: Long): CreateFolderCommand =
-        CreateFolderCommand(userId, request.name)
+        CreateFolderCommand(userId, request.name!!)
 
     fun toGetFoldersCommand(userId: Long): GetFoldersCommand = GetFoldersCommand(userId)
 
@@ -27,5 +27,5 @@ class FolderCommandConverter {
         DeleteFoldersCommand(userId, request.folderIds)
 
     fun toUpdateFolderCommand(request: UpdateFolderRequest, folderId: Long, userId: Long) =
-        UpdateFolderCommand(userId, folderId, request.name)
+        UpdateFolderCommand(userId, folderId, request.name!!)
 }

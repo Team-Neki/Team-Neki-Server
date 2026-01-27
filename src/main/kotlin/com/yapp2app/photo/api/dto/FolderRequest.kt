@@ -15,7 +15,7 @@ data class CreateFolderRequest(
     @field:Schema(description = "폴더명", example = "즐겨찾기")
     @field:NotBlank(message = "폴더명은 필수입니다.")
     @field:Size(min = 1, max = 16, message = "폴더명은 1 ~ 16자 사이여야 합니다.")
-    val name: String,
+    val name: String?,
 )
 
 data class DeleteFoldersRequest(
@@ -31,5 +31,5 @@ data class UpdateFolderRequest(
     @field:Schema(description = "변경할 폴더명", example = "대학교 친구")
     @field:NotBlank(message = "폴더명은 필수입니다.")
     @field:Size(min = 1, max = 16, message = "폴더명은 1 ~ 16자 사이여야 합니다.")
-    val name: String,
+    val name: String?,
 )

@@ -1,10 +1,12 @@
 package com.yapp2app.map.api.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 /**
  * fileName       : MapRequest
@@ -15,11 +17,11 @@ import jakarta.validation.constraints.NotEmpty
 data class CollectPhotoBoothRequest(
     @field:Schema(description = "검색 키워드", example = "포토이즘박스")
     @field:NotBlank
-    val keyword: String,
+    val keyword: String?,
 
     @field:Schema(description = "브랜드 코드", example = "PHOTOISM")
     @field:NotBlank
-    val brandCode: String,
+    val brandCode: String?,
 )
 
 @Schema(
@@ -40,6 +42,7 @@ data class CollectPhotoBoothRequest(
 data class GetPolygonLocationRequest(
     @field:Schema(description = "다각형을 구성하는 좌표 리스트. 첫 좌표와 마지막 좌표가 동일해야 합니다.")
     @field:NotEmpty
+    @field:Valid
     val coordinates: List<Coordinate>,
 
     @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드)", example = "[1, 2, 3]")
@@ -47,10 +50,12 @@ data class GetPolygonLocationRequest(
 ) {
     data class Coordinate(
         @field:Schema(description = "경도", example = "127.019128")
-        val longitude: Double,
+        @field:NotNull(message = "longitude은 필수값입니다.")
+        var longitude: Double?,
 
         @field:Schema(description = "위도", example = "37.502456")
-        val latitude: Double,
+        @field:NotNull(message = "latitude은 필수값입니다.")
+        var latitude: Double?,
     )
 }
 

@@ -1,7 +1,5 @@
 package com.yapp2app.common.exception.handler
 
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.exception.dto.ExceptionMsg
@@ -96,45 +94,13 @@ class ExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleHttpMessageNotReadableExceptionHandler(
         ex: HttpMessageNotReadableException,
-        request: WebRequest,
-    ): ResponseEntity<ExceptionMsg> {
-        val rootCause = ex.cause
-
-        val errors: MutableList<FieldErrorDetail> = ArrayList<FieldErrorDetail>()
-        if (rootCause is InvalidFormatException) {
-            for (reference in rootCause.path) {
-                errors.add(
-                    FieldErrorDetail(
-                        field = reference.fieldName,
-                        message = "[" + reference.fieldName + "] 가 타입이 알맞지 않습니다.",
-                    ),
-                )
-            }
-        } else if (rootCause is JsonMappingException) {
-            for (reference in rootCause.path) {
-                errors.add(
-                    FieldErrorDetail(
-                        field = reference.fieldName,
-                        message = "[" + reference.fieldName + "] 가 누락되었습니다.",
-                    ),
-                )
-            }
-        } else {
-            errors.add(
-                FieldErrorDetail(
-                    field = "",
-                    message = rootCause?.message ?: "에러 발생",
-                ),
-            )
-        }
-        return ResponseEntity(
-            ExceptionMsg(
-                resultCode = ResultCode.INVALID_PARAMETER.code,
-                message = ResultCode.INVALID_PARAMETER.message,
-            ),
-            HttpStatus.BAD_REQUEST,
-        )
-    }
+    ): ResponseEntity<ExceptionMsg> = ResponseEntity(
+        ExceptionMsg(
+            resultCode = ResultCode.INVALID_PARAMETER.code,
+            message = ResultCode.INVALID_PARAMETER.message,
+        ),
+        HttpStatus.BAD_REQUEST,
+    )
 
     @ExceptionHandler(MissingServletRequestParameterException::class)
     fun handleMissingServletRequestParameterExceptionHandler(
