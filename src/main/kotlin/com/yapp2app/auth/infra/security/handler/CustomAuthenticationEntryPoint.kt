@@ -68,7 +68,7 @@ class CustomAuthenticationEntryPoint(private val objectMapper: ObjectMapper) : A
             is SecurityException -> ResultCode.INVALID_TOKEN_ERROR to HttpServletResponse.SC_FORBIDDEN
             is MalformedJwtException -> ResultCode.INVALID_TOKEN_ERROR to HttpServletResponse.SC_FORBIDDEN
             is UnsupportedJwtException -> ResultCode.INVALID_TOKEN_ERROR to HttpServletResponse.SC_UNAUTHORIZED
-            null -> ResultCode.MISSING_TOKEN_ERROR to HttpServletResponse.SC_UNAUTHORIZED
+            null -> ResultCode.MISSING_TOKEN_ERROR to HttpServletResponse.SC_FORBIDDEN
             else -> ResultCode.SECURITY_ERROR to HttpServletResponse.SC_FORBIDDEN
         }
 }

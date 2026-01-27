@@ -75,7 +75,7 @@ class UserE2ETest : E2ETestBase() {
     }
 
     @Test
-    @DisplayName("토큰 없이 사용자 정보 조회 시 401 에러를 반환한다")
+    @DisplayName("토큰 없이 사용자 정보 조회 시 403 에러를 반환한다")
     fun givenNoToken_whenGetUserInfo_thenReturnsUnauthorized() {
         RestAssured.given()
             .contentType(ContentType.JSON)
@@ -86,7 +86,7 @@ class UserE2ETest : E2ETestBase() {
     }
 
     @Test
-    @DisplayName("잘못된 형식의 토큰으로 사용자 정보 조회 시 401 에러를 반환한다")
+    @DisplayName("잘못된 형식의 토큰으로 사용자 정보 조회 시 403 에러를 반환한다")
     fun givenInvalidToken_whenGetUserInfo_thenReturnsUnauthorized() {
         val invalidToken = "invalid.token.format"
 
@@ -101,7 +101,7 @@ class UserE2ETest : E2ETestBase() {
     }
 
     @Test
-    @DisplayName("Bearer 접두사 없이 토큰으로 사용자 정보 조회 시 401 에러를 반환한다")
+    @DisplayName("Bearer 접두사 없이 토큰으로 사용자 정보 조회 시 403 에러를 반환한다")
     fun givenTokenWithoutBearerPrefix_whenGetUserInfo_thenReturnsUnauthorized() {
         RestAssured.given()
             .contentType(ContentType.JSON)
