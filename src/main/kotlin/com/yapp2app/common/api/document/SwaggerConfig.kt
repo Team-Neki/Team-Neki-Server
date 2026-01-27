@@ -75,6 +75,7 @@ class SwaggerConfig(private val appProperties: AppProperties) {
                 if (isSecured) {
                     addErrorResponseIfMissing(HttpStatus.UNAUTHORIZED, ResultCode.EXPIRED_TOKEN_ERROR)
                     addErrorResponseIfMissing(HttpStatus.FORBIDDEN, ResultCode.INVALID_TOKEN_ERROR)
+                    addErrorResponseIfMissing(HttpStatus.FORBIDDEN, ResultCode.MISSING_TOKEN_ERROR)
                 }
             }
     }

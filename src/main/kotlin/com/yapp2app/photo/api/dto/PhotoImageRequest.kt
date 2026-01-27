@@ -1,6 +1,7 @@
 package com.yapp2app.photo.api.dto
 
 import jakarta.annotation.Nullable
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 
@@ -15,6 +16,7 @@ data class UploadPhotoRequest(
     val folderId: Long?,
 
     @field:NotEmpty(message = "uploads가 비어있습니다.")
+    @field:Valid
     @field:jakarta.validation.constraints.Size(max = 10, message = "한 번에 최대 10장까지 업로드할 수 있습니다.")
     val uploads: List<UploadPhotoItem>,
 ) {

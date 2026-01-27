@@ -18,8 +18,8 @@ class MediaCommandConverter {
             ownerId = ownerId,
             items = request.items.map { item ->
                 GenerateUploadTicketCommand.UploadTicketItem(
-                    filename = item.filename,
-                    contentType = item.contentType,
+                    filename = item.filename!!,
+                    contentType = item.contentType!!,
                     mediaType = item.mediaType!!,
                 )
             },

@@ -21,10 +21,10 @@ data class UploadTicketRequest(
 ) {
     data class UploadTicketItem(
         @field:NotBlank(message = "파일명은 필수 입력값입니다.")
-        val filename: String,
+        val filename: String?,
 
         @field:NotBlank(message = "Content type은 필수 입력값입니다.")
-        val contentType: String,
+        val contentType: String?,
 
         @field:NotNull(message = "미디어 타입은 필수 입력값입니다.")
         val mediaType: MediaType?,

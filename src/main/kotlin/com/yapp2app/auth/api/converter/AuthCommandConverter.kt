@@ -12,10 +12,10 @@ class AuthCommandConverter {
 
     fun toCreateAuthCommand(request: CreateAuthRequest, providerType: ProviderType): RegisterOauthUserCommand =
         RegisterOauthUserCommand(
-            idToken = request.idToken,
+            idToken = request.idToken!!,
             providerType = providerType,
         )
 
     fun toRefreshTokenCommand(request: RefreshTokenRequest): RefreshTokenCommand =
-        RefreshTokenCommand(request.refreshToken)
+        RefreshTokenCommand(request.refreshToken!!)
 }

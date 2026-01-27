@@ -251,7 +251,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     }
 
     @Test
-    @DisplayName("인증되지 않은 사용자는 403 에러를 반환한다")
+    @DisplayName("토큰이 없는 사용자는 403 에러를 반환한다")
     fun givenNoAuth_whenGenerateUploadTicket_thenReturnsForbidden() {
         // given
         val request = UploadTicketRequest(

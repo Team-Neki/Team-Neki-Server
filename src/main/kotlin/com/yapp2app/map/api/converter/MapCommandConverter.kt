@@ -24,10 +24,10 @@ class MapCommandConverter {
     }
 
     fun toCollectPhotoBoothCommand(request: CollectPhotoBoothRequest): CollectPhotoBoothCommand =
-        CollectPhotoBoothCommand(keyword = request.keyword, brandCode = request.brandCode)
+        CollectPhotoBoothCommand(keyword = request.keyword!!, brandCode = request.brandCode!!)
 
     fun toGetPolygonLocationCommand(request: GetPolygonLocationRequest): GetPolygonLocationCommand {
-        val coordinates = request.coordinates.map { Coordinate(it.longitude, it.latitude) }
+        val coordinates = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
         return GetPolygonLocationCommand(
             coordinates = coordinates,
             brandIds = request.brandIds,
