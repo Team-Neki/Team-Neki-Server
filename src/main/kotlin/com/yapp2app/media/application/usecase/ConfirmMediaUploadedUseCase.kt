@@ -24,14 +24,19 @@ class ConfirmMediaUploadedUseCase(
     fun execute(command: ConfirmMediaUploadedCommand): ConfirmMediaUploadedResult {
         if (command.mediaIds.isEmpty()) return ConfirmMediaUploadedResult(emptyMap())
 
-        val medias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+        val medias = command.ownerId?.let {
+            mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+        } ?: mediaRepository.getMediaForUploadConfirmation(command.mediaIds)
 
         val s3ExistsMap = medias
             .filter { !it.isUploaded() }
             .associate { it.id!! to mediaStorage.exists(it.storageKey) }
 
         return transactionRunner.runNew {
-            val freshMedias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+            val freshMedias = command.ownerId?.let {
+                mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+            } ?: mediaRepository.getMediaForUploadConfirmation(command.mediaIds)
+
             val freshMediaMap = freshMedias.associateBy { it.id!! }
 
             val results = command.mediaIds.associateWith { mediaId ->
@@ -58,7 +63,9 @@ class ConfirmMediaUploadedUseCase(
         if (command.mediaIds.isEmpty()) return
 
         transactionRunner.runNew {
-            val medias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+            val medias = command.ownerId?.let {
+                mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+            } ?: mediaRepository.getMediaForUploadConfirmation(command.mediaIds)
             medias.forEach { it.markAsInitiated() }
         }
     }
