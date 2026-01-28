@@ -51,11 +51,7 @@ class UploadPhotosUseCase(
 
         try {
             transactionRunner.run {
-                val savedPhotos = photoImageRepository.saveAll(photos)
-
-                if (command.folderId != null) {
-                    updateFolderCover(command.userId, command.folderId, savedPhotos)
-                }
+                photoImageRepository.saveAll(photos)
             }
         } catch (e: Exception) {
             // 보상 트랜잭션: 모든 media 상태를 INITIATED로 롤백
@@ -97,15 +93,5 @@ class UploadPhotosUseCase(
 
             throw BusinessException(ResultCode.UPLOAD_FAILED)
         }
-    }
-
-    private fun updateFolderCover(userId: Long, folderId: Long, savedPhotos: List<PhotoImage>) {
-        val latestPhoto = savedPhotos.maxByOrNull { it.createdAt!! } ?: return
-
-        folderRepository.updateCoverPhotoIfNewer(
-            userId = userId,
-            folderId = folderId,
-            newCoverPhotoId = latestPhoto.id!!,
-        )
     }
 }

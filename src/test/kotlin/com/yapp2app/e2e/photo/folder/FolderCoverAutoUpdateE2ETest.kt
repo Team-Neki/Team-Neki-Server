@@ -23,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles
  * fileName       : FolderCoverAutoUpdateE2ETest
  * author         : claude
  * date           : 2026. 1. 28.
- * description    : 폴더 커버 이미지 자동 업데이트 E2E 테스트
+ * description    : 폴더 커버 이미지 조회 시점 파생 E2E 테스트
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -144,7 +144,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     // ===================
 
     @Test
-    @DisplayName("사진 업로드 시 폴더 커버가 최신 사진으로 자동 설정됨")
+    @DisplayName("사진 업로드 후 폴더 조회 시 커버가 최신 사진으로 파생됨")
     fun givenEmptyFolder_whenUploadPhotosViaApi_thenCoverIsSetToLatestPhoto() {
         // Given: 빈 폴더 생성
         val folder = createFolder(testUser.id!!, "테스트 폴더")
@@ -160,7 +160,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("추가 사진 업로드 시 커버가 최신 사진으로 업데이트됨")
+    @DisplayName("추가 사진 업로드 후 조회 시 커버가 최신 사진으로 파생됨")
     fun givenFolderWithPhotos_whenUploadMorePhotos_thenCoverUpdatesToNewerPhoto() {
         // Given: 폴더에 사진 2장 업로드
         val folder = createFolder(testUser.id!!, "테스트 폴더")
@@ -198,7 +198,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("커버 사진 삭제 시 다음 최신 사진으로 변경됨")
+    @DisplayName("최신 사진 삭제 후 조회 시 커버가 다음 최신 사진으로 파생됨")
     fun givenFolderWithCoverPhoto_whenDeleteCoverPhotoViaApi_thenCoverUpdatesToNextLatest() {
         // Given: 폴더에 사진 3장 업로드
         val folder = createFolder(testUser.id!!, "테스트 폴더")
@@ -223,7 +223,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("모든 사진 삭제 시 커버가 null이 됨")
+    @DisplayName("모든 사진 삭제 후 조회 시 커버가 null로 파생됨")
     fun givenFolderWithPhotos_whenDeleteAllPhotosViaApi_thenCoverBecomesNull() {
         // Given: 폴더에 사진 2장 업로드
         val folder = createFolder(testUser.id!!, "테스트 폴더")
@@ -244,7 +244,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("여러 폴더의 커버 사진 일괄 삭제 시 각 폴더 커버가 업데이트됨")
+    @DisplayName("여러 폴더의 최신 사진 일괄 삭제 후 조회 시 각 폴더 커버가 파생됨")
     fun givenMultipleFolders_whenBatchDeleteCoverPhotos_thenAllCoversUpdateToNextLatest() {
         // Given: 폴더 A, B, C 각각 생성
         val folderA = createFolder(testUser.id!!, "폴더 A")
@@ -291,7 +291,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("혼합 결과 - 일부 폴더는 비워지고, 일부는 사진이 남음")
+    @DisplayName("혼합 삭제 후 조회 시 각 폴더 커버가 상태에 맞게 파생됨")
     fun givenMixedFolderStates_whenBatchDeleteCovers_thenEachFolderUpdatesAppropriately() {
         // Given:
         // 폴더 A: 사진 1장 (삭제 후 비워짐)
@@ -324,7 +324,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("비커버 사진 삭제 시 커버는 유지됨")
+    @DisplayName("비최신 사진 삭제 후 조회 시 커버는 동일하게 파생됨")
     fun givenFolderWithCoverPhoto_whenDeleteNonCoverPhoto_thenCoverRemainsUnchanged() {
         // Given: 폴더에 사진 3장 업로드
         val folder = createFolder(testUser.id!!, "테스트 폴더")
