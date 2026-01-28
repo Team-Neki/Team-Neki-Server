@@ -33,24 +33,7 @@ class UploadPosesUseCase(
             mediaIds = mediaIds,
         )
 
-        // 업로드 실패한 media가 있는지 확인
-        val unavailableMediaIds = availabilities
-            .filter { it.value != MediaAvailability.AVAILABLE }
-            .keys
-
-        if (unavailableMediaIds.isNotEmpty()) {
-            // 성공한 media들도 롤백 (상태를 INITIATED로 되돌림)
-            val successfulMediaIds = availabilities
-                .filter { it.value == MediaAvailability.AVAILABLE }
-                .keys
-                .toList()
-
-            if (successfulMediaIds.isNotEmpty()) {
-                mediaClient.rollbackMediasUploaded(command.userId, successfulMediaIds)
-            }
-
-            throw BusinessException(ResultCode.UPLOAD_FAILED)
-        }
+        rollbackIfFailed(command.userId, availabilities)
 
         val poses = command.uploads.map { upload ->
             Pose(
@@ -77,6 +60,25 @@ class UploadPosesUseCase(
 
         if (duplicates.isNotEmpty()) {
             throw BusinessException(ResultCode.INVALID_PARAMETER)
+        }
+    }
+
+    private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaAvailability>) {
+        val unavailableMediaIds = availabilities
+            .filter { it.value != MediaAvailability.AVAILABLE }
+            .keys
+
+        if (unavailableMediaIds.isNotEmpty()) {
+            val successfulMediaIds = availabilities
+                .filter { it.value == MediaAvailability.AVAILABLE }
+                .keys
+                .toList()
+
+            if (successfulMediaIds.isNotEmpty()) {
+                mediaClient.rollbackMediasUploaded(userId, successfulMediaIds)
+            }
+
+            throw BusinessException(ResultCode.UPLOAD_FAILED)
         }
     }
 }
