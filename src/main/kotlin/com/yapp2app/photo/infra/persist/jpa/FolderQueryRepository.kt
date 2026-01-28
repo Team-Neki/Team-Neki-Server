@@ -1,6 +1,5 @@
 package com.yapp2app.photo.infra.persist.jpa
 
-import com.querydsl.core.types.Projections
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.yapp2app.photo.application.contract.FolderWithStats
@@ -30,40 +29,64 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory, private v
     }
 
     fun findOwnedFoldersWithStats(userId: Long): List<FolderWithStats> {
+        // Query 1: 폴더 기본 정보 + 커버 사진 mediaId
         val coverPhoto = QPhotoImage("coverPhoto")
-        val latestPhotoSubquery = QPhotoImage("latestPhotoSubquery")
+        val foldersWithCover = queryFactory
+            .select(folder.id, folder.name, coverPhoto.mediaId)
+            .from(folder)
+            .leftJoin(coverPhoto).on(coverPhoto.id.eq(folder.coverPhotoId))
+            .where(folder.userId.eq(userId))
+            .fetch()
 
-        return queryFactory
-            .select(
-                Projections.constructor(
-                    FolderWithStats::class.java,
-                    folder.id,
-                    folder.name,
-                    coverPhoto.mediaId,
+        if (foldersWithCover.isEmpty()) return emptyList()
+
+        val folderIds = foldersWithCover.mapNotNull { it.get(folder.id) }
+
+        // Query 2: 폴더별 사진 개수 (GROUP BY)
+        val photoCountMap = queryFactory
+            .select(photoImage.folderId, photoImage.id.count())
+            .from(photoImage)
+            .where(
+                photoImage.userId.eq(userId),
+                photoImage.folderId.`in`(folderIds),
+            )
+            .groupBy(photoImage.folderId)
+            .fetch()
+            .associate { it.get(photoImage.folderId)!! to it.get(photoImage.id.count())!! }
+
+        // Query 3: 폴더별 최신 사진 mediaId (MAX(id)로 최신 사진 결정)
+        val latestPhoto = QPhotoImage("latestPhoto")
+        val maxIdSubquery = QPhotoImage("maxIdSubquery")
+        val latestPhotoMap = queryFactory
+            .select(latestPhoto.folderId, latestPhoto.mediaId)
+            .from(latestPhoto)
+            .where(
+                latestPhoto.userId.eq(userId),
+                latestPhoto.folderId.`in`(folderIds),
+                latestPhoto.id.eq(
                     JPAExpressions
-                        .select(latestPhotoSubquery.mediaId)
-                        .from(latestPhotoSubquery)
+                        .select(maxIdSubquery.id.max())
+                        .from(maxIdSubquery)
                         .where(
-                            latestPhotoSubquery.folderId.eq(folder.id),
-                            latestPhotoSubquery.userId.eq(userId),
-                        )
-                        .orderBy(latestPhotoSubquery.createdAt.desc())
-                        .limit(1),
-                    photoImage.id.count(),
+                            maxIdSubquery.folderId.eq(latestPhoto.folderId),
+                            maxIdSubquery.userId.eq(userId),
+                        ),
                 ),
             )
-            .from(folder)
-            .leftJoin(photoImage).on(
-                photoImage.folderId.eq(folder.id),
-                photoImage.userId.eq(userId),
-            )
-            .leftJoin(coverPhoto).on(
-                coverPhoto.id.eq(folder.coverPhotoId),
-                coverPhoto.userId.eq(userId),
-            )
-            .where(folder.userId.eq(userId))
-            .groupBy(folder.id, folder.name, coverPhoto.mediaId)
             .fetch()
+            .associate { it.get(latestPhoto.folderId)!! to it.get(latestPhoto.mediaId)!! }
+
+        // 애플리케이션에서 조합
+        return foldersWithCover.map { tuple ->
+            val folderId = tuple.get(folder.id)!!
+            FolderWithStats(
+                folderId = folderId,
+                name = tuple.get(folder.name)!!,
+                coverPhotoMediaId = tuple.get(coverPhoto.mediaId),
+                latestPhotoMediaId = latestPhotoMap[folderId],
+                photoCount = photoCountMap[folderId] ?: 0L,
+            )
+        }
     }
 
     /**
@@ -91,46 +114,58 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory, private v
 
     /**
      * 폴더별 최신 사진으로 커버 재계산
-     * PostgreSQL의 DISTINCT ON + UPDATE FROM 활용
+     * H2와 PostgreSQL 모두 호환되는 쿼리 사용
+     * ID를 기준으로 최신 사진 결정 (createdAt이 동일한 경우에도 일관성 보장)
      */
     fun recalculateCoverPhotos(userId: Long, folderIds: List<Long>): Int {
         if (folderIds.isEmpty()) return 0
 
         // 1. 먼저 해당 폴더들의 커버를 모두 NULL로 초기화
-        val nullifyQuery = entityManager.createNativeQuery(
-            """
-            UPDATE TB_FOLDER
-            SET cover_photo_id = NULL, cover_photo_created_at = NULL
-            WHERE user_id = :userId AND id IN (:folderIds)
-            """.trimIndent(),
-        )
-        nullifyQuery.setParameter("userId", userId)
-        nullifyQuery.setParameter("folderIds", folderIds)
-        nullifyQuery.executeUpdate()
+        queryFactory
+            .update(folder)
+            .setNull(folder.coverPhotoId)
+            .setNull(folder.coverPhotoCreatedAt)
+            .where(folder.userId.eq(userId), folder.id.`in`(folderIds))
+            .execute()
 
-        // 2. 최신 사진이 있는 폴더만 커버 업데이트
-        val updateQuery = entityManager.createNativeQuery(
-            """
-            UPDATE TB_FOLDER f
-            SET
-                cover_photo_id = latest.photo_id,
-                cover_photo_created_at = latest.created_at
-            FROM (
-                SELECT DISTINCT ON (p.folder_id)
-                    p.folder_id,
-                    p.id AS photo_id,
-                    p.created_at
-                FROM TB_PHOTO_IMAGE p
-                WHERE p.user_id = :userId
-                  AND p.folder_id IN (:folderIds)
-                ORDER BY p.folder_id, p.created_at DESC
-            ) AS latest
-            WHERE f.id = latest.folder_id
-              AND f.user_id = :userId
-            """.trimIndent(),
-        )
-        updateQuery.setParameter("userId", userId)
-        updateQuery.setParameter("folderIds", folderIds)
-        return updateQuery.executeUpdate()
+        // 2. 각 폴더의 최신 사진 조회 (ID가 가장 큰 사진 = 가장 최근 생성된 사진)
+        val latestPhoto = QPhotoImage("latestPhoto")
+        val maxIdSubquery = QPhotoImage("maxIdSubquery")
+
+        val latestPhotos = queryFactory
+            .select(latestPhoto.folderId, latestPhoto.id, latestPhoto.createdAt)
+            .from(latestPhoto)
+            .where(
+                latestPhoto.userId.eq(userId),
+                latestPhoto.folderId.`in`(folderIds),
+                latestPhoto.id.eq(
+                    JPAExpressions
+                        .select(maxIdSubquery.id.max())
+                        .from(maxIdSubquery)
+                        .where(
+                            maxIdSubquery.folderId.eq(latestPhoto.folderId),
+                            maxIdSubquery.userId.eq(userId),
+                        ),
+                ),
+            )
+            .fetch()
+
+        // 3. 각 폴더의 커버 업데이트
+        var updateCount = 0
+        for (tuple in latestPhotos) {
+            val folderId = tuple.get(latestPhoto.folderId)!!
+            val photoId = tuple.get(latestPhoto.id)!!
+            val createdAt = tuple.get(latestPhoto.createdAt)!!
+
+            updateCount += queryFactory
+                .update(folder)
+                .set(folder.coverPhotoId, photoId)
+                .set(folder.coverPhotoCreatedAt, createdAt)
+                .where(folder.userId.eq(userId), folder.id.eq(folderId))
+                .execute()
+                .toInt()
+        }
+
+        return updateCount
     }
 }
