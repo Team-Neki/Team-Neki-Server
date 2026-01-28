@@ -38,9 +38,4 @@ interface PhotoImageRepositoryPort {
     fun getLatestOwnedPhoto(userId: Long): PhotoImage?
 
     fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int
-
-    /**
-     * 삭제 예정인 사진들이 속한 폴더 ID 조회
-     */
-    fun getAffectedFolderIds(userId: Long, photoIds: List<Long>): List<Long>
 }
