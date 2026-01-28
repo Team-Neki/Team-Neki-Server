@@ -21,6 +21,7 @@ interface PhotoImageRepositoryPort {
 
     fun listOwnedPhotosWithFavorite(
         userId: Long,
+        folderId: Long?,
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,

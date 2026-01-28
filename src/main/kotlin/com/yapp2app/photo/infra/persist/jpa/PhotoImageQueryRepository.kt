@@ -36,6 +36,7 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
 
     fun findOwnedPhotosWithFavorite(
         userId: Long,
+        folderId: Long?,
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
@@ -57,6 +58,7 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         )
         .where(
             photoImage.userId.eq(userId),
+            folderId?.let { photoImage.folderId.eq(it) },
         )
         .orderBy(
             when (sortOrder) {

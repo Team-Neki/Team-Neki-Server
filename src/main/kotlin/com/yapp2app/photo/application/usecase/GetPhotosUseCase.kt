@@ -31,6 +31,7 @@ class GetPhotosUseCase(
 
         val photosWithFavorite: List<PhotoWithFavorite> = photoImageRepository.listOwnedPhotosWithFavorite(
             userId = command.userId,
+            folderId = command.folderId,
             offset = command.page * command.size,
             limit = fetchSize,
             sortOrder = command.sortOrder,

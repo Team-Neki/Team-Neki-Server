@@ -31,10 +31,11 @@ class PhotoImageRepositoryAdapter(
 
     override fun listOwnedPhotosWithFavorite(
         userId: Long,
+        folderId: Long?,
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-    ): List<PhotoWithFavorite> = queryRepository.findOwnedPhotosWithFavorite(userId, offset, limit, sortOrder)
+    ): List<PhotoWithFavorite> = queryRepository.findOwnedPhotosWithFavorite(userId, folderId, offset, limit, sortOrder)
 
     override fun listOwnedFavoritePhotos(
         userId: Long,
