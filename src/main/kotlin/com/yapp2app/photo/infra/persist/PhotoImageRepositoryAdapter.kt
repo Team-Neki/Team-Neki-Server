@@ -52,6 +52,7 @@ class PhotoImageRepositoryAdapter(
         }
 
         jpaRepository.deleteAll(photos)
+        jpaRepository.flush()
 
         return photos
     }
@@ -69,4 +70,10 @@ class PhotoImageRepositoryAdapter(
 
     override fun getAffectedFolderIds(userId: Long, photoIds: List<Long>): List<Long> =
         queryRepository.getAffectedFolderIds(userId, photoIds)
+
+    override fun getPhotoIdsByFolderIds(userId: Long, folderIds: List<Long>): List<Long> =
+        queryRepository.getPhotoIdsByFolderIds(userId, folderIds)
+
+    override fun removePhotosFromFolder(userId: Long, folderId: Long, photoIds: List<Long>): Int =
+        queryRepository.removePhotosFromFolder(userId, folderId, photoIds)
 }

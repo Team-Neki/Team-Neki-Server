@@ -1,11 +1,14 @@
 package com.yapp2app.e2e.photo.folder
 
 import com.yapp2app.common.api.dto.ResultCode
+import com.yapp2app.e2e.photo.image.PhotoImageE2ETestBase
+import com.yapp2app.media.domain.entity.MediaStatus
 import com.yapp2app.photo.api.dto.DeleteFoldersRequest
 import com.yapp2app.photo.domain.entity.Folder
 import com.yapp2app.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -23,7 +26,7 @@ import org.springframework.test.context.ActiveProfiles
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-class DeleteFoldersE2ETest : FolderE2ETestBase() {
+class DeleteFoldersE2ETest : PhotoImageE2ETestBase() {
 
     @LocalServerPort
     private var port: Int = 0
@@ -186,5 +189,136 @@ class DeleteFoldersE2ETest : FolderE2ETestBase() {
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+    }
+
+    @Test
+    @DisplayName("deletePhotos=true로 폴더 삭제 시 폴더 내 사진도 함께 삭제된다")
+    fun givenFolderWithPhotos_whenDeleteFoldersWithDeletePhotosTrue_thenPhotosAlsoDeleted() {
+        // Given: 폴더와 사진 생성
+        val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "사진 포함 폴더"))
+        val media1 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val media2 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val photo1 = createPhotoImage(userId = testUser.id!!, mediaId = media1.id!!, folderId = folder.id)
+        val photo2 = createPhotoImage(userId = testUser.id!!, mediaId = media2.id!!, folderId = folder.id)
+
+        // When: deletePhotos=true로 폴더 삭제
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("deletePhotos", true)
+            .body(DeleteFoldersRequest(folderIds = listOf(folder.id!!)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        // Then: 폴더와 사진 모두 삭제됨
+        assertThat(folderRepository.findById(folder.id!!)).isEmpty
+        assertThat(photoImageRepository.findById(photo1.id!!)).isEmpty
+        assertThat(photoImageRepository.findById(photo2.id!!)).isEmpty
+    }
+
+    @Test
+    @DisplayName("deletePhotos=false(기본값)로 폴더 삭제 시 사진은 유지되고 연관관계만 해제된다")
+    fun givenFolderWithPhotos_whenDeleteFoldersWithDeletePhotosFalse_thenPhotosRemainUnlinked() {
+        // Given: 폴더와 사진 생성
+        val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "사진 포함 폴더"))
+        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folder.id)
+
+        // When: deletePhotos=false(기본값)로 폴더 삭제
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(DeleteFoldersRequest(folderIds = listOf(folder.id!!)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        // Then: 폴더는 삭제되고 사진은 유지 (folderId는 NULL)
+        assertThat(folderRepository.findById(folder.id!!)).isEmpty
+        val remainingPhoto = photoImageRepository.findById(photo.id!!).orElseThrow()
+        assertThat(remainingPhoto.folderId).isNull()
+    }
+
+    @Test
+    @DisplayName("deletePhotos=true로 여러 폴더 삭제 시 모든 폴더의 사진이 삭제된다")
+    fun givenMultipleFoldersWithPhotos_whenDeleteFoldersWithDeletePhotosTrue_thenAllPhotosDeleted() {
+        // Given: 여러 폴더와 각 폴더의 사진 생성
+        val folder1 = folderRepository.save(Folder(userId = testUser.id!!, name = "폴더1"))
+        val folder2 = folderRepository.save(Folder(userId = testUser.id!!, name = "폴더2"))
+
+        val media1 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val media2 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val photo1 = createPhotoImage(userId = testUser.id!!, mediaId = media1.id!!, folderId = folder1.id)
+        val photo2 = createPhotoImage(userId = testUser.id!!, mediaId = media2.id!!, folderId = folder2.id)
+
+        // When
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("deletePhotos", true)
+            .body(DeleteFoldersRequest(folderIds = listOf(folder1.id!!, folder2.id!!)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        // Then
+        assertThat(folderRepository.findById(folder1.id!!)).isEmpty
+        assertThat(folderRepository.findById(folder2.id!!)).isEmpty
+        assertThat(photoImageRepository.findById(photo1.id!!)).isEmpty
+        assertThat(photoImageRepository.findById(photo2.id!!)).isEmpty
+    }
+
+    @Test
+    @DisplayName("deletePhotos=true로 빈 폴더 삭제 시 정상 동작한다")
+    fun givenEmptyFolder_whenDeleteFoldersWithDeletePhotosTrue_thenReturnsSuccess() {
+        // Given: 사진 없는 빈 폴더 생성
+        val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "빈 폴더"))
+
+        // When & Then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("deletePhotos", true)
+            .body(DeleteFoldersRequest(folderIds = listOf(folder.id!!)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        assertThat(folderRepository.findById(folder.id!!)).isEmpty
+    }
+
+    @Test
+    @DisplayName("deletePhotos=true로 즐겨찾기 사진이 포함된 폴더 삭제 시 즐겨찾기도 함께 삭제된다")
+    fun givenFolderWithFavoritePhoto_whenDeleteFoldersWithDeletePhotosTrue_thenFavoriteAlsoDeleted() {
+        // Given: 폴더와 즐겨찾기 사진 생성
+        val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "즐겨찾기 포함 폴더"))
+        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val photo = createFavoritePhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folder.id)
+
+        // When
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("deletePhotos", true)
+            .body(DeleteFoldersRequest(folderIds = listOf(folder.id!!)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        // Then
+        assertThat(folderRepository.findById(folder.id!!)).isEmpty
+        assertThat(photoImageRepository.findById(photo.id!!)).isEmpty
+        assertThat(favoritePhotoRepository.countByIdUserId(testUser.id!!)).isEqualTo(0)
     }
 }

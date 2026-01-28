@@ -8,10 +8,12 @@ import com.yapp2app.photo.api.dto.CreateFolderRequest
 import com.yapp2app.photo.api.dto.CreateFolderResponse
 import com.yapp2app.photo.api.dto.DeleteFoldersRequest
 import com.yapp2app.photo.api.dto.GetAllFolderResponse
+import com.yapp2app.photo.api.dto.RemovePhotosFromFolderRequest
 import com.yapp2app.photo.api.dto.UpdateFolderRequest
 import com.yapp2app.photo.application.usecase.CreateFolderUseCase
 import com.yapp2app.photo.application.usecase.DeleteFoldersUseCase
 import com.yapp2app.photo.application.usecase.GetFoldersUseCase
+import com.yapp2app.photo.application.usecase.RemovePhotosFromFolderUseCase
 import com.yapp2app.photo.application.usecase.UpdateFolderUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -41,6 +44,7 @@ class FolderController(
     private val getFoldersUseCase: GetFoldersUseCase,
     private val deleteFoldersUseCase: DeleteFoldersUseCase,
     private val updateFolderUseCase: UpdateFolderUseCase,
+    private val removePhotosFromFolderUseCase: RemovePhotosFromFolderUseCase,
     private val commandConverter: FolderCommandConverter,
     private val resultConverter: FolderResultConverter,
 ) {
@@ -80,14 +84,15 @@ class FolderController(
 
     @Operation(
         summary = "폴더 삭제 API",
-        description = "폴더를 삭제합니다.",
+        description = "폴더를 삭제합니다. deletePhotos=true이면 폴더 내 사진까지 완전 삭제합니다.",
     )
     @DeleteMapping
     fun deleteFolders(
         @AuthenticationPrincipal(expression = "id") userId: Long,
+        @RequestParam(defaultValue = "false") deletePhotos: Boolean,
         @Valid @RequestBody request: DeleteFoldersRequest,
     ): BaseResponse<Any> {
-        val command = commandConverter.toDeleteFoldersCommand(request, userId)
+        val command = commandConverter.toDeleteFoldersCommand(request, userId, deletePhotos)
 
         deleteFoldersUseCase.execute(command)
 
@@ -107,6 +112,23 @@ class FolderController(
         val command = commandConverter.toUpdateFolderCommand(request, folderId, userId)
 
         updateFolderUseCase.execute(command)
+
+        return BaseResponse()
+    }
+
+    @Operation(
+        summary = "폴더에서 사진 제외 API",
+        description = "폴더에서 사진을 제외합니다. 사진 자체는 삭제되지 않고 폴더와의 연관관계만 해제됩니다.",
+    )
+    @DeleteMapping("/{folderId}/photos")
+    fun removePhotosFromFolder(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @PathVariable folderId: Long,
+        @Valid @RequestBody request: RemovePhotosFromFolderRequest,
+    ): BaseResponse<Any> {
+        val command = commandConverter.toRemovePhotosFromFolderCommand(request, folderId, userId)
+
+        removePhotosFromFolderUseCase.execute(command)
 
         return BaseResponse()
     }
