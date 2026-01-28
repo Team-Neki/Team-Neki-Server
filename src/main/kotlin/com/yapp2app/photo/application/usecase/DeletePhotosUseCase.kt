@@ -4,6 +4,7 @@ import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.photo.application.command.DeletePhotosCommand
 import com.yapp2app.photo.application.port.FavoriteImageRepositoryPort
+import com.yapp2app.photo.application.port.FolderRepositoryPort
 import com.yapp2app.photo.application.port.MediaClientPort
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 
@@ -19,8 +20,9 @@ class DeletePhotosUseCase(
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val favoriteImageRepository: FavoriteImageRepositoryPort,
     private val mediaClient: MediaClientPort,
+    private val folderRepository: FolderRepositoryPort,
+
     private val transactionRunner: TransactionRunner,
-    private val folderRepository: com.yapp2app.photo.application.port.FolderRepositoryPort,
 ) {
 
     fun execute(command: DeletePhotosCommand) {

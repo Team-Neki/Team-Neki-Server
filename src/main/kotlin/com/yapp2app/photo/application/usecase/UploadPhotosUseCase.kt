@@ -106,7 +106,6 @@ class UploadPhotosUseCase(
             userId = userId,
             folderId = folderId,
             newCoverPhotoId = latestPhoto.id!!,
-            newCoverPhotoCreatedAt = latestPhoto.createdAt!!,
         )
     }
 }
