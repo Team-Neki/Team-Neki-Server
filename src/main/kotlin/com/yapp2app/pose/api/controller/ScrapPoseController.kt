@@ -3,9 +3,9 @@ package com.yapp2app.pose.api.controller
 import com.yapp2app.common.api.document.RequiresSecurity
 import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.pose.api.converter.ScrapPoseCommandConverter
-import com.yapp2app.pose.api.converter.ScrapPoseResultConverter
 import com.yapp2app.pose.api.dto.UpdatePoseScarpRequest
 import com.yapp2app.pose.application.usecase.UpdatePoseScrapUseCase
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -29,9 +29,12 @@ class ScrapPoseController(
     private val updatePoseScrapUseCase: UpdatePoseScrapUseCase,
 
     private val commandConverter: ScrapPoseCommandConverter,
-    private val resultConverter: ScrapPoseResultConverter,
 ) {
 
+    @Operation(
+        summary = "포즈 스크랩",
+        description = "포즈를 스크랩 합니다. 멱등성 보장을 위해 body에 변경하고자하는 scrap 상태를 입력하면 됩니다.",
+    )
     @PatchMapping("/{poseId}/scrap")
     fun scrapPose(
         @AuthenticationPrincipal(expression = "id") userId: Long,
