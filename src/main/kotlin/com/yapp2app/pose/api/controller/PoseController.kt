@@ -5,9 +5,9 @@ import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.pose.api.converter.PoseCommandConverter
 import com.yapp2app.pose.api.converter.dto.UploadPoseRequest
 import com.yapp2app.pose.application.usecase.UploadPosesUseCase
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,11 +29,15 @@ class PoseController(
     private val commandConverter: PoseCommandConverter,
 ) {
 
+    @Operation(
+        summary = "포즈 등록 API",
+        description = """
+            ADMIN 권한이 있는 사용자만 호출이 가능합니다.
+            관리자가 포즈를 업로드할 때 해당 API를 사용합니다.
+            """,
+    )
     @PostMapping
-    fun uploadPoses(
-        @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: UploadPoseRequest,
-    ): BaseResponse<Any> {
+    fun uploadPoses(@Valid @RequestBody request: UploadPoseRequest): BaseResponse<Any> {
         // userId를 null로 지정하면 시스템이 올린 포즈로 간주
         val command = commandConverter.toUploadPoseCommand(null, request)
 

@@ -29,6 +29,11 @@ enum class MediaType(val prefix: String) {
     LOGO("logo"),
 
     /**
+     * 포즈 이미지
+     */
+    POSE("pose"),
+
+    /**
      * 업로드 검증, 테스트 등
      */
     TEMP("temp"),
