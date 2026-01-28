@@ -14,3 +14,5 @@ data class UploadPosesCommand(val userId: Long, val uploads: List<UploadItem>) {
 }
 
 data class GetPosesCommand(val page: Int, val size: Int, val headCount: HeadCount?, val sortOrder: SortOrder)
+
+data class UpdatePoseScrapCommand(val userId: Long, val poseId: Long, val scrap: Boolean)

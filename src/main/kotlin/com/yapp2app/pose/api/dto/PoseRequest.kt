@@ -21,3 +21,9 @@ data class UploadPoseRequest(val uploads: List<UploadPoseItem>) {
         val memo: String?,
     )
 }
+
+data class UpdatePoseScarpRequest(
+    @field:Schema(description = "변경하고자 하는 스크랩 상태", example = "true")
+    @field:NotNull(message = "scrap은 필수값입니다.")
+    val scrap: Boolean?,
+)

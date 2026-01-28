@@ -15,4 +15,6 @@ interface PoseRepositoryPort {
     fun saveAll(poses: List<Pose>): List<Pose>
 
     fun listPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose>
+
+    fun existsOwnedPose(userId: Long, poseId: Long): Boolean
 }

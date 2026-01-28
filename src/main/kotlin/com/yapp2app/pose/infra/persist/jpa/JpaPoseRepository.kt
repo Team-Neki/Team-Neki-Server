@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository
  * date           : 2026. 1. 27. 17:10
  * description    : post jpa repository
  */
-interface JpaPoseRepository : JpaRepository<Pose, Long>
+interface JpaPoseRepository : JpaRepository<Pose, Long> {
+    fun existsByUserIdAndId(userId: Long, poseId: Long): Boolean
+}
