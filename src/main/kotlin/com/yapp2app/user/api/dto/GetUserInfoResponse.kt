@@ -1,4 +1,4 @@
-package com.yapp2app.user.api.response
+package com.yapp2app.user.api.dto
 
 import com.yapp2app.user.domain.enums.ProviderType
 
