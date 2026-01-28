@@ -8,7 +8,7 @@ import com.yapp2app.media.domain.MediaType
  * date           : 2026. 1. 3. 오전 12:04
  * description    : Media domain command
  */
-data class ConfirmMediaUploadedCommand(val ownerId: Long?, val mediaIds: List<Long>)
+data class ConfirmMediaUploadedCommand(val ownerId: Long, val mediaIds: List<Long>)
 
 data class GenerateUploadTicketCommand(val ownerId: Long, val items: List<UploadTicketItem>) {
     data class UploadTicketItem(val filename: String, val contentType: String, val mediaType: MediaType)

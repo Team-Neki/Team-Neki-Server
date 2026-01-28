@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -48,9 +49,11 @@ class PoseController(
             """,
     )
     @PostMapping
-    fun uploadPoses(@Valid @RequestBody request: UploadPoseRequest): BaseResponse<Any> {
-        // userId를 null로 지정하면 시스템이 올린 포즈로 간주
-        val command = commandConverter.toUploadPosesCommand(null, request)
+    fun uploadPoses(
+        @AuthenticationPrincipal(expression = "id") ownerId: Long,
+        @Valid @RequestBody request: UploadPoseRequest,
+    ): BaseResponse<Any> {
+        val command = commandConverter.toUploadPosesCommand(ownerId, request)
 
         uploadPosesUseCase.execute(command)
 

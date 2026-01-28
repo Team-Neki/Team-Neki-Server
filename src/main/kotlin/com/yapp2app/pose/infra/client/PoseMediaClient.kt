@@ -36,7 +36,7 @@ class PoseMediaClient(
         }
     }
 
-    override fun verifyMediasUploaded(ownerId: Long?, mediaIds: List<Long>): Map<Long, MediaAvailability> {
+    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
         if (mediaIds.isEmpty()) return emptyMap()
 
         val result = confirmMediaUploadedUseCase.execute(
@@ -47,7 +47,7 @@ class PoseMediaClient(
         }
     }
 
-    override fun rollbackMediasUploaded(ownerId: Long?, mediaIds: List<Long>) {
+    override fun rollbackMediasUploaded(ownerId: Long, mediaIds: List<Long>) {
         if (mediaIds.isEmpty()) return
 
         confirmMediaUploadedUseCase.rollback(

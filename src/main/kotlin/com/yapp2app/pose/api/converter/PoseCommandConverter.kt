@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 @Component
 class PoseCommandConverter {
 
-    fun toUploadPosesCommand(userId: Long?, request: UploadPoseRequest) = UploadPosesCommand(
+    fun toUploadPosesCommand(userId: Long, request: UploadPoseRequest) = UploadPosesCommand(
         userId = userId,
         uploads = request.uploads.map { item ->
             UploadPosesCommand.UploadItem(

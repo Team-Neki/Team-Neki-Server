@@ -9,7 +9,7 @@ import com.yapp2app.pose.domain.HeadCount
  * date           : 2026. 1. 27. 17:23
  * description    :
  */
-data class UploadPosesCommand(val userId: Long?, val uploads: List<UploadItem>) {
+data class UploadPosesCommand(val userId: Long, val uploads: List<UploadItem>) {
     data class UploadItem(val mediaId: Long, val headCount: HeadCount, val memo: String?)
 }
 

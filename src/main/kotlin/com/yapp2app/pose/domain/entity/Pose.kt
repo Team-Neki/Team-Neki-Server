@@ -26,8 +26,7 @@ class Pose(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    // null 허용 이유는 관리자가 넣을 경우 null로 처리 추후 사용자가 포즈에 넣을시 해당 컬럼에 값 추가
-    @Column(name = "user_id", nullable = true)
+    @Column(name = "user_id", nullable = false)
     val userId: Long? = null,
 
     @Column(name = "media_id", nullable = false)
