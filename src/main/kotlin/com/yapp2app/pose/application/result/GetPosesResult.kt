@@ -1,5 +1,6 @@
 package com.yapp2app.pose.application.result
 
+import com.yapp2app.pose.domain.HeadCount
 import java.time.LocalDateTime
 
 /**
@@ -9,5 +10,11 @@ import java.time.LocalDateTime
  * description    :
  */
 data class GetPosesResult(val poses: List<PoseInfo>, val hasNext: Boolean) {
-    data class PoseInfo(val poseId: Long, val storageKey: String, val contentType: String, val createdAt: LocalDateTime)
+    data class PoseInfo(
+        val poseId: Long,
+        val headCount: HeadCount,
+        val storageKey: String,
+        val contentType: String,
+        val createdAt: LocalDateTime,
+    )
 }

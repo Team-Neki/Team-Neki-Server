@@ -2,6 +2,7 @@ package com.yapp2app.pose.infra.persist
 
 import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.pose.application.port.PoseRepositoryPort
+import com.yapp2app.pose.domain.HeadCount
 import com.yapp2app.pose.domain.entity.Pose
 import com.yapp2app.pose.infra.persist.jpa.JpaPoseRepository
 import com.yapp2app.pose.infra.persist.jpa.PosesQueryRepository
@@ -21,6 +22,6 @@ class PoseRepositoryAdapter(
 
     override fun saveAll(poses: List<Pose>): List<Pose> = jpaRepository.saveAll(poses)
 
-    override fun listPoses(offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> =
-        queryRepository.findPoses(offset, limit, sortOrder)
+    override fun listPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose> =
+        queryRepository.findPoses(offset, limit, headCount, sortOrder)
 }

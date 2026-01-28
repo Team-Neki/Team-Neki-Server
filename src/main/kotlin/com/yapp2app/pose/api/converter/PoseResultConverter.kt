@@ -21,6 +21,7 @@ class PoseResultConverter(private val appProperties: AppProperties) {
         items = result.poses.map {
             GetPosesResponse.PoseInfo(
                 poseId = it.poseId,
+                headCount = it.headCount,
                 imageUrl = toImageUrl(it.storageKey),
                 contentType = it.contentType,
                 createdAt = it.createdAt,

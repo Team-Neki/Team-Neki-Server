@@ -1,6 +1,7 @@
 package com.yapp2app.pose.application.port
 
 import com.yapp2app.common.domain.vo.SortOrder
+import com.yapp2app.pose.domain.HeadCount
 import com.yapp2app.pose.domain.entity.Pose
 
 /**
@@ -13,5 +14,5 @@ interface PoseRepositoryPort {
 
     fun saveAll(poses: List<Pose>): List<Pose>
 
-    fun listPoses(offset: Int, limit: Int, sortOrder: SortOrder): List<Pose>
+    fun listPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose>
 }

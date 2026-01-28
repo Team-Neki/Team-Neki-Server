@@ -1,5 +1,6 @@
 package com.yapp2app.pose.api.dto
 
+import com.yapp2app.pose.domain.HeadCount
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 
@@ -18,6 +19,8 @@ data class GetPosesResponse(
     data class PoseInfo(
         @field:Schema(description = "포즈 ID", example = "1")
         val poseId: Long,
+        @field:Schema(description = "인원 수", example = "ONE")
+        val headCount: HeadCount,
         @field:Schema(description = "사진 URL", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")
         val imageUrl: String,
         @field:Schema(description = "파일 형식", example = "image/jpeg")

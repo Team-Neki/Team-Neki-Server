@@ -9,6 +9,7 @@ import com.yapp2app.pose.api.dto.GetPosesResponse
 import com.yapp2app.pose.api.dto.UploadPoseRequest
 import com.yapp2app.pose.application.usecase.GetPosesUseCase
 import com.yapp2app.pose.application.usecase.UploadPosesUseCase
+import com.yapp2app.pose.domain.HeadCount
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -58,15 +59,31 @@ class PoseController(
 
     @Operation(
         summary = "포즈 목록 API",
-        description = "포즈 목록을 조회합니다. Offset 기반 페이징을 지원합니다.",
+        description = """
+            포즈 목록을 조회합니다. Offset 기반 페이징을 지원합니다.
+
+            headCount:
+            * 없이 보내면 전체 조회
+            * ONE("1인")
+            * TWO("2인")
+            * THREE("3인")
+            * FOUR("4인")
+            * FIVE_OR_MORE("5인 이상")
+        """,
     )
     @GetMapping
     fun poseList(
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
+        @RequestParam(required = false) headCount: HeadCount?,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<GetPosesResponse> {
-        val command = commandConverter.toGetPosesCommand(page = page, size = size, sortOrder = sortOrder)
+        val command = commandConverter.toGetPosesCommand(
+            page = page,
+            size = size,
+            headCount = headCount,
+            sortOrder = sortOrder,
+        )
 
         val result = getPosesUseCase.execute(command)
 

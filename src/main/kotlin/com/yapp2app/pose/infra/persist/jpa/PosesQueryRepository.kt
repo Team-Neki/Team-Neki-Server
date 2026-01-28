@@ -2,6 +2,7 @@ package com.yapp2app.pose.infra.persist.jpa
 
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.yapp2app.common.domain.vo.SortOrder
+import com.yapp2app.pose.domain.HeadCount
 import com.yapp2app.pose.domain.entity.Pose
 import com.yapp2app.pose.domain.entity.QPose.pose
 import org.springframework.stereotype.Repository
@@ -15,9 +16,10 @@ import org.springframework.stereotype.Repository
 @Repository
 class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
 
-    fun findPoses(offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> = queryFactory
+    fun findPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose> = queryFactory
         .selectFrom(pose)
         .from(pose)
+        .where(headCount?.let { pose.headCount.eq(it) })
         .orderBy(
             when (sortOrder) {
                 SortOrder.ASC -> pose.createdAt.asc()

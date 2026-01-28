@@ -25,6 +25,7 @@ class GetPosesUseCase(private val poseRepository: PoseRepositoryPort, private va
         val poses: List<Pose> = poseRepository.listPoses(
             offset = command.page * command.size,
             limit = fetchSize,
+            headCount = command.headCount,
             sortOrder = command.sortOrder,
         )
 
@@ -59,6 +60,7 @@ class GetPosesUseCase(private val poseRepository: PoseRepositoryPort, private va
 
             GetPosesResult.PoseInfo(
                 poseId = pose.id!!,
+                headCount = pose.headCount,
                 storageKey = media.storageKey,
                 contentType = media.contentType,
                 createdAt = pose.createdAt!!,

@@ -4,6 +4,7 @@ import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.pose.api.dto.UploadPoseRequest
 import com.yapp2app.pose.application.command.GetPosesCommand
 import com.yapp2app.pose.application.command.UploadPosesCommand
+import com.yapp2app.pose.domain.HeadCount
 import org.springframework.stereotype.Component
 
 /**
@@ -26,6 +27,6 @@ class PoseCommandConverter {
         },
     )
 
-    fun toGetPosesCommand(page: Int, size: Int, sortOrder: SortOrder): GetPosesCommand =
-        GetPosesCommand(page = page, size = size, sortOrder = sortOrder)
+    fun toGetPosesCommand(page: Int, size: Int, headCount: HeadCount?, sortOrder: SortOrder): GetPosesCommand =
+        GetPosesCommand(page = page, size = size, headCount = headCount, sortOrder = sortOrder)
 }
