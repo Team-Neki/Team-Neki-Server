@@ -36,11 +36,12 @@ class MediaController(
         summary = "미디어 업로드 ticket 발급",
         description = """
             미디어 업로드를 위한 ticket을 발급받습니다.
+            Binary를 body에 담아 발급받은 uploadTicket URL로 PUT 요청을 하면 됩니다.
 
             Workflow:
             1. 이 API를 호출하여 업로드 ticket 발급
             2. 각 ticket의 uploadTicket URL로 파일 업로드 (S3 직접 업로드)
-            3. POST /api/photos/bulk API 호출하여 메타데이터 등록
+            3. POST /api/photos API 호출하여 메타데이터 등록
 
             mediaType:
             * USER_PROFILE("user-profiles") : 사용자 프로필
