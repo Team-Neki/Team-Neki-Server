@@ -23,7 +23,7 @@ class GetFoldersUseCase(private val folderRepository: FolderRepositoryPort) {
             GetFoldersResult.FolderInfo(
                 folderId = folder.folderId,
                 name = folder.name,
-                imageObjectKey = folder.coverImageStorageKey,
+                storageKey = folder.coverImageStorageKey,
                 count = folder.photoCount,
             )
         }

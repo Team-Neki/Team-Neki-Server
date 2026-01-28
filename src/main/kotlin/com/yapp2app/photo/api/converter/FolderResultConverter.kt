@@ -25,7 +25,7 @@ class FolderResultConverter(private val appProperties: AppProperties) {
             GetAllFolderResponse.FolderInfo(
                 it.folderId,
                 it.name,
-                latestImageUrl = it.imageObjectKey?.let { key -> toImageUrl(key) },
+                latestImageUrl = it.storageKey?.let { key -> toImageUrl(key) },
                 totalCount = it.count,
             )
         },
