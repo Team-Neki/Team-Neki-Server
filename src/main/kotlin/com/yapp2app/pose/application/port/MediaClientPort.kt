@@ -11,6 +11,8 @@ import com.yapp2app.photo.application.contract.MediaStorageInfo
  */
 interface MediaClientPort {
 
+    fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaStorageInfo
+
     fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo>
 
     /**

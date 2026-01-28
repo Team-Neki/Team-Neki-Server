@@ -1,9 +1,12 @@
 package com.yapp2app.pose.infra.client
 
 import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
+import com.yapp2app.media.application.command.GetMediaStorageInfoCommand
 import com.yapp2app.media.application.command.GetMediaStorageInfosCommand
 import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
+import com.yapp2app.media.application.result.GetMediaStorageInfoResult
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
+import com.yapp2app.media.application.usecase.GetMediaStorageInfoUseCase
 import com.yapp2app.media.application.usecase.GetMediaStorageInfosUseCase
 import com.yapp2app.photo.application.contract.MediaAvailability
 import com.yapp2app.photo.application.contract.MediaStorageInfo
@@ -20,8 +23,24 @@ import org.springframework.stereotype.Component
 @Component
 class PoseMediaClient(
     private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
+    private val getMediaStorageInfoUseCase: GetMediaStorageInfoUseCase,
     private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
 ) : MediaClientPort {
+
+    override fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaStorageInfo {
+        val result: GetMediaStorageInfoResult = getMediaStorageInfoUseCase.execute(
+            GetMediaStorageInfoCommand(
+                ownerId = ownerId,
+                mediaId = mediaId,
+            ),
+        )
+
+        return MediaStorageInfo(
+            mediaId = result.mediaId,
+            storageKey = result.storageKey,
+            contentType = result.contentType,
+        )
+    }
 
     override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo> {
         val result =

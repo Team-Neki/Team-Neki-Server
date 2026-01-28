@@ -1,7 +1,9 @@
 package com.yapp2app.pose.api.converter
 
 import com.yapp2app.common.properties.AppProperties
+import com.yapp2app.pose.api.dto.GetPoseResponse
 import com.yapp2app.pose.api.dto.GetPosesResponse
+import com.yapp2app.pose.application.result.GetPoseResult
 import com.yapp2app.pose.application.result.GetPosesResult
 import org.springframework.stereotype.Component
 
@@ -28,6 +30,16 @@ class PoseResultConverter(private val appProperties: AppProperties) {
             )
         },
         hasNext = result.hasNext,
+    )
+
+    fun toGetPoseResponse(result: GetPoseResult): GetPoseResponse = GetPoseResponse(
+        poseId = result.poseId,
+        headCount = result.headCount,
+        imageUrl = toImageUrl(result.storageKey),
+        scrap = result.scrap,
+        contentType = result.contentType,
+        createdAt = result.createdAt,
+
     )
 
     private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}${IMAGE_URL_PATH}$storageKey"

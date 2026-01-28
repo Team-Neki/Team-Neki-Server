@@ -5,8 +5,10 @@ import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.pose.api.converter.PoseCommandConverter
 import com.yapp2app.pose.api.converter.PoseResultConverter
+import com.yapp2app.pose.api.dto.GetPoseResponse
 import com.yapp2app.pose.api.dto.GetPosesResponse
 import com.yapp2app.pose.api.dto.UploadPoseRequest
+import com.yapp2app.pose.application.usecase.GetPoseUseCase
 import com.yapp2app.pose.application.usecase.GetPosesUseCase
 import com.yapp2app.pose.application.usecase.UploadPosesUseCase
 import com.yapp2app.pose.domain.HeadCount
@@ -17,6 +19,7 @@ import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -36,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController
 class PoseController(
     private val uploadPosesUseCase: UploadPosesUseCase,
     private val getPosesUseCase: GetPosesUseCase,
+    private val getPoseUseCase: GetPoseUseCase,
 
     private val commandConverter: PoseCommandConverter,
     private val resultConverter: PoseResultConverter,
@@ -91,6 +95,24 @@ class PoseController(
         val result = getPosesUseCase.execute(command)
 
         val response = resultConverter.toGetPosesResponse(result)
+
+        return BaseResponse(data = response)
+    }
+
+    @Operation(
+        summary = "포즈 상세 조회 API",
+        description = "포즈 상세 정보를 조회합니다.",
+    )
+    @GetMapping("/{poseId}")
+    fun poseDetail(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @PathVariable poseId: Long,
+    ): BaseResponse<GetPoseResponse> {
+        val command = commandConverter.toGetPoseCommand(userId, poseId)
+
+        val result = getPoseUseCase.execute(command)
+
+        val response = resultConverter.toGetPoseResponse(result)
 
         return BaseResponse(data = response)
     }

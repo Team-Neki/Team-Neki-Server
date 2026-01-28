@@ -29,3 +29,18 @@ data class GetPosesResponse(
         val createdAt: LocalDateTime,
     )
 }
+
+data class GetPoseResponse(
+    @field:Schema(description = "포즈 ID", example = "1")
+    val poseId: Long,
+    @field:Schema(description = "인원 수", example = "ONE")
+    val headCount: HeadCount,
+    @field:Schema(description = "사진 URL", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")
+    val imageUrl: String,
+    @field:Schema(description = "스크랩 여부", example = "true")
+    val scrap: Boolean,
+    @field:Schema(description = "파일 형식", example = "image/jpeg")
+    val contentType: String,
+    @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
+    val createdAt: LocalDateTime,
+)

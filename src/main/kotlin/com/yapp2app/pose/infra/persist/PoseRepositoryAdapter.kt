@@ -1,6 +1,7 @@
 package com.yapp2app.pose.infra.persist
 
 import com.yapp2app.common.domain.vo.SortOrder
+import com.yapp2app.pose.application.contract.PoseWithScrap
 import com.yapp2app.pose.application.port.PoseRepositoryPort
 import com.yapp2app.pose.domain.HeadCount
 import com.yapp2app.pose.domain.entity.Pose
@@ -19,6 +20,9 @@ class PoseRepositoryAdapter(
     private val jpaRepository: JpaPoseRepository,
     private val queryRepository: PosesQueryRepository,
 ) : PoseRepositoryPort {
+
+    override fun getOwnedPoseWithScrap(userId: Long, poseId: Long): PoseWithScrap? =
+        queryRepository.findOwnedPoseWithScrap(userId, poseId)
 
     override fun saveAll(poses: List<Pose>): List<Pose> = jpaRepository.saveAll(poses)
 
