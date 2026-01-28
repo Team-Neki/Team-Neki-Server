@@ -26,4 +26,7 @@ class ScrapPoseRepositoryAdapter(private val jpaRepository: JpaScrapPoseReposito
     override fun delete(userId: Long, poseId: Long) {
         jpaRepository.deleteById(ScrapPoseId(userId, poseId))
     }
+
+    override fun existsOwnedPoseScrap(userId: Long, poseId: Long): Boolean =
+        jpaRepository.existsById(ScrapPoseId(userId, poseId))
 }

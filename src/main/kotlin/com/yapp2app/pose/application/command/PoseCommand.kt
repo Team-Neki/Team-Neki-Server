@@ -18,3 +18,5 @@ data class GetPosesCommand(val page: Int, val size: Int, val headCount: HeadCoun
 data class UpdatePoseScrapCommand(val userId: Long, val poseId: Long, val scrap: Boolean)
 
 data class GetPoseCommand(val userId: Long, val poseId: Long)
+
+data class GetRandomPoseCommand(val userId: Long)

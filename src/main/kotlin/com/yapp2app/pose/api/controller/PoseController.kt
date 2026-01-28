@@ -7,9 +7,11 @@ import com.yapp2app.pose.api.converter.PoseCommandConverter
 import com.yapp2app.pose.api.converter.PoseResultConverter
 import com.yapp2app.pose.api.dto.GetPoseResponse
 import com.yapp2app.pose.api.dto.GetPosesResponse
+import com.yapp2app.pose.api.dto.GetRandomPoseResponse
 import com.yapp2app.pose.api.dto.UploadPoseRequest
 import com.yapp2app.pose.application.usecase.GetPoseUseCase
 import com.yapp2app.pose.application.usecase.GetPosesUseCase
+import com.yapp2app.pose.application.usecase.RandomPoseUseCase
 import com.yapp2app.pose.application.usecase.UploadPosesUseCase
 import com.yapp2app.pose.domain.HeadCount
 import io.swagger.v3.oas.annotations.Operation
@@ -40,6 +42,7 @@ class PoseController(
     private val uploadPosesUseCase: UploadPosesUseCase,
     private val getPosesUseCase: GetPosesUseCase,
     private val getPoseUseCase: GetPoseUseCase,
+    private val randomPoseUseCase: RandomPoseUseCase,
 
     private val commandConverter: PoseCommandConverter,
     private val resultConverter: PoseResultConverter,
@@ -113,6 +116,21 @@ class PoseController(
         val result = getPoseUseCase.execute(command)
 
         val response = resultConverter.toGetPoseResponse(result)
+
+        return BaseResponse(data = response)
+    }
+
+    @Operation(
+        summary = "랜덤 포즈 조회 API",
+        description = "랜덤 포즈를 임의로 1개 가져옵니다.",
+    )
+    @GetMapping("/random")
+    fun randomPose(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetRandomPoseResponse> {
+        val command = commandConverter.toGetRandomPoseCommand(userId)
+
+        val result = randomPoseUseCase.execute(command)
+
+        val response = resultConverter.toGetRandomPoseResponse(result)
 
         return BaseResponse(data = response)
     }

@@ -4,6 +4,7 @@ import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.pose.api.dto.UploadPoseRequest
 import com.yapp2app.pose.application.command.GetPoseCommand
 import com.yapp2app.pose.application.command.GetPosesCommand
+import com.yapp2app.pose.application.command.GetRandomPoseCommand
 import com.yapp2app.pose.application.command.UploadPosesCommand
 import com.yapp2app.pose.domain.HeadCount
 import org.springframework.stereotype.Component
@@ -32,4 +33,6 @@ class PoseCommandConverter {
         GetPosesCommand(page = page, size = size, headCount = headCount, sortOrder = sortOrder)
 
     fun toGetPoseCommand(userId: Long, poseId: Long): GetPoseCommand = GetPoseCommand(userId = userId, poseId = poseId)
+
+    fun toGetRandomPoseCommand(userId: Long): GetRandomPoseCommand = GetRandomPoseCommand(userId = userId)
 }

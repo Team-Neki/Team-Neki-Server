@@ -31,4 +31,8 @@ class PoseRepositoryAdapter(
 
     override fun existsOwnedPose(userId: Long, poseId: Long): Boolean =
         jpaRepository.existsByUserIdAndId(userId, poseId)
+
+    override fun countPoses(): Long = queryRepository.countPoses()
+
+    override fun findPoseByOffset(offset: Long): Pose? = queryRepository.findPoseByOffset(offset)
 }
