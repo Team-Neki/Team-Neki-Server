@@ -33,7 +33,7 @@ class GetFavoriteSummaryUseCase(
         }
 
         if (totalCount == 0L) {
-            return GetFavoriteSummaryResult(latestImageUrl = null, totalCount = 0)
+            return GetFavoriteSummaryResult(storageKey = null, totalCount = 0)
         }
 
         val latestPhoto = transactionRunner.readOnly {
@@ -42,7 +42,7 @@ class GetFavoriteSummaryUseCase(
 
         if (latestPhoto == null) {
             log.warn("Photo not found but count is {}.", totalCount)
-            return GetFavoriteSummaryResult(latestImageUrl = null, totalCount = totalCount)
+            return GetFavoriteSummaryResult(storageKey = null, totalCount = totalCount)
         }
 
         val mediaStorageInfos = mediaClient.getMediaStorageInfos(
@@ -52,20 +52,10 @@ class GetFavoriteSummaryUseCase(
 
         val media = mediaStorageInfos.firstOrNull()
         if (media == null) {
-            log.info(
-                "Media not found yet. photoId={}, mediaId={}",
-                latestPhoto.id,
-                latestPhoto.mediaId,
-            )
-            return GetFavoriteSummaryResult(latestImageUrl = null, totalCount = totalCount)
+            log.info("Media not found yet. photoId=${latestPhoto.id}, mediaId=${latestPhoto.mediaId}")
+            return GetFavoriteSummaryResult(storageKey = null, totalCount = totalCount)
         }
 
-        val latestImageUrl = "${appProperties.server.url}$IMAGE_URL_PATH${media.storageKey}"
-
-        return GetFavoriteSummaryResult(latestImageUrl = latestImageUrl, totalCount = totalCount)
-    }
-
-    companion object {
-        private const val IMAGE_URL_PATH = "/file/image/"
+        return GetFavoriteSummaryResult(storageKey = media.storageKey, totalCount = totalCount)
     }
 }

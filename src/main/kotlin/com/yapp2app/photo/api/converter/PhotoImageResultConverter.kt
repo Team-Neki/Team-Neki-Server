@@ -44,7 +44,7 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
 
     fun toGetFavoriteSummaryResponse(result: GetFavoriteSummaryResult): GetFavoriteSummaryResponse =
         GetFavoriteSummaryResponse(
-            latestImageUrl = result.latestImageUrl,
+            latestImageUrl = result.storageKey?.let { toImageUrl(result.storageKey) },
             totalCount = result.totalCount,
         )
 
