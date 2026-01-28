@@ -1,9 +1,12 @@
 package com.yapp2app.pose.infra.client
 
 import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
+import com.yapp2app.media.application.command.GetMediaStorageInfosCommand
 import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
+import com.yapp2app.media.application.usecase.GetMediaStorageInfosUseCase
 import com.yapp2app.photo.application.contract.MediaAvailability
+import com.yapp2app.photo.application.contract.MediaStorageInfo
 import com.yapp2app.pose.application.port.MediaClientPort
 import org.springframework.stereotype.Component
 
@@ -15,7 +18,24 @@ import org.springframework.stereotype.Component
  * - media service 분리 시 OpenFeign, EventPublisher/Consumer로 변경
  */
 @Component
-class PoseMediaClient(private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase) : MediaClientPort {
+class PoseMediaClient(
+    private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
+    private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
+) : MediaClientPort {
+
+    override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo> {
+        val result =
+            getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(null, mediaIds))
+
+        return result.storageInfos.map {
+            MediaStorageInfo(
+                mediaId = it.mediaId,
+                storageKey = it.storageKey,
+                contentType = it.contentType,
+            )
+        }
+    }
+
     override fun verifyMediasUploaded(ownerId: Long?, mediaIds: List<Long>): Map<Long, MediaAvailability> {
         if (mediaIds.isEmpty()) return emptyMap()
 

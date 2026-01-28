@@ -1,4 +1,4 @@
-package com.yapp2app.pose.api.converter.dto
+package com.yapp2app.pose.api.dto
 
 import com.yapp2app.pose.domain.HeadCount
 import jakarta.validation.constraints.NotNull

@@ -2,15 +2,23 @@ package com.yapp2app.pose.api.controller
 
 import com.yapp2app.common.api.document.RequiresSecurity
 import com.yapp2app.common.api.dto.BaseResponse
+import com.yapp2app.common.domain.vo.SortOrder
 import com.yapp2app.pose.api.converter.PoseCommandConverter
-import com.yapp2app.pose.api.converter.dto.UploadPoseRequest
+import com.yapp2app.pose.api.converter.PoseResultConverter
+import com.yapp2app.pose.api.dto.GetPosesResponse
+import com.yapp2app.pose.api.dto.UploadPoseRequest
+import com.yapp2app.pose.application.usecase.GetPosesUseCase
 import com.yapp2app.pose.application.usecase.UploadPosesUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -25,8 +33,10 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/poses")
 class PoseController(
     private val uploadPosesUseCase: UploadPosesUseCase,
+    private val getPosesUseCase: GetPosesUseCase,
 
     private val commandConverter: PoseCommandConverter,
+    private val resultConverter: PoseResultConverter,
 ) {
 
     @Operation(
@@ -39,10 +49,29 @@ class PoseController(
     @PostMapping
     fun uploadPoses(@Valid @RequestBody request: UploadPoseRequest): BaseResponse<Any> {
         // userId를 null로 지정하면 시스템이 올린 포즈로 간주
-        val command = commandConverter.toUploadPoseCommand(null, request)
+        val command = commandConverter.toUploadPosesCommand(null, request)
 
         uploadPosesUseCase.execute(command)
 
         return BaseResponse()
+    }
+
+    @Operation(
+        summary = "포즈 목록 API",
+        description = "포즈 목록을 조회합니다. Offset 기반 페이징을 지원합니다.",
+    )
+    @GetMapping
+    fun poseList(
+        @RequestParam(defaultValue = "0") @Min(0) page: Int,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
+        @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
+    ): BaseResponse<GetPosesResponse> {
+        val command = commandConverter.toGetPosesCommand(page = page, size = size, sortOrder = sortOrder)
+
+        val result = getPosesUseCase.execute(command)
+
+        val response = resultConverter.toGetPosesResponse(result)
+
+        return BaseResponse(data = response)
     }
 }

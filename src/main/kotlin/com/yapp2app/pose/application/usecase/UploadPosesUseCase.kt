@@ -5,7 +5,7 @@ import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.photo.application.contract.MediaAvailability
-import com.yapp2app.pose.application.command.UploadPoseCommand
+import com.yapp2app.pose.application.command.UploadPosesCommand
 import com.yapp2app.pose.application.port.MediaClientPort
 import com.yapp2app.pose.application.port.PoseRepositoryPort
 import com.yapp2app.pose.domain.entity.Pose
@@ -22,7 +22,7 @@ class UploadPosesUseCase(
     private val transactionRunner: TransactionRunner,
     private val poseRepository: PoseRepositoryPort,
 ) {
-    fun execute(command: UploadPoseCommand) {
+    fun execute(command: UploadPosesCommand) {
         validateNoDuplicateMediaIds(command.uploads)
 
         val mediaIds = command.uploads.map { it.mediaId }
@@ -71,7 +71,7 @@ class UploadPosesUseCase(
         }
     }
 
-    private fun validateNoDuplicateMediaIds(uploads: List<UploadPoseCommand.UploadItem>) {
+    private fun validateNoDuplicateMediaIds(uploads: List<UploadPosesCommand.UploadItem>) {
         val mediaIds = uploads.map { it.mediaId }
         val duplicates = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
 

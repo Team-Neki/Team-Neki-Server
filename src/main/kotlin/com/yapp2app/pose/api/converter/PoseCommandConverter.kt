@@ -1,7 +1,9 @@
 package com.yapp2app.pose.api.converter
 
-import com.yapp2app.pose.api.converter.dto.UploadPoseRequest
-import com.yapp2app.pose.application.command.UploadPoseCommand
+import com.yapp2app.common.domain.vo.SortOrder
+import com.yapp2app.pose.api.dto.UploadPoseRequest
+import com.yapp2app.pose.application.command.GetPosesCommand
+import com.yapp2app.pose.application.command.UploadPosesCommand
 import org.springframework.stereotype.Component
 
 /**
@@ -13,14 +15,17 @@ import org.springframework.stereotype.Component
 @Component
 class PoseCommandConverter {
 
-    fun toUploadPoseCommand(userId: Long?, request: UploadPoseRequest) = UploadPoseCommand(
+    fun toUploadPosesCommand(userId: Long?, request: UploadPoseRequest) = UploadPosesCommand(
         userId = userId,
         uploads = request.uploads.map { item ->
-            UploadPoseCommand.UploadItem(
+            UploadPosesCommand.UploadItem(
                 mediaId = item.mediaId!!,
                 headCount = item.headCount,
                 memo = item.memo,
             )
         },
     )
+
+    fun toGetPosesCommand(page: Int, size: Int, sortOrder: SortOrder): GetPosesCommand =
+        GetPosesCommand(page = page, size = size, sortOrder = sortOrder)
 }

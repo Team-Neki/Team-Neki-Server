@@ -1,6 +1,7 @@
 package com.yapp2app.pose.application.port
 
 import com.yapp2app.photo.application.contract.MediaAvailability
+import com.yapp2app.photo.application.contract.MediaStorageInfo
 
 /**
  * fileName       : MediaClientPort
@@ -9,6 +10,8 @@ import com.yapp2app.photo.application.contract.MediaAvailability
  * description    :
  */
 interface MediaClientPort {
+
+    fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo>
 
     /**
      * 여러 media가 object storage에 정상적으로 저장되었는지 확인
