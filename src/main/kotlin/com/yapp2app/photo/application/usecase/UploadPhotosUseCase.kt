@@ -21,8 +21,9 @@ import com.yapp2app.photo.domain.entity.PhotoImage
 class UploadPhotosUseCase(
     private val mediaClient: MediaClientPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
-    private val transactionRunner: TransactionRunner,
     private val folderRepository: FolderRepositoryPort,
+
+    private val transactionRunner: TransactionRunner,
 ) {
 
     fun execute(command: UploadPhotoCommand) {
@@ -37,26 +38,8 @@ class UploadPhotosUseCase(
             mediaIds = mediaIds,
         )
 
-        // 업로드 실패한 media가 있는지 확인
-        val unavailableMediaIds = availabilities
-            .filter { it.value != MediaAvailability.AVAILABLE }
-            .keys
+        rollbackIfFailed(command.userId, availabilities)
 
-        if (unavailableMediaIds.isNotEmpty()) {
-            // 성공한 media들도 롤백 (상태를 INITIATED로 되돌림)
-            val successfulMediaIds = availabilities
-                .filter { it.value == MediaAvailability.AVAILABLE }
-                .keys
-                .toList()
-
-            if (successfulMediaIds.isNotEmpty()) {
-                mediaClient.rollbackMediasUploaded(command.userId, successfulMediaIds)
-            }
-
-            throw BusinessException(ResultCode.UPLOAD_FAILED)
-        }
-
-        // PhotoImage 엔티티 생성
         val photos = command.uploads.map { upload ->
             PhotoImage(
                 userId = command.userId,
@@ -90,6 +73,25 @@ class UploadPhotosUseCase(
         if (folderId != null) {
             folderRepository.getOwnedFolder(userId, folderId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND)
+        }
+    }
+
+    private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaAvailability>) {
+        val unavailableMediaIds = availabilities
+            .filter { it.value != MediaAvailability.AVAILABLE }
+            .keys
+
+        if (unavailableMediaIds.isNotEmpty()) {
+            val successfulMediaIds = availabilities
+                .filter { it.value == MediaAvailability.AVAILABLE }
+                .keys
+                .toList()
+
+            if (successfulMediaIds.isNotEmpty()) {
+                mediaClient.rollbackMediasUploaded(userId, successfulMediaIds)
+            }
+
+            throw BusinessException(ResultCode.UPLOAD_FAILED)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.yapp2app.photo.application.port
 
+import com.yapp2app.photo.application.contract.FolderWithStats
 import com.yapp2app.photo.domain.entity.Folder
 
 /**
@@ -15,6 +16,8 @@ interface FolderRepositoryPort {
     fun deleteOwnedFolders(userId: Long, folderIds: List<Long>): Int
 
     fun listOwnedFolders(userId: Long): List<Folder>
+
+    fun listOwnedFoldersWithStats(userId: Long): List<FolderWithStats>
 
     fun getOwnedFolder(userId: Long, folderId: Long): Folder?
     fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder>

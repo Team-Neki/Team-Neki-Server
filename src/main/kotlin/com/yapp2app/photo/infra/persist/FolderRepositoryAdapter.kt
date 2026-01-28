@@ -1,5 +1,6 @@
 package com.yapp2app.photo.infra.persist
 
+import com.yapp2app.photo.application.contract.FolderWithStats
 import com.yapp2app.photo.application.port.FolderRepositoryPort
 import com.yapp2app.photo.domain.entity.Folder
 import com.yapp2app.photo.infra.persist.jpa.FolderQueryRepository
@@ -24,6 +25,9 @@ class FolderRepositoryAdapter(
         queryRepository.deleteOwnedFolders(userId, folderIds)
 
     override fun listOwnedFolders(userId: Long): List<Folder> = jpaRepository.findAllByUserId(userId)
+
+    override fun listOwnedFoldersWithStats(userId: Long): List<FolderWithStats> =
+        queryRepository.findOwnedFoldersWithStats(userId)
 
     override fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder> =
         jpaRepository.findAllByUserIdAndIdIn(userId, folderIds)

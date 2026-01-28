@@ -26,7 +26,4 @@ class Folder(
 
     @Column(name = "name", nullable = false)
     var name: String,
-
-    @Column(name = "cover_photo_id")
-    var coverPhotoId: Long? = null,
 ) : BaseTimeEntity()

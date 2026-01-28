@@ -27,4 +27,4 @@ data class GetPhotoResult(
     val createdAt: LocalDateTime,
 )
 
-data class GetFavoriteSummaryResult(val latestImageUrl: String?, val totalCount: Long)
+data class GetFavoriteSummaryResult(val storageKey: String?, val totalCount: Long)

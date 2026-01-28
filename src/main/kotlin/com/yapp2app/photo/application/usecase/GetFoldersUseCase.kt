@@ -17,10 +17,17 @@ class GetFoldersUseCase(private val folderRepository: FolderRepositoryPort) {
 
     @Transactional(readOnly = true)
     fun execute(command: GetFoldersCommand): GetFoldersResult {
-        val folders = folderRepository.listOwnedFolders(command.userId)
-            .map { GetFoldersResult.FolderInfo(it.id!!, it.name) }
-            .toList()
+        val foldersWithStats = folderRepository.listOwnedFoldersWithStats(command.userId)
 
-        return GetFoldersResult(folders)
+        val items = foldersWithStats.map { folder ->
+            GetFoldersResult.FolderInfo(
+                folderId = folder.folderId,
+                name = folder.name,
+                storageKey = folder.coverImageStorageKey,
+                count = folder.photoCount,
+            )
+        }
+
+        return GetFoldersResult(items = items)
     }
 }

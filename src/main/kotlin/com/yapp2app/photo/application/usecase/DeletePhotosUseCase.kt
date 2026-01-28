@@ -18,18 +18,20 @@ class DeletePhotosUseCase(
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val favoriteImageRepository: FavoriteImageRepositoryPort,
     private val mediaClient: MediaClientPort,
+
     private val transactionRunner: TransactionRunner,
 ) {
 
     fun execute(command: DeletePhotosCommand) {
-        val photos = transactionRunner.run {
+        val deletedPhotos = transactionRunner.run {
             favoriteImageRepository.deleteAll(command.userId, command.photoIds)
+
             photoImageRepository.deleteOwnedPhotos(
                 command.userId,
                 command.photoIds,
             )
         }
 
-        mediaClient.deleteMedias(command.userId, photos.map { it.mediaId })
+        mediaClient.deleteMedias(command.userId, deletedPhotos.map { it.mediaId })
     }
 }
