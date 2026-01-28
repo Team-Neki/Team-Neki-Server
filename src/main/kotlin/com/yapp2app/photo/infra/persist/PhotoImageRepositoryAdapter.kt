@@ -65,4 +65,7 @@ class PhotoImageRepositoryAdapter(
 
     override fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int =
         queryRepository.updatePhotosFolderIdToNull(userId, folderIds)
+
+    override fun getAffectedFolderIds(userId: Long, photoIds: List<Long>): List<Long> =
+        queryRepository.getAffectedFolderIds(userId, photoIds)
 }

@@ -21,8 +21,9 @@ import com.yapp2app.photo.domain.entity.PhotoImage
 class UploadPhotosUseCase(
     private val mediaClient: MediaClientPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
-    private val transactionRunner: TransactionRunner,
     private val folderRepository: FolderRepositoryPort,
+
+    private val transactionRunner: TransactionRunner,
 ) {
 
     fun execute(command: UploadPhotoCommand) {
@@ -37,26 +38,8 @@ class UploadPhotosUseCase(
             mediaIds = mediaIds,
         )
 
-        // 업로드 실패한 media가 있는지 확인
-        val unavailableMediaIds = availabilities
-            .filter { it.value != MediaAvailability.AVAILABLE }
-            .keys
+        rollbackIfFailed(command.userId, availabilities)
 
-        if (unavailableMediaIds.isNotEmpty()) {
-            // 성공한 media들도 롤백 (상태를 INITIATED로 되돌림)
-            val successfulMediaIds = availabilities
-                .filter { it.value == MediaAvailability.AVAILABLE }
-                .keys
-                .toList()
-
-            if (successfulMediaIds.isNotEmpty()) {
-                mediaClient.rollbackMediasUploaded(command.userId, successfulMediaIds)
-            }
-
-            throw BusinessException(ResultCode.UPLOAD_FAILED)
-        }
-
-        // PhotoImage 엔티티 생성
         val photos = command.uploads.map { upload ->
             PhotoImage(
                 userId = command.userId,
@@ -68,7 +51,11 @@ class UploadPhotosUseCase(
 
         try {
             transactionRunner.run {
-                photoImageRepository.saveAll(photos)
+                val savedPhotos = photoImageRepository.saveAll(photos)
+
+                if (command.folderId != null) {
+                    updateFolderCover(command.userId, command.folderId, savedPhotos)
+                }
             }
         } catch (e: Exception) {
             // 보상 트랜잭션: 모든 media 상태를 INITIATED로 롤백
@@ -91,5 +78,35 @@ class UploadPhotosUseCase(
             folderRepository.getOwnedFolder(userId, folderId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND)
         }
+    }
+
+    private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaAvailability>) {
+        val unavailableMediaIds = availabilities
+            .filter { it.value != MediaAvailability.AVAILABLE }
+            .keys
+
+        if (unavailableMediaIds.isNotEmpty()) {
+            val successfulMediaIds = availabilities
+                .filter { it.value == MediaAvailability.AVAILABLE }
+                .keys
+                .toList()
+
+            if (successfulMediaIds.isNotEmpty()) {
+                mediaClient.rollbackMediasUploaded(userId, successfulMediaIds)
+            }
+
+            throw BusinessException(ResultCode.UPLOAD_FAILED)
+        }
+    }
+
+    private fun updateFolderCover(userId: Long, folderId: Long, savedPhotos: List<PhotoImage>) {
+        val latestPhoto = savedPhotos.maxByOrNull { it.createdAt!! } ?: return
+
+        folderRepository.updateCoverPhotoIfNewer(
+            userId = userId,
+            folderId = folderId,
+            newCoverPhotoId = latestPhoto.id!!,
+            newCoverPhotoCreatedAt = latestPhoto.createdAt!!,
+        )
     }
 }

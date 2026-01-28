@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.LocalDateTime
 
 /**
  * fileName       : Folder
@@ -29,4 +30,7 @@ class Folder(
 
     @Column(name = "cover_photo_id")
     var coverPhotoId: Long? = null,
+
+    @Column(name = "cover_photo_created_at")
+    var coverPhotoCreatedAt: LocalDateTime? = null,
 ) : BaseTimeEntity()

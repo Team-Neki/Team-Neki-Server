@@ -1,10 +1,12 @@
 package com.yapp2app.photo.infra.persist
 
+import com.yapp2app.photo.application.contract.FolderWithStats
 import com.yapp2app.photo.application.port.FolderRepositoryPort
 import com.yapp2app.photo.domain.entity.Folder
 import com.yapp2app.photo.infra.persist.jpa.FolderQueryRepository
 import com.yapp2app.photo.infra.persist.jpa.JpaFolderRepository
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 /**
  * fileName       : FolderRepositoryAdapter
@@ -25,6 +27,9 @@ class FolderRepositoryAdapter(
 
     override fun listOwnedFolders(userId: Long): List<Folder> = jpaRepository.findAllByUserId(userId)
 
+    override fun listOwnedFoldersWithStats(userId: Long): List<FolderWithStats> =
+        queryRepository.findOwnedFoldersWithStats(userId)
+
     override fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder> =
         jpaRepository.findAllByUserIdAndIdIn(userId, folderIds)
 
@@ -32,4 +37,14 @@ class FolderRepositoryAdapter(
 
     override fun existsOwnedFolderName(userId: Long, name: String): Boolean =
         jpaRepository.existsByUserIdAndName(userId, name)
+
+    override fun updateCoverPhotoIfNewer(
+        userId: Long,
+        folderId: Long,
+        newCoverPhotoId: Long,
+        newCoverPhotoCreatedAt: LocalDateTime,
+    ): Int = queryRepository.updateCoverPhotoIfNewer(userId, folderId, newCoverPhotoId, newCoverPhotoCreatedAt)
+
+    override fun recalculateCoverPhotos(userId: Long, folderIds: List<Long>): Int =
+        queryRepository.recalculateCoverPhotos(userId, folderIds)
 }
