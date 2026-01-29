@@ -32,6 +32,7 @@ class ConfirmMediaUploadedUseCase(
 
         return transactionRunner.runNew {
             val freshMedias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+
             val freshMediaMap = freshMedias.associateBy { it.id!! }
 
             val results = command.mediaIds.associateWith { mediaId ->

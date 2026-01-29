@@ -32,7 +32,7 @@ abstract class E2ETestBase {
         name: String = "테스트 사용자",
         password: String = "Test1234!",
         providerType: ProviderType = ProviderType.TEST,
-        roles: String = RoleType.USER.role,
+        roles: String = "${RoleType.USER.role},${RoleType.ADMIN.role}",
     ): Pair<User, String> {
         val user = userRepository.save(
             createUser(
@@ -47,7 +47,7 @@ abstract class E2ETestBase {
         val token = tokenProvider.createAccessToken(
             id = user.id.toString(),
             name = user.name,
-            roles = listOf(user.roles.split(",")[0]),
+            roles = user.roles.split(","),
             providerType = user.providerType,
         )
 
