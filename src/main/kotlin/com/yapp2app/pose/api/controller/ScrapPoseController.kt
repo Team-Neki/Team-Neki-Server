@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * fileName       : FavoritePhotoController
+ * fileName       : ScrapPoseController
  * author         : darren
  * date           : 2026. 1. 28
  * description    :
