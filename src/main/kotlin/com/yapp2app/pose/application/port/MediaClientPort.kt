@@ -1,7 +1,7 @@
 package com.yapp2app.pose.application.port
 
-import com.yapp2app.photo.application.contract.MediaAvailability
-import com.yapp2app.photo.application.contract.MediaStorageInfo
+import com.yapp2app.pose.application.contract.MediaAvailability
+import com.yapp2app.pose.application.contract.MediaStorageInfo
 
 /**
  * fileName       : MediaClientPort

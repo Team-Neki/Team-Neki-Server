@@ -4,7 +4,7 @@ import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
-import com.yapp2app.photo.application.contract.MediaAvailability
+import com.yapp2app.pose.application.contract.MediaAvailability
 import com.yapp2app.pose.application.command.UploadPosesCommand
 import com.yapp2app.pose.application.port.MediaClientPort
 import com.yapp2app.pose.application.port.PoseRepositoryPort

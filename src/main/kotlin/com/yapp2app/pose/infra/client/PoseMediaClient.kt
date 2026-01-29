@@ -8,8 +8,8 @@ import com.yapp2app.media.application.result.GetMediaStorageInfoResult
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.yapp2app.media.application.usecase.GetMediaStorageInfoUseCase
 import com.yapp2app.media.application.usecase.GetMediaStorageInfosUseCase
-import com.yapp2app.photo.application.contract.MediaAvailability
-import com.yapp2app.photo.application.contract.MediaStorageInfo
+import com.yapp2app.pose.application.contract.MediaAvailability
+import com.yapp2app.pose.application.contract.MediaStorageInfo
 import com.yapp2app.pose.application.port.MediaClientPort
 import org.springframework.stereotype.Component
 
