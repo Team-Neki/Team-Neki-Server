@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 
 /**
- * fileName       : GetPosesResponse
+ * fileName       : GetPoseResponse
  * author         : darren
  * date           : 2026. 1. 28. 11:24
  * description    : Pose domain 응답

@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotNull
 
 /**
- * fileName       : UploadPoseRequest
+ * fileName       : PoseRequest
  * author         : darren
  * date           : 2026. 1. 27. 17:49
  * description    :
