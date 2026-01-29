@@ -5,6 +5,7 @@ import com.yapp2app.media.application.dto.MediaRef
 import com.yapp2app.media.application.port.MediaStoragePort
 import com.yapp2app.media.domain.MediaType
 import software.amazon.awssdk.core.ResponseBytes
+import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
@@ -102,5 +103,15 @@ class S3MediaStorageAdapter(
             expiresAt = Instant.now().plus(props.presignedUrlExpiration),
             contentType = contentType,
         )
+    }
+
+    override fun uploadBinary(key: String, binary: ByteArray, contentType: String) {
+        val putObjectRequest = PutObjectRequest.builder()
+            .bucket(props.bucket)
+            .key(key)
+            .contentType(contentType)
+            .build()
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(binary))
     }
 }

@@ -22,4 +22,6 @@ interface MediaStoragePort {
     fun exists(key: String): Boolean
 
     fun generateUploadTicket(key: String, contentType: String): UploadTicket
+
+    fun uploadBinary(key: String, binary: ByteArray, contentType: String)
 }
