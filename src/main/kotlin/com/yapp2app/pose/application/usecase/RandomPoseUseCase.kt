@@ -27,7 +27,7 @@ class RandomPoseUseCase(
         val pose = poseRepository.findPoseByOffset(randomOffset)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
-        val isScrap = scrapPoseRepository.existsOwnedPoseScrap(command.userId, pose.id!!)
+        val isScraped = scrapPoseRepository.existsOwnedPoseScrap(command.userId, pose.id!!)
 
         val mediaInfo = mediaClient.getMediaStorageInfo(pose.userId!!, pose.mediaId)
 
@@ -35,7 +35,7 @@ class RandomPoseUseCase(
             poseId = pose.id!!,
             headCount = pose.headCount,
             storageKey = mediaInfo.storageKey,
-            scrap = isScrap,
+            scrap = isScraped,
             contentType = mediaInfo.contentType,
             createdAt = pose.createdAt!!,
         )

@@ -13,7 +13,7 @@ import com.yapp2app.pose.application.result.GetPoseResult
 class GetPoseUseCase(private val poseRepository: PoseRepositoryPort, private val mediaClient: MediaClientPort) {
 
     fun execute(command: GetPoseCommand): GetPoseResult {
-        val (pose, isSCrap) = poseRepository.getOwnedPoseWithScrap(command.userId, command.poseId)
+        val (pose, isScraped) = poseRepository.getOwnedPoseWithScrap(command.userId, command.poseId)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
         val mediaInfo: MediaStorageInfo = mediaClient.getMediaStorageInfo(command.userId, pose.mediaId)
@@ -22,7 +22,7 @@ class GetPoseUseCase(private val poseRepository: PoseRepositoryPort, private val
             poseId = pose.id!!,
             headCount = pose.headCount,
             storageKey = mediaInfo.storageKey,
-            scrap = isSCrap,
+            scrap = isScraped,
             contentType = mediaInfo.contentType,
             createdAt = pose.createdAt!!,
         )

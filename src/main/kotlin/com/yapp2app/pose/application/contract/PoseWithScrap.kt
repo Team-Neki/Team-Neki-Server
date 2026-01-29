@@ -8,4 +8,4 @@ import com.yapp2app.pose.domain.entity.Pose
  * date           : 2026. 1. 28
  * description    :
  */
-data class PoseWithScrap(val pose: Pose, val isScrap: Boolean)
+data class PoseWithScrap(val pose: Pose, val isScraped: Boolean)
