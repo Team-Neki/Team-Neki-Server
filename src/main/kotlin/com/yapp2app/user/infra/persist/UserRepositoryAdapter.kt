@@ -4,6 +4,7 @@ import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.domain.entity.User
 import com.yapp2app.user.domain.enums.ProviderType
 import com.yapp2app.user.infra.persist.jpa.UserRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 /**
@@ -19,4 +20,6 @@ class UserRepositoryAdapter(private val jpaRepository: UserRepository) : UserRep
 
     override fun findByOid(oid: String, providerType: ProviderType): User? =
         jpaRepository.findByOidAndProviderType(oid, providerType)
+
+    override fun findById(id: Long): User? = jpaRepository.findByIdOrNull(id)
 }

@@ -13,4 +13,6 @@ interface UserRepositoryPort {
     fun save(user: User): User
 
     fun findByOid(oid: String, provider: ProviderType): User?
+
+    fun findById(id: Long): User?
 }

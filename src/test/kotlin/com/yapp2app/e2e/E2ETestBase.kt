@@ -67,6 +67,6 @@ abstract class E2ETestBase {
         oid = System.currentTimeMillis().toString(),
         providerType = providerType,
         roles = roles,
-        imageUrl = null,
+        profileImageId = null,
     )
 }

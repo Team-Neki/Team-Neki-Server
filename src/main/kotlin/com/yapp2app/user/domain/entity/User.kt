@@ -1,12 +1,10 @@
 package com.yapp2app.user.domain.entity
 
+import com.yapp2app.common.domain.BaseTimeEntity
 import com.yapp2app.user.domain.enums.ProviderType
 import com.yapp2app.user.domain.enums.RoleType
 import jakarta.persistence.*
-import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.DynamicUpdate
-import org.hibernate.annotations.UpdateTimestamp
-import java.time.LocalDateTime
 
 /**
  * fileName       : User
@@ -38,27 +36,19 @@ class User(
     @Column(nullable = false, length = 10)
     val providerType: ProviderType,
 
-    @Column(name = "image_url", nullable = true, length = 255)
-    var imageUrl: String?,
+    @Column(name = "profile_image_id", nullable = true)
+    var profileImageId: Long?,
 
     @Column(name = "role", nullable = false, length = 255)
     var roles: String = RoleType.USER.role,
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    var createdAt: LocalDateTime? = null,
-
-    @UpdateTimestamp
-    @Column(nullable = false)
-    var updatedAt: LocalDateTime? = null,
-) {
+) : BaseTimeEntity() {
     constructor(
         email: String?,
         name: String?,
         oid: String,
         roles: String,
         providerType: ProviderType,
-        imageUrl: String?,
+        profileImageId: Long?,
     ) : this(
         email = email ?: "NO_EMAIL",
         password = "NO_PASS",
@@ -66,6 +56,14 @@ class User(
         name = name,
         providerType = providerType,
         roles = roles,
-        imageUrl = imageUrl,
+        profileImageId = profileImageId,
     )
+
+    fun changeProfileImage(newProfileImageId: Long) {
+        this.profileImageId = newProfileImageId
+    }
+
+    fun changeName(newName: String) {
+        this.name = newName
+    }
 }
