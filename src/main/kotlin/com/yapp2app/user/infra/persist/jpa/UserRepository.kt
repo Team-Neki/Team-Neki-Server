@@ -11,5 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository
  * description    : User Entity Repository
  */
 interface UserRepository : JpaRepository<User, Long> {
+
+    fun existsByName(name: String): Boolean
+
     fun findByOidAndProviderType(oid: String, providerType: ProviderType): User?
 }

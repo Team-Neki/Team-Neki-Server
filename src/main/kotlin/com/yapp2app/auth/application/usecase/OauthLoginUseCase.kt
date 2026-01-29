@@ -5,6 +5,7 @@ import com.yapp2app.auth.application.command.RegisterOauthUserCommand
 import com.yapp2app.auth.application.contract.GetKakaoTokenResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
 import com.yapp2app.auth.application.port.AuthTokenProviderPort
+import com.yapp2app.auth.application.port.NicknameGeneratorPort
 import com.yapp2app.auth.application.port.OidcTokenValidatorPort
 import com.yapp2app.auth.application.result.GetAuthResult
 import com.yapp2app.auth.infra.security.properties.OauthProperties
@@ -31,6 +32,8 @@ class OauthLoginUseCase(
     private val restClient: RestClient,
     private val tokenProviderPort: AuthTokenProviderPort,
     private val userRepositoryPort: UserRepositoryPort,
+    private val nicknameGenerator: NicknameGeneratorPort,
+
     private val transactionRunner: TransactionRunner,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -44,10 +47,10 @@ class OauthLoginUseCase(
     fun execute(command: RegisterOauthUserCommand): GetAuthResult {
         val oauthInfoResponse = oidcTokenValidatorPort.validateIdToken(command.idToken, command.providerType)
 
-        // 회원가입 또는 로그인
-        val user = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoResponse) }
+        // 신규 사용자 추가
+        val (user, _) = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoResponse) }
 
-        // JWT 토큰 생성
+        // 토큰 생성
         val accessToken = tokenProviderPort.createAccessToken(
             id = user.id.toString(),
             roles = user.roles.split(","),
@@ -68,19 +71,29 @@ class OauthLoginUseCase(
         )
     }
 
-    private fun registerOauthUserIfEmpty(oauthInfoResponse: OauthInfoResponse): User = userRepositoryPort.findByOid(
-        oid = oauthInfoResponse.oid,
-        provider = oauthInfoResponse.providerType,
-    ) ?: userRepositoryPort.save(
-        User(
-            email = oauthInfoResponse.email,
+    private fun registerOauthUserIfEmpty(oauthInfoResponse: OauthInfoResponse): Pair<User, Boolean> {
+        val existingUser = userRepositoryPort.findByOid(
             oid = oauthInfoResponse.oid,
-            name = oauthInfoResponse.name,
-            roles = RoleType.USER.role,
-            providerType = oauthInfoResponse.providerType,
-            imageUrl = oauthInfoResponse.imageUrl,
-        ),
-    )
+            provider = oauthInfoResponse.providerType,
+        )
+
+        return if (existingUser != null) {
+            Pair(existingUser, false)
+        } else {
+            val nickname = nicknameGenerator.generateUniqueNickname()
+            val newUser = userRepositoryPort.save(
+                User(
+                    email = oauthInfoResponse.email,
+                    oid = oauthInfoResponse.oid,
+                    name = nickname,
+                    roles = RoleType.USER.role,
+                    providerType = oauthInfoResponse.providerType,
+                    profileImageId = null,
+                ),
+            )
+            Pair(newUser, true)
+        }
+    }
 
     /**
      * [TEST 용도]
