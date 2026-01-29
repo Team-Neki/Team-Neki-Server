@@ -56,13 +56,15 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .limit(limit.toLong())
         .fetch()
 
-    fun countPoses(): Long = queryFactory
+    fun countPoses(headCount: HeadCount): Long = queryFactory
         .select(pose.count())
         .from(pose)
+        .where(pose.headCount.eq(headCount))
         .fetchOne() ?: 0L
 
-    fun findPoseByOffset(offset: Long): Pose? = queryFactory
+    fun findPoseByOffset(offset: Long, headCount: HeadCount): Pose? = queryFactory
         .selectFrom(pose)
+        .where(pose.headCount.eq(headCount))
         .offset(offset)
         .limit(1)
         .fetchOne()

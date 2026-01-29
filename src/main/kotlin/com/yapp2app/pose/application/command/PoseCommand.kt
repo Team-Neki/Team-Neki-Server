@@ -19,4 +19,4 @@ data class UpdatePoseScrapCommand(val userId: Long, val poseId: Long, val scrap:
 
 data class GetPoseCommand(val userId: Long, val poseId: Long)
 
-data class GetRandomPoseCommand(val userId: Long)
+data class GetRandomPoseCommand(val userId: Long, val headCount: HeadCount)
