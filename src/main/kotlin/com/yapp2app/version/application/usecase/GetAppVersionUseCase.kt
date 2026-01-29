@@ -8,6 +8,12 @@ import com.yapp2app.version.application.port.AppVersionRepositoryPort
 import com.yapp2app.version.application.result.GetAppVersionResult
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * fileName       : GetAppVersionUseCase
+ * author         : darren
+ * date           : 2026. 1. 29
+ * description    : version 조회
+ */
 @UseCase
 class GetAppVersionUseCase(private val appVersionRepository: AppVersionRepositoryPort) {
 

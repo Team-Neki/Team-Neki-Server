@@ -11,6 +11,12 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 
+/**
+ * fileName       : AppVersion
+ * author         : darren
+ * date           : 2026. 1. 29
+ * description    :
+ */
 @Entity
 @Table(name = "TB_APP_VERSION")
 class AppVersion(

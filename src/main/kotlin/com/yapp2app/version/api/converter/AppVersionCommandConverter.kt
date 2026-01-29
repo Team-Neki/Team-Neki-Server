@@ -8,6 +8,12 @@ import com.yapp2app.version.application.command.UpdateAppVersionCommand
 import com.yapp2app.version.domain.enums.Platform
 import org.springframework.stereotype.Component
 
+/**
+ * fileName       : AppVersionCommandConverter
+ * author         : darren
+ * date           : 2026. 1. 29
+ * description    :
+ */
 @Component
 class AppVersionCommandConverter {
 

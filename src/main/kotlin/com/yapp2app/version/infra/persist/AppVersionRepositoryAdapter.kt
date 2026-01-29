@@ -6,6 +6,12 @@ import com.yapp2app.version.domain.enums.Platform
 import com.yapp2app.version.infra.persist.jpa.JpaAppVersionRepository
 import org.springframework.stereotype.Repository
 
+/**
+ * fileName       : AppVersionRepositoryAdapter
+ * author         : darren
+ * date           : 2026. 1. 29
+ * description    :
+ */
 @Repository
 class AppVersionRepositoryAdapter(private val jpaRepository: JpaAppVersionRepository) : AppVersionRepositoryPort {
 

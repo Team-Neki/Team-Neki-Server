@@ -17,6 +17,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
+
+/**
+ * fileName       : VersionController
+ * author         : darren
+ * date           : 2026. 1. 29
+ * description    : Version api endpoint
+ */
 @Tag(name = "version", description = "앱 버전 API")
 @RestController
 @RequestMapping("/api/versions")

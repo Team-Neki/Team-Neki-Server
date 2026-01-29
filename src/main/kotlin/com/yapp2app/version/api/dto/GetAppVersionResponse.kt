@@ -2,6 +2,12 @@ package com.yapp2app.version.api.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 
+/**
+ * fileName       : VersionResponse
+ * author         : darren
+ * date           : 2026. 1. 29
+ * description    :
+ */
 data class GetAppVersionResponse(
     @field:Schema(description = "플랫폼", example = "ANDROID")
     val platform: String,
