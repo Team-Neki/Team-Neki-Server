@@ -9,7 +9,6 @@ package com.yapp2app.photo.application.contract
 data class FolderWithStats(
     val folderId: Long,
     val name: String,
-    val coverPhotoMediaId: Long?,
-    val latestPhotoMediaId: Long?,
+    val coverImageStorageKey: String?,
     val photoCount: Long,
 )

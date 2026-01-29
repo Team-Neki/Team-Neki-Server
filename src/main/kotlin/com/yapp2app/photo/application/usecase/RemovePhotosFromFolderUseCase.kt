@@ -27,15 +27,10 @@ class RemovePhotosFromFolderUseCase(
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
         // 사진들의 folderId를 NULL로 설정
-        val removedCount = photoImageRepository.removePhotosFromFolder(
+        photoImageRepository.removePhotosFromFolder(
             command.userId,
             command.folderId,
             command.photoIds,
         )
-
-        // 커버 재계산 (사진이 제외된 경우에만)
-        if (removedCount > 0) {
-            folderRepository.recalculateCoverPhotos(command.userId, listOf(command.folderId))
-        }
     }
 }

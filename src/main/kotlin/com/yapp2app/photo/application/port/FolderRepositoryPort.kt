@@ -23,15 +23,4 @@ interface FolderRepositoryPort {
     fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder>
 
     fun existsOwnedFolderName(userId: Long, name: String): Boolean
-
-    /**
-     * 폴더의 커버 이미지를 조건부 업데이트
-     * 새 사진이 더 최신일 때만 업데이트 (동시성 보장)
-     */
-    fun updateCoverPhotoIfNewer(userId: Long, folderId: Long, newCoverPhotoId: Long): Int
-
-    /**
-     * 여러 폴더의 커버 이미지 재계산
-     */
-    fun recalculateCoverPhotos(userId: Long, folderIds: List<Long>): Int
 }
