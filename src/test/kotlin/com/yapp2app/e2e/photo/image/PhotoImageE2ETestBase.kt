@@ -12,6 +12,7 @@ import com.yapp2app.photo.infra.persist.jpa.JpaFolderRepository
 import com.yapp2app.photo.infra.persist.jpa.JpaPhotoImageRepository
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.UUID
 
 /**
  * fileName       : PhotoImageE2ETestBase
@@ -56,7 +57,7 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
         contentType: String = "image/jpeg",
     ): Media = mediaRepository.save(
         Media(
-            storageKey = "test-storage-key-${System.currentTimeMillis()}",
+            storageKey = "test-storage-key-${UUID.randomUUID()}",
             ownerId = ownerId,
             mediaType = mediaType,
             status = status,
