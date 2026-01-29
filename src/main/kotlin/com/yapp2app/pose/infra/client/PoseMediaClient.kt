@@ -14,7 +14,7 @@ import com.yapp2app.pose.application.port.MediaClientPort
 import org.springframework.stereotype.Component
 
 /**
- * fileName       : PostMediaClient
+ * fileName       : PoseMediaClient
  * author         : darren
  * date           : 2026. 1. 27. 17:20
  * description    : monolithic architecture media client
