@@ -27,3 +27,26 @@ COMMENT
 ON COLUMN TB_POSE.created_at IS '생성일시';
 COMMENT
 ON COLUMN TB_POSE.updated_at IS '수정일시';
+
+-- Create scrap_pose table
+CREATE TABLE TB_SCRAP_POSE
+(
+    user_id    BIGINT    NOT NULL,
+    pose_id    BIGINT    NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (user_id, pose_id)
+);
+
+-- Add comments for scrap_pose table
+COMMENT
+ON TABLE TB_SCRAP_POSE IS '포즈 스크랩 테이블';
+COMMENT
+ON COLUMN TB_SCRAP_POSE.user_id IS '사용자 ID';
+COMMENT
+ON COLUMN TB_SCRAP_POSE.pose_id IS '포즈 ID';
+COMMENT
+ON COLUMN TB_SCRAP_POSE.created_at IS '생성일시';
+COMMENT
+ON COLUMN TB_SCRAP_POSE.updated_at IS '수정일시';
