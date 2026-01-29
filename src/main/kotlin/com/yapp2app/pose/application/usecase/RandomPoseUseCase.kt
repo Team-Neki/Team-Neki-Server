@@ -8,7 +8,7 @@ import com.yapp2app.pose.application.port.MediaClientPort
 import com.yapp2app.pose.application.port.PoseRepositoryPort
 import com.yapp2app.pose.application.port.RandomGeneratorPort
 import com.yapp2app.pose.application.port.ScrapPoseRepositoryPort
-import com.yapp2app.pose.application.result.GetRandomPoseResult
+import com.yapp2app.pose.application.result.GetPoseResult
 
 @UseCase
 class RandomPoseUseCase(
@@ -18,7 +18,7 @@ class RandomPoseUseCase(
     private val randomGenerator: RandomGeneratorPort,
 ) {
 
-    fun execute(command: GetRandomPoseCommand): GetRandomPoseResult {
+    fun execute(command: GetRandomPoseCommand): GetPoseResult {
         val count = poseRepository.countPoses()
         if (count == 0L) {
             throw BusinessException(ResultCode.NOT_FOUND)
@@ -33,7 +33,7 @@ class RandomPoseUseCase(
 
         val mediaInfo = mediaClient.getMediaStorageInfo(pose.userId!!, pose.mediaId)
 
-        return GetRandomPoseResult(
+        return GetPoseResult(
             poseId = pose.id!!,
             headCount = pose.headCount,
             storageKey = mediaInfo.storageKey,

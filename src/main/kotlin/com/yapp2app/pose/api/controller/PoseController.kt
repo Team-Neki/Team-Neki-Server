@@ -7,7 +7,6 @@ import com.yapp2app.pose.api.converter.PoseCommandConverter
 import com.yapp2app.pose.api.converter.PoseResultConverter
 import com.yapp2app.pose.api.dto.GetPoseResponse
 import com.yapp2app.pose.api.dto.GetPosesResponse
-import com.yapp2app.pose.api.dto.GetRandomPoseResponse
 import com.yapp2app.pose.api.dto.UploadPoseRequest
 import com.yapp2app.pose.application.usecase.GetPoseUseCase
 import com.yapp2app.pose.application.usecase.GetPosesUseCase
@@ -125,12 +124,12 @@ class PoseController(
         description = "랜덤 포즈를 임의로 1개 가져옵니다.",
     )
     @GetMapping("/random")
-    fun randomPose(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetRandomPoseResponse> {
+    fun randomPose(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetPoseResponse> {
         val command = commandConverter.toGetRandomPoseCommand(userId)
 
         val result = randomPoseUseCase.execute(command)
 
-        val response = resultConverter.toGetRandomPoseResponse(result)
+        val response = resultConverter.toGetPoseResponse(result)
 
         return BaseResponse(data = response)
     }

@@ -27,12 +27,3 @@ data class GetPoseResult(
     val contentType: String,
     val createdAt: LocalDateTime,
 )
-
-data class GetRandomPoseResult(
-    val poseId: Long,
-    val headCount: HeadCount,
-    val storageKey: String,
-    val scrap: Boolean,
-    val contentType: String,
-    val createdAt: LocalDateTime,
-)
