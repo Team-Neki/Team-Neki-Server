@@ -10,6 +10,15 @@ springdoc:
 # Application Version (from build.gradle.kts)
 app:
   version: "@version@"
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://127.0.0.1:3000
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+      - http://localhost:63342
+      - http://127.0.0.1:63342
+      - https://dev-yapp-admin.suitestudy.com
 
 # Spring Boot Actuator 설정 (Health Check for Kubernetes)
 management:

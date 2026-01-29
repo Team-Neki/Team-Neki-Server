@@ -26,7 +26,7 @@ interface PhotoImageRepositoryPort {
 
     fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
 
-    fun getLatestOwnedPhoto(userId: Long): PhotoImage?
+    fun getLatestFavoritePhoto(userId: Long): PhotoImage?
 
     fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite?
 

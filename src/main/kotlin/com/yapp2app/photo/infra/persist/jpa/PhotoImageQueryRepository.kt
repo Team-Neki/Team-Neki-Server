@@ -90,11 +90,16 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
             .limit(limit.toLong())
             .fetch()
 
-    fun findLatestOwnedPhoto(userId: Long): PhotoImage? = queryFactory.selectFrom(photoImage)
+    fun findLatestFavoritePhoto(userId: Long): PhotoImage? = queryFactory.selectFrom(photoImage)
+        .innerJoin(favoritePhoto)
+        .on(
+            favoritePhoto.id.userId.eq(photoImage.userId),
+            favoritePhoto.id.photoId.eq(photoImage.id),
+        )
         .where(
             photoImage.userId.eq(userId),
         )
-        .orderBy(photoImage.createdAt.desc())
+        .orderBy(favoritePhoto.createdAt.desc())
         .limit(1)
         .fetchOne()
 

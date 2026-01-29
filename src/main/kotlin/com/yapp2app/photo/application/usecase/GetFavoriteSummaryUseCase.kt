@@ -1,7 +1,6 @@
 package com.yapp2app.photo.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
-import com.yapp2app.common.properties.AppProperties
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.photo.application.command.GetFavoriteSummaryCommand
 import com.yapp2app.photo.application.port.FavoriteImageRepositoryPort
@@ -21,8 +20,8 @@ class GetFavoriteSummaryUseCase(
     private val favoriteImageRepository: FavoriteImageRepositoryPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val mediaClient: MediaClientPort,
+
     private val transactionRunner: TransactionRunner,
-    private val appProperties: AppProperties,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -37,7 +36,7 @@ class GetFavoriteSummaryUseCase(
         }
 
         val latestPhoto = transactionRunner.readOnly {
-            photoImageRepository.getLatestOwnedPhoto(command.userId)
+            photoImageRepository.getLatestFavoritePhoto(command.userId)
         }
 
         if (latestPhoto == null) {

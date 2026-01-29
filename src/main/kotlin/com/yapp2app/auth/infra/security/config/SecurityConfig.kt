@@ -65,6 +65,7 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
         .cors { it.configurationSource(corsConfigurationSource) }
         .authorizeHttpRequests {
             it.requestMatchers("/api/auth/**", "/api/users/register").permitAll()
+            it.requestMatchers("/api/poses/admin/upload").hasRole("ADMIN")
             it.anyRequest().authenticated()
         }
         .exceptionHandling {

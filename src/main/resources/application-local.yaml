@@ -44,14 +44,6 @@ app:
     accessTokenExpiry: 3600000 #1시간 1분(60000)
     refreshTokenSecret: ENC(fJ09aRyNLygqwQI3I0HfzIzvuVpsnOMauvW/1/qR5YIvmQS2JtKZiKsvoijbVAl25HE1bDZ29uYPjqFUTMuCdTh8zp+PczJ1FaYao3SgQ/iiodtxmleizF22NLwpwIyvIswND7ANcrS0IVgHTFinViJMFhb6rKgm6z1JK54Mbbg=)
     refreshTokenExpiry: 604800000 #7일
-  cors:
-    allowed-origins:
-      - http://localhost:3000
-      - http://127.0.0.1:3000
-      - http://localhost:5173
-      - http://127.0.0.1:5173
-      - http://localhost:63342
-      - http://127.0.0.1:63342
 
 oauth:
   kakao:
