@@ -6,15 +6,16 @@ import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.pose.application.command.GetRandomPoseCommand
 import com.yapp2app.pose.application.port.MediaClientPort
 import com.yapp2app.pose.application.port.PoseRepositoryPort
+import com.yapp2app.pose.application.port.RandomGeneratorPort
 import com.yapp2app.pose.application.port.ScrapPoseRepositoryPort
 import com.yapp2app.pose.application.result.GetRandomPoseResult
-import kotlin.random.Random
 
 @UseCase
 class RandomPoseUseCase(
     private val poseRepository: PoseRepositoryPort,
     private val scrapPoseRepository: ScrapPoseRepositoryPort,
     private val mediaClient: MediaClientPort,
+    private val randomGenerator: RandomGeneratorPort,
 ) {
 
     fun execute(command: GetRandomPoseCommand): GetRandomPoseResult {
@@ -23,7 +24,8 @@ class RandomPoseUseCase(
             throw BusinessException(ResultCode.NOT_FOUND)
         }
 
-        val randomOffset = Random.nextLong(count)
+        val randomOffset = randomGenerator.nextLong(count)
+
         val pose = poseRepository.findPoseByOffset(randomOffset)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 

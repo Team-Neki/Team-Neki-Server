@@ -4,7 +4,7 @@ package com.yapp2app.pose.application.contract
  * fileName       : MediaAvailability
  * author         : darren
  * date           : 2026. 1. 29. 11:19
- * description    : 
+ * description    :
  */
 enum class MediaAvailability {
     AVAILABLE,
