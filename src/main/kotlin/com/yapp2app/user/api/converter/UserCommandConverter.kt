@@ -1,6 +1,7 @@
 package com.yapp2app.user.api.converter
 
 import com.yapp2app.user.api.dto.UpdateUserRequest
+import com.yapp2app.user.application.command.GetUserCommand
 import com.yapp2app.user.application.command.UpdateUserCommand
 import org.springframework.stereotype.Component
 
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class UserCommandConverter {
+
+    fun toGetUserCommand(userId: Long) = GetUserCommand(userId)
 
     fun toUpdateUserCommand(userId: Long, request: UpdateUserRequest) =
         UpdateUserCommand(userId, request.mediaId, request.name)

@@ -1,12 +1,13 @@
 package com.yapp2app.user.api.controller
 
-import com.yapp2app.auth.infra.security.token.UserPrincipal
 import com.yapp2app.common.api.document.RequiresSecurity
 import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.user.api.converter.UserCommandConverter
-import com.yapp2app.user.api.dto.GetUserInfoResponse
+import com.yapp2app.user.api.converter.UserResultConverter
+import com.yapp2app.user.api.dto.GetUserResponse
 import com.yapp2app.user.api.dto.UpdateUserRequest
-import com.yapp2app.user.application.usecase.UpdateUserUseCase
+import com.yapp2app.user.application.usecase.GetUserInfoUseCase
+import com.yapp2app.user.application.usecase.UpdateMeUseCase
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -26,8 +27,11 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/users")
 class UserController(
+    private val updateMeUseCase: UpdateMeUseCase,
+    private val getUserInfoUseCase: GetUserInfoUseCase,
+
     private val commandConverter: UserCommandConverter,
-    private val updateUserUseCase: UpdateUserUseCase,
+    private val resultConverter: UserResultConverter,
 ) {
 
     @Operation(
@@ -38,12 +42,15 @@ class UserController(
         """,
     )
     @GetMapping("/info")
-    fun info(@AuthenticationPrincipal userPrincipal: UserPrincipal): BaseResponse<GetUserInfoResponse> = BaseResponse(
-        data = GetUserInfoResponse(
-            name = userPrincipal.name!!,
-            providerType = userPrincipal.providerType,
-        ),
-    )
+    fun info(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetUserResponse> {
+        val command = commandConverter.toGetUserCommand(userId)
+
+        val result = getUserInfoUseCase.execute(command)
+
+        val response = resultConverter.toGetUserResponse(result)
+
+        return BaseResponse(data = response)
+    }
 
     @Operation(
         summary = "내 정보 갱신",
@@ -56,7 +63,7 @@ class UserController(
     ): BaseResponse<Any> {
         val command = commandConverter.toUpdateUserCommand(userId, request)
 
-        updateUserUseCase.execute(command)
+        updateMeUseCase.execute(command)
 
         return BaseResponse()
     }

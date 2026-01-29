@@ -16,7 +16,7 @@ import com.yapp2app.user.domain.entity.User
  * description    :
  */
 @UseCase
-class UpdateUserUseCase(
+class UpdateMeUseCase(
     private val userRepository: UserRepositoryPort,
     private val mediaClient: MediaClientPort,
 
