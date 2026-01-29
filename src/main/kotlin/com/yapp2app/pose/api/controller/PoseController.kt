@@ -55,7 +55,7 @@ class PoseController(
             관리자가 포즈를 업로드할 때 해당 API를 사용합니다.
             """,
     )
-    @PostMapping
+    @PostMapping("/admin/upload")
     fun uploadPoses(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
         @Valid @RequestBody request: UploadPoseRequest,
