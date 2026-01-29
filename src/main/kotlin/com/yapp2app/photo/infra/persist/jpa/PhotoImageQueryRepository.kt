@@ -130,22 +130,6 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
             .execute().toInt()
     }
 
-    fun getAffectedFolderIds(userId: Long, photoIds: List<Long>): List<Long> {
-        if (photoIds.isEmpty()) return emptyList()
-
-        return queryFactory
-            .select(photoImage.folderId)
-            .from(photoImage)
-            .where(
-                photoImage.userId.eq(userId),
-                photoImage.id.`in`(photoIds),
-                photoImage.folderId.isNotNull,
-            )
-            .distinct()
-            .fetch()
-            .filterNotNull()
-    }
-
     fun getPhotoIdsByFolderIds(userId: Long, folderIds: List<Long>): List<Long> {
         if (folderIds.isEmpty()) return emptyList()
 

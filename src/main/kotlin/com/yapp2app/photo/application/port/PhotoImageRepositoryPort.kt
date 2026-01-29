@@ -12,10 +12,25 @@ import com.yapp2app.photo.domain.entity.PhotoImage
  */
 interface PhotoImageRepositoryPort {
 
+    /**
+     * 저장
+     */
+    fun save(photoImage: PhotoImage): PhotoImage
+
+    fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage>
+
+    /**
+     * 조회
+     */
+    fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean
+
+    fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
+
+    fun getLatestOwnedPhoto(userId: Long): PhotoImage?
+
     fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite?
 
-    fun save(photoImage: PhotoImage): PhotoImage
-    fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage>
+    fun getPhotoIdsByFolderIds(userId: Long, folderIds: List<Long>): List<Long>
 
     fun listOwnedPhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
 
@@ -29,19 +44,15 @@ interface PhotoImageRepositoryPort {
 
     fun listOwnedFavoritePhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
 
+    /**
+     * 삭제
+     */
     fun deleteOwnedPhotos(userId: Long, photoIds: List<Long>): List<PhotoImage>
 
-    fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
-
-    fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean
-
-    fun getLatestOwnedPhoto(userId: Long): PhotoImage?
-
-    fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int
-
-    fun getAffectedFolderIds(userId: Long, photoIds: List<Long>): List<Long>
-
-    fun getPhotoIdsByFolderIds(userId: Long, folderIds: List<Long>): List<Long>
-
     fun removePhotosFromFolder(userId: Long, folderId: Long, photoIds: List<Long>): Int
+
+    /**
+     * 갱신
+     */
+    fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int
 }
