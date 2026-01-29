@@ -33,3 +33,12 @@ data class UpdateFolderRequest(
     @field:Size(min = 1, max = 16, message = "폴더명은 1 ~ 16자 사이여야 합니다.")
     val name: String?,
 )
+
+data class RemovePhotosFromFolderRequest(
+    @field:Schema(
+        description = "폴더에서 제외할 사진 ID 목록",
+        example = "[1, 2, 3]",
+    )
+    @field:NotEmpty(message = "제외할 사진 ID 목록은 비어있을 수 없습니다.")
+    val photoIds: List<Long>,
+)
