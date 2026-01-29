@@ -36,13 +36,15 @@ class DeleteFoldersUseCase(
         }
 
         val deletedPhotos = transactionRunner.run {
-            // 사진까지 삭제하는 경우 즐겨찾기 먼저 삭제
-            if (photoIdsToDelete.isNotEmpty()) {
-                favoriteImageRepository.deleteAll(command.userId, photoIdsToDelete)
+            if (command.deletePhotos) {
+                // 사진까지 삭제하는 경우 즐겨찾기 먼저 삭제
+                if (photoIdsToDelete.isNotEmpty()) {
+                    favoriteImageRepository.deleteAll(command.userId, photoIdsToDelete)
+                }
+            } else {
+                // 사진 삭제를 하지 않는 경우 사진에서 folderId만 없앰
+                photoImageRepository.updatePhotosFolderIdToNull(command.userId, command.folderIds)
             }
-
-            // 폴더에서 사진 없앰
-            photoImageRepository.updatePhotosFolderIdToNull(command.userId, command.folderIds)
 
             // 폴더 삭제
             val deletedCount = folderRepository.deleteOwnedFolders(
