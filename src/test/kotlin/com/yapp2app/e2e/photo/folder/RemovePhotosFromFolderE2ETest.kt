@@ -99,7 +99,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("존재하지 않는 폴더에서 사진 제외 시 404 에러를 반환한다")
+    @DisplayName("존재하지 않는 폴더에서 사진 제외 시 400 에러를 반환한다")
     fun givenNonExistentFolder_whenRemovePhotosFromFolder_thenReturnsNotFound() {
         // Given: 사진만 생성 (폴더 없음)
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -203,9 +203,9 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("커버 사진을 제외하면 커버가 자동으로 재계산된다")
-    fun givenCoverPhoto_whenRemovePhotosFromFolder_thenCoverRecalculated() {
-        // Given: 폴더와 여러 사진 생성 (첫 번째 사진이 커버)
+    @DisplayName("커버 사진을 제외하면 커버가 변경된다")
+    fun givenCoverPhoto_whenRemovePhotosFromFolder_thenCoverChanged() {
+        // Given: 폴더와 여러 사진 생성
         val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "테스트 폴더"))
         val media1 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val media2 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -213,11 +213,11 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         Thread.sleep(10) // 시간차를 두어 photo2가 더 최신이 되도록
         val photo2 = createPhotoImage(userId = testUser.id!!, mediaId = media2.id!!, folderId = folder.id)
 
-        // 커버를 photo2로 설정
-        folder.coverPhotoId = photo2.id
-        folderRepository.save(folder)
+        // 제외 전 커버 URL 확인
+        val initialCoverUrl = getFolderLatestImageUrl(folder.id!!)
+        assertThat(initialCoverUrl).isNotNull()
 
-        // When: 커버 사진(photo2) 제외
+        // When: 최신 사진(photo2) 제외
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
@@ -228,9 +228,10 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
-        // Then: 커버가 재계산됨 (photo1으로 변경되거나 NULL)
-        val updatedFolder = folderRepository.findById(folder.id!!).orElseThrow()
-        assertThat(updatedFolder.coverPhotoId).isNotEqualTo(photo2.id)
+        // Then: 커버가 photo1로 변경
+        val updatedCoverUrl = getFolderLatestImageUrl(folder.id!!)
+        assertThat(updatedCoverUrl).isNotNull()
+        assertThat(updatedCoverUrl).isNotEqualTo(initialCoverUrl)
     }
 
     @Test
@@ -240,8 +241,6 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "테스트 폴더"))
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folder.id)
-        folder.coverPhotoId = photo.id
-        folderRepository.save(folder)
 
         // When: 유일한 사진 제외
         RestAssured.given()
@@ -255,7 +254,28 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
         // Then: 커버가 NULL이 됨
-        val updatedFolder = folderRepository.findById(folder.id!!).orElseThrow()
-        assertThat(updatedFolder.coverPhotoId).isNull()
+        val latestImageUrl = getFolderLatestImageUrl(folder.id!!)
+        assertThat(latestImageUrl).isNull()
+    }
+
+    // ===================
+    // Helper Methods
+    // ===================
+
+    private fun getFolderLatestImageUrl(folderId: Long): String? {
+        val response = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .get("/api/folders")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+
+        val items = response.jsonPath().getList<Map<String, Any>>("data.items")
+        val folderData = items.find { (it["folderId"] as Number).toLong() == folderId }
+            ?: throw AssertionError("Folder with id $folderId not found")
+
+        return folderData["latestImageUrl"] as String?
     }
 }
