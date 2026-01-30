@@ -1,9 +1,9 @@
 package com.yapp2app.user.infra.client
 
-import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
+import com.yapp2app.media.application.command.ConfirmMediasUploadedCommand
 import com.yapp2app.media.application.command.DeleteMediaCommand
 import com.yapp2app.media.application.command.GetMediaStorageInfoCommand
-import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
+import com.yapp2app.media.application.result.ConfirmMediasUploadedResult
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.yapp2app.media.application.usecase.DeleteMediaUseCase
 import com.yapp2app.media.application.usecase.GetMediaStorageInfoUseCase
@@ -40,14 +40,17 @@ class UserMediaClient(
         }
     }
 
-    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
-        if (mediaIds.isEmpty()) return emptyMap()
-
+    override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability {
         val result = confirmMediaUploadedUseCase.execute(
-            ConfirmMediaUploadedCommand(ownerId = ownerId, mediaIds = mediaIds),
+            ConfirmMediasUploadedCommand(
+                ownerId = ownerId,
+                mediaIds = listOf(mediaId),
+            ),
         )
-        return result.results.mapValues { (_, status) ->
-            if (status == UploadConfirmStatus.CONFIRMED) MediaAvailability.AVAILABLE else MediaAvailability.UNAVAILABLE
+
+        return when (result.results[mediaId]) {
+            ConfirmMediasUploadedResult.UploadConfirmStatus.CONFIRMED -> MediaAvailability.AVAILABLE
+            else -> MediaAvailability.UNAVAILABLE
         }
     }
 
@@ -55,7 +58,7 @@ class UserMediaClient(
         if (mediaIds.isEmpty()) return
 
         confirmMediaUploadedUseCase.rollback(
-            ConfirmMediaUploadedCommand(
+            ConfirmMediasUploadedCommand(
                 ownerId = ownerId,
                 mediaIds = mediaIds,
             ),

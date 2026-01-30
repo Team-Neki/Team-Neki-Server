@@ -2,11 +2,11 @@ package com.yapp2app.media.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.transaction.TransactionRunner
-import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
+import com.yapp2app.media.application.command.ConfirmMediasUploadedCommand
 import com.yapp2app.media.application.port.MediaRepositoryPort
 import com.yapp2app.media.application.port.MediaStoragePort
-import com.yapp2app.media.application.result.ConfirmMediaUploadedResult
-import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
+import com.yapp2app.media.application.result.ConfirmMediasUploadedResult
+import com.yapp2app.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
 
 /**
  * fileName       : VerifyMediaUseCase
@@ -21,8 +21,8 @@ class ConfirmMediaUploadedUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: ConfirmMediaUploadedCommand): ConfirmMediaUploadedResult {
-        if (command.mediaIds.isEmpty()) return ConfirmMediaUploadedResult(emptyMap())
+    fun execute(command: ConfirmMediasUploadedCommand): ConfirmMediasUploadedResult {
+        if (command.mediaIds.isEmpty()) return ConfirmMediasUploadedResult(emptyMap())
 
         val medias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
 
@@ -47,7 +47,7 @@ class ConfirmMediaUploadedUseCase(
                     else -> UploadConfirmStatus.NOT_UPLOADED
                 }
             }
-            ConfirmMediaUploadedResult(results)
+            ConfirmMediasUploadedResult(results)
         }
     }
 
@@ -55,7 +55,7 @@ class ConfirmMediaUploadedUseCase(
      * 보상 트랜잭션: media 상태를 INITIATED로 롤백
      * PhotoImage 저장 실패 시 호출
      */
-    fun rollback(command: ConfirmMediaUploadedCommand) {
+    fun rollback(command: ConfirmMediasUploadedCommand) {
         if (command.mediaIds.isEmpty()) return
 
         transactionRunner.runNew {

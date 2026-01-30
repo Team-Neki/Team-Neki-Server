@@ -8,6 +8,8 @@ package com.yapp2app.user.application.command
  */
 data class GetUserCommand(val userId: Long)
 
-data class UpdateUserCommand(val userId: Long, val mediaId: Long?, val name: String)
+data class UpdateUserInfoCommand(val userId: Long, val name: String)
+
+data class UpdateUserProfileImageCommand(val userId: Long, val mediaId: Long)
 
 data class DeleteUserCommand(val userId: Long)
