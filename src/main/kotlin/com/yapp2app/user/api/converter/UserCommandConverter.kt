@@ -1,6 +1,7 @@
 package com.yapp2app.user.api.converter
 
 import com.yapp2app.user.api.dto.UpdateUserRequest
+import com.yapp2app.user.application.command.DeleteUserCommand
 import com.yapp2app.user.application.command.GetUserCommand
 import com.yapp2app.user.application.command.UpdateUserCommand
 import org.springframework.stereotype.Component
@@ -18,4 +19,6 @@ class UserCommandConverter {
 
     fun toUpdateUserCommand(userId: Long, request: UpdateUserRequest) =
         UpdateUserCommand(userId, request.mediaId, request.name)
+
+    fun toDeleteUserCommand(userId: Long) = DeleteUserCommand(userId)
 }
