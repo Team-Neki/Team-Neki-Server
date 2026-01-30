@@ -10,6 +10,6 @@ data class GetUserCommand(val userId: Long)
 
 data class UpdateUserInfoCommand(val userId: Long, val name: String)
 
-data class UpdateUserProfileImageCommand(val userId: Long, val mediaId: Long)
+data class UpdateUserProfileImageCommand(val userId: Long, val mediaId: Long?)
 
 data class DeleteUserCommand(val userId: Long)

@@ -25,9 +25,23 @@ class UpdateUserProfileImageUseCase(
 ) {
 
     fun execute(command: UpdateUserProfileImageCommand) {
+        val newMediaId = command.mediaId
+
+        if (newMediaId != null) {
+            verifyAndUpdateProfileImage(command.userId, newMediaId)
+        } else {
+            // null일 경우 기본 이미지로 변경
+            updateProfileImageToDefault(command.userId)
+        }
+    }
+
+    /**
+     * mediaId가 null이 아닌 경우: media 업로드 검증 후 프로필 이미지 변경
+     */
+    private fun verifyAndUpdateProfileImage(userId: Long, newMediaId: Long) {
         val isAvailable: MediaAvailability = mediaClient.verifyMediaUploaded(
-            ownerId = command.userId,
-            mediaId = command.mediaId,
+            ownerId = userId,
+            mediaId = newMediaId,
         )
 
         if (isAvailable != MediaAvailability.AVAILABLE) {
@@ -36,13 +50,34 @@ class UpdateUserProfileImageUseCase(
 
         try {
             transactionRunner.run {
-                val user: User = userRepository.findById(command.userId)
+                val user: User = userRepository.findById(userId)
                     ?: throw BusinessException(ResultCode.NOT_FOUND_USER)
-                user.updateProfileImage(command.mediaId)
+
+                val oldMediaId = user.profileImageId
+
+                user.updateProfileImage(newMediaId)
+
+                oldMediaId?.let { mediaClient.deleteMedia(userId, it) }
             }
         } catch (e: Exception) {
-            mediaClient.rollbackMediasUploaded(command.userId, listOf(command.mediaId))
+            mediaClient.rollbackMediasUploaded(userId, listOf(newMediaId))
             throw e
+        }
+    }
+
+    /**
+     * mediaId가 null인 경우: 기본 이미지로 변경 (profileImageId = null)
+     */
+    private fun updateProfileImageToDefault(userId: Long) {
+        transactionRunner.run {
+            val user: User = userRepository.findById(userId)
+                ?: throw BusinessException(ResultCode.NOT_FOUND_USER)
+
+            val oldMediaId = user.profileImageId
+
+            user.updateProfileImage(null)
+
+            oldMediaId?.let { mediaClient.deleteMedia(userId, it) }
         }
     }
 }

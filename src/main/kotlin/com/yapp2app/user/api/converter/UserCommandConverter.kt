@@ -22,7 +22,7 @@ class UserCommandConverter {
     fun toUpdateUserCommand(userId: Long, request: UpdateUserRequest) = UpdateUserInfoCommand(userId, request.name)
 
     fun toUpdateUserProfileImageCommand(userId: Long, request: UpdateUserProfileImageRequest) =
-        UpdateUserProfileImageCommand(userId, request.mediaId!!)
+        UpdateUserProfileImageCommand(userId, request.mediaId)
 
     fun toDeleteUserCommand(userId: Long) = DeleteUserCommand(userId)
 }

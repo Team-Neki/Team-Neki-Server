@@ -2,7 +2,6 @@ package com.yapp2app.user.api.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 
 /**
@@ -20,6 +19,5 @@ data class UpdateUserRequest(
 
 data class UpdateUserProfileImageRequest(
     @field:Schema(description = "프로필 이미지로 설정할 mediaId, null일 경우 기본 이미지로 변경")
-    @field:NotNull(message = "mediaId는 null이 될 수 없습니다.")
     val mediaId: Long? = null,
 )
