@@ -2,12 +2,12 @@
 CREATE TABLE TB_POSE
 (
     id BIGSERIAL PRIMARY KEY,
-    user_id    BIGINT    NULL,
-    media_id   BIGINT    NOT NULL,
-    head_count  VARCHAR(30) NOT NULL,
+    user_id    BIGINT      NOT NULL,
+    media_id   BIGINT      NOT NULL,
+    head_count VARCHAR(30) NOT NULL,
     memo       VARCHAR(255),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP   NOT NULL,
+    updated_at TIMESTAMP   NOT NULL
 );
 
 -- Add comments for photo_image table
@@ -33,8 +33,8 @@ CREATE TABLE TB_SCRAP_POSE
 (
     user_id    BIGINT    NOT NULL,
     pose_id    BIGINT    NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
 
     PRIMARY KEY (user_id, pose_id)
 );

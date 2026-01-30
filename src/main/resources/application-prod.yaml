@@ -1,0 +1,64 @@
+spring:
+  datasource:
+    url: ENC(6L4dscI6gdDvPaOeWbdeRxoASDBa1/iRneNln/W5umyHZv8npjPwh+ROkrO2ATZT7e0ymaL4fyjaUmSG1xny/OhQ95SrWvqcU9NnrOrUJ0I=)
+    username: ENC(ckNqwRnQTGzy/R/bFMEEpMkHVxegFfkh60se3lsaCcsmF+YicL5deoidwLWXu77b)
+    password: ENC(O5jXrCBCxZB15KDnjiPpj6bwZUf9PkdfgFpiRvijihT9665rlQwvKv6FWv9xZb6X)
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: false
+  data:
+    redis:
+      host: ENC(V8Y989Q4aueyOQE7wSEut8EaGlN4NVjvesp85WmlCj2A9ufFvs0eGko5jR2hKMsX)
+      port: 6379
+      password: ENC(tQSsJvwUHmc4JBWyc+UaAgxSGle02LPVDPp45BApz5LLwTNuDlguI2zLLIFXW+ot)
+
+
+logging:
+  level:
+    org.flywaydb: info
+
+jasypt:
+  encryptor:
+    password: ${JASYPT_PASSWORD}
+
+app:
+  server:
+    url: https://yapp.suitestudy.com:4641
+  auth:
+    accessTokenSecret: ENC(Fto92NwjerNn8SesxCmNSAj1To1wyUCpZrHUV5+h5TGJKT4Ab3xsNcLs65I+rGx0e+7oZFVj0ZSGRYa8gVS5rw6Jo1gPXAu05J8CbtM5iyjWhqKx4NO/onZ8+aESOzIeJCAq2+Wq/KX1OeWhLvgvOT8RvwDs3h+LEiTxGD6G+Mc=)
+    accessTokenExpiry: 3600000 #1시간
+    refreshTokenSecret: ENC(wCYjp+IqW+rEqRHMTEdvlb9PCs/1kmU9MfB9vf9vgtP9Zabih84v6+ue65mTvEvD8fObuLzbbcFGJWvPgEaGOZlOR9axs/u0i2KZ/5rifqVggXu0qgtMyJaJj7va9TWm+tLX3XKN4CIc3kx6/XuRwoPVi7Y9yFaJV+eC3tmi5Ak=)
+    refreshTokenExpiry: 1209600000 #14일
+
+oauth:
+  kakao:
+    clientId: 8964db6054f3f0beb0f534673f93eab7
+    clientSecret: ENC(1Sqtyp6KkZnm2tO2fa8b+okZh+Yp5GRJOeAyqai9p2MEM6voQExn2OjR8PeMLPqtUL8PM6nuiwNyX9rtkp9TjQvH2RfaEfPkilNR0JWEUCE=)
+    jwksUri: https://kauth.kakao.com/.well-known/jwks.json
+    issuer: https://kauth.kakao.com
+  apple:
+    clientId: ENC(VjmTvogS4S0aLry3SX8NWTS2N4j8ffvotHTnQ1+1MfSevuRuBEUgRiXOci/X1Du+5cjkDCDVolL4Zgz32JmpIg==)
+    jwksUri: https://appleid.apple.com/auth/keys
+    issuer: https://appleid.apple.com
+
+aws:
+  s3:
+    access-key: ENC(NHdLpPxjsMR1ll/eVnBJYcqrGPn+laUmxU5bCKT2R/EvPLfm0rpq/Y7pd/Kyoh7l9BT6xOm5MuOsLt3K+pdPJA==)
+    secret-key: ENC(fForFnB09QU6M/KucKAYQxA/3uTF6SdbFx0xsXKBu6xIkd4PZczva1cndzOE3tOEY/+7eExzRE8p85q2FYJUTsgtFVo6sHqQ9Tauf8rjI7g=)
+    region: ap-northeast-2
+    bucket: yapp-neki-ap-northeast-2
+
+kakao:
+  api:
+    key: ENC(paBCyk8YzPpST6axlrKuVxH1W3/2K3wkEJG2ndZ6jt0UPwM+LBFgJE9zYeAk1Ntns1XY9mjZEhMzOiDnL8C0QDJUNQ7s2AYKpiY4jjB7CU0=)
