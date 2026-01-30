@@ -2,11 +2,10 @@
 CREATE TABLE TB_FOLDER
 (
     id BIGSERIAL PRIMARY KEY,
-    user_id        BIGINT       NOT NULL,
-    name           VARCHAR(255) NOT NULL,
-    cover_photo_id BIGINT       NULL,
-    created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id    BIGINT       NOT NULL,
+    name       VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP    NOT NULL,
+    updated_at TIMESTAMP    NOT NULL,
 
     CONSTRAINT uk_folder_user_name UNIQUE (user_id, name)
 );
@@ -21,8 +20,6 @@ ON COLUMN TB_FOLDER.user_id IS '사용자 ID';
 COMMENT
 ON COLUMN TB_FOLDER.name IS '폴더 이름';
 COMMENT
-ON COLUMN TB_FOLDER.cover_photo_id IS '커버 사진';
-COMMENT
 ON COLUMN TB_FOLDER.created_at IS '생성일시';
 COMMENT
 ON COLUMN TB_FOLDER.updated_at IS '수정일시';
@@ -35,8 +32,8 @@ CREATE TABLE TB_PHOTO_IMAGE
     media_id   BIGINT    NOT NULL,
     folder_id  BIGINT,
     memo       VARCHAR(255),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
 );
 
 -- Add comments for photo_image table
@@ -66,13 +63,9 @@ CREATE TABLE TB_MEDIA
     media_type   VARCHAR(30)  NOT NULL,
     status       VARCHAR(30)  NOT NULL DEFAULT 'INITIATED',
     content_type VARCHAR(100) NULL,
-    created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at   TIMESTAMP    NOT NULL,
+    updated_at   TIMESTAMP    NOT NULL
 );
-
--- Add index for media table
-CREATE INDEX idx_media_owner_id ON TB_MEDIA (owner_id);
-CREATE INDEX idx_media_storage_key ON TB_MEDIA (storage_key);
 
 -- Add comments for media table
 COMMENT
@@ -93,3 +86,21 @@ COMMENT
 ON COLUMN TB_MEDIA.created_at IS '생성일시';
 COMMENT
 ON COLUMN TB_MEDIA.updated_at IS '수정일시';
+
+-- Create favorite image table
+CREATE TABLE TB_FAVORITE_IMAGE
+(
+    user_id    BIGINT    NOT NULL,
+    image_id   BIGINT    NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+
+    PRIMARY KEY (user_id, image_id)
+);
+
+-- Add comments for favorite_image table
+COMMENT ON TABLE TB_FAVORITE_IMAGE IS '즐겨찾기 이미지 테이블';
+COMMENT ON COLUMN TB_FAVORITE_IMAGE.user_id IS '사용자 ID';
+COMMENT ON COLUMN TB_FAVORITE_IMAGE.image_id IS '이미지 ID (TB_PHOTO_IMAGE 테이블 참조)';
+COMMENT ON COLUMN TB_FAVORITE_IMAGE.created_at IS '생성일시';
+COMMENT ON COLUMN TB_FAVORITE_IMAGE.updated_at IS '수정일시';

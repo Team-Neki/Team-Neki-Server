@@ -1,12 +1,12 @@
 -- Create app version table
 CREATE TABLE TB_APP_VERSION
 (
-    id              BIGSERIAL PRIMARY KEY,
-    platform        VARCHAR(20)  NOT NULL UNIQUE,
-    min_version     VARCHAR(20)  NOT NULL,
-    current_version VARCHAR(20)  NOT NULL,
-    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    id BIGSERIAL PRIMARY KEY,
+    platform        VARCHAR(20) NOT NULL UNIQUE,
+    min_version     VARCHAR(20) NOT NULL,
+    current_version VARCHAR(20) NOT NULL,
+    created_at      TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Add comments for documentation

@@ -1,9 +1,11 @@
 -- Enable PostGIS extension for spatial data support
-CREATE
-EXTENSION IF NOT EXISTS postgis;
+
+-- postgis는 일반 게정에서는 성정 못하므로 관리자 계정에서 직저 진행
+-- CREATE
+-- EXTENSION IF NOT EXISTS postgis;
 
 -- Add comment
-COMMENT ON EXTENSION postgis IS 'PostGIS extension for spatial data support';
+-- COMMENT ON EXTENSION postgis IS 'PostGIS extension for spatial data support';
 
 -- Create brand table
 CREATE TABLE TB_BRAND
@@ -12,9 +14,10 @@ CREATE TABLE TB_BRAND
     name       VARCHAR(50) NOT NULL,
     code       VARCHAR(30) NOT NULL,
     media_id   BIGINT      NULL,
-    created_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP   NOT NULL,
+    updated_at TIMESTAMP   NOT NULL,
 
+    CONSTRAINT uk_brand_name UNIQUE (name),
     CONSTRAINT uk_brand_code UNIQUE (code)
 );
 
@@ -40,13 +43,13 @@ VALUES ('포토이즘', 'PHOTOISM', now(), now()),
 CREATE TABLE TB_PHOTO_BOOTH_LOCATION
 (
     id BIGSERIAL PRIMARY KEY,
-    map_id     VARCHAR(100) NOT NULL,
-    brand_id   BIGINT       NOT NULL,
-    branch_name       VARCHAR(100) NOT NULL,
-    address    VARCHAR(255) NOT NULL,
-    location   geometry(Point, 4326) NOT NULL,
-    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    map_id      VARCHAR(100) NOT NULL,
+    brand_id    BIGINT       NOT NULL,
+    branch_name VARCHAR(100) NOT NULL,
+    address     VARCHAR(255) NOT NULL,
+    location    geometry(Point, 4326) NOT NULL,
+    created_at  TIMESTAMP    NOT NULL,
+    updated_at  TIMESTAMP    NOT NULL
 );
 
 -- Create spatial index for location column (for efficient spatial queries)
@@ -58,7 +61,7 @@ COMMENT ON TABLE TB_PHOTO_BOOTH_LOCATION IS '포토부스 위치 정보 테이�
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.id IS '포토부스 위치 고유 ID';
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.map_id IS '카카오맵_고유 ID (중복체킹용)';
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.brand_id IS '브랜드 ID (TB_BRAND 참조)';
-COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.name IS '포토부스 지점명';
+COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.branch_name IS '포토부스 지점명';
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.address IS '주소';
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.location IS '위치 좌표 (SRID 4326, 경도/위도 순서)';
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.created_at IS '생성일시';

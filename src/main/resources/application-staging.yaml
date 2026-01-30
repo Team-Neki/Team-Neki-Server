@@ -62,3 +62,7 @@ aws:
     secret-key: ENC(/rlccjRKWaheGJ2eDHBAnTMKu6pWkQ6D4LhrKjniCKMMHH8tkoQ7l0VpZEr9UO8GmiMdmjrcK5pGznCZlzVGSf/9mGAcxa9Ezdoql7A/B2c=)
     region: ap-northeast-2
     bucket: yapp-neki-staging-ap-northeast-2
+
+kakao:
+  api:
+    key: ENC(RvLV9QgxiZTRB5Uxxk01b0Qesu2+wXAReDWFIlIRK/JaD4KPqB34abU4e5qmoEaw2lgI1rHT/cnTV0nz3ymhsFchmFmlIK/77yANAgxM4J0=)
