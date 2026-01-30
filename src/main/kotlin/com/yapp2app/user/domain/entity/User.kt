@@ -21,13 +21,13 @@ class User(
     val id: Long? = null,
 
     @Column(nullable = false)
-    val email: String?,
+    var email: String?,
 
     @Column(nullable = true)
     var password: String,
 
-    @Column(nullable = false, length = 255)
-    val oid: String,
+    @Column(nullable = true, length = 255)
+    var oid: String?,
 
     @Column(nullable = false, length = 100)
     var name: String?,
@@ -62,5 +62,10 @@ class User(
     fun updateInfo(name: String, newProfileImageId: Long?) {
         this.name = name
         this.profileImageId = newProfileImageId
+    }
+
+    fun withdraw() {
+        this.email = null
+        this.oid = null
     }
 }
