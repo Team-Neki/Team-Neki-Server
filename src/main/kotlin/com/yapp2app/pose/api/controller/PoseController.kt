@@ -124,8 +124,11 @@ class PoseController(
         description = "랜덤 포즈를 임의로 1개 가져옵니다.",
     )
     @GetMapping("/random")
-    fun randomPose(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetPoseResponse> {
-        val command = commandConverter.toGetRandomPoseCommand(userId)
+    fun randomPose(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @RequestParam(required = true) headCount: HeadCount,
+    ): BaseResponse<GetPoseResponse> {
+        val command = commandConverter.toGetRandomPoseCommand(userId, headCount)
 
         val result = randomPoseUseCase.execute(command)
 

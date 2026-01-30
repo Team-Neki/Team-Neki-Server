@@ -58,6 +58,7 @@ class GetRandomPoseE2ETest : PoseE2ETestBase() {
             // when & then
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "ONE")
                 .`when`()
                 .get("/api/poses/random")
                 .then()
@@ -84,6 +85,7 @@ class GetRandomPoseE2ETest : PoseE2ETestBase() {
             // when & then
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "TWO")
                 .`when`()
                 .get("/api/poses/random")
                 .then()
@@ -104,6 +106,7 @@ class GetRandomPoseE2ETest : PoseE2ETestBase() {
             // when & then
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "THREE")
                 .`when`()
                 .get("/api/poses/random")
                 .then()
@@ -111,6 +114,32 @@ class GetRandomPoseE2ETest : PoseE2ETestBase() {
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.poseId", equalTo(pose.id!!.toInt()))
                 .body("data.scrap", equalTo(true))
+        }
+
+        @Test
+        @DisplayName("랜덤 포즈 조회 성공 - headCount 필터링 동작 확인")
+        fun givenMixedHeadCountPoses_whenGetRandomPoseWithFilter_thenReturnsOnlyMatchingHeadCount() {
+            // given
+            val mediaOne = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            createPose(userId = testUser.id!!, mediaId = mediaOne.id!!, headCount = HeadCount.ONE)
+
+            val mediasTwo = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                createPose(userId = testUser.id!!, mediaId = media.id!!, headCount = HeadCount.TWO)
+            }
+            val twoHeadCountPoseIds = mediasTwo.map { it.id!!.toInt() }
+
+            // when & then - headCount=TWO로 필터링하면 TWO인 포즈만 반환
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "TWO")
+                .`when`()
+                .get("/api/poses/random")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.poseId", `in`(twoHeadCountPoseIds))
+                .body("data.headCount", equalTo("TWO"))
         }
     }
 
@@ -126,6 +155,25 @@ class GetRandomPoseE2ETest : PoseE2ETestBase() {
             // when & then
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "ONE")
+                .`when`()
+                .get("/api/poses/random")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+        }
+
+        @Test
+        @DisplayName("랜덤 포즈 조회 실패 - 해당 headCount의 포즈가 없는 경우")
+        fun givenNoMatchingHeadCountPoses_whenGetRandomPose_thenReturnsNotFound() {
+            // given - ONE 포즈만 존재
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            createPose(userId = testUser.id!!, mediaId = media.id!!, headCount = HeadCount.ONE)
+
+            // when & then - TWO로 조회하면 NOT_FOUND
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "TWO")
                 .`when`()
                 .get("/api/poses/random")
                 .then()
@@ -138,6 +186,7 @@ class GetRandomPoseE2ETest : PoseE2ETestBase() {
         fun givenNoAuth_whenGetRandomPose_thenReturnsForbidden() {
             // when & then
             RestAssured.given()
+                .queryParam("headCount", "ONE")
                 .`when`()
                 .get("/api/poses/random")
                 .then()

@@ -56,13 +56,34 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .limit(limit.toLong())
         .fetch()
 
-    fun countPoses(): Long = queryFactory
+    fun findOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> = queryFactory
+        .selectFrom(pose)
+        .innerJoin(scrapPose)
+        .on(
+            scrapPose.id.poseId.eq(pose.id),
+        )
+        .where(
+            scrapPose.id.userId.eq(userId),
+        )
+        .orderBy(
+            when (sortOrder) {
+                SortOrder.ASC -> scrapPose.createdAt.asc()
+                SortOrder.DESC -> scrapPose.createdAt.desc()
+            },
+        )
+        .offset(offset.toLong())
+        .limit(limit.toLong())
+        .fetch()
+
+    fun countPoses(headCount: HeadCount): Long = queryFactory
         .select(pose.count())
         .from(pose)
+        .where(pose.headCount.eq(headCount))
         .fetchOne() ?: 0L
 
-    fun findPoseByOffset(offset: Long): Pose? = queryFactory
+    fun findPoseByOffset(offset: Long, headCount: HeadCount): Pose? = queryFactory
         .selectFrom(pose)
+        .where(pose.headCount.eq(headCount))
         .offset(offset)
         .limit(1)
         .fetchOne()

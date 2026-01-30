@@ -17,7 +17,7 @@ class UpdatePoseScrapUseCase(
     @Transactional
     fun execute(command: UpdatePoseScrapCommand) {
         val poseExists: Boolean =
-            poseRepository.existsOwnedPose(command.userId, command.poseId)
+            poseRepository.existsPose(command.poseId)
 
         if (!poseExists) throw BusinessException(ResultCode.NOT_FOUND)
 
