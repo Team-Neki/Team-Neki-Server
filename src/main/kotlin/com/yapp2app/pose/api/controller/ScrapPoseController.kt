@@ -62,13 +62,15 @@ class ScrapPoseController(
         summary = "포즈 스크랩 목록 API",
         description = "포즈 스크랩 목록을 조회합니다. Offset 기반 페이징을 지원합니다.",
     )
-    @GetMapping
+    @GetMapping("/scrap")
     fun scrapPoseList(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<GetPosesResponse> {
         val command = commandConverter.toGetPoseScrapCommand(
+            userId = userId,
             page = page,
             size = size,
             sortOrder = sortOrder,

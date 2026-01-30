@@ -19,7 +19,9 @@ interface PoseRepositoryPort {
 
     fun listPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose>
 
-    fun existsOwnedPose(userId: Long, poseId: Long): Boolean
+    fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose>
+
+    fun existsPose(poseId: Long): Boolean
 
     fun countPoses(headCount: HeadCount): Long
 

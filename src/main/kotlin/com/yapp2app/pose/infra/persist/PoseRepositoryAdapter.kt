@@ -29,8 +29,10 @@ class PoseRepositoryAdapter(
     override fun listPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose> =
         queryRepository.findPoses(offset, limit, headCount, sortOrder)
 
-    override fun existsOwnedPose(userId: Long, poseId: Long): Boolean =
-        jpaRepository.existsByUserIdAndId(userId, poseId)
+    override fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> =
+        queryRepository.findOwnedScrapPoses(userId, offset, limit, sortOrder)
+
+    override fun existsPose(poseId: Long): Boolean = jpaRepository.existsById(poseId)
 
     override fun countPoses(headCount: HeadCount): Long = queryRepository.countPoses(headCount)
 
