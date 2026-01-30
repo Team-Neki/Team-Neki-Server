@@ -1,9 +1,11 @@
 package com.yapp2app.user.infra.client
 
+import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
 import com.yapp2app.media.application.command.DeleteMediaCommand
-import com.yapp2app.media.application.command.VerifyMediaOwnershipCommand
+import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
+import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.yapp2app.media.application.usecase.DeleteMediaUseCase
-import com.yapp2app.media.application.usecase.VerifyMediaOwnershipUseCase
+import com.yapp2app.user.application.contract.MediaAvailability
 import com.yapp2app.user.application.port.MediaClientPort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -17,14 +19,10 @@ import org.springframework.stereotype.Component
 @Component
 class UserMediaClient(
     private val deleteMediaUseCase: DeleteMediaUseCase,
-    private val verifyMediaOwnershipUseCase: VerifyMediaOwnershipUseCase,
+    private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
 ) : MediaClientPort {
 
     private val log = LoggerFactory.getLogger(javaClass)
-
-    override fun verifyMediaOwned(ownerId: Long, mediaId: Long) {
-        verifyMediaOwnershipUseCase.execute(VerifyMediaOwnershipCommand(ownerId, mediaId))
-    }
 
     override fun deleteMedia(ownerId: Long, mediaId: Long) {
         runCatching {
@@ -37,5 +35,27 @@ class UserMediaClient(
                 e,
             )
         }
+    }
+
+    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
+        if (mediaIds.isEmpty()) return emptyMap()
+
+        val result = confirmMediaUploadedUseCase.execute(
+            ConfirmMediaUploadedCommand(ownerId = ownerId, mediaIds = mediaIds),
+        )
+        return result.results.mapValues { (_, status) ->
+            if (status == UploadConfirmStatus.CONFIRMED) MediaAvailability.AVAILABLE else MediaAvailability.UNAVAILABLE
+        }
+    }
+
+    override fun rollbackMediasUploaded(ownerId: Long, mediaIds: List<Long>) {
+        if (mediaIds.isEmpty()) return
+
+        confirmMediaUploadedUseCase.rollback(
+            ConfirmMediaUploadedCommand(
+                ownerId = ownerId,
+                mediaIds = mediaIds,
+            ),
+        )
     }
 }

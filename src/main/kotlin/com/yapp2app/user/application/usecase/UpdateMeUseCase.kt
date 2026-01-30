@@ -5,9 +5,9 @@ import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.user.application.command.UpdateUserCommand
+import com.yapp2app.user.application.contract.MediaAvailability
 import com.yapp2app.user.application.port.MediaClientPort
 import com.yapp2app.user.application.port.UserRepositoryPort
-import com.yapp2app.user.domain.entity.User
 
 /**
  * fileName       : UpdateUserUseCase
@@ -19,47 +19,45 @@ import com.yapp2app.user.domain.entity.User
 class UpdateMeUseCase(
     private val userRepository: UserRepositoryPort,
     private val mediaClient: MediaClientPort,
-
     private val transactionRunner: TransactionRunner,
 ) {
-
     fun execute(command: UpdateUserCommand) {
-        // 둘 다 null인 경우 무시
-        if (command.name == null && command.mediaId == null) {
-            return
-        }
+        if (command.name == null && command.mediaId == null) return
 
-        // 리소스 검증 & 소유권 검증
-        if (command.mediaId != null) {
-            mediaClient.verifyMediaOwned(
+        // 프로필 이미지 변경이 포함된 경우
+        var verifiedMediaId: Long? = command.mediaId
+        if (verifiedMediaId != null) {
+            // 미디어 업로드 검증
+            val result = mediaClient.verifyMediasUploaded(
                 ownerId = command.userId,
-                mediaId = command.mediaId,
+                mediaIds = listOf(verifiedMediaId),
             )
-        }
 
-        // 트랜잭션 내에서 기존 이미지 ID 보존
-        val oldProfileImageId: Long? = transactionRunner.run {
-            val me: User = (
-                userRepository.findById(command.userId)
-                    ?: throw BusinessException(ResultCode.NOT_FOUND)
-                )
+            // 이미지 업로드 실패 시 롤백 처리
+            if (result[verifiedMediaId] != MediaAvailability.AVAILABLE) {
+                mediaClient.rollbackMediasUploaded(command.userId, listOf(verifiedMediaId))
 
-            val previousImageId = me.profileImageId
-
-            command.name?.let { me.changeName(it) }
-            command.mediaId?.let { me.changeProfileImage(it) }
-
-            // 실제로 이미지가 변경된 경우에만 반환
-            if (command.mediaId != null && previousImageId != null && previousImageId != command.mediaId) {
-                previousImageId
-            } else {
-                null
+                // 이름 변경도 없으면 더 이상 할 일 없음
+                if (command.name == null) {
+                    throw BusinessException(ResultCode.UPLOAD_FAILED)
+                }
+                // 프로필 이미지 변경에 실패한 경우 이름 변경은 계속 진행
+                verifiedMediaId = null
             }
         }
 
-        // 트랜잭션 완료 후 기존 이미지 삭제 요청
-        oldProfileImageId?.let {
-            mediaClient.deleteMedia(command.userId, it)
+        try {
+            transactionRunner.run {
+                val me = userRepository.findById(command.userId)
+                    ?: throw BusinessException(ResultCode.NOT_FOUND)
+                me.updateInfo(command.name, verifiedMediaId)
+            }
+        } catch (e: Exception) {
+            // 보상 트랜잭션: 검증된 media 롤백
+            if (verifiedMediaId != null) {
+                mediaClient.rollbackMediasUploaded(command.userId, listOf(verifiedMediaId))
+            }
+            throw e
         }
     }
 }
