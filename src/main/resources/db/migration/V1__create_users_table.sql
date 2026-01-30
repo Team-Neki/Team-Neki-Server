@@ -2,15 +2,15 @@
 CREATE TABLE TB_USERS
 (
     id BIGSERIAL PRIMARY KEY,
-    email         VARCHAR(255) NULL,
-    password      VARCHAR(255),
-    oid           VARCHAR(255) NOT NULL,
-    name          VARCHAR(100) NULL,
-    provider_type VARCHAR(10)  NOT NULL,
-    profile_image_id     VARCHAR(255) NULL,
-    role          VARCHAR(255) NOT NULL DEFAULT 'ROLE_USER',
-    created_at    TIMESTAMP    NOT NULL,
-    updated_at    TIMESTAMP    NOT NULL
+    email            VARCHAR(255) NULL,
+    password         VARCHAR(255) NULL,
+    oid              VARCHAR(255) NULL,
+    name             VARCHAR(100) NULL,
+    provider_type    VARCHAR(10)  NOT NULL,
+    profile_image_id VARCHAR(255) NULL,
+    role             VARCHAR(255) NOT NULL DEFAULT 'ROLE_USER',
+    created_at       TIMESTAMP    NOT NULL,
+    updated_at       TIMESTAMP    NOT NULL
 );
 
 -- Add comments for documentation

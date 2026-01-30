@@ -43,13 +43,13 @@ VALUES ('포토이즘', 'PHOTOISM', now(), now()),
 CREATE TABLE TB_PHOTO_BOOTH_LOCATION
 (
     id BIGSERIAL PRIMARY KEY,
-    map_id     VARCHAR(100) NOT NULL,
-    brand_id   BIGINT       NOT NULL,
-    branch_name       VARCHAR(100) NOT NULL,
-    address    VARCHAR(255) NOT NULL,
-    location   geometry(Point, 4326) NOT NULL,
-    created_at TIMESTAMP    NOT NULL ,
-    updated_at TIMESTAMP    NOT NULL
+    map_id      VARCHAR(100) NOT NULL,
+    brand_id    BIGINT       NOT NULL,
+    branch_name VARCHAR(100) NOT NULL,
+    address     VARCHAR(255) NOT NULL,
+    location    geometry(Point, 4326) NOT NULL,
+    created_at  TIMESTAMP    NOT NULL,
+    updated_at  TIMESTAMP    NOT NULL
 );
 
 -- Create spatial index for location column (for efficient spatial queries)
