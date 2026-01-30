@@ -2,9 +2,11 @@ package com.yapp2app.user.infra.client
 
 import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
 import com.yapp2app.media.application.command.DeleteMediaCommand
+import com.yapp2app.media.application.command.GetMediaStorageInfoCommand
 import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.yapp2app.media.application.usecase.DeleteMediaUseCase
+import com.yapp2app.media.application.usecase.GetMediaStorageInfoUseCase
 import com.yapp2app.user.application.contract.MediaAvailability
 import com.yapp2app.user.application.port.MediaClientPort
 import org.slf4j.LoggerFactory
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Component
 class UserMediaClient(
     private val deleteMediaUseCase: DeleteMediaUseCase,
     private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
+    private val getMediaStorageInfoUseCase: GetMediaStorageInfoUseCase,
 ) : MediaClientPort {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -58,4 +61,10 @@ class UserMediaClient(
             ),
         )
     }
+
+    override fun getStorageKey(ownerId: Long, mediaId: Long): String? = runCatching {
+        getMediaStorageInfoUseCase.execute(
+            GetMediaStorageInfoCommand(ownerId = ownerId, mediaId = mediaId),
+        ).storageKey
+    }.getOrNull()
 }

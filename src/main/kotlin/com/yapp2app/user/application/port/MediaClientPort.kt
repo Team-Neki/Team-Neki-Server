@@ -23,4 +23,10 @@ interface MediaClientPort {
      * PhotoImage 저장 실패 시 호출
      */
     fun rollbackMediasUploaded(ownerId: Long, mediaIds: List<Long>)
+
+    /**
+     * mediaId로 storage key 조회
+     * @return storageKey 또는 null (미존재 시)
+     */
+    fun getStorageKey(ownerId: Long, mediaId: Long): String?
 }

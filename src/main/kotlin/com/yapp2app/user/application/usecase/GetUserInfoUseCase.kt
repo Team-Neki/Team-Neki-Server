@@ -4,6 +4,7 @@ import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.user.application.command.GetUserCommand
+import com.yapp2app.user.application.port.MediaClientPort
 import com.yapp2app.user.application.port.UserRepositoryPort
 import com.yapp2app.user.application.result.GetUserResult
 import com.yapp2app.user.domain.entity.User
@@ -15,17 +16,21 @@ import com.yapp2app.user.domain.entity.User
  * description    :
  */
 @UseCase
-class GetUserInfoUseCase(private val userRepository: UserRepositoryPort) {
+class GetUserInfoUseCase(private val userRepository: UserRepositoryPort, private val mediaClient: MediaClientPort) {
 
     fun execute(command: GetUserCommand): GetUserResult {
         val user: User = userRepository.findById(command.userId)
             ?: throw BusinessException(ResultCode.NOT_FOUND_USER)
 
+        val storageKey = user.profileImageId?.let {
+            mediaClient.getStorageKey(ownerId = user.id!!, mediaId = it)
+        }
+
         return GetUserResult(
             userId = user.id!!,
             name = user.name!!,
             email = user.email,
-            objectKey = user.profileImageId?.toString(),
+            objectKey = storageKey,
             providerType = user.providerType,
         )
     }
