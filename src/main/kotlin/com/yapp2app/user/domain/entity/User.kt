@@ -59,8 +59,8 @@ class User(
         profileImageId = profileImageId,
     )
 
-    fun updateInfo(name: String?, newProfileImageId: Long?) {
-        name?.let { this.name = it }
-        newProfileImageId?.let { this.profileImageId = it }
+    fun updateInfo(name: String, newProfileImageId: Long?) {
+        this.name = name
+        this.profileImageId = newProfileImageId
     }
 }
