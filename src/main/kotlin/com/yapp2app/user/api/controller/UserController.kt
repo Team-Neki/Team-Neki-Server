@@ -54,7 +54,12 @@ class UserController(
 
     @Operation(
         summary = "내 정보 갱신",
-        description = "내 정보를 갱신합니다",
+        description = """내 정보를 갱신합니다. 이미지 변경이 있는 경우
+            1. /media/upload로 upload ticket 발급
+            2. object storage에 이미지 업로드
+            3. /api/users/me
+            순서로 진행합니다.
+            프로필 사진을 기본 이미지로 변경할 때는 mediaId에 null을 전달합니다.""",
     )
     @PatchMapping("/me")
     fun updateMe(
