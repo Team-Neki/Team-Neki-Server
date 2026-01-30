@@ -6,11 +6,13 @@ import com.yapp2app.user.api.converter.UserCommandConverter
 import com.yapp2app.user.api.converter.UserResultConverter
 import com.yapp2app.user.api.dto.GetUserResponse
 import com.yapp2app.user.api.dto.UpdateUserRequest
+import com.yapp2app.user.application.usecase.DeleteMeUseCase
 import com.yapp2app.user.application.usecase.GetUserInfoUseCase
 import com.yapp2app.user.application.usecase.UpdateMeUseCase
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController
 class UserController(
     private val updateMeUseCase: UpdateMeUseCase,
     private val getUserInfoUseCase: GetUserInfoUseCase,
+    private val deleteMeUseCase: DeleteMeUseCase,
 
     private val commandConverter: UserCommandConverter,
     private val resultConverter: UserResultConverter,
@@ -69,6 +72,19 @@ class UserController(
         val command = commandConverter.toUpdateUserCommand(userId, request)
 
         updateMeUseCase.execute(command)
+
+        return BaseResponse()
+    }
+
+    @Operation(
+        summary = "회원탈퇴",
+        description = "회원탈퇴를 진행합니다.",
+    )
+    @DeleteMapping("/me")
+    fun deleteMe(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<Any> {
+        val command = commandConverter.toDeleteUserCommand(userId)
+
+        deleteMeUseCase.execute(command)
 
         return BaseResponse()
     }
