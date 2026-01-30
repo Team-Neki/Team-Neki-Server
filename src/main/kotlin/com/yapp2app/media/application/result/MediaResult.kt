@@ -47,3 +47,5 @@ data class GetMediaStorageInfoResult(val mediaId: Long, val storageKey: String, 
 data class GetMediaStorageInfosResult(val storageInfos: List<StorageInfo>) {
     data class StorageInfo(val mediaId: Long, val storageKey: String, val contentType: String)
 }
+
+data class UploadExternalImageResult(val mediaId: Long, val storageKey: String)

@@ -25,3 +25,7 @@ data class GetImageByKeyCommand(val objectKey: String)
 data class GetMediaStorageInfoCommand(val ownerId: Long, val mediaId: Long)
 
 data class GetMediaStorageInfosCommand(val ownerId: Long?, val mediaIds: List<Long>)
+
+data class UploadExternalImageCommand(val externalUrl: String, val ownerId: Long, val mediaType: MediaType)
+
+data class VerifyMediaOwnershipCommand(val ownerId: Long, val mediaId: Long)
