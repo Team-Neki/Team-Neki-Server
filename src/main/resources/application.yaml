@@ -25,18 +25,26 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
-      base-path: /actuator
+        include: health,info,prometheus,metrics
   endpoint:
     health:
+      show-details: always
       probes:
         enabled: true
-      show-details: when-authorized
+    prometheus:
+      enabled: true
   health:
     livenessstate:
       enabled: true
     readinessstate:
       enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: neki
 
 
 aws:
@@ -47,3 +55,5 @@ aws:
     bucket: ${AWS_S3_BUCKET:}
     base-url: ${AWS_S3_BASE_URL:}
     presigned-url-expiration: 10m
+
+
