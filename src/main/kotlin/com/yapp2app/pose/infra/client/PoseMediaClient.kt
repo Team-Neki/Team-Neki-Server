@@ -1,9 +1,9 @@
 package com.yapp2app.pose.infra.client
 
-import com.yapp2app.media.application.command.ConfirmMediaUploadedCommand
+import com.yapp2app.media.application.command.ConfirmMediasUploadedCommand
 import com.yapp2app.media.application.command.GetMediaStorageInfoCommand
 import com.yapp2app.media.application.command.GetMediaStorageInfosCommand
-import com.yapp2app.media.application.result.ConfirmMediaUploadedResult.UploadConfirmStatus
+import com.yapp2app.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
 import com.yapp2app.media.application.result.GetMediaStorageInfoResult
 import com.yapp2app.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.yapp2app.media.application.usecase.GetMediaStorageInfoUseCase
@@ -59,7 +59,7 @@ class PoseMediaClient(
         if (mediaIds.isEmpty()) return emptyMap()
 
         val result = confirmMediaUploadedUseCase.execute(
-            ConfirmMediaUploadedCommand(ownerId = ownerId, mediaIds = mediaIds),
+            ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = mediaIds),
         )
         return result.results.mapValues { (_, status) ->
             if (status == UploadConfirmStatus.CONFIRMED) MediaAvailability.AVAILABLE else MediaAvailability.UNAVAILABLE
@@ -70,7 +70,7 @@ class PoseMediaClient(
         if (mediaIds.isEmpty()) return
 
         confirmMediaUploadedUseCase.rollback(
-            ConfirmMediaUploadedCommand(
+            ConfirmMediasUploadedCommand(
                 ownerId = ownerId,
                 mediaIds = mediaIds,
             ),

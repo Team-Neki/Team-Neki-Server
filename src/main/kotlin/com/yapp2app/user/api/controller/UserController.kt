@@ -5,10 +5,12 @@ import com.yapp2app.common.api.dto.BaseResponse
 import com.yapp2app.user.api.converter.UserCommandConverter
 import com.yapp2app.user.api.converter.UserResultConverter
 import com.yapp2app.user.api.dto.GetUserResponse
+import com.yapp2app.user.api.dto.UpdateUserProfileImageRequest
 import com.yapp2app.user.api.dto.UpdateUserRequest
 import com.yapp2app.user.application.usecase.DeleteMeUseCase
 import com.yapp2app.user.application.usecase.GetUserInfoUseCase
 import com.yapp2app.user.application.usecase.UpdateMeUseCase
+import com.yapp2app.user.application.usecase.UpdateUserProfileImageUseCase
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -30,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/users")
 class UserController(
     private val updateMeUseCase: UpdateMeUseCase,
+    private val updateProfileUseCase: UpdateUserProfileImageUseCase,
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val deleteMeUseCase: DeleteMeUseCase,
 
@@ -72,6 +75,27 @@ class UserController(
         val command = commandConverter.toUpdateUserCommand(userId, request)
 
         updateMeUseCase.execute(command)
+
+        return BaseResponse()
+    }
+
+    @Operation(
+        summary = "프로필 이미지 변경",
+        description = "프로필 이미지를 변경합니다. 이미지 변경이 있는 경우\n" +
+            "1. /media/upload로 upload ticket 발급\n" +
+            "2. object storage에 이미지 업로드\n" +
+            "3. /api/users/me/profile-image\n" +
+            "순서로 진행합니다.\n" +
+            "프로필 사진을 기본 이미지로 변경할 때는 mediaId에 null을 전달합니다.",
+    )
+    @PatchMapping("/me/profile-image")
+    fun updateProfileImage(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @Valid @RequestBody request: UpdateUserProfileImageRequest,
+    ): BaseResponse<Any> {
+        val command = commandConverter.toUpdateUserProfileImageCommand(userId, request)
+
+        updateProfileUseCase.execute(command)
 
         return BaseResponse()
     }
