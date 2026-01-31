@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component
 @Component
 class AuthCommandConverter {
 
-    fun toCreateAuthCommand(request: CreateAuthRequest, providerType: ProviderType): RegisterOauthUserCommand =
+    fun toCreateAuthCommand(request: CreateAuthRequest, providerTypeStr: String): RegisterOauthUserCommand =
         RegisterOauthUserCommand(
             idToken = request.idToken!!,
-            providerType = providerType,
+            providerType = ProviderType.from(providerTypeStr),
         )
 
     fun toRefreshTokenCommand(request: RefreshTokenRequest): RefreshTokenCommand =

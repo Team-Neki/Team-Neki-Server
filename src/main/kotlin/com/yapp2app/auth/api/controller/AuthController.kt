@@ -9,7 +9,6 @@ import com.yapp2app.auth.api.dto.RefreshTokenRequest
 import com.yapp2app.auth.application.usecase.OauthLoginUseCase
 import com.yapp2app.auth.application.usecase.RefreshTokenUseCase
 import com.yapp2app.common.api.dto.BaseResponse
-import com.yapp2app.user.domain.enums.ProviderType
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -111,8 +110,8 @@ class AuthController(
     )
     @PostMapping("/{providerType}/login")
     fun oauthLogin(
-        @Parameter(description = "로그인 제공자 타입", example = "KAKAO")
-        @PathVariable(name = "providerType") providerType: ProviderType,
+        @Parameter(description = "로그인 제공자 타입 (kakao, apple)", example = "kakao")
+        @PathVariable(name = "providerType") providerType: String,
         @RequestBody @Valid request: CreateAuthRequest,
     ): BaseResponse<GetAuthResponse> {
         val command = commandConverter.toCreateAuthCommand(request, providerType)
