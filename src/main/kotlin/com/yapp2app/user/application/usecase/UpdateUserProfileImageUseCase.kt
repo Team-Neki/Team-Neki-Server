@@ -48,36 +48,44 @@ class UpdateUserProfileImageUseCase(
             throw BusinessException(ResultCode.NOT_FOUND)
         }
 
+        var oldMediaId: Long? = null
         try {
             transactionRunner.run {
                 val user: User = userRepository.findById(userId)
                     ?: throw BusinessException(ResultCode.NOT_FOUND_USER)
 
-                val oldMediaId = user.profileImageId
+                // 멱등성: 이미 동일한 이미지가 설정되어 있으면 변경하지 않음
+                if (user.profileImageId == newMediaId) return@run
 
+                oldMediaId = user.profileImageId
                 user.updateProfileImage(newMediaId)
-
-                oldMediaId?.let { mediaClient.deleteMedia(userId, it) }
             }
         } catch (e: Exception) {
             mediaClient.rollbackMediasUploaded(userId, listOf(newMediaId))
             throw e
         }
+
+        // 트랜잭션 외부에서 이전 이미지 삭제 (UnexpectedRollbackException 방지)
+        oldMediaId?.let { mediaClient.deleteMedia(userId, it) }
     }
 
     /**
      * mediaId가 null인 경우: 기본 이미지로 변경 (profileImageId = null)
      */
     private fun updateProfileImageToDefault(userId: Long) {
+        var oldMediaId: Long? = null
         transactionRunner.run {
             val user: User = userRepository.findById(userId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND_USER)
 
-            val oldMediaId = user.profileImageId
+            // 멱등성: 이미 기본 이미지인 경우 변경하지 않음
+            if (user.profileImageId == null) return@run
 
+            oldMediaId = user.profileImageId
             user.updateProfileImage(null)
-
-            oldMediaId?.let { mediaClient.deleteMedia(userId, it) }
         }
+
+        // 트랜잭션 외부에서 이전 이미지 삭제
+        oldMediaId?.let { mediaClient.deleteMedia(userId, it) }
     }
 }
