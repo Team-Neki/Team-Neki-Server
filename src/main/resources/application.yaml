@@ -19,6 +19,7 @@ app:
       - http://localhost:63342
       - http://127.0.0.1:63342
       - https://dev-yapp-admin.suitestudy.com
+      - https://yapp-admin.suitestudy.com/
 
 # Spring Boot Actuator 설정 (Health Check for Kubernetes)
 management:
