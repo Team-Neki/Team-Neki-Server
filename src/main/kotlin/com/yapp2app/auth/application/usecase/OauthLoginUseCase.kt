@@ -45,7 +45,11 @@ class OauthLoginUseCase(
      * 4. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
     fun execute(command: RegisterOauthUserCommand): GetAuthResult {
-        val oauthInfoResponse = oidcTokenValidatorPort.validateIdToken(command.idToken, command.providerType, command.platform)
+        val oauthInfoResponse = oidcTokenValidatorPort.validateIdToken(
+            command.idToken,
+            command.providerType,
+            command.platform,
+        )
 
         // 신규 사용자 추가
         val (user, _) = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoResponse) }

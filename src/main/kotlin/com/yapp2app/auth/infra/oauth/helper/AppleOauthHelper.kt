@@ -58,7 +58,11 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
      * @param publicKeys Apple 공개키 목록
      * @return OAuth 정보 (Provider 타입, OID, email)
      */
-    override fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysResponse, platform: String): OauthInfoResponse {
+    override fun getOauthInfoByIdToken(
+        idToken: String,
+        publicKeys: OIDCPublicKeysResponse,
+        platform: String,
+    ): OauthInfoResponse {
         // Step 1: 헤더에서 kid 추출
         val kid = extractKidFromTokenHeader(idToken)
 

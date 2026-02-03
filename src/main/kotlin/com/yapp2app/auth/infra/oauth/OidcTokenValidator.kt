@@ -56,7 +56,12 @@ class OidcTokenValidator(
      * - 공개키는 Redis에 캐싱되어 있을 수 있음
      * - 검증 실패 시 BusinessException 발생
      */
-    private fun validateTokenWithPublicKeys(idToken: String, oidc: Oidc, oauthHelper: OauthHelper, platform: String): OauthInfoResponse {
+    private fun validateTokenWithPublicKeys(
+        idToken: String,
+        oidc: Oidc,
+        oauthHelper: OauthHelper,
+        platform: String,
+    ): OauthInfoResponse {
         val publicKeys = oidc.getOIDCPublicKey()
         return oauthHelper.getOauthInfoByIdToken(
             idToken = idToken,

@@ -56,7 +56,11 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
      * @param publicKeys 카카오 공개키 목록
      * @return OAuth 정보 (Provider 타입, OID)
      */
-    override fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysResponse, platform: String): OauthInfoResponse {
+    override fun getOauthInfoByIdToken(
+        idToken: String,
+        publicKeys: OIDCPublicKeysResponse,
+        platform: String,
+    ): OauthInfoResponse {
         // Step 1: 헤더에서 kid 추출 (토큰 분리 및 Base64 디코딩)
         val kid = extractKidFromTokenHeader(idToken)
 
