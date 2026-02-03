@@ -47,7 +47,8 @@ app:
 
 oauth:
   kakao:
-    clientId: 4db94315d17162e99b36029f6f9775c6 #local 환경은 REST_KEY, 배포시에는 APP_ID
+    androidClientId: 4db94315d17162e99b36029f6f9775c6 #local 환경은 REST_KEY, 배포시에는 APP_ID
+    iosClientId: 4db94315d17162e99b36029f6f9775c6 #local 환경은 REST_KEY, 배포시에는 APP_ID
     clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
     jwksUri: https://kauth.kakao.com/.well-known/jwks.json
     issuer: https://kauth.kakao.com

@@ -14,6 +14,7 @@ class AuthCommandConverter {
         RegisterOauthUserCommand(
             idToken = request.idToken!!,
             providerType = ProviderType.from(providerTypeStr),
+            platform = request.platform ?: "android",
         )
 
     fun toRefreshTokenCommand(request: RefreshTokenRequest): RefreshTokenCommand =
