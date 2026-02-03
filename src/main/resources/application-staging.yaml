@@ -41,9 +41,9 @@ app:
     url: https://dev-yapp.suitestudy.com:4641
   auth:
     accessTokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
-    accessTokenExpiry: 60000 #1분
+    accessTokenExpiry: 3600000 #1시간
     refreshTokenSecret: ENC(fJ09aRyNLygqwQI3I0HfzIzvuVpsnOMauvW/1/qR5YIvmQS2JtKZiKsvoijbVAl25HE1bDZ29uYPjqFUTMuCdTh8zp+PczJ1FaYao3SgQ/iiodtxmleizF22NLwpwIyvIswND7ANcrS0IVgHTFinViJMFhb6rKgm6z1JK54Mbbg=)
-    refreshTokenExpiry: 180000 #3분
+    refreshTokenExpiry: 7200000 #2시간
 
 oauth:
   kakao:
