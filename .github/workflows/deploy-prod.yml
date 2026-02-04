@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - chore/#104
   workflow_dispatch:  # 수동 실행 가능
 
 jobs:
