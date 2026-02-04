@@ -5,6 +5,7 @@ import com.yapp2app.auth.application.contract.OIDCDecodePayloadResponse
 import com.yapp2app.auth.application.contract.OIDCPublicKeyDto
 import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
+import com.yapp2app.auth.domain.Platform
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
@@ -61,7 +62,7 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
     override fun getOauthInfoByIdToken(
         idToken: String,
         publicKeys: OIDCPublicKeysResponse,
-        platform: String,
+        platform: Platform,
     ): OauthInfoResponse {
         // Step 1: 헤더에서 kid 추출
         val kid = extractKidFromTokenHeader(idToken)

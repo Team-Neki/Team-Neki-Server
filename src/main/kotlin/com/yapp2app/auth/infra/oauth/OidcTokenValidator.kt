@@ -3,6 +3,7 @@ package com.yapp2app.auth.infra.oauth
 import com.yapp2app.auth.application.contract.AuthCacheKeys
 import com.yapp2app.auth.application.contract.OauthInfoResponse
 import com.yapp2app.auth.application.port.OidcTokenValidatorPort
+import com.yapp2app.auth.domain.Platform
 import com.yapp2app.auth.infra.oauth.helper.OauthHelper
 import com.yapp2app.auth.infra.oauth.oidc.Oidc
 import com.yapp2app.auth.infra.oauth.registry.OauthHelperRegistry
@@ -33,7 +34,7 @@ class OidcTokenValidator(
      * - 1차 시도: 캐시된 공개키로 토큰 검증
      * - BusinessException 발생 시: 캐시 무효화 후 재시도 (공개키 로테이션 대응)
      */
-    override fun validateIdToken(idToken: String, providerType: ProviderType, platform: String): OauthInfoResponse {
+    override fun validateIdToken(idToken: String, providerType: ProviderType, platform: Platform): OauthInfoResponse {
         val oidcAdapter = oidcRegistry.getAdapter(providerType)
         val oauthHelperAdapter = oauthHelperRegistry.getAdapter(providerType)
 
@@ -60,7 +61,7 @@ class OidcTokenValidator(
         idToken: String,
         oidc: Oidc,
         oauthHelper: OauthHelper,
-        platform: String,
+        platform: Platform,
     ): OauthInfoResponse {
         val publicKeys = oidc.getOIDCPublicKey()
         return oauthHelper.getOauthInfoByIdToken(
