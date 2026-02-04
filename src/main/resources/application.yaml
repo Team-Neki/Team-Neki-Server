@@ -29,7 +29,7 @@ management:
         include: health,info,prometheus,metrics
   endpoint:
     health:
-      show-details: always
+      show-details: when-authorized
       probes:
         enabled: true
     prometheus:
