@@ -1,6 +1,7 @@
 package com.yapp2app.auth.application.port
 
 import com.yapp2app.auth.application.contract.OauthInfoResponse
+import com.yapp2app.auth.domain.Platform
 import com.yapp2app.user.domain.enums.ProviderType
 
 /**
@@ -10,5 +11,5 @@ import com.yapp2app.user.domain.enums.ProviderType
  * description    :
  */
 interface OidcTokenValidatorPort {
-    fun validateIdToken(idToken: String, providerType: ProviderType): OauthInfoResponse
+    fun validateIdToken(idToken: String, providerType: ProviderType, platform: Platform): OauthInfoResponse
 }
