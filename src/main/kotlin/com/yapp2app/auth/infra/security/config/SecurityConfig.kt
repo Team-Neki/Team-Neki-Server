@@ -25,10 +25,11 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
      */
     @Bean
     @Order(0)
-    fun actuatorSecurityFilterChain(http: HttpSecurity): SecurityFilterChain = http.securityMatcher("/actuator/**")
-        .csrf { it.disable() }
-        .authorizeHttpRequests { it.anyRequest().permitAll() }
-        .build()
+    fun actuatorSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
+        http.securityMatcher("/actuator/health/**", "/actuator/prometheus", "/actuator/info", "/actuator/metrics/**")
+            .csrf { it.disable() }
+            .authorizeHttpRequests { it.anyRequest().permitAll() }
+            .build()
 
     @Bean
     @Order(1)
