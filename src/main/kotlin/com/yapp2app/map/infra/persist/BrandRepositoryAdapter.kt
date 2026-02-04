@@ -16,5 +16,5 @@ class BrandRepositoryAdapter(private val jpaRepository: JpaBrandRepository) : Br
 
     override fun getBrand(code: String): Brand? = jpaRepository.findByCode(code)
 
-    override fun findAll(): List<Brand> = jpaRepository.findAll()
+    override fun findAll(): List<Brand> = jpaRepository.findAllByOrderByIdAsc()
 }
