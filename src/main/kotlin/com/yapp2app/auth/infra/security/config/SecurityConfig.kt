@@ -21,12 +21,12 @@ import org.springframework.web.cors.CorsConfigurationSource
 class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSource) {
 
     /**
-     * Actuator Health Check 엔드포인트 보안 설정 (Kubernetes Probe용)
+     * Actuator 엔드포인트 보안 설정 (Kubernetes Probe + Prometheus 메트릭)
      */
     @Bean
     @Order(0)
     fun actuatorSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
-        http.securityMatcher("/actuator/health/**")
+        http.securityMatcher("/actuator/health/**", "/actuator/prometheus", "/actuator/info", "/actuator/metrics/**")
             .csrf { it.disable() }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
             .build()

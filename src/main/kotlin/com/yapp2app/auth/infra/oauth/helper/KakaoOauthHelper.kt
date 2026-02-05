@@ -5,6 +5,7 @@ import com.yapp2app.auth.application.contract.OIDCDecodePayloadResponse
 import com.yapp2app.auth.application.contract.OIDCPublicKeyDto
 import com.yapp2app.auth.application.contract.OIDCPublicKeysResponse
 import com.yapp2app.auth.application.contract.OauthInfoResponse
+import com.yapp2app.auth.domain.Platform
 import com.yapp2app.auth.infra.security.properties.OauthProperties
 import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.exception.BusinessException
@@ -56,7 +57,11 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
      * @param publicKeys 카카오 공개키 목록
      * @return OAuth 정보 (Provider 타입, OID)
      */
-    override fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysResponse): OauthInfoResponse {
+    override fun getOauthInfoByIdToken(
+        idToken: String,
+        publicKeys: OIDCPublicKeysResponse,
+        platform: Platform,
+    ): OauthInfoResponse {
         // Step 1: 헤더에서 kid 추출 (토큰 분리 및 Base64 디코딩)
         val kid = extractKidFromTokenHeader(idToken)
 
@@ -64,11 +69,17 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         val publicKey = findPublicKeyByKid(publicKeys.keys, kid)
 
         // Step 3-7: 토큰 검증 및 Claims 추출 (iss, aud, exp, 서명 검증)
+        // 플랫폼별 clientId 선택
+        val expectedAudience = when (platform) {
+            Platform.IOS -> oauthProperties.kakao.iosClientId
+            Platform.ANDROID -> oauthProperties.kakao.androidClientId
+        }
+
         val payload = validateTokenAndExtractPayload(
             token = idToken,
             publicKey = publicKey,
             expectedIssuer = oauthProperties.kakao.issuer,
-            expectedAudience = oauthProperties.kakao.clientId,
+            expectedAudience = expectedAudience,
         )
 
         return OauthInfoResponse(
