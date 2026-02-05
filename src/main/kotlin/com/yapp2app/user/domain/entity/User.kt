@@ -29,7 +29,7 @@ class User(
     @Column(nullable = true, length = 255)
     var oid: String?,
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 12)
     var name: String?,
 
     @Enumerated(EnumType.STRING)
