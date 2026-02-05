@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size
 data class UpdateUserRequest(
     @field:Schema(description = "공백을 포함해 12글자 이하로 변경할 닉네임을 설정합니다", example = "새로운닉네임")
     @field:Size(max = 12, message = "닉네임은 공백 포함 12자 이하여야 합니다.")
-    @field:NotBlank(message = "닉네임은 공백 포함 12자 이하여야 합니다")
+    @field:NotBlank(message = "닉네임은 공백일 수 없습니다")
     val name: String,
 )
 
