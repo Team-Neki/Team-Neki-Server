@@ -15,9 +15,9 @@ class NicknameGenerator(private val userRepository: UserRepository) : NicknameGe
 
     companion object {
         private val ADJECTIVES = listOf(
-            "사진찍는", "셔터누른", "포커스맞춘", "순간담은", "기록하는",
+            "사진찍는", "셔터누른", "순간담은", "기록하는",
             "스냅찍는", "빛나는", "반짝이는", "선명한", "아련한",
-            "감성적인", "필름같은", "빈티지한", "자연스러운",
+            "감성적인", "필름같은", "빈티지한",
         )
 
         private val NOUNS = listOf(
@@ -27,9 +27,9 @@ class NicknameGenerator(private val userRepository: UserRepository) : NicknameGe
         )
 
         private const val MAX_RETRY_COUNT = 10
-        private const val MIN_NUMBER = 100
-        private const val MAX_NUMBER = 999
-        private const val FALLBACK_MODULO = 1000000
+        private const val MIN_NUMBER = 1
+        private const val MAX_NUMBER = 99
+        private const val FALLBACK_MODULO = 100
     }
 
     override fun generateUniqueNickname(): String {
@@ -45,7 +45,7 @@ class NicknameGenerator(private val userRepository: UserRepository) : NicknameGe
             }
         }
 
-        // fallback: 타임스탬프 기반 6자리
+        // fallback: 타임스탬프 기반 2자리
         return "$baseName-${System.currentTimeMillis() % FALLBACK_MODULO}"
     }
 }
