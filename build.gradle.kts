@@ -81,6 +81,9 @@ dependencies {
     // Logback JSON Encoder (구조화된 로그 출력)
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
 
+    // Prometheus metrics (for Grafana monitoring)
+    implementation("io.micrometer:micrometer-registry-prometheus")
+
     // JPA
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
