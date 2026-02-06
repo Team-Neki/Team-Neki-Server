@@ -42,9 +42,27 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         )
         .fetchOne()
 
-    fun findPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose> = queryFactory
-        .selectFrom(pose)
+    fun listPosesWithScrap(
+        userId: Long,
+        offset: Int,
+        limit: Int,
+        headCount: HeadCount?,
+        sortOrder: SortOrder,
+    ): List<PoseWithScrap> = queryFactory
+        .select(
+            Projections.constructor(
+                PoseWithScrap::class.java,
+                pose,
+                CaseBuilder()
+                    .`when`(scrapPose.id.poseId.isNotNull).then(true)
+                    .otherwise(false),
+            ),
+        )
         .from(pose)
+        .leftJoin(scrapPose).on(
+            scrapPose.id.poseId.eq(pose.id),
+            scrapPose.id.userId.eq(userId),
+        )
         .where(headCount?.let { pose.headCount.eq(it) })
         .orderBy(
             when (sortOrder) {

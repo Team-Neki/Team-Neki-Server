@@ -25,6 +25,7 @@ class PoseResultConverter(private val appProperties: AppProperties) {
                 poseId = it.poseId,
                 headCount = it.headCount,
                 imageUrl = toImageUrl(it.storageKey),
+                scrap = it.scrap,
                 contentType = it.contentType,
                 createdAt = it.createdAt,
             )

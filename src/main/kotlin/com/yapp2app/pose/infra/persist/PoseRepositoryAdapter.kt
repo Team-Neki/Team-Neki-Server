@@ -26,8 +26,13 @@ class PoseRepositoryAdapter(
 
     override fun saveAll(poses: List<Pose>): List<Pose> = jpaRepository.saveAll(poses)
 
-    override fun listPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose> =
-        queryRepository.findPoses(offset, limit, headCount, sortOrder)
+    override fun listPosesWithScrap(
+        userId: Long,
+        offset: Int,
+        limit: Int,
+        headCount: HeadCount?,
+        sortOrder: SortOrder,
+    ): List<PoseWithScrap> = queryRepository.listPosesWithScrap(userId, offset, limit, headCount, sortOrder)
 
     override fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> =
         queryRepository.findOwnedScrapPoses(userId, offset, limit, sortOrder)

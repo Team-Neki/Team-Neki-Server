@@ -82,12 +82,14 @@ class PoseController(
     )
     @GetMapping
     fun poseList(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(required = false) headCount: HeadCount?,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<GetPosesResponse> {
         val command = commandConverter.toGetPosesCommand(
+            userId = userId,
             page = page,
             size = size,
             headCount = headCount,
