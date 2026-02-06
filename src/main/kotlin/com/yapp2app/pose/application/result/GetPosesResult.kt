@@ -14,6 +14,7 @@ data class GetPosesResult(val poses: List<PoseInfo>, val hasNext: Boolean) {
         val poseId: Long,
         val headCount: HeadCount,
         val storageKey: String,
+        val scrap: Boolean,
         val contentType: String,
         val createdAt: LocalDateTime,
     )

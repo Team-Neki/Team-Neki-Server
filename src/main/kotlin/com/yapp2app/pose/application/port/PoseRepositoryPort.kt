@@ -17,7 +17,13 @@ interface PoseRepositoryPort {
 
     fun saveAll(poses: List<Pose>): List<Pose>
 
-    fun listPoses(offset: Int, limit: Int, headCount: HeadCount?, sortOrder: SortOrder): List<Pose>
+    fun listPosesWithScrap(
+        userId: Long,
+        offset: Int,
+        limit: Int,
+        headCount: HeadCount?,
+        sortOrder: SortOrder,
+    ): List<PoseWithScrap>
 
     fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose>
 

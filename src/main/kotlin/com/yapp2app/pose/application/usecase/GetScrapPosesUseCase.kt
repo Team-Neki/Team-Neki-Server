@@ -69,6 +69,7 @@ class GetScrapPosesUseCase(
                 poseId = pose.id!!,
                 headCount = pose.headCount,
                 storageKey = media.storageKey,
+                scrap = true,
                 contentType = media.contentType,
                 createdAt = pose.createdAt!!,
             )

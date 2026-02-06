@@ -29,8 +29,19 @@ class PoseCommandConverter {
         },
     )
 
-    fun toGetPosesCommand(page: Int, size: Int, headCount: HeadCount?, sortOrder: SortOrder): GetPosesCommand =
-        GetPosesCommand(page = page, size = size, headCount = headCount, sortOrder = sortOrder)
+    fun toGetPosesCommand(
+        userId: Long,
+        page: Int,
+        size: Int,
+        headCount: HeadCount?,
+        sortOrder: SortOrder,
+    ): GetPosesCommand = GetPosesCommand(
+        userId = userId,
+        page = page,
+        size = size,
+        headCount = headCount,
+        sortOrder = sortOrder,
+    )
 
     fun toGetPoseCommand(userId: Long, poseId: Long): GetPoseCommand = GetPoseCommand(userId = userId, poseId = poseId)
 

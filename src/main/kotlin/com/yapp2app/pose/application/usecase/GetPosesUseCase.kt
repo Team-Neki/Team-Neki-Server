@@ -3,10 +3,10 @@ package com.yapp2app.pose.application.usecase
 import com.yapp2app.common.annotation.UseCase
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.pose.application.command.GetPosesCommand
+import com.yapp2app.pose.application.contract.PoseWithScrap
 import com.yapp2app.pose.application.port.MediaClientPort
 import com.yapp2app.pose.application.port.PoseRepositoryPort
 import com.yapp2app.pose.application.result.GetPosesResult
-import com.yapp2app.pose.domain.entity.Pose
 import org.slf4j.LoggerFactory
 
 /**
@@ -27,8 +27,9 @@ class GetPosesUseCase(
         // size + 1개 조회하여 hasNext 판단
         val fetchSize = command.size + 1
 
-        val poses: List<Pose> = transactionRunner.readOnly {
-            poseRepository.listPoses(
+        val poses: List<PoseWithScrap> = transactionRunner.readOnly {
+            poseRepository.listPosesWithScrap(
+                userId = command.userId,
                 offset = command.page * command.size,
                 limit = fetchSize,
                 headCount = command.headCount,
@@ -48,13 +49,13 @@ class GetPosesUseCase(
 
         // storageKey 조회 (페이징된 결과에 대해서만)
         val mediaStorageInfos = mediaClient.getMediaStorageInfos(
-            posesToReturn.map { it.mediaId },
+            posesToReturn.map { it.pose.mediaId },
         )
 
         val mediaByFileId = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result = posesToReturn.mapNotNull { pose ->
+        val result = posesToReturn.mapNotNull { (pose, isScraped) ->
             val media = mediaByFileId[pose.mediaId]
                 ?: run {
                     log.info(
@@ -69,6 +70,7 @@ class GetPosesUseCase(
                 poseId = pose.id!!,
                 headCount = pose.headCount,
                 storageKey = media.storageKey,
+                scrap = isScraped,
                 contentType = media.contentType,
                 createdAt = pose.createdAt!!,
             )
