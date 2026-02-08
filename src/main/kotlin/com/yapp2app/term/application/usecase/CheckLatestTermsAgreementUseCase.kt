@@ -16,10 +16,9 @@ class CheckLatestTermsAgreementUseCase(
         val activeTerms = termRepository.findAllActiveTerms()
         val userAgreements = userTermAgreementRepository.findByUserId(command.userId)
 
+        val agreedTermVersions = userAgreements.map { it.id.termId to it.termVersion }.toSet()
         val hasAgreedToLatestTerms = activeTerms.all { term ->
-            userAgreements.any { agreement ->
-                agreement.id.termId == term.id && agreement.termVersion == term.version
-            }
+            (term.id to term.version) in agreedTermVersions
         }
 
         return CheckLatestTermsAgreementResult(hasAgreedToLatestTerms = hasAgreedToLatestTerms)

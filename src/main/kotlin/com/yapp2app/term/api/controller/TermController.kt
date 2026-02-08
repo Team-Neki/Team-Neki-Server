@@ -50,7 +50,7 @@ class TermController(
         @Valid @RequestBody request: CreateTermAgreementsRequest,
     ): BaseResponse<Any> {
         val command = commandConverter.toCreateTermAgreementsCommand(userId, request)
-        val result = createTermAgreementsUseCase.execute(command)
+        createTermAgreementsUseCase.execute(command)
         return BaseResponse()
     }
 }
