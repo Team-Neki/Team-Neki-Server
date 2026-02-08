@@ -21,13 +21,13 @@ class RandomPoseUseCase(
     fun execute(command: GetRandomPoseCommand): GetPoseResult {
         val count = poseRepository.countPoses(command.headCount, command.excludeIds)
         if (count == 0L) {
-            throw BusinessException(ResultCode.NOT_FOUND)
+            throw BusinessException(ResultCode.NO_MORE_RANDOM_POSE)
         }
 
         val randomOffset = randomGenerator.nextLong(count)
 
         val pose = poseRepository.findPoseByOffset(randomOffset, command.headCount, command.excludeIds)
-            ?: throw BusinessException(ResultCode.NOT_FOUND)
+            ?: throw BusinessException(ResultCode.NO_MORE_RANDOM_POSE)
 
         val isScraped = scrapPoseRepository.existsOwnedPoseScrap(command.userId, pose.id!!)
 
