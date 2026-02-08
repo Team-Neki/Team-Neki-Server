@@ -20,7 +20,6 @@ class GetTermsUseCase(private val termRepository: TermRepositoryPort) {
                         termType = term.termType,
                         title = term.title,
                         url = term.url,
-                        version = term.version,
                         isRequired = term.isRequired,
                     )
                 },

@@ -9,7 +9,6 @@ data class TermInfo(
     val termType: TermType,
     val title: String,
     val url: String,
-    val version: String,
     val isRequired: Boolean,
 )
 

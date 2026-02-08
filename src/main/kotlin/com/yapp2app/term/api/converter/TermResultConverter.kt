@@ -15,7 +15,6 @@ class TermResultConverter {
                 termType = termInfo.termType.name,
                 title = termInfo.title,
                 url = termInfo.url,
-                version = termInfo.version,
                 isRequired = termInfo.isRequired,
             )
         },

@@ -20,9 +20,6 @@ data class TermInfoResponse(
     @field:Schema(description = "약관 URL", example = "https://example.com/terms/service")
     val url: String,
 
-    @field:Schema(description = "약관 버전", example = "1.0.0")
-    val version: String,
-
     @field:Schema(description = "필수 동의 여부", example = "true")
     val isRequired: Boolean,
 )
