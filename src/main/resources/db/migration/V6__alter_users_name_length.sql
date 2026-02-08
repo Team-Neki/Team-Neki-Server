@@ -1,0 +1,2 @@
+-- 사용자 닉네임 최대 길이를 12자로 제한
+ALTER TABLE TB_USERS ALTER COLUMN name TYPE VARCHAR(12);

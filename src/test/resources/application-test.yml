@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+    open-in-view: false
+  flyway:
+    enabled: false
+
+app:
+  auth:
+    accessTokenSecret: testSecretTokenMustBeVeryLongTestSecretDoesNotUseJasypt
+    accessTokenExpiry: 3600000 #1시간
+    refreshTokenSecret: testrefreshTokenMustBeVeryLongTestSecretDoesNotUseJasypt
+    refreshTokenExpiry: 604800000 #7일
+
+
+aws:
+  s3:
+    access-key: test
+    secret-key: test
+    region: ap-northeast-2
+    bucket: yapp-local

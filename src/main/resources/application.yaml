@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: Yapp_APP_2_Sever
+  profiles:
+    active: local
+
+springdoc:
+  override-with-generic-response: false
+
+# Application Version (from build.gradle.kts)
+app:
+  version: "@version@"
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://127.0.0.1:3000
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+      - http://localhost:63342
+      - http://127.0.0.1:63342
+      - https://dev-yapp-admin.suitestudy.com
+      - https://yapp-admin.suitestudy.com/
+
+# Spring Boot Actuator 설정 (Health Check for Kubernetes)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+    prometheus:
+      enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: neki
+
+
+aws:
+  s3:
+    access-key: ${AWS_S3_ACCESS_KEY:}
+    secret-key: ${AWS_S3_SECRET_KEY:}
+    region: ${AWS_S3_REGION:ap-northeast-2}
+    bucket: ${AWS_S3_BUCKET:}
+    base-url: ${AWS_S3_BASE_URL:}
+    presigned-url-expiration: 10m
+
+

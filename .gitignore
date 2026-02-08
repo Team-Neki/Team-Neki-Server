@@ -38,3 +38,10 @@ out/
 
 ### Kotlin ###
 .kotlin
+*.log
+postgres_data/
+localstack_data/
+
+### Terraform ###
+infra/terraform/aws/staging/.terraform
+*.tfstate*

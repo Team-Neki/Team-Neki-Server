@@ -1,0 +1,75 @@
+services:
+  db:
+    image: postgis/postgis:14-3.4
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin1234
+      POSTGRES_DB: yapp
+    ports:
+      - "5432:5432"
+    networks:
+      - yapp-net
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d yapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db-init:
+    image: postgis/postgis:14-3.4
+    container_name: postgres-init
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - yapp-net
+    command:
+      - bash
+      - -c
+      - |
+        until psql -h db -U admin -d yapp -c 'SELECT 1' > /dev/null 2>&1; do
+          echo 'Waiting for database...'
+          sleep 1
+        done
+        echo 'Database is ready. Creating PostGIS extension...'
+        psql -h db -U admin -d yapp -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+        echo 'PostGIS extension created successfully.'
+    environment:
+      PGPASSWORD: admin1234
+    restart: "no"
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    restart: always
+    environment:
+      SERVICES: s3
+      DEBUG: 1
+      AWS_DEFAULT_REGION: ap-northeast-2
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    ports:
+      - "4566:4566"
+    networks:
+      - yapp-net
+    volumes:
+      - ./localstack_data:/var/lib/localstack
+      - ./infra/localstack:/etc/localstack/init/ready.d
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - yapp-net
+
+networks:
+  yapp-net:
+    name: yapp-net
