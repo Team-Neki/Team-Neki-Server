@@ -160,7 +160,7 @@ class GetRandomPoseE2ETest : PoseE2ETestBase() {
                 .get("/api/poses/random")
                 .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+                .body("resultCode", equalTo(ResultCode.NO_MORE_RANDOM_POSE.code))
         }
 
         @Test
@@ -178,7 +178,7 @@ class GetRandomPoseE2ETest : PoseE2ETestBase() {
                 .get("/api/poses/random")
                 .then()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+                .body("resultCode", equalTo(ResultCode.NO_MORE_RANDOM_POSE.code))
         }
 
         @Test
