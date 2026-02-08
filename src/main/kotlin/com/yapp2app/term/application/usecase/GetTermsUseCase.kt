@@ -13,7 +13,6 @@ class GetTermsUseCase(private val termRepository: TermRepositoryPort) {
 
         return GetTermsResult(
             terms = activeTerms
-                .sortedBy { it.displayOrder }
                 .map { term ->
                     TermInfo(
                         id = term.id!!,
