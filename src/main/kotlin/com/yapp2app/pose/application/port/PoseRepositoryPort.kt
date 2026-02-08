@@ -29,7 +29,7 @@ interface PoseRepositoryPort {
 
     fun existsPose(poseId: Long): Boolean
 
-    fun countPoses(headCount: HeadCount): Long
+    fun countPoses(headCount: HeadCount, excludeIds: List<Long>): Long
 
-    fun findPoseByOffset(offset: Long, headCount: HeadCount): Pose?
+    fun findPoseByOffset(offset: Long, headCount: HeadCount, excludeIds: List<Long>): Pose?
 }

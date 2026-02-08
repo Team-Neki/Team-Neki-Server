@@ -39,8 +39,9 @@ class PoseRepositoryAdapter(
 
     override fun existsPose(poseId: Long): Boolean = jpaRepository.existsById(poseId)
 
-    override fun countPoses(headCount: HeadCount): Long = queryRepository.countPoses(headCount)
+    override fun countPoses(headCount: HeadCount, excludeIds: List<Long>): Long =
+        queryRepository.countPoses(headCount, excludeIds)
 
-    override fun findPoseByOffset(offset: Long, headCount: HeadCount): Pose? =
-        queryRepository.findPoseByOffset(offset, headCount)
+    override fun findPoseByOffset(offset: Long, headCount: HeadCount, excludeIds: List<Long>): Pose? =
+        queryRepository.findPoseByOffset(offset, headCount, excludeIds)
 }
