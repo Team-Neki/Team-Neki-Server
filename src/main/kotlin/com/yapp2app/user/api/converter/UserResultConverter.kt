@@ -25,6 +25,7 @@ class UserResultConverter(private val appProperties: AppProperties) {
         email = result.email,
         profileImageUrl = toImageUrl(result.objectKey),
         providerType = result.providerType,
+        agreeTerms = result.agreeTerms,
     )
 
     private fun toImageUrl(storageKey: String?): String =

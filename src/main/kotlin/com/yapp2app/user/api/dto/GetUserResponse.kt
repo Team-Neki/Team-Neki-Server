@@ -21,9 +21,12 @@ data class GetUserResponse(
     @field:Schema(description = "이메일", example = "yapp@neki.com")
     val email: String?,
 
-    @field:Schema(description = "이메일", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")
+    @field:Schema(description = "프로필 이미지 URL", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")
     val profileImageUrl: String?,
 
     @field:Schema(description = "로그인 타입", example = "KAKAO")
     val providerType: ProviderType,
+
+    @field:Schema(description = "최신 약관 동의 여부", example = "true")
+    val agreeTerms: Boolean,
 )

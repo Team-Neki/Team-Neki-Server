@@ -14,4 +14,5 @@ data class GetUserResult(
     val email: String?,
     val objectKey: String?,
     val providerType: ProviderType,
+    val agreeTerms: Boolean,
 )
