@@ -45,6 +45,10 @@ class PoseCommandConverter {
 
     fun toGetPoseCommand(userId: Long, poseId: Long): GetPoseCommand = GetPoseCommand(userId = userId, poseId = poseId)
 
-    fun toGetRandomPoseCommand(userId: Long, headCount: HeadCount): GetRandomPoseCommand =
-        GetRandomPoseCommand(userId = userId, headCount = headCount)
+    fun toGetRandomPoseCommand(userId: Long, headCount: HeadCount, excludeIds: String): GetRandomPoseCommand {
+        val parsedExcludeIds = excludeIds
+            .split(",")
+            .mapNotNull { it.trim().toLongOrNull() }
+        return GetRandomPoseCommand(userId = userId, headCount = headCount, excludeIds = parsedExcludeIds)
+    }
 }

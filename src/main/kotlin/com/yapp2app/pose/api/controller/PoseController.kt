@@ -129,8 +129,9 @@ class PoseController(
     fun randomPose(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @RequestParam(required = true) headCount: HeadCount,
+        @RequestParam(required = false, defaultValue = "") excludeIds: String,
     ): BaseResponse<GetPoseResponse> {
-        val command = commandConverter.toGetRandomPoseCommand(userId, headCount)
+        val command = commandConverter.toGetRandomPoseCommand(userId, headCount, excludeIds)
 
         val result = randomPoseUseCase.execute(command)
 
