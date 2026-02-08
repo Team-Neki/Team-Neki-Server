@@ -17,6 +17,7 @@ enum class ResultCode(val code: String, val message: String) {
     NOT_FOUND("D-04", "데이터를 찾을 수 없습니다."),
     ALREADY_REQUEST("D-05", "이미 처리된 요청입니다."),
     UPLOAD_FAILED("D-06", "파일 업로드에 실패했습니다."),
+    REQUIRED_TERMS_NOT_AGREED("D-07", "필수 약관에 동의해주세요."),
 
     CONFLICT_FOLDER("D-06", message = "해당하는 폴더가 존재합니다."),
 
