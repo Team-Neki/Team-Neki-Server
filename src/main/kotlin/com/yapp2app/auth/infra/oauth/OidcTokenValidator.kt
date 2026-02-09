@@ -42,12 +42,10 @@ class OidcTokenValidator(
             // 1차 시도: 캐시된 공개키로 토큰 검증
             validateTokenWithPublicKeys(idToken, oidcAdapter, oauthHelperAdapter, platform)
         } catch (e: BusinessException) {
-            log.info("Kakao OIDC token expired. 갱신 로직")
             // 캐시 무효화 후 재시도
             authRedisCacheAdapter.clearPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
             validateTokenWithPublicKeys(idToken, oidcAdapter, oauthHelperAdapter, platform)
         } catch (e: Exception) {
-            e.printStackTrace() // TODO 인증 실패 예외 로그 모니터링용
             throw e
         }
     }
