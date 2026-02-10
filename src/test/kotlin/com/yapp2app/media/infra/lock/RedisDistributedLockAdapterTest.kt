@@ -11,6 +11,8 @@ import org.springframework.data.redis.core.ValueOperations
 import org.springframework.data.redis.core.script.RedisScript
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 class RedisDistributedLockAdapterTest :
@@ -18,13 +20,15 @@ class RedisDistributedLockAdapterTest :
 
         lateinit var mockRedisTemplate: RedisTemplate<String, Any>
         lateinit var mockValueOps: ValueOperations<String, Any>
+        lateinit var executor: Executor
         lateinit var adapter: RedisDistributedLockAdapter
 
         beforeTest {
             mockRedisTemplate = mockk()
             mockValueOps = mockk()
+            executor = Executors.newFixedThreadPool(5)
             every { mockRedisTemplate.opsForValue() } returns mockValueOps
-            adapter = RedisDistributedLockAdapter(mockRedisTemplate)
+            adapter = RedisDistributedLockAdapter(mockRedisTemplate, executor)
         }
 
         test("Lock acquired successfully - action should execute") {

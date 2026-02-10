@@ -2,6 +2,7 @@ package com.yapp2app.media.infra.lock.redis
 
 import com.yapp2app.media.application.port.DistributedLockPort
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Primary
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.DefaultRedisScript
@@ -11,6 +12,7 @@ import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 import kotlin.math.min
 
 /**
@@ -28,7 +30,10 @@ import kotlin.math.min
  */
 @Component
 @Primary
-class RedisDistributedLockAdapter(private val redisTemplate: RedisTemplate<String, Any>) : DistributedLockPort {
+class RedisDistributedLockAdapter(
+    private val redisTemplate: RedisTemplate<String, Any>,
+    @Qualifier("asyncExecutor") private val executor: Executor,
+) : DistributedLockPort {
     private val log = LoggerFactory.getLogger(javaClass)
 
     // In-memory single-flight map: 동일 JVM 내 동시 요청 중복 제거
@@ -79,9 +84,10 @@ class RedisDistributedLockAdapter(private val redisTemplate: RedisTemplate<Strin
         // 1. In-memory single-flight: 동일 키에 대한 동시 요청 중복 제거
         val future =
             inFlightOperations.computeIfAbsent(key) {
-                CompletableFuture.supplyAsync {
-                    executeWithRedisLock(key, ttl, DEFAULT_RETRY_CONFIG, action)
-                }
+                CompletableFuture.supplyAsync(
+                    { executeWithRedisLock(key, ttl, DEFAULT_RETRY_CONFIG, action) },
+                    executor,
+                )
             }
 
         return try {

@@ -13,6 +13,8 @@ import io.mockk.verify
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ValueOperations
 import java.time.Duration
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -24,19 +26,21 @@ import java.util.concurrent.TimeUnit
 class RedisMediaBinaryCacheAdapterTest :
     FunSpec({
 
-        lateinit var mockRedisTemplate: RedisTemplate<String, Any>
-        lateinit var mockValueOps: ValueOperations<String, Any>
+        lateinit var mockRedisTemplate: RedisTemplate<String, ByteArray>
+        lateinit var mockValueOps: ValueOperations<String, ByteArray>
         lateinit var mockMediaStorage: MediaStoragePort
+        lateinit var executor: Executor
         lateinit var adapter: RedisMediaBinaryCacheAdapter
 
         beforeTest {
             mockRedisTemplate = mockk()
             mockValueOps = mockk()
             mockMediaStorage = mockk()
+            executor = Executors.newFixedThreadPool(5)
 
             every { mockRedisTemplate.opsForValue() } returns mockValueOps
 
-            adapter = RedisMediaBinaryCacheAdapter(mockRedisTemplate, mockMediaStorage)
+            adapter = RedisMediaBinaryCacheAdapter(mockRedisTemplate, mockMediaStorage, executor)
         }
 
         test("캐시 hit 시 TTL이 충분하면 async refresh를 트리거하지 않음") {

@@ -3,11 +3,13 @@ package com.yapp2app.media.infra.cache.redis
 import com.yapp2app.media.application.port.MediaBinaryCachePort
 import com.yapp2app.media.application.port.MediaStoragePort
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Primary
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 /**
@@ -25,8 +27,9 @@ import java.util.concurrent.TimeUnit
 @Component
 @Primary
 class RedisMediaBinaryCacheAdapter(
-    private val redisTemplate: RedisTemplate<String, Any>,
+    private val binaryRedisTemplate: RedisTemplate<String, ByteArray>,
     private val mediaStorage: MediaStoragePort,
+    @Qualifier("asyncExecutor") private val executor: Executor,
 ) : MediaBinaryCachePort {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -39,14 +42,14 @@ class RedisMediaBinaryCacheAdapter(
     override fun get(key: String): ByteArray? {
         val cacheKey = MediaRedisCacheKey.binaryKey(key)
         return try {
-            val cached = redisTemplate.opsForValue().get(cacheKey)
+            val cached = binaryRedisTemplate.opsForValue().get(cacheKey)
             if (cached != null) {
                 log.debug("[MediaCache] Cache hit for key: $key")
 
                 // TTL 확인 후 갱신 필요 시 비동기 refresh 트리거
                 checkAndRefreshIfNeeded(key, cacheKey)
 
-                cached as? ByteArray
+                cached
             } else {
                 log.debug("[MediaCache] Cache miss for key: $key")
                 null
@@ -60,7 +63,7 @@ class RedisMediaBinaryCacheAdapter(
     override fun put(key: String, value: ByteArray) {
         val cacheKey = MediaRedisCacheKey.binaryKey(key)
         try {
-            redisTemplate.opsForValue().set(cacheKey, value, DEFAULT_TTL)
+            binaryRedisTemplate.opsForValue().set(cacheKey, value, DEFAULT_TTL)
             log.debug("[MediaCache] Cache put successful for key: $key (TTL: $DEFAULT_TTL)")
         } catch (e: Exception) {
             log.error("[MediaCache] Cache put failed for key: $key", e)
@@ -71,7 +74,7 @@ class RedisMediaBinaryCacheAdapter(
     override fun evict(key: String) {
         val cacheKey = MediaRedisCacheKey.binaryKey(key)
         try {
-            val deleted = redisTemplate.delete(cacheKey)
+            val deleted = binaryRedisTemplate.delete(cacheKey)
             if (deleted) {
                 log.debug("[MediaCache] Cache evict successful for key: $key")
             } else {
@@ -88,7 +91,7 @@ class RedisMediaBinaryCacheAdapter(
      */
     private fun checkAndRefreshIfNeeded(objectKey: String, cacheKey: String) {
         try {
-            val ttlSeconds = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS)
+            val ttlSeconds = binaryRedisTemplate.getExpire(cacheKey, TimeUnit.SECONDS)
 
             if (ttlSeconds > 0 && ttlSeconds < REFRESH_THRESHOLD.seconds) {
                 log.debug(
@@ -106,16 +109,19 @@ class RedisMediaBinaryCacheAdapter(
      * S3에서 비동기로 데이터를 가져와 캐시 갱신
      */
     private fun triggerAsyncRefresh(objectKey: String) {
-        CompletableFuture.runAsync {
-            try {
-                log.debug("[MediaCache] Async refresh started for key: $objectKey")
-                val fresh = mediaStorage.fetchBinaryByKey(objectKey)
-                put(objectKey, fresh)
-                log.info("[MediaCache] Async refresh completed for key: $objectKey")
-            } catch (e: Exception) {
-                log.error("[MediaCache] Async refresh failed for key: $objectKey", e)
-                // Graceful degradation: 캐시는 결국 만료되고 다시 조회됨
-            }
-        }
+        CompletableFuture.runAsync(
+            {
+                try {
+                    log.debug("[MediaCache] Async refresh started for key: $objectKey")
+                    val fresh = mediaStorage.fetchBinaryByKey(objectKey)
+                    put(objectKey, fresh)
+                    log.info("[MediaCache] Async refresh completed for key: $objectKey")
+                } catch (e: Exception) {
+                    log.error("[MediaCache] Async refresh failed for key: $objectKey", e)
+                    // Graceful degradation: 캐시는 결국 만료되고 다시 조회됨
+                }
+            },
+            executor,
+        )
     }
 }

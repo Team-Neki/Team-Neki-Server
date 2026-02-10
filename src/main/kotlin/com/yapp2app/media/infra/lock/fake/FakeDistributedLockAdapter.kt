@@ -2,11 +2,13 @@ package com.yapp2app.media.infra.lock.fake
 
 import com.yapp2app.media.application.port.DistributedLockPort
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 
 /**
  * 테스트용 In-Memory 분산 락 어댑터.
@@ -17,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @Component
 @Profile("test")
-class FakeDistributedLockAdapter : DistributedLockPort {
+class FakeDistributedLockAdapter(@Qualifier("asyncExecutor") private val executor: Executor) : DistributedLockPort {
     private val log = LoggerFactory.getLogger(javaClass)
 
     // In-memory single-flight map (same as production)
@@ -35,9 +37,10 @@ class FakeDistributedLockAdapter : DistributedLockPort {
     override fun <T> executeWithLock(key: String, ttl: Duration, action: () -> T): T? {
         val future =
             inFlightOperations.computeIfAbsent(key) {
-                CompletableFuture.supplyAsync {
-                    executeAction(key, action)
-                }
+                CompletableFuture.supplyAsync(
+                    { executeAction(key, action) },
+                    executor,
+                )
             }
 
         return try {

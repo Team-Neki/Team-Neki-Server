@@ -53,6 +53,15 @@ class GetImageConcurrencyE2ETest : E2ETestBase() {
 
     @AfterEach
     override fun tearDown() {
+        // Clear cache for all test keys to ensure test isolation
+        listOf(
+            "test/concurrent-image.jpg",
+            "test/cached-image.jpg",
+            "test/image1.jpg",
+            "test/image2.jpg",
+            "test/image3.jpg",
+        ).forEach { cache.evict(it) }
+
         fakeStorage.clearTestData()
         super.tearDown()
     }
