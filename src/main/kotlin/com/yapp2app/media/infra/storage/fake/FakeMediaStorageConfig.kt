@@ -27,6 +27,8 @@ class FakeMediaStorageConfig {
 class FakeMediaStorageAdapter : MediaStoragePort {
 
     private val storage = ConcurrentHashMap<String, ByteArray>()
+    private val fetchCount = ConcurrentHashMap<String, Int>()
+    private var onFetchCallback: (() -> Unit)? = null
 
     override fun deleteByKey(key: String) {
         storage.remove(key)
@@ -34,7 +36,11 @@ class FakeMediaStorageAdapter : MediaStoragePort {
 
     override fun findByKey(key: String): String = "https://fake-storage.test/$key"
 
-    override fun fetchBinaryByKey(key: String): ByteArray = storage[key] ?: ByteArray(0)
+    override fun fetchBinaryByKey(key: String): ByteArray {
+        fetchCount.compute(key) { _, count -> (count ?: 0) + 1 }
+        onFetchCallback?.invoke()
+        return storage[key] ?: ByteArray(0)
+    }
 
     override fun findAll(prefix: String): List<MediaRef> = storage.keys
         .filter { it.startsWith(prefix) }
@@ -56,5 +62,15 @@ class FakeMediaStorageAdapter : MediaStoragePort {
 
     fun clearTestData() {
         storage.clear()
+        fetchCount.clear()
+        onFetchCallback = null
+    }
+
+    fun getFetchCount(key: String): Int = fetchCount[key] ?: 0
+
+    fun getTotalFetchCount(): Int = fetchCount.values.sum()
+
+    fun onFetch(callback: () -> Unit) {
+        onFetchCallback = callback
     }
 }
