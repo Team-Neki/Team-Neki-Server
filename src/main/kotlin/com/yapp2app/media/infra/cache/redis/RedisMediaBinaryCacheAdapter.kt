@@ -5,6 +5,7 @@ import com.yapp2app.media.application.port.MediaStoragePort
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeUnit
  */
 @Component
 @Primary
+@Profile("!test")
 class RedisMediaBinaryCacheAdapter(
     private val binaryRedisTemplate: RedisTemplate<String, ByteArray>,
     private val mediaStorage: MediaStoragePort,

@@ -4,6 +4,7 @@ import com.yapp2app.media.application.port.DistributedLockPort
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.script.DefaultRedisScript
 import org.springframework.data.redis.core.script.RedisScript
@@ -30,6 +31,7 @@ import kotlin.math.min
  */
 @Component
 @Primary
+@Profile("!test")
 class RedisDistributedLockAdapter(
     private val redisTemplate: RedisTemplate<String, Any>,
     @Qualifier("asyncExecutor") private val executor: Executor,
