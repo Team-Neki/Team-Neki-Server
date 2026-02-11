@@ -1,6 +1,8 @@
 package com.yapp2app.media.application.usecase
 
 import com.yapp2app.common.annotation.UseCase
+import com.yapp2app.common.api.dto.ResultCode
+import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.media.application.command.GetImageByKeyCommand
 import com.yapp2app.media.application.port.DistributedLockPort
 import com.yapp2app.media.application.port.MediaBinaryCachePort
@@ -45,7 +47,9 @@ class GetImageByKeyUseCase(
                 ttl = Duration.ofSeconds(10),
             ) {
                 fetchAndCache(objectKey)
-            } ?: fetchAndCache(objectKey) // lock 획득 실패 시 fallback
+            }
+                ?: cache.get(objectKey) // 락 홀더가 채운 캐시 재확인
+                ?: throw BusinessException(ResultCode.ERROR)
 
         return GetImageByKeyResult(binaryData, contentType)
     }
