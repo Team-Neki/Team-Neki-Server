@@ -40,6 +40,7 @@ class GenerateUploadTicketUseCase(
                 contentType = item.contentType,
                 width = item.width,
                 height = item.height,
+                size = item.size,
             )
             val savedMedia = mediaRepository.save(media)
 
