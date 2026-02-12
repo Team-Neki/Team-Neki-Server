@@ -28,8 +28,10 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
     }
 
     fun findOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderWithStats> {
+        val latestPhotoDate = photoImage.createdAt.max()
+
         val folderStats = queryFactory
-            .select(folder.id, folder.name, photoImage.id.count())
+            .select(folder.id, folder.name, photoImage.id.count(), latestPhotoDate)
             .from(folder)
             .leftJoin(photoImage).on(
                 photoImage.folderId.eq(folder.id),
@@ -37,6 +39,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
             )
             .where(folder.userId.eq(userId))
             .groupBy(folder.id, folder.name)
+            .orderBy(latestPhotoDate.desc().nullsLast(), folder.createdAt.desc())
             .apply { limit?.let { limit(it.toLong()) } }
             .fetch()
 
