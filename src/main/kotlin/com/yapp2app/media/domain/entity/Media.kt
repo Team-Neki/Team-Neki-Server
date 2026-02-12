@@ -46,6 +46,9 @@ class Media(
 
     @Column(name = "height", nullable = true)
     val height: Int? = null,
+
+    @Column(name = "size", nullable = true)
+    val size: Long? = null,
 ) : BaseTimeEntity() {
 
     fun markAsUploaded() {

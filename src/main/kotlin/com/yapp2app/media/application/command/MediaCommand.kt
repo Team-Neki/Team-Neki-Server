@@ -17,6 +17,7 @@ data class GenerateUploadTicketCommand(val ownerId: Long, val items: List<Upload
         val mediaType: MediaType,
         val width: Int? = null,
         val height: Int? = null,
+        val size: Long? = null,
     )
 }
 

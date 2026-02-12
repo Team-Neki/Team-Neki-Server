@@ -23,6 +23,7 @@ class MediaCommandConverter {
                     mediaType = item.mediaType!!,
                     width = item.width,
                     height = item.height,
+                    size = item.size,
                 )
             },
         )
