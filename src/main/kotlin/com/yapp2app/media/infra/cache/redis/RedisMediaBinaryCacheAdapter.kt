@@ -1,16 +1,12 @@
 package com.yapp2app.media.infra.cache.redis
 
 import com.yapp2app.media.application.port.MediaBinaryCachePort
-import com.yapp2app.media.application.port.MediaStoragePort
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 /**
@@ -28,11 +24,8 @@ import java.util.concurrent.TimeUnit
 @Component
 @Primary
 @Profile("!test")
-class RedisMediaBinaryCacheAdapter(
-    private val binaryRedisTemplate: RedisTemplate<String, ByteArray>,
-    private val mediaStorage: MediaStoragePort,
-    @Qualifier("asyncExecutor") private val executor: Executor,
-) : MediaBinaryCachePort {
+class RedisMediaBinaryCacheAdapter(private val binaryRedisTemplate: RedisTemplate<String, ByteArray>) :
+    MediaBinaryCachePort {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -48,7 +41,7 @@ class RedisMediaBinaryCacheAdapter(
             if (cached != null) {
                 log.debug("[MediaCache] Cache hit for key: $key")
 
-                // TTL 확인 후 갱신 필요 시 비동기 refresh 트리거
+                // TTL 확인 후 갱신 필요 시 refresh 트리거
                 checkAndRefreshIfNeeded(key, cacheKey)
 
                 cached
@@ -89,41 +82,21 @@ class RedisMediaBinaryCacheAdapter(
     }
 
     /**
-     * TTL을 확인하고 임계값 미만이면 비동기 갱신을 트리거
+     * TTL을 확인하고 임계값 미만이면 TTL을 연장하여 캐시 만료 방지
+     * - 이미 캐싱된 데이터를 재활용하므로 S3 API 호출 불필요
      */
     private fun checkAndRefreshIfNeeded(objectKey: String, cacheKey: String) {
         try {
             val ttlSeconds: Long? = binaryRedisTemplate.getExpire(cacheKey, TimeUnit.SECONDS)
 
             if (ttlSeconds != null && ttlSeconds > 0 && ttlSeconds < REFRESH_THRESHOLD.seconds) {
+                binaryRedisTemplate.expire(cacheKey, DEFAULT_TTL)
                 log.debug(
-                    "[MediaCache] TTL low ($ttlSeconds seconds remaining), triggering async refresh for key: $objectKey",
+                    "[MediaCache] TTL extended for key: $objectKey ($ttlSeconds seconds remaining -> ${DEFAULT_TTL.seconds} seconds)",
                 )
-                triggerAsyncRefresh(objectKey)
             }
         } catch (e: Exception) {
             log.warn("[MediaCache] TTL check failed for key: $objectKey", e)
-            // 치명적이지 않으므로 무시하고 계속 진행
         }
-    }
-
-    /**
-     * S3에서 비동기로 데이터를 가져와 캐시 갱신
-     */
-    private fun triggerAsyncRefresh(objectKey: String) {
-        CompletableFuture.runAsync(
-            {
-                try {
-                    log.debug("[MediaCache] Async refresh started for key: $objectKey")
-                    val fresh = mediaStorage.fetchBinaryByKey(objectKey)
-                    put(objectKey, fresh)
-                    log.info("[MediaCache] Async refresh completed for key: $objectKey")
-                } catch (e: Exception) {
-                    log.error("[MediaCache] Async refresh failed for key: $objectKey", e)
-                    // Graceful degradation: 캐시는 결국 만료되고 다시 조회됨
-                }
-            },
-            executor,
-        )
     }
 }
