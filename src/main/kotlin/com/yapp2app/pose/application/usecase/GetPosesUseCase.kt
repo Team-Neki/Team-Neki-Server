@@ -72,6 +72,8 @@ class GetPosesUseCase(
                 storageKey = media.storageKey,
                 scrap = isScraped,
                 contentType = media.contentType,
+                width = media.width,
+                height = media.height,
                 createdAt = pose.createdAt!!,
             )
         }

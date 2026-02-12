@@ -51,8 +51,20 @@ data class GetImageByKeyResult(val binaryData: ByteArray, val contentType: Strin
     override fun hashCode(): Int = 31 * binaryData.contentHashCode() + contentType.hashCode()
 }
 
-data class GetMediaStorageInfoResult(val mediaId: Long, val storageKey: String, val contentType: String)
+data class GetMediaStorageInfoResult(
+    val mediaId: Long,
+    val storageKey: String,
+    val contentType: String,
+    val width: Int? = null,
+    val height: Int? = null,
+)
 
 data class GetMediaStorageInfosResult(val storageInfos: List<StorageInfo>) {
-    data class StorageInfo(val mediaId: Long, val storageKey: String, val contentType: String)
+    data class StorageInfo(
+        val mediaId: Long,
+        val storageKey: String,
+        val contentType: String,
+        val width: Int? = null,
+        val height: Int? = null,
+    )
 }

@@ -33,11 +33,10 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .from(pose)
         .leftJoin(scrapPose)
         .on(
-            scrapPose.id.userId.eq(pose.userId),
+            scrapPose.id.userId.eq(userId),
             scrapPose.id.poseId.eq(pose.id),
         )
         .where(
-            pose.userId.eq(userId),
             pose.id.eq(poseId),
         )
         .fetchOne()

@@ -39,6 +39,8 @@ class RandomPoseUseCase(
             storageKey = mediaInfo.storageKey,
             scrap = isScraped,
             contentType = mediaInfo.contentType,
+            width = mediaInfo.width,
+            height = mediaInfo.height,
             createdAt = pose.createdAt!!,
         )
     }

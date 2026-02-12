@@ -26,6 +26,8 @@ class GetMediaStorageInfoUseCase(private val mediaRepository: MediaRepositoryPor
             mediaId = media.id!!,
             storageKey = media.storageKey,
             contentType = media.contentType,
+            width = media.width,
+            height = media.height,
         )
     }
 }
