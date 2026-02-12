@@ -2,7 +2,6 @@ package com.yapp2app.media.infra.lock.redis
 
 import com.yapp2app.media.application.port.DistributedLockPort
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.core.RedisTemplate
@@ -13,7 +12,6 @@ import java.time.Duration
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executor
 import kotlin.math.min
 
 /**
@@ -32,10 +30,7 @@ import kotlin.math.min
 @Component
 @Primary
 @Profile("!test")
-class RedisDistributedLockAdapter(
-    private val redisTemplate: RedisTemplate<String, Any>,
-    @Qualifier("asyncExecutor") private val executor: Executor,
-) : DistributedLockPort {
+class RedisDistributedLockAdapter(private val redisTemplate: RedisTemplate<String, Any>) : DistributedLockPort {
     private val log = LoggerFactory.getLogger(javaClass)
 
     // In-memory single-flight map: 동일 JVM 내 동시 요청 중복 제거
@@ -83,20 +78,33 @@ class RedisDistributedLockAdapter(
     private fun generateLockKey(objectKey: String): String = "lock:media:fetch:$objectKey"
 
     override fun <T> executeWithLock(key: String, ttl: Duration, action: () -> T): T? {
-        // 1. In-memory single-flight: 동일 키에 대한 동시 요청 중복 제거
-        val future =
-            inFlightOperations.computeIfAbsent(key) {
-                CompletableFuture.supplyAsync(
-                    { executeWithRedisLock(key, ttl, DEFAULT_RETRY_CONFIG, action) },
-                    executor,
-                )
-            }
+        val newFuture = CompletableFuture<Any?>()
+        val existingFuture = inFlightOperations.putIfAbsent(key, newFuture)
 
+        if (existingFuture != null) {
+            // 다른 스레드가 이미 실행 중 → 결과 대기
+            return try {
+                @Suppress("UNCHECKED_CAST")
+                existingFuture.get() as? T
+            } catch (e: Exception) {
+                log.warn("[DistributedLock] In-flight operation failed for key: $key", e)
+                null
+            } finally {
+                inFlightOperations.remove(key, existingFuture)
+            }
+        }
+
+        // 첫 번째 스레드 → 호출 스레드(Tomcat)에서 직접 실행
         return try {
+            val result = executeWithRedisLock(key, ttl, DEFAULT_RETRY_CONFIG, action)
+            newFuture.complete(result)
             @Suppress("UNCHECKED_CAST")
-            future.get() as? T
+            result as? T
+        } catch (e: Exception) {
+            newFuture.completeExceptionally(e)
+            null
         } finally {
-            inFlightOperations.remove(key, future)
+            inFlightOperations.remove(key, newFuture)
         }
     }
 
