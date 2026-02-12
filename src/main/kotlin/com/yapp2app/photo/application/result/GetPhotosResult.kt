@@ -15,6 +15,8 @@ data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean) {
         val storageKey: String,
         val favorite: Boolean,
         val contentType: String,
+        val width: Int? = null,
+        val height: Int? = null,
         val createdAt: LocalDateTime,
     )
 }
@@ -24,6 +26,8 @@ data class GetPhotoResult(
     val storageKey: String,
     val favorite: Boolean,
     val contentType: String,
+    val width: Int? = null,
+    val height: Int? = null,
     val createdAt: LocalDateTime,
 )
 

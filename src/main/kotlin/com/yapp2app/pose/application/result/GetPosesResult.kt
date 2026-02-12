@@ -16,6 +16,8 @@ data class GetPosesResult(val poses: List<PoseInfo>, val hasNext: Boolean) {
         val storageKey: String,
         val scrap: Boolean,
         val contentType: String,
+        val width: Int? = null,
+        val height: Int? = null,
         val createdAt: LocalDateTime,
     )
 }
@@ -26,5 +28,7 @@ data class GetPoseResult(
     val storageKey: String,
     val scrap: Boolean,
     val contentType: String,
+    val width: Int? = null,
+    val height: Int? = null,
     val createdAt: LocalDateTime,
 )

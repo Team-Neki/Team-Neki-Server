@@ -28,5 +28,9 @@ data class UploadTicketRequest(
 
         @field:NotNull(message = "미디어 타입은 필수 입력값입니다.")
         val mediaType: MediaType?,
+
+        val width: Int? = null,
+
+        val height: Int? = null,
     )
 }

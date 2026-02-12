@@ -25,6 +25,8 @@ class ScrapPoseResultConverter(private val appProperties: AppProperties) {
                 imageUrl = toImageUrl(it.storageKey),
                 scrap = it.scrap,
                 contentType = it.contentType,
+                width = it.width,
+                height = it.height,
                 createdAt = it.createdAt,
             )
         },

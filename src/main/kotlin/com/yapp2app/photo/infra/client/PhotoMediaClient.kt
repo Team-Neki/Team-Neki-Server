@@ -58,6 +58,8 @@ class PhotoMediaClient(
             mediaId = result.mediaId,
             storageKey = result.storageKey,
             contentType = result.contentType,
+            width = result.width,
+            height = result.height,
         )
     }
 
@@ -70,6 +72,8 @@ class PhotoMediaClient(
                 mediaId = it.mediaId,
                 storageKey = it.storageKey,
                 contentType = it.contentType,
+                width = it.width,
+                height = it.height,
             )
         }
     }
