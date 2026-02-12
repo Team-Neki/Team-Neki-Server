@@ -21,6 +21,8 @@ class MediaCommandConverter {
                     filename = item.filename!!,
                     contentType = item.contentType!!,
                     mediaType = item.mediaType!!,
+                    width = item.width,
+                    height = item.height,
                 )
             },
         )

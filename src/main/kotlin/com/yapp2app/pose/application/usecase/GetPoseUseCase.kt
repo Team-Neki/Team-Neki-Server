@@ -16,7 +16,7 @@ class GetPoseUseCase(private val poseRepository: PoseRepositoryPort, private val
         val (pose, isScraped) = poseRepository.getOwnedPoseWithScrap(command.userId, command.poseId)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
-        val mediaInfo: MediaStorageInfo = mediaClient.getMediaStorageInfo(command.userId, pose.mediaId)
+        val mediaInfo: MediaStorageInfo = mediaClient.getMediaStorageInfo(pose.mediaId)
 
         return GetPoseResult(
             poseId = pose.id!!,
@@ -24,6 +24,8 @@ class GetPoseUseCase(private val poseRepository: PoseRepositoryPort, private val
             storageKey = mediaInfo.storageKey,
             scrap = isScraped,
             contentType = mediaInfo.contentType,
+            width = mediaInfo.width,
+            height = mediaInfo.height,
             createdAt = pose.createdAt!!,
         )
     }

@@ -20,6 +20,15 @@ class ServletFilterConfig {
     @Bean
     fun requestMdcFilterRegistration(filter: RequestMdcFilter): FilterRegistrationBean<RequestMdcFilter> =
         FilterRegistrationBean(filter).apply {
+            order = SecurityProperties.DEFAULT_FILTER_ORDER - 2
+        }
+
+    @Bean
+    fun requestLoggingFilter(): RequestLoggingFilter = RequestLoggingFilter()
+
+    @Bean
+    fun requestLoggingFilterRegistration(filter: RequestLoggingFilter): FilterRegistrationBean<RequestLoggingFilter> =
+        FilterRegistrationBean(filter).apply {
             order = SecurityProperties.DEFAULT_FILTER_ORDER - 1
         }
 }

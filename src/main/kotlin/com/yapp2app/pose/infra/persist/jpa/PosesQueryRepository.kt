@@ -33,11 +33,10 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .from(pose)
         .leftJoin(scrapPose)
         .on(
-            scrapPose.id.userId.eq(pose.userId),
+            scrapPose.id.userId.eq(userId),
             scrapPose.id.poseId.eq(pose.id),
         )
         .where(
-            pose.userId.eq(userId),
             pose.id.eq(poseId),
         )
         .fetchOne()
@@ -93,15 +92,21 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .limit(limit.toLong())
         .fetch()
 
-    fun countPoses(headCount: HeadCount): Long = queryFactory
+    fun countPoses(headCount: HeadCount, excludeIds: List<Long>): Long = queryFactory
         .select(pose.count())
         .from(pose)
-        .where(pose.headCount.eq(headCount))
+        .where(
+            pose.headCount.eq(headCount),
+            excludeIds.takeIf { it.isNotEmpty() }?.let { pose.id.notIn(it) },
+        )
         .fetchOne() ?: 0L
 
-    fun findPoseByOffset(offset: Long, headCount: HeadCount): Pose? = queryFactory
+    fun findPoseByOffset(offset: Long, headCount: HeadCount, excludeIds: List<Long>): Pose? = queryFactory
         .selectFrom(pose)
-        .where(pose.headCount.eq(headCount))
+        .where(
+            pose.headCount.eq(headCount),
+            excludeIds.takeIf { it.isNotEmpty() }?.let { pose.id.notIn(it) },
+        )
         .offset(offset)
         .limit(1)
         .fetchOne()

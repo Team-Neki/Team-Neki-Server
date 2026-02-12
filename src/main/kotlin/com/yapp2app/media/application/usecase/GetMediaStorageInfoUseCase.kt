@@ -17,15 +17,20 @@ import com.yapp2app.media.application.result.GetMediaStorageInfoResult
 class GetMediaStorageInfoUseCase(private val mediaRepository: MediaRepositoryPort) {
 
     fun execute(command: GetMediaStorageInfoCommand): GetMediaStorageInfoResult {
-        val media = (
+        val media = command.ownerId?.let {
             mediaRepository.getActiveMedia(command.ownerId, command.mediaId)
-                ?: throw BusinessException(ResultCode.NOT_FOUND)
-            )
+        } ?: mediaRepository.getActiveMedia(command.mediaId)
+
+        if (media == null) {
+            throw BusinessException(ResultCode.NOT_FOUND)
+        }
 
         return GetMediaStorageInfoResult(
             mediaId = media.id!!,
             storageKey = media.storageKey,
             contentType = media.contentType,
+            width = media.width,
+            height = media.height,
         )
     }
 }
