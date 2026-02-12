@@ -98,6 +98,59 @@ class GetAllFolderE2ETest : FolderE2ETestBase() {
     }
 
     @Test
+    @DisplayName("limit 파라미터를 전달하면 해당 개수만큼만 폴더를 반환한다")
+    fun givenFoldersAndLimit_whenGetAllFolders_thenReturnsLimitedFolders() {
+        // Given: 4개의 폴더 생성
+        createFolders(testUser.id!!)
+
+        // When: limit=3으로 폴더 목록 조회 API 호출
+        val response = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("limit", 3)
+            .`when`()
+            .get("/api/folders")
+            .then()
+            .extract()
+
+        // Then: 성공 응답 및 3개만 반환 검증
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+
+        val baseResponse = response.`as`(BaseResponse::class.java)
+        assertThat(baseResponse.resultCode).isEqualTo(ResultCode.SUCCESS.code)
+
+        val data = baseResponse.data as Map<*, *>
+        val items = data["items"] as List<*>
+        assertThat(items).hasSize(3)
+    }
+
+    @Test
+    @DisplayName("limit 파라미터가 없으면 모든 폴더를 반환한다")
+    fun givenFoldersAndNoLimit_whenGetAllFolders_thenReturnsAllFolders() {
+        // Given: 4개의 폴더 생성
+        createFolders(testUser.id!!)
+
+        // When: limit 없이 폴더 목록 조회 API 호출
+        val response = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .get("/api/folders")
+            .then()
+            .extract()
+
+        // Then: 성공 응답 및 전체 4개 반환 검증
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value())
+
+        val baseResponse = response.`as`(BaseResponse::class.java)
+        assertThat(baseResponse.resultCode).isEqualTo(ResultCode.SUCCESS.code)
+
+        val data = baseResponse.data as Map<*, *>
+        val items = data["items"] as List<*>
+        assertThat(items).hasSize(4)
+    }
+
+    @Test
     @DisplayName("단일 폴더만 있을 때 해당 폴더를 반환한다")
     fun givenSingleFolder_whenGetAllFolders_thenReturnsSingleFolder() {
         // Given: 1개의 폴더 생성

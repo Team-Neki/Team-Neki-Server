@@ -72,8 +72,11 @@ class FolderController(
         description = "폴더 목록을 조회합니다.",
     )
     @GetMapping
-    fun getAllFolder(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetAllFolderResponse> {
-        val command = commandConverter.toGetFoldersCommand(userId)
+    fun getAllFolder(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @RequestParam("limit") limit: Int?,
+    ): BaseResponse<GetAllFolderResponse> {
+        val command = commandConverter.toGetFoldersCommand(userId, limit)
 
         val result = getFoldersUseCase.execute(command)
 

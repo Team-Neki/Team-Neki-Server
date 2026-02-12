@@ -27,7 +27,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
             .execute().toInt()
     }
 
-    fun findOwnedFoldersWithStats(userId: Long): List<FolderWithStats> {
+    fun findOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderWithStats> {
         val folderStats = queryFactory
             .select(folder.id, folder.name, photoImage.id.count())
             .from(folder)
@@ -37,6 +37,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
             )
             .where(folder.userId.eq(userId))
             .groupBy(folder.id, folder.name)
+            .apply { limit?.let { limit(it.toLong()) } }
             .fetch()
 
         if (folderStats.isEmpty()) return emptyList()

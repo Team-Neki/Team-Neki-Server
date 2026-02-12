@@ -23,7 +23,7 @@ class FolderCommandConverter {
     fun toCreateFolderCommand(request: CreateFolderRequest, userId: Long): CreateFolderCommand =
         CreateFolderCommand(userId, request.name!!)
 
-    fun toGetFoldersCommand(userId: Long): GetFoldersCommand = GetFoldersCommand(userId)
+    fun toGetFoldersCommand(userId: Long, limit: Int?): GetFoldersCommand = GetFoldersCommand(userId, limit)
 
     fun toDeleteFoldersCommand(request: DeleteFoldersRequest, userId: Long, deletePhotos: Boolean) =
         DeleteFoldersCommand(userId, request.folderIds, deletePhotos)
