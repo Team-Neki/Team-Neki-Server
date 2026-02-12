@@ -38,7 +38,7 @@ class RedisMediaBinaryCacheAdapterTest :
 
         test("캐시 hit 시 TTL이 충분하면 TTL 갱신하지 않음") {
             // Given: TTL이 3시간 남음 (threshold 2시간보다 큼)
-            val objectKey = "test/image.jpg"
+            val objectKey = "pose/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
             val cachedData = byteArrayOf(1, 2, 3)
 
@@ -55,7 +55,7 @@ class RedisMediaBinaryCacheAdapterTest :
 
         test("캐시 hit 시 TTL이 threshold 미만이면 expire로 TTL 갱신") {
             // Given: TTL이 1시간 남음 (threshold 2시간보다 작음)
-            val objectKey = "test/image.jpg"
+            val objectKey = "pose/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
             val cachedData = byteArrayOf(1, 2, 3)
 
@@ -73,7 +73,7 @@ class RedisMediaBinaryCacheAdapterTest :
 
         test("TTL check 실패 시 graceful degradation") {
             // Given
-            val objectKey = "test/image.jpg"
+            val objectKey = "pose/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
             val cachedData = byteArrayOf(1, 2, 3)
 
@@ -90,7 +90,7 @@ class RedisMediaBinaryCacheAdapterTest :
 
         test("expire 실패 시 예외를 전파하지 않음") {
             // Given
-            val objectKey = "test/image.jpg"
+            val objectKey = "pose/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
             val cachedData = byteArrayOf(1, 2, 3)
 
@@ -107,7 +107,7 @@ class RedisMediaBinaryCacheAdapterTest :
 
         test("캐시 miss 시 TTL 갱신 트리거하지 않음") {
             // Given
-            val objectKey = "test/image.jpg"
+            val objectKey = "pose/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
 
             every { mockValueOps.get(cacheKey) } returns null
@@ -123,7 +123,7 @@ class RedisMediaBinaryCacheAdapterTest :
 
         test("TTL이 0 또는 음수이면 TTL 갱신하지 않음 (만료된 캐시)") {
             // Given
-            val objectKey = "test/image.jpg"
+            val objectKey = "pose/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
             val cachedData = byteArrayOf(1, 2, 3)
 
@@ -138,24 +138,25 @@ class RedisMediaBinaryCacheAdapterTest :
             verify(exactly = 0) { mockRedisTemplate.expire(any<String>(), any<Duration>()) }
         }
 
-        test("put 메서드는 24시간 TTL로 캐시 저장") {
+        test("put 메서드는 전달받은 TTL로 캐시 저장") {
             // Given
-            val objectKey = "test/image.jpg"
+            val objectKey = "pose/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
             val data = byteArrayOf(1, 2, 3)
+            val ttl = Duration.ofHours(24)
 
-            every { mockValueOps.set(cacheKey, data, Duration.ofHours(24)) } just Runs
+            every { mockValueOps.set(cacheKey, data, ttl) } just Runs
 
             // When
-            adapter.put(objectKey, data)
+            adapter.put(objectKey, data, ttl)
 
             // Then
-            verify(exactly = 1) { mockValueOps.set(cacheKey, data, Duration.ofHours(24)) }
+            verify(exactly = 1) { mockValueOps.set(cacheKey, data, ttl) }
         }
 
         test("evict 메서드는 캐시 삭제") {
             // Given
-            val objectKey = "test/image.jpg"
+            val objectKey = "pose/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
 
             every { mockRedisTemplate.delete(cacheKey) } returns true
@@ -165,5 +166,23 @@ class RedisMediaBinaryCacheAdapterTest :
 
             // Then
             verify(exactly = 1) { mockRedisTemplate.delete(cacheKey) }
+        }
+
+        test("캐싱 불가 타입의 objectKey는 TTL 갱신하지 않음") {
+            // Given: PHOTO_BOOTH는 캐싱 대상이 아님
+            val objectKey = "photo-booth/image.jpg"
+            val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
+            val cachedData = byteArrayOf(1, 2, 3)
+
+            every { mockValueOps.get(cacheKey) } returns cachedData
+            // getExpire는 호출되지 않아야 함
+
+            // When
+            val result = adapter.get(objectKey)
+
+            // Then
+            result shouldBe cachedData
+            verify(exactly = 0) { mockRedisTemplate.getExpire(any(), any()) }
+            verify(exactly = 0) { mockRedisTemplate.expire(any<String>(), any<Duration>()) }
         }
     })

@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import java.time.Duration
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -55,11 +56,11 @@ class GetImageConcurrencyE2ETest : E2ETestBase() {
     override fun tearDown() {
         // Clear cache for all test keys to ensure test isolation
         listOf(
-            "test/concurrent-image.jpg",
-            "test/cached-image.jpg",
-            "test/image1.jpg",
-            "test/image2.jpg",
-            "test/image3.jpg",
+            "pose/concurrent-image.jpg",
+            "pose/cached-image.jpg",
+            "pose/image1.jpg",
+            "pose/image2.jpg",
+            "pose/image3.jpg",
         ).forEach { cache.evict(it) }
 
         fakeStorage.clearTestData()
@@ -70,7 +71,7 @@ class GetImageConcurrencyE2ETest : E2ETestBase() {
     @DisplayName("동시 요청 시 S3 중복 호출 방지 - 분산 락 적용")
     fun givenConcurrentRequests_whenGetSameImage_thenSingleS3Fetch() {
         // Given: 테스트 이미지 준비
-        val objectKey = "test/concurrent-image.jpg"
+        val objectKey = "pose/concurrent-image.jpg"
         val imageData = createTestJpegData()
         fakeStorage.putTestData(objectKey, imageData)
 
@@ -108,10 +109,10 @@ class GetImageConcurrencyE2ETest : E2ETestBase() {
     @DisplayName("캐시 hit 시 락 없이 즉시 반환")
     fun givenCachedImage_whenConcurrentRequests_thenNoLockAcquisition() {
         // Given: 캐시에 이미지 미리 저장
-        val objectKey = "test/cached-image.jpg"
+        val objectKey = "pose/cached-image.jpg"
         val imageData = createTestJpegData()
         fakeStorage.putTestData(objectKey, imageData)
-        cache.put(objectKey, imageData)
+        cache.put(objectKey, imageData, Duration.ofHours(24))
 
         // When: 10개의 동시 요청
         val futures = (1..10).map {
@@ -148,9 +149,9 @@ class GetImageConcurrencyE2ETest : E2ETestBase() {
     fun givenDifferentImages_whenConcurrentRequests_thenEachFetchedIndependently() {
         // Given: 3개의 서로 다른 이미지
         val objectKeys = listOf(
-            "test/image1.jpg",
-            "test/image2.jpg",
-            "test/image3.jpg",
+            "pose/image1.jpg",
+            "pose/image2.jpg",
+            "pose/image3.jpg",
         )
         objectKeys.forEach { fakeStorage.putTestData(it, createTestJpegData()) }
 

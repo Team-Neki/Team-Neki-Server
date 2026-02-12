@@ -8,6 +8,7 @@ import com.yapp2app.media.application.port.DistributedLockPort
 import com.yapp2app.media.application.port.MediaBinaryCachePort
 import com.yapp2app.media.application.port.MediaStoragePort
 import com.yapp2app.media.application.result.GetImageByKeyResult
+import com.yapp2app.media.domain.MediaType
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
@@ -20,6 +21,7 @@ import java.time.Duration
  * Cache stampede 방지:
  * - Cache hit: 즉시 반환
  * - Cache miss: 분산 락으로 중복 S3 호출 방지
+ * - 캐싱 대상이 아닌 MediaType은 S3 직접 조회
  */
 @UseCase
 class GetImageByKeyUseCase(
@@ -32,6 +34,13 @@ class GetImageByKeyUseCase(
     fun execute(command: GetImageByKeyCommand): GetImageByKeyResult {
         val objectKey = command.objectKey
         val contentType = resolveContentType(objectKey)
+        val mediaType = MediaType.fromObjectKey(objectKey)
+
+        // 캐싱 대상이 아닌 타입은 S3에서 직접 조회
+        if (mediaType == null || !mediaType.isCacheable) {
+            val binaryData = mediaStorage.fetchBinaryByKey(objectKey)
+            return GetImageByKeyResult(binaryData, contentType)
+        }
 
         // cache를 조회하고 있다면 바로 반환
         val cachedData = cache.get(objectKey)
@@ -41,12 +50,13 @@ class GetImageByKeyUseCase(
         }
 
         // cache가 없다면 lock을 획득하여 S3에서 데이터를 가져오고 캐싱
+        val cacheTtl = mediaType.cacheTtl!!
         val binaryData =
             distributedLock.executeWithLock(
                 key = objectKey,
                 ttl = Duration.ofSeconds(10),
             ) {
-                fetchAndCache(objectKey)
+                fetchAndCache(objectKey, cacheTtl)
             }
                 ?: cache.get(objectKey) // 락 홀더가 채운 캐시 재확인
                 ?: throw BusinessException(ResultCode.ERROR)
@@ -54,7 +64,7 @@ class GetImageByKeyUseCase(
         return GetImageByKeyResult(binaryData, contentType)
     }
 
-    private fun fetchAndCache(objectKey: String): ByteArray {
+    private fun fetchAndCache(objectKey: String, cacheTtl: Duration): ByteArray {
         // lock 획득 후에도 캐시가 채워졌는지 재확인
         cache.get(objectKey)?.let {
             log.debug("[GetImage] Cache hit after lock acquisition for key: $objectKey")
@@ -64,7 +74,7 @@ class GetImageByKeyUseCase(
         // S3에서 이미지 바이너리 조회 후 캐싱
         log.debug("[GetImage] Fetching from S3 for key: $objectKey")
         return mediaStorage.fetchBinaryByKey(objectKey).also {
-            cache.put(objectKey, it)
+            cache.put(objectKey, it, cacheTtl)
         }
     }
 

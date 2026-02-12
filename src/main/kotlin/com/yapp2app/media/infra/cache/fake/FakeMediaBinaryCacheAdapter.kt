@@ -36,10 +36,10 @@ class FakeMediaBinaryCacheAdapter : MediaBinaryCachePort {
         }
     }
 
-    override fun put(key: String, value: ByteArray) {
+    override fun put(key: String, value: ByteArray, ttl: Duration) {
         cache[key] = CacheEntry(
             data = value,
-            expiresAt = Instant.now().plus(Duration.ofHours(24)),
+            expiresAt = Instant.now().plus(ttl),
         )
     }
 
