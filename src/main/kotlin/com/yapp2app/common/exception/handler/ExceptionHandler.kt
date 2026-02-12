@@ -30,7 +30,7 @@ class ExceptionHandler {
 
     @ExceptionHandler(BusinessException::class)
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {
-        log.error("{} message = {}", ex.resultCode.code, ex.resultCode.message)
+        log.error("[BUSINESS_ERROR] code={} | message={}", ex.resultCode.code, ex.resultCode.message)
 
         if (ex.resultCode == ResultCode.INVALID_TOKEN_ERROR) {
             return ResponseEntity(
@@ -55,7 +55,7 @@ class ExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun exceptionHandler(ex: Exception): ResponseEntity<ExceptionMsg> {
-        log.error("No Handler ex message = {}", ex)
+        log.error("[SYSTEM_ERROR] unhandled exception", ex)
 
         val temp = ResponseEntity(
             ExceptionMsg(

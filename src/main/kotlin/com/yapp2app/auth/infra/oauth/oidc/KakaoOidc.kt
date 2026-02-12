@@ -41,7 +41,6 @@ class KakaoOidc(
         val cached = authRedisCacheAdapter.getPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
 
         if (cached != null) {
-            log.info("Found cached OIDC key") // TODO 임시 코드
             return cached
         }
 
