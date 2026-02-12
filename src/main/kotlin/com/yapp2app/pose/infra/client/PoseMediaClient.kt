@@ -27,10 +27,10 @@ class PoseMediaClient(
     private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
 ) : MediaClientPort {
 
-    override fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaStorageInfo {
+    override fun getMediaStorageInfo(mediaId: Long): MediaStorageInfo {
         val result: GetMediaStorageInfoResult = getMediaStorageInfoUseCase.execute(
             GetMediaStorageInfoCommand(
-                ownerId = ownerId,
+                ownerId = null,
                 mediaId = mediaId,
             ),
         )

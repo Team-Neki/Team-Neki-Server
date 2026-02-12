@@ -15,6 +15,8 @@ import org.springframework.stereotype.Repository
 @Repository
 class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : MediaRepositoryPort {
 
+    override fun getActiveMedia(id: Long): Media? = jpaRepository.findByIdAndStatus(id, MediaStatus.UPLOADED)
+
     override fun getActiveMedia(ownerId: Long, id: Long): Media? =
         jpaRepository.findByOwnerIdAndIdAndStatus(ownerId, id, MediaStatus.UPLOADED)
 
