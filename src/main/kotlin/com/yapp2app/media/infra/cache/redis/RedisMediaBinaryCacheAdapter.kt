@@ -76,8 +76,8 @@ class RedisMediaBinaryCacheAdapter(
     override fun evict(key: String) {
         val cacheKey = MediaRedisCacheKey.binaryKey(key)
         try {
-            val deleted = binaryRedisTemplate.delete(cacheKey)
-            if (deleted) {
+            val deleted: Boolean? = binaryRedisTemplate.delete(cacheKey)
+            if (deleted == true) {
                 log.debug("[MediaCache] Cache evict successful for key: $key")
             } else {
                 log.debug("[MediaCache] Cache evict skipped (key not found): $key")
@@ -93,9 +93,9 @@ class RedisMediaBinaryCacheAdapter(
      */
     private fun checkAndRefreshIfNeeded(objectKey: String, cacheKey: String) {
         try {
-            val ttlSeconds = binaryRedisTemplate.getExpire(cacheKey, TimeUnit.SECONDS)
+            val ttlSeconds: Long? = binaryRedisTemplate.getExpire(cacheKey, TimeUnit.SECONDS)
 
-            if (ttlSeconds > 0 && ttlSeconds < REFRESH_THRESHOLD.seconds) {
+            if (ttlSeconds != null && ttlSeconds > 0 && ttlSeconds < REFRESH_THRESHOLD.seconds) {
                 log.debug(
                     "[MediaCache] TTL low ($ttlSeconds seconds remaining), triggering async refresh for key: $objectKey",
                 )
