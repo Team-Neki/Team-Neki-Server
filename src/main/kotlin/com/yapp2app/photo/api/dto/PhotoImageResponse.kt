@@ -24,6 +24,10 @@ data class GetPhotosResponse(
         val favorite: Boolean,
         @field:Schema(description = "파일 형식", example = "image/jpeg")
         val contentType: String,
+        @field:Schema(description = "이미지 너비", example = "1080", nullable = true)
+        val width: Int? = null,
+        @field:Schema(description = "이미지 높이", example = "1440", nullable = true)
+        val height: Int? = null,
         @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
         val createdAt: LocalDateTime,
     )
@@ -38,6 +42,10 @@ data class GetPhotoResponse(
     val favorite: Boolean,
     @field:Schema(description = "파일 형식", example = "image/jpeg")
     val contentType: String,
+    @field:Schema(description = "이미지 너비", example = "1080", nullable = true)
+    val width: Int? = null,
+    @field:Schema(description = "이미지 높이", example = "1440", nullable = true)
+    val height: Int? = null,
     @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
     val createdAt: LocalDateTime,
 )

@@ -44,12 +44,12 @@ app:
 oauth:
   kakao:
     androidClientId: ENC(Qzg5YG7q+laisg0oYQi100q1q3RRCBR8gkHtAEcgEPkmNj7Jmz+58693hruGEova3zfVL6C5N6oKR8tVHRa7fysnNTSkTvAcx3uxTcUZhR4=)
-    iosClientId: ENC(zdEQ71neG48gcF3QXZwPtUhrEKb0LJiRWJc1QOO1nTcAK9vpVxuABPiVeuMvUl2KzMwc5mbQzlpprWoKPbRwJaeLR8lMeN4bjRdiKaWMXHk=)
+    iosClientId: ENC(0KhQuAcBG2ddDzIS/WhvDbb+l+SbuCiYE/ANF8OVMvtvQcEwsY8xiFlr5lp0IAKyLEk75SSoIhM5picVY7xjV0+DPl/vA6lt8CA4Ae17Hd8=)
     clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
     jwksUri: https://kauth.kakao.com/.well-known/jwks.json
     issuer: https://kauth.kakao.com
   apple:
-    clientId: ENC(bVHf5Um9/vmBQj9KJuPKH3NOlGTsgbe9bd4aNPgkXjK8D5bLNp+89xSFdFAi9pWMCHaVdIyXncc4w/mE+l0byw==)
+    clientId: ENC(HyKZc+YrsgDpfGXRTjPumTSB3frVyZCrBEMn1IyaHOjisXPDs6F0SdsOVs3vg1aYnarKbRvFyrVxbKN+mqgaMA==)
     jwksUri: https://appleid.apple.com/auth/keys
     issuer: https://appleid.apple.com
 
