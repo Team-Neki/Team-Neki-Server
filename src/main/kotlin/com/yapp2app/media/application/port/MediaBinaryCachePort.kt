@@ -1,5 +1,7 @@
 package com.yapp2app.media.application.port
 
+import java.time.Duration
+
 /**
  * fileName       : MediaBinaryCachePort
  * author         : koo
@@ -10,7 +12,7 @@ interface MediaBinaryCachePort {
 
     fun get(key: String): ByteArray?
 
-    fun put(key: String, value: ByteArray)
+    fun put(key: String, value: ByteArray, ttl: Duration)
 
     fun evict(key: String)
 }

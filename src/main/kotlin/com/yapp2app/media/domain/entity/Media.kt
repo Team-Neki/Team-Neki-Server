@@ -40,6 +40,15 @@ class Media(
 
     @Column(name = "content_type", nullable = true, length = 100)
     val contentType: String,
+
+    @Column(name = "width", nullable = true)
+    val width: Int? = null,
+
+    @Column(name = "height", nullable = true)
+    val height: Int? = null,
+
+    @Column(name = "size", nullable = true)
+    val size: Long? = null,
 ) : BaseTimeEntity() {
 
     fun markAsUploaded() {

@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer
+import org.springframework.data.redis.serializer.RedisSerializer
 import org.springframework.data.redis.serializer.StringRedisSerializer
 
 /**
@@ -45,6 +46,33 @@ class RedisCacheConfig(private val objectMapper: ObjectMapper) {
         val jsonSerializer = Jackson2JsonRedisSerializer(objectMapper, Any::class.java)
         template.valueSerializer = jsonSerializer
         template.hashValueSerializer = jsonSerializer
+
+        return template
+    }
+
+    /**
+     * 이미지 바이너리 데이터 전용 RedisTemplate
+     * - Key: String 직렬화
+     * - Value: ByteArray 직렬화 (JSON 직렬화 시 타입 변환 문제 발생)
+     *
+     * ByteArrayRedisSerializer 사용으로:
+     * - 바이너리 데이터를 그대로 저장/조회
+     * - 타입 변환 없이 ByteArray로 직접 반환
+     * - 캐시 정상 동작
+     */
+    @Bean
+    fun binaryRedisTemplate(redisConnectionFactory: RedisConnectionFactory): RedisTemplate<String, ByteArray> {
+        val template = RedisTemplate<String, ByteArray>()
+        template.connectionFactory = redisConnectionFactory
+
+        // Key는 String으로 직렬화
+        template.keySerializer = StringRedisSerializer()
+        template.hashKeySerializer = StringRedisSerializer()
+
+        // Value는 ByteArray로 직렬화 (이미지 바이너리 데이터)
+        val byteArraySerializer = RedisSerializer.byteArray()
+        template.valueSerializer = byteArraySerializer
+        template.hashValueSerializer = byteArraySerializer
 
         return template
     }

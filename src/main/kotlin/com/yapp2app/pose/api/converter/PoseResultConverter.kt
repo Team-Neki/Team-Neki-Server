@@ -27,6 +27,8 @@ class PoseResultConverter(private val appProperties: AppProperties) {
                 imageUrl = toImageUrl(it.storageKey),
                 scrap = it.scrap,
                 contentType = it.contentType,
+                width = it.width,
+                height = it.height,
                 createdAt = it.createdAt,
             )
         },
@@ -39,6 +41,8 @@ class PoseResultConverter(private val appProperties: AppProperties) {
         imageUrl = toImageUrl(result.storageKey),
         scrap = result.scrap,
         contentType = result.contentType,
+        width = result.width,
+        height = result.height,
         createdAt = result.createdAt,
     )
 

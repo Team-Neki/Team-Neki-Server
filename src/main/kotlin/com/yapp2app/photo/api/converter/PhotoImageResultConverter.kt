@@ -28,6 +28,8 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
                 imageUrl = toImageUrl(it.storageKey),
                 favorite = it.favorite,
                 contentType = it.contentType,
+                width = it.width,
+                height = it.height,
                 createdAt = it.createdAt,
             )
         },
@@ -39,6 +41,8 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
         imageUrl = toImageUrl(result.storageKey),
         favorite = result.favorite,
         contentType = result.contentType,
+        width = result.width,
+        height = result.height,
         createdAt = result.createdAt,
     )
 

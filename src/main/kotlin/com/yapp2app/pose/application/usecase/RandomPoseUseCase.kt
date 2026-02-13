@@ -31,7 +31,7 @@ class RandomPoseUseCase(
 
         val isScraped = scrapPoseRepository.existsOwnedPoseScrap(command.userId, pose.id!!)
 
-        val mediaInfo = mediaClient.getMediaStorageInfo(pose.userId!!, pose.mediaId)
+        val mediaInfo = mediaClient.getMediaStorageInfo(pose.mediaId)
 
         return GetPoseResult(
             poseId = pose.id!!,
@@ -39,6 +39,8 @@ class RandomPoseUseCase(
             storageKey = mediaInfo.storageKey,
             scrap = isScraped,
             contentType = mediaInfo.contentType,
+            width = mediaInfo.width,
+            height = mediaInfo.height,
             createdAt = pose.createdAt!!,
         )
     }

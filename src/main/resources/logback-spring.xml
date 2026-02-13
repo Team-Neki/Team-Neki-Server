@@ -27,6 +27,9 @@
             <includeMdcKeyName>requestMethod</includeMdcKeyName>
             <includeMdcKeyName>requestUri</includeMdcKeyName>
             <includeMdcKeyName>clientIp</includeMdcKeyName>
+            <includeMdcKeyName>logCategory</includeMdcKeyName>
+            <includeMdcKeyName>durationMs</includeMdcKeyName>
+            <includeMdcKeyName>responseStatus</includeMdcKeyName>
 
             <!-- 기본 필드명 커스터마이징 -->
             <fieldNames>
