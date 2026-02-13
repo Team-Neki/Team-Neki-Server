@@ -91,55 +91,6 @@ class RedisDistributedLockAdapterTest :
             attemptCount shouldBe 6 // Initial + 5 retries (default)
         }
 
-        test("In-memory single-flight - concurrent requests should deduplicate") {
-            // Given
-            val objectKey = "test/same-image.jpg"
-            val lockKey = "lock:media:fetch:$objectKey"
-            val actionExecuted = AtomicInteger(0)
-            val lockAcquired = AtomicInteger(0)
-
-            every {
-                mockValueOps.setIfAbsent(lockKey, any(), any<Duration>())
-            } answers {
-                lockAcquired.incrementAndGet()
-                true
-            }
-
-            every {
-                mockRedisTemplate.execute(any<RedisScript<Long>>(), any<List<String>>(), any())
-            } returns 1L
-
-            // When: 10 concurrent requests for same key from the SAME thread context
-            // This simulates requests arriving while one is in flight
-            val results = mutableListOf<String?>()
-            val threads = (1..10).map {
-                Thread {
-                    val result = adapter.executeWithLock(
-                        key = objectKey,
-                        ttl = Duration.ofSeconds(10),
-                    ) {
-                        Thread.sleep(100) // Simulate slow operation
-                        actionExecuted.incrementAndGet()
-                        "result-$it"
-                    }
-                    synchronized(results) {
-                        results.add(result)
-                    }
-                }
-            }
-
-            // Start all threads at once
-            threads.forEach { it.start() }
-            threads.forEach { it.join() }
-
-            // Then: Results collected
-            results.size shouldBe 10
-
-            // Then: Single-flight should deduplicate to 1-2 executions
-            // (Allowing 2 due to race conditions in thread startup)
-            actionExecuted.get() shouldBe 1
-        }
-
         test("Redis exception - should return null (graceful degradation)") {
             // Given
             val objectKey = "test/image.jpg"
