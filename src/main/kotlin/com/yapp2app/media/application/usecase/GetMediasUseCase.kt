@@ -27,10 +27,14 @@ class GetMediasUseCase(
         val mediaInfos = medias.map { it ->
             val storageKey = it.storageKey
 
-            val binaryData = cache.get(storageKey)
-                ?: mediaStorage.fetchBinaryByKey(storageKey).also {
-                    cache.put(storageKey, it)
-                }
+            val binaryData = if (it.mediaType.isCacheable) {
+                cache.get(storageKey)
+                    ?: mediaStorage.fetchBinaryByKey(storageKey).also { data ->
+                        cache.put(storageKey, data, it.mediaType.cacheTtl!!)
+                    }
+            } else {
+                mediaStorage.fetchBinaryByKey(storageKey)
+            }
 
             GetMediasResult.MediaInfo(
                 mediaId = it.id!!,
