@@ -19,6 +19,8 @@ interface PhotoImageRepositoryPort {
 
     fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage>
 
+    fun getRegisteredMediaIds(mediaIds: List<Long>): Set<Long>
+
     /**
      * 조회
      */

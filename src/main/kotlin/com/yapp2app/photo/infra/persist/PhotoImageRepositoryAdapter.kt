@@ -1,11 +1,14 @@
 package com.yapp2app.photo.infra.persist
 
+import com.yapp2app.common.api.dto.ResultCode
 import com.yapp2app.common.domain.vo.SortOrder
+import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.photo.application.contract.PhotoWithFavorite
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 import com.yapp2app.photo.domain.entity.PhotoImage
 import com.yapp2app.photo.infra.persist.jpa.JpaPhotoImageRepository
 import com.yapp2app.photo.infra.persist.jpa.PhotoImageQueryRepository
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Repository
 
 /**
@@ -24,7 +27,14 @@ class PhotoImageRepositoryAdapter(
         queryRepository.findOwnedPhotoWithFavorite(userId, photoId)
 
     override fun save(photoImage: PhotoImage): PhotoImage = jpaRepository.save(photoImage)
-    override fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage> = jpaRepository.saveAll(photoImages)
+    override fun saveAll(photoImages: List<PhotoImage>): List<PhotoImage> = try {
+        jpaRepository.saveAll(photoImages)
+    } catch (e: DataIntegrityViolationException) {
+        throw BusinessException(ResultCode.ALREADY_REQUEST)
+    }
+
+    override fun getRegisteredMediaIds(mediaIds: List<Long>): Set<Long> =
+        queryRepository.getRegisteredMediaIds(mediaIds)
 
     override fun listOwnedPhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage> =
         queryRepository.findOwnedPhotos(userId, offset, limit, sortOrder)

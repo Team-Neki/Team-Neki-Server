@@ -12,7 +12,7 @@ import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
 import com.yapp2app.photo.domain.entity.PhotoImage
 
 /**
- * fileName       : BulkUploadPhotoUseCase
+ * fileName       : UploadPhotosUseCase
  * author         : koo
  * date           : 2026. 1. 20.
  * description    : 다중 사진 업로드 UseCase (최대 10장)
@@ -30,17 +30,18 @@ class UploadPhotosUseCase(
         validateNoDuplicateMediaIds(command.uploads)
         validateFolderOwnership(command.userId, command.folderId)
 
-        val mediaIds = command.uploads.map { it.mediaId }
+        val newUploads = filterNewUploads(command.uploads)
+        if (newUploads.isEmpty()) return
 
-        // 모든 media가 object storage에 정상적으로 저장되었는지 일괄 확인
+        val newMediaIds = newUploads.map { it.mediaId }
+
         val availabilities = mediaClient.verifyMediasUploaded(
             ownerId = command.userId,
-            mediaIds = mediaIds,
+            mediaIds = newMediaIds,
         )
-
         rollbackIfFailed(command.userId, availabilities)
 
-        val photos = command.uploads.map { upload ->
+        val photos = newUploads.map { upload ->
             PhotoImage(
                 userId = command.userId,
                 mediaId = upload.mediaId,
@@ -53,11 +54,20 @@ class UploadPhotosUseCase(
             transactionRunner.run {
                 photoImageRepository.saveAll(photos)
             }
+        } catch (e: BusinessException) {
+            if (e.resultCode == ResultCode.ALREADY_REQUEST) return
+            mediaClient.rollbackMediasUploaded(command.userId, newMediaIds)
+            throw e
         } catch (e: Exception) {
-            // 보상 트랜잭션: 모든 media 상태를 INITIATED로 롤백
-            mediaClient.rollbackMediasUploaded(command.userId, mediaIds)
+            mediaClient.rollbackMediasUploaded(command.userId, newMediaIds)
             throw e
         }
+    }
+
+    private fun filterNewUploads(uploads: List<UploadPhotoCommand.UploadItem>): List<UploadPhotoCommand.UploadItem> {
+        val mediaIds = uploads.map { it.mediaId }
+        val existingMediaIds = photoImageRepository.getRegisteredMediaIds(mediaIds)
+        return uploads.filter { it.mediaId !in existingMediaIds }
     }
 
     private fun validateNoDuplicateMediaIds(uploads: List<UploadPhotoCommand.UploadItem>) {
