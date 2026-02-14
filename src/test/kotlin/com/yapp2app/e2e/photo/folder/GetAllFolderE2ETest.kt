@@ -7,6 +7,7 @@ import com.yapp2app.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -187,6 +188,36 @@ class GetAllFolderE2ETest : FolderE2ETestBase() {
 
         val folderNames = items.map { (it as Map<*, *>)["name"] as String }
         assertThat(folderNames).containsExactly("폴더B", "폴더C", "폴더A")
+    }
+
+    @Test
+    @DisplayName("limit=0 전달 시 400 Bad Request를 반환한다")
+    fun givenZeroLimit_whenGetAllFolders_thenReturnsBadRequest() {
+        // Given & When & Then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("limit", 0)
+            .`when`()
+            .get("/api/folders")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+    }
+
+    @Test
+    @DisplayName("limit=-1 전달 시 400 Bad Request를 반환한다")
+    fun givenNegativeLimit_whenGetAllFolders_thenReturnsBadRequest() {
+        // Given & When & Then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("limit", -1)
+            .`when`()
+            .get("/api/folders")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
     @Test
