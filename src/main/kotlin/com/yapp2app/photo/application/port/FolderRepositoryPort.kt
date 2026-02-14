@@ -17,7 +17,7 @@ interface FolderRepositoryPort {
 
     fun listOwnedFolders(userId: Long): List<Folder>
 
-    fun listOwnedFoldersWithStats(userId: Long): List<FolderWithStats>
+    fun listOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderWithStats>
 
     fun getOwnedFolder(userId: Long, folderId: Long): Folder?
     fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder>

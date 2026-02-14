@@ -15,6 +15,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
+import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import java.util.function.Consumer
 
@@ -113,6 +114,16 @@ class ExceptionHandler {
         ),
         HttpStatus.BAD_REQUEST,
     )
+
+    @ExceptionHandler(HandlerMethodValidationException::class)
+    fun handleMethodValidationExceptionHandler(ex: HandlerMethodValidationException): ResponseEntity<ExceptionMsg> =
+        ResponseEntity(
+            ExceptionMsg(
+                resultCode = ResultCode.INVALID_PARAMETER.code,
+                message = ResultCode.INVALID_PARAMETER.message,
+            ),
+            HttpStatus.BAD_REQUEST,
+        )
 
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleTypeMismatchHandler(ex: MethodArgumentTypeMismatchException): ResponseEntity<ExceptionMsg> =

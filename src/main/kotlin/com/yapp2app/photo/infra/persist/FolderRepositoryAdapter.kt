@@ -26,8 +26,8 @@ class FolderRepositoryAdapter(
 
     override fun listOwnedFolders(userId: Long): List<Folder> = jpaRepository.findAllByUserId(userId)
 
-    override fun listOwnedFoldersWithStats(userId: Long): List<FolderWithStats> =
-        queryRepository.findOwnedFoldersWithStats(userId)
+    override fun listOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderWithStats> =
+        queryRepository.findOwnedFoldersWithStats(userId, limit)
 
     override fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder> =
         jpaRepository.findAllByUserIdAndIdIn(userId, folderIds)
