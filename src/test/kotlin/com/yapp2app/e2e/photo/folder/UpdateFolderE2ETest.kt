@@ -219,4 +219,22 @@ class UpdateFolderE2ETest : E2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
     }
+
+    @Test
+    @DisplayName("폴더명이 10자를 초과하면 400 에러를 반환한다")
+    fun givenTooLongFolderName_whenUpdateFolder_thenReturnsBadRequest() {
+        val folder = folderRepository.save(
+            Folder(userId = testUser.id!!, name = "원래 이름"),
+        )
+
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(UpdateFolderRequest(name = "일이삼사오육칠팔구십일")) // 11자
+            .`when`()
+            .patch("/api/folders/${folder.id}")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+    }
 }

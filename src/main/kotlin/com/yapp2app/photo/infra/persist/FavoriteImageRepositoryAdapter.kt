@@ -27,6 +27,12 @@ class FavoriteImageRepositoryAdapter(
         }
     }
 
+    override fun addAll(userId: Long, photoIds: List<Long>) {
+        if (photoIds.isEmpty()) return
+        val favorites = photoIds.map { photoId -> FavoritePhoto(FavoritePhotoId(userId, photoId)) }
+        jpaRepository.saveAll(favorites)
+    }
+
     override fun delete(userId: Long, photoId: Long) = jpaRepository.deleteById(
         FavoritePhotoId(userId, photoId),
     )

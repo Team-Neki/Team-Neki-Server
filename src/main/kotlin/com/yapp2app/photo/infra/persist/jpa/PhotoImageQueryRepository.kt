@@ -148,6 +148,17 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
             .fetch()
     }
 
+    fun getRegisteredMediaIds(mediaIds: List<Long>): Set<Long> {
+        if (mediaIds.isEmpty()) return emptySet()
+
+        return queryFactory
+            .select(photoImage.mediaId)
+            .from(photoImage)
+            .where(photoImage.mediaId.`in`(mediaIds))
+            .fetch()
+            .toSet()
+    }
+
     fun removePhotosFromFolder(userId: Long, folderId: Long, photoIds: List<Long>): Int {
         if (photoIds.isEmpty()) return 0
 

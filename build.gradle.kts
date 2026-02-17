@@ -30,7 +30,7 @@ val mockkVersion = "1.13.10"
 val ktlintVersion = "1.5.0"
 
 group = "com.yapp2app"
-version = "0.0.1"
+version = "1.0.0"
 
 java {
     toolchain {

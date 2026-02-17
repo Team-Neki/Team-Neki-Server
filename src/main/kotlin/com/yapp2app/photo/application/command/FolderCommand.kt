@@ -10,7 +10,7 @@ data class CreateFolderCommand(val userId: Long, val name: String)
 
 data class DeleteFoldersCommand(val userId: Long, val folderIds: List<Long>, val deletePhotos: Boolean = false)
 
-data class GetFoldersCommand(val userId: Long)
+data class GetFoldersCommand(val userId: Long, val limit: Int?)
 
 data class UpdateFolderCommand(val userId: Long, val folderId: Long, val newName: String)
 

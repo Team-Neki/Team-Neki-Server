@@ -134,4 +134,18 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.CONFLICT_FOLDER.code))
     }
+
+    @Test
+    @DisplayName("폴더명이 10자를 초과하면 400 에러를 반환한다")
+    fun givenTooLongFolderName_whenCreateFolder_thenReturnsBadRequest() {
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(CreateFolderRequest(name = "일이삼사오육칠팔구십일")) // 11자
+            .`when`()
+            .post("/api/folders")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+    }
 }
