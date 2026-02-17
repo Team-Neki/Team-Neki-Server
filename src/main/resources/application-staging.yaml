@@ -43,7 +43,7 @@ app:
 
 oauth:
   kakao:
-    androidClientId: ENC(hsQLRwsALnzw9z0Tx+A9xedK8LtEj0IQ/lX6xFNTyW2pJuRj1iY1YtPmq8qaXu0a6Vid4KbcR+64AJ7GfVaAptLxeGwss/DpdfbX0Z3IWbU=)
+    androidClientId: ENC(lDI6cw226mDsd0R8PMdfQZdksG0cl+UN05E4+hJI7KguRGIn1+oBB/mLDhkXfp+43Oq7gkQCo7vKLrZMxzFDLQhbeb7Mx8KMEyBCjw7LfSQ=)
     iosClientId: ENC(0KhQuAcBG2ddDzIS/WhvDbb+l+SbuCiYE/ANF8OVMvtvQcEwsY8xiFlr5lp0IAKyLEk75SSoIhM5picVY7xjV0+DPl/vA6lt8CA4Ae17Hd8=)
     clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
     jwksUri: https://kauth.kakao.com/.well-known/jwks.json
