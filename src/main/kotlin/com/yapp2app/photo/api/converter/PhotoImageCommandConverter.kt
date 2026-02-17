@@ -29,6 +29,7 @@ class PhotoImageCommandConverter {
                 memo = item.memo,
             )
         },
+        favorite = request.favorite ?: false,
     )
 
     fun toGetPhotosCommand(
