@@ -6,6 +6,7 @@ import com.yapp2app.common.exception.BusinessException
 import com.yapp2app.common.transaction.TransactionRunner
 import com.yapp2app.photo.application.command.UploadPhotoCommand
 import com.yapp2app.photo.application.contract.MediaAvailability
+import com.yapp2app.photo.application.port.FavoriteImageRepositoryPort
 import com.yapp2app.photo.application.port.FolderRepositoryPort
 import com.yapp2app.photo.application.port.MediaClientPort
 import com.yapp2app.photo.application.port.PhotoImageRepositoryPort
@@ -22,6 +23,7 @@ class UploadPhotosUseCase(
     private val mediaClient: MediaClientPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
     private val folderRepository: FolderRepositoryPort,
+    private val favoriteImageRepository: FavoriteImageRepositoryPort,
 
     private val transactionRunner: TransactionRunner,
 ) {
@@ -52,7 +54,10 @@ class UploadPhotosUseCase(
 
         try {
             transactionRunner.run {
-                photoImageRepository.saveAll(photos)
+                val savedPhotos = photoImageRepository.saveAll(photos)
+                if (command.favorite) {
+                    favoriteImageRepository.addAll(command.userId, savedPhotos.map { it.id!! })
+                }
             }
         } catch (e: BusinessException) {
             if (e.resultCode == ResultCode.ALREADY_REQUEST) return

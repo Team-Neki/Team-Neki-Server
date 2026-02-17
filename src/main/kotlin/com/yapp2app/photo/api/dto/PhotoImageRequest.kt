@@ -5,6 +5,7 @@ import jakarta.annotation.Nullable
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 /**
  * fileName       : PhotoImageRequest
@@ -18,8 +19,11 @@ data class UploadPhotoRequest(
 
     @field:NotEmpty(message = "uploads가 비어있습니다.")
     @field:Valid
-    @field:jakarta.validation.constraints.Size(max = 10, message = "한 번에 최대 10장까지 업로드할 수 있습니다.")
+    @field:Size(max = 10, message = "한 번에 최대 10장까지 업로드할 수 있습니다.")
     val uploads: List<UploadPhotoItem>,
+
+    @field:Schema(description = "업로드 사진 즐겨찾기 등록 여부", example = "true")
+    val favorite: Boolean? = null,
 ) {
     data class UploadPhotoItem(
         @field:NotNull(message = "mediaId는 필수 입력값입니다.")
