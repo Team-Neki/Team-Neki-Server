@@ -1,6 +1,6 @@
 spring:
   application:
-    name: Yapp_APP_2_Sever
+    name: Neki
   profiles:
     active: local
 

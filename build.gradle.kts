@@ -29,7 +29,7 @@ val kotestExtensionsVersion = "1.3.0"
 val mockkVersion = "1.13.10"
 val ktlintVersion = "1.5.0"
 
-group = "com.yapp2app"
+group = "com.neki"
 version = "1.0.0"
 
 java {
