@@ -26,7 +26,7 @@ fun getAllFolders(): BaseResponse<GetAllFolderResponse> {
 }
 ```
 
-Reference: `src/main/kotlin/com/yapp2app/common/api/dto/BaseResponse.kt`
+Reference: `src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`
 
 ---
 
@@ -95,9 +95,9 @@ enum class ResultCode(val code: String, val message: String) {
 ```
 
 Key files:
-- `src/main/kotlin/com/yapp2app/common/exception/BusinessException.kt`
-- `src/main/kotlin/com/yapp2app/common/api/dto/ResultCode.kt`
-- `src/main/kotlin/com/yapp2app/common/exception/handler/ExceptionHandler.kt`
+- `src/main/kotlin/com/neki/common/exception/BusinessException.kt`
+- `src/main/kotlin/com/neki/common/api/dto/ResultCode.kt`
+- `src/main/kotlin/com/neki/common/exception/handler/ExceptionHandler.kt`
 
 ---
 
@@ -144,7 +144,7 @@ Protected endpoints use `@RequiresSecurity`:
 class FolderController
 ```
 
-Reference: `src/main/kotlin/com/yapp2app/common/api/document/SwaggerConfig.kt`
+Reference: `src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt`
 
 ---
 

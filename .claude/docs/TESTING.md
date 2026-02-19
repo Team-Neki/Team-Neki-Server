@@ -42,7 +42,7 @@ abstract class E2ETestBase {
 }
 ```
 
-Reference: `src/test/kotlin/com/yapp2app/e2e/E2ETestBase.kt`
+Reference: `src/test/kotlin/com/neki/e2e/E2ETestBase.kt`
 
 ### Domain-Specific Base Classes
 
@@ -61,7 +61,7 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
 ## Test Directory Structure
 
 ```
-src/test/kotlin/com/yapp2app/
+src/test/kotlin/com/neki/
 ├── e2e/                          # E2E tests (organized by domain)
 │   ├── E2ETestBase.kt           # Base class for all E2E tests
 │   ├── auth/
@@ -165,7 +165,7 @@ class MyE2ETest : E2ETestBase() {
 Encrypt sensitive values for configuration:
 
 ```kotlin
-// src/test/kotlin/com/yapp2app/JasyptTest.kt
+// src/test/kotlin/com/neki/JasyptTest.kt
 @Test
 fun jasyptGeneratTest() {
     val text = "value_to_encrypt"

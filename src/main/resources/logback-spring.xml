@@ -39,7 +39,7 @@
             </fieldNames>
 
             <!-- 추가 정적 필드 -->
-            <customFields>{"application":"yapp"}</customFields>
+            <customFields>{"application":"neki"}</customFields>
 
             <!-- 스택 트레이스 포함 -->
             <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
@@ -62,7 +62,7 @@
         </root>
 
         <!-- 개발 시 디버그 로그 활성화 -->
-        <logger name="com.yapp2app" level="DEBUG"/>
+        <logger name="com.neki" level="DEBUG"/>
         <logger name="org.springframework.web" level="DEBUG"/>
         <logger name="org.springframework.security" level="DEBUG"/>
     </springProfile>
@@ -73,7 +73,7 @@
             <appender-ref ref="CONSOLE"/>
         </root>
 
-        <logger name="com.yapp2app" level="DEBUG"/>
+        <logger name="com.neki" level="DEBUG"/>
     </springProfile>
 
     <!-- staging 프로파일: 스테이징 환경 (k8s + Loki, JSON 로그) -->
@@ -82,7 +82,7 @@
             <appender-ref ref="CONSOLE_JSON"/>
         </root>
 
-        <logger name="com.yapp2app" level="INFO"/>
+        <logger name="com.neki" level="INFO"/>
         <logger name="org.springframework" level="WARN"/>
     </springProfile>
 
@@ -92,7 +92,7 @@
             <appender-ref ref="CONSOLE_JSON"/>
         </root>
 
-        <logger name="com.yapp2app" level="INFO"/>
+        <logger name="com.neki" level="INFO"/>
         <logger name="org.springframework" level="WARN"/>
         <logger name="org.hibernate" level="WARN"/>
     </springProfile>
@@ -103,7 +103,7 @@
             <appender-ref ref="CONSOLE"/>
         </root>
 
-        <logger name="com.yapp2app" level="DEBUG"/>
+        <logger name="com.neki" level="DEBUG"/>
     </springProfile>
 
 </configuration>
