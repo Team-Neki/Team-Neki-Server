@@ -8,6 +8,7 @@ import com.neki.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.pose.domain.HeadCount
 import com.neki.pose.domain.entity.Pose
 import com.neki.pose.domain.entity.ScrapPose
+import com.neki.pose.infra.cache.fake.FakePoseViewCacheAdapter
 import com.neki.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.pose.infra.persist.jpa.JpaScrapPoseRepository
 import org.junit.jupiter.api.AfterEach
@@ -30,11 +31,15 @@ abstract class PoseE2ETestBase : E2ETestBase() {
     @Autowired
     protected lateinit var mediaRepository: JpaMediaRepository
 
+    @Autowired
+    protected lateinit var fakePoseViewCache: FakePoseViewCacheAdapter
+
     @AfterEach
     override fun tearDown() {
         scrapPoseRepository.deleteAllInBatch()
         poseRepository.deleteAllInBatch()
         mediaRepository.deleteAllInBatch()
+        fakePoseViewCache.clearAll()
         super.tearDown()
     }
 
