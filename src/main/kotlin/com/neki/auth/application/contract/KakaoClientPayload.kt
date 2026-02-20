@@ -5,7 +5,7 @@ import com.neki.user.domain.enums.ProviderType
 /**
  * 카카오 사용자정보 추출 DTO
  */
-data class OauthInfoResponse(
+data class OauthInfoPayload(
     val providerType: ProviderType,
     val oid: String,
     val email: String?,
@@ -13,7 +13,7 @@ data class OauthInfoResponse(
     val imageUrl: String?,
 )
 
-data class OIDCDecodePayloadResponse(
+data class OIDCDecodePayload(
     /** issuer ex https://kauth.kakao.com  */
     val iss: String,
     /** client id  */
@@ -28,7 +28,7 @@ data class OIDCDecodePayloadResponse(
     val imageUrl: String?,
 )
 
-data class OIDCPublicKeysResponse(val keys: MutableList<OIDCPublicKeyDto>)
+data class OIDCPublicKeysPayload(val keys: MutableList<OIDCPublicKeyDto>)
 
 data class OIDCPublicKeyDto(val kid: String, val alg: String, val use: String, val n: String, val e: String)
 
@@ -38,7 +38,7 @@ data class OIDCPublicKeyDto(val kid: String, val alg: String, val use: String, v
  * date           : 2025. 12. 26. 18:20
  * description    : Auth usercase 관련 result idToken을 얻기 위한 테스트 DTO
  */
-data class GetKakaoTokenResponse(
+data class KakaoTokenPayload(
     val accessToken: String,
     val tokenType: String,
     val refreshToken: String,

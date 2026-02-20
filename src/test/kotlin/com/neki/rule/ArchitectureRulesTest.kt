@@ -243,6 +243,47 @@ class ArchitectureRulesTest {
     }
 
     @Nested
+    @DisplayName("DTO 배치 규칙")
+    inner class DtoPlacement {
+
+        @Test
+        fun `Request 클래스는 api 계층에만 위치해야 한다`() {
+            classes()
+                .that().haveSimpleNameEndingWith("Request")
+                .should().resideInAnyPackage("..api..")
+                .because("Request DTOs should only be in the API layer")
+                .check(importedClasses)
+        }
+
+        @Test
+        fun `Response 클래스는 api 계층에만 위치해야 한다`() {
+            classes()
+                .that().haveSimpleNameEndingWith("Response")
+                .should().resideInAnyPackage("..api..")
+                .because("Response DTOs should only be in the API layer")
+                .check(importedClasses)
+        }
+
+        @Test
+        fun `Command 클래스는 application 계층에만 위치해야 한다`() {
+            classes()
+                .that().haveSimpleNameEndingWith("Command")
+                .should().resideInAnyPackage("..application..")
+                .because("Command DTOs should only be in the Application layer")
+                .check(importedClasses)
+        }
+
+        @Test
+        fun `Result 클래스는 application 계층에만 위치해야 한다`() {
+            classes()
+                .that().haveSimpleNameEndingWith("Result")
+                .should().resideInAnyPackage("..application..")
+                .because("Result DTOs should only be in the Application layer")
+                .check(importedClasses)
+        }
+    }
+
+    @Nested
     @DisplayName("포트/어댑터 패턴 규칙")
     inner class PortAdapterPattern {
 
