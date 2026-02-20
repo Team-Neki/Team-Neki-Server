@@ -10,10 +10,38 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 
 @DisplayName("아키텍처 규칙 검증")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ArchitectureRulesTest {
+
+    companion object {
+        private val ALL_DOMAIN_PACKAGES = listOf(
+            "com.neki.auth",
+            "com.neki.user",
+            "com.neki.photo",
+            "com.neki.media",
+            "com.neki.pose",
+            "com.neki.map",
+            "com.neki.term",
+            "com.neki.version",
+        )
+
+        /** 격리 검증 대상 도메인 (auth, user, map은 알려진 예외로 제외) */
+        private val ISOLATED_DOMAINS = listOf("photo", "media", "pose", "term", "version")
+
+        private fun domainApiPackages(): Array<String> = ALL_DOMAIN_PACKAGES.map { "$it.api.." }.toTypedArray()
+
+        private fun otherDomainPackages(domain: String): Array<String> = ALL_DOMAIN_PACKAGES
+            .filter { !it.endsWith(domain) }
+            .map { "$it.." }
+            .toTypedArray()
+
+        @JvmStatic
+        fun isolatedDomains(): List<String> = ISOLATED_DOMAINS
+    }
 
     private lateinit var importedClasses: JavaClasses
 
@@ -41,16 +69,8 @@ class ArchitectureRulesTest {
         fun `Domain 계층은 도메인별 API 계층을 의존할 수 없다`() {
             noClasses()
                 .that().resideInAnyPackage("..domain..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                    "com.neki.auth.api..",
-                    "com.neki.user.api..",
-                    "com.neki.photo.api..",
-                    "com.neki.media.api..",
-                    "com.neki.pose.api..",
-                    "com.neki.map.api..",
-                    "com.neki.term.api..",
-                    "com.neki.version.api..",
-                ).because("Domain layer must not depend on API layer (common.api is allowed)")
+                .should().dependOnClassesThat().resideInAnyPackage(*domainApiPackages())
+                .because("Domain layer must not depend on API layer (common.api is allowed)")
                 .check(importedClasses)
         }
 
@@ -67,16 +87,8 @@ class ArchitectureRulesTest {
         fun `Application 계층은 도메인별 API 계층을 의존할 수 없다`() {
             noClasses()
                 .that().resideInAnyPackage("..application..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                    "com.neki.auth.api..",
-                    "com.neki.user.api..",
-                    "com.neki.photo.api..",
-                    "com.neki.media.api..",
-                    "com.neki.pose.api..",
-                    "com.neki.map.api..",
-                    "com.neki.term.api..",
-                    "com.neki.version.api..",
-                ).because("Application layer must not depend on API layer (common.api is allowed)")
+                .should().dependOnClassesThat().resideInAnyPackage(*domainApiPackages())
+                .because("Application layer must not depend on API layer (common.api is allowed)")
                 .check(importedClasses)
         }
 
@@ -111,16 +123,8 @@ class ArchitectureRulesTest {
         fun `Infra 계층은 도메인별 API 계층을 의존할 수 없다`() {
             noClasses()
                 .that().resideInAnyPackage("..infra..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                    "com.neki.auth.api..",
-                    "com.neki.user.api..",
-                    "com.neki.photo.api..",
-                    "com.neki.media.api..",
-                    "com.neki.pose.api..",
-                    "com.neki.map.api..",
-                    "com.neki.term.api..",
-                    "com.neki.version.api..",
-                ).because("Infrastructure layer must not depend on domain API packages (common.api is allowed)")
+                .should().dependOnClassesThat().resideInAnyPackage(*domainApiPackages())
+                .because("Infrastructure layer must not depend on domain API packages (common.api is allowed)")
                 .check(importedClasses)
         }
     }
@@ -133,79 +137,16 @@ class ArchitectureRulesTest {
         // auth ↔ user: 문서에 명시된 예외 (인증-사용자 결합)
         // map → photo: 기존 위반 (MediaClientPort → MediaStorageInfo), 장기적으로 수정 필요
 
-        private val allDomainPackages = listOf(
-            "com.neki.auth",
-            "com.neki.user",
-            "com.neki.photo",
-            "com.neki.media",
-            "com.neki.pose",
-            "com.neki.map",
-            "com.neki.term",
-            "com.neki.version",
-        )
-
-        private fun otherDomainPackages(domain: String): Array<String> = allDomainPackages
-            .filter { !it.endsWith(domain) }
-            .map { "$it.." }
-            .toTypedArray()
-
-        @Test
-        fun `photo 도메인은 다른 도메인에 의존할 수 없다`() {
+        @ParameterizedTest(name = "{0} 도메인은 다른 도메인에 의존할 수 없다")
+        @MethodSource("com.neki.rule.ArchitectureRulesTest#isolatedDomains")
+        fun `격리된 도메인은 다른 도메인에 의존할 수 없다`(domain: String) {
             noClasses()
                 .that().resideInAnyPackage(
-                    "com.neki.photo.api..",
-                    "com.neki.photo.application..",
-                    "com.neki.photo.domain..",
-                ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages("photo"))
-                .because("photo domain (api/application/domain) must not depend on other domains")
-                .check(importedClasses)
-        }
-
-        @Test
-        fun `media 도메인은 다른 도메인에 의존할 수 없다`() {
-            noClasses()
-                .that().resideInAnyPackage(
-                    "com.neki.media.api..",
-                    "com.neki.media.application..",
-                    "com.neki.media.domain..",
-                ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages("media"))
-                .because("media domain (api/application/domain) must not depend on other domains")
-                .check(importedClasses)
-        }
-
-        @Test
-        fun `pose 도메인은 다른 도메인에 의존할 수 없다`() {
-            noClasses()
-                .that().resideInAnyPackage(
-                    "com.neki.pose.api..",
-                    "com.neki.pose.application..",
-                    "com.neki.pose.domain..",
-                ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages("pose"))
-                .because("pose domain (api/application/domain) must not depend on other domains")
-                .check(importedClasses)
-        }
-
-        @Test
-        fun `term 도메인은 다른 도메인에 의존할 수 없다`() {
-            noClasses()
-                .that().resideInAnyPackage(
-                    "com.neki.term.api..",
-                    "com.neki.term.application..",
-                    "com.neki.term.domain..",
-                ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages("term"))
-                .because("term domain (api/application/domain) must not depend on other domains")
-                .check(importedClasses)
-        }
-
-        @Test
-        fun `version 도메인은 다른 도메인에 의존할 수 없다`() {
-            noClasses()
-                .that().resideInAnyPackage(
-                    "com.neki.version.api..",
-                    "com.neki.version.application..",
-                    "com.neki.version.domain..",
-                ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages("version"))
-                .because("version domain (api/application/domain) must not depend on other domains")
+                    "com.neki.$domain.api..",
+                    "com.neki.$domain.application..",
+                    "com.neki.$domain.domain..",
+                ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages(domain))
+                .because("$domain domain (api/application/domain) must not depend on other domains")
                 .check(importedClasses)
         }
     }
