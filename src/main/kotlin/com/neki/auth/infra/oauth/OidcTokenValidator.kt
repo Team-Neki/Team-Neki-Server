@@ -1,7 +1,7 @@
 package com.neki.auth.infra.oauth
 
 import com.neki.auth.application.contract.AuthCacheKeys
-import com.neki.auth.application.contract.OauthInfoResponse
+import com.neki.auth.application.contract.OauthInfoPayload
 import com.neki.auth.application.port.OidcTokenValidatorPort
 import com.neki.auth.domain.Platform
 import com.neki.auth.infra.oauth.helper.OauthHelper
@@ -34,7 +34,7 @@ class OidcTokenValidator(
      * - 1차 시도: 캐시된 공개키로 토큰 검증
      * - BusinessException 발생 시: 캐시 무효화 후 재시도 (공개키 로테이션 대응)
      */
-    override fun validateIdToken(idToken: String, providerType: ProviderType, platform: Platform): OauthInfoResponse {
+    override fun validateIdToken(idToken: String, providerType: ProviderType, platform: Platform): OauthInfoPayload {
         val oidcAdapter = oidcRegistry.getAdapter(providerType)
         val oauthHelperAdapter = oauthHelperRegistry.getAdapter(providerType)
 
@@ -60,7 +60,7 @@ class OidcTokenValidator(
         oidc: Oidc,
         oauthHelper: OauthHelper,
         platform: Platform,
-    ): OauthInfoResponse {
+    ): OauthInfoPayload {
         val publicKeys = oidc.getOIDCPublicKey()
         return oauthHelper.getOauthInfoByIdToken(
             idToken = idToken,

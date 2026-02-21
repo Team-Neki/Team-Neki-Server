@@ -1,10 +1,10 @@
 package com.neki.auth.infra.oauth.helper
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.neki.auth.application.contract.OIDCDecodePayloadResponse
+import com.neki.auth.application.contract.OIDCDecodePayload
 import com.neki.auth.application.contract.OIDCPublicKeyDto
-import com.neki.auth.application.contract.OIDCPublicKeysResponse
-import com.neki.auth.application.contract.OauthInfoResponse
+import com.neki.auth.application.contract.OIDCPublicKeysPayload
+import com.neki.auth.application.contract.OauthInfoPayload
 import com.neki.auth.domain.Platform
 import com.neki.auth.infra.security.properties.OauthProperties
 import com.neki.common.api.dto.ResultCode
@@ -61,9 +61,9 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
      */
     override fun getOauthInfoByIdToken(
         idToken: String,
-        publicKeys: OIDCPublicKeysResponse,
+        publicKeys: OIDCPublicKeysPayload,
         platform: Platform,
-    ): OauthInfoResponse {
+    ): OauthInfoPayload {
         // Step 1: 헤더에서 kid 추출
         val kid = extractKidFromTokenHeader(idToken)
 
@@ -79,7 +79,7 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
             expectedAudience = oauthProperties.apple.clientId,
         )
 
-        return OauthInfoResponse(
+        return OauthInfoPayload(
             providerType = ProviderType.APPLE,
             oid = payload.sub, // String 그대로 사용 (UUID)
             email = payload.email,
@@ -122,11 +122,11 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
         publicKey: OIDCPublicKeyDto,
         expectedIssuer: String,
         expectedAudience: String,
-    ): OIDCDecodePayloadResponse {
+    ): OIDCDecodePayload {
         val rsaPublicKey = convertToRSAPublicKey(publicKey.n, publicKey.e)
         val claims = verifyTokenSignatureAndClaims(token, rsaPublicKey, expectedIssuer, expectedAudience)
 
-        return OIDCDecodePayloadResponse(
+        return OIDCDecodePayload(
             iss = claims.issuer,
             aud = claims.audience.toString(),
             sub = claims.subject, // String 그대로 사용 (Apple UUID)
