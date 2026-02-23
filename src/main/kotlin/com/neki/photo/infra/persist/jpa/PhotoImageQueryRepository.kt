@@ -131,7 +131,7 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         return queryFactory
             .update(photoImage)
             .setNull(photoImage.folderId)
-            .where(photoImage.userId.eq(userId), photoImage.folderId.`in`(folderIds))
+            .where(photoImage.userId.eq(userId), photoImage.folderId.`in`(folderIds), photoImage.deletedAt.isNull)
             .execute().toInt()
     }
 
@@ -169,6 +169,7 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
                 photoImage.userId.eq(userId),
                 photoImage.folderId.eq(folderId),
                 photoImage.id.`in`(photoIds),
+                photoImage.deletedAt.isNull,
             )
             .execute().toInt()
     }

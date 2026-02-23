@@ -17,6 +17,7 @@ interface MediaRepositoryPort {
     fun getMediaForUploadConfirmation(ownerId: Long, ids: List<Long>): List<Media>
 
     fun save(media: Media): Media
+    fun saveAll(medias: List<Media>): List<Media>
 
     fun delete(id: Long)
     fun deleteAll(ids: List<Long>)
