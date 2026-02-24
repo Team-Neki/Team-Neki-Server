@@ -48,7 +48,7 @@ module "public_images" {
   ]
 
   tags = {
-    Project = "YAPP"
+    Project = "Neki"
     Purpose = "Public Image Storage"
   }
 }
@@ -86,7 +86,7 @@ module "private_files" {
   })
 
   tags = {
-    Project = "YAPP"
+    Project = "Neki"
     Purpose = "Private File Storage"
   }
 }
@@ -105,7 +105,7 @@ module "archive_storage" {
   preset      = "archive"
 
   tags = {
-    Project = "YAPP"
+    Project = "Neki"
     Purpose = "Long-term Archive Storage"
   }
 }
@@ -144,7 +144,7 @@ module "custom_public" {
   ]
 
   tags = {
-    Project = "YAPP"
+    Project = "Neki"
     Purpose = "Custom Configuration"
   }
 }
@@ -170,7 +170,7 @@ module "public_images" {
   })
 
   tags = {
-    Project = "YAPP"
+    Project = "Neki"
     Purpose = "Now Private Image Storage"
   }
 }

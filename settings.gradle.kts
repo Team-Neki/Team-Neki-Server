@@ -1,1 +1,1 @@
-rootProject.name = "Yapp_APP_2_Sever"
+rootProject.name = "Neki"

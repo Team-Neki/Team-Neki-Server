@@ -20,7 +20,7 @@ docker compose down                # Stop containers
 
 ## Project Overview
 
-**Yapp** is a photo booth platform API server providing:
+**Neki** is a photo booth platform API server providing:
 - **Photo Poses**: Users share photo booth pose recommendations
 - **Photo Archiving**: Store and organize photos in folders
 - **Booth Location Search**: Map-based search across multiple photo booth brands
@@ -112,8 +112,8 @@ Load additional context as needed using `@` references:
 
 | Component | Location |
 |-----------|----------|
-| UseCase annotation | `src/main/kotlin/com/yapp2app/common/annotation/UseCase.kt` |
-| Base response | `src/main/kotlin/com/yapp2app/common/api/dto/BaseResponse.kt` |
-| Result codes | `src/main/kotlin/com/yapp2app/common/api/dto/ResultCode.kt` |
-| Business exception | `src/main/kotlin/com/yapp2app/common/exception/BusinessException.kt` |
-| E2E test base | `src/test/kotlin/com/yapp2app/e2e/E2ETestBase.kt` |
+| UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt` |
+| Base response | `src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt` |
+| Result codes | `src/main/kotlin/com/neki/common/api/dto/ResultCode.kt` |
+| Business exception | `src/main/kotlin/com/neki/common/exception/BusinessException.kt` |
+| E2E test base | `src/test/kotlin/com/neki/e2e/E2ETestBase.kt` |

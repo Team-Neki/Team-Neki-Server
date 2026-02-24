@@ -42,7 +42,7 @@ spring:
 Use the test utility:
 
 ```kotlin
-// src/test/kotlin/com/yapp2app/JasyptTest.kt
+// src/test/kotlin/com/neki/JasyptTest.kt
 @Test
 fun jasyptGeneratTest() {
     val text = "my_secret_value"
@@ -54,7 +54,7 @@ fun jasyptGeneratTest() {
 ### Jasypt Configuration
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/common/config/JasyptConfig.kt
+// src/main/kotlin/com/neki/common/config/JasyptConfig.kt
 @Configuration
 class JasyptConfig {
     // Encryption settings:
@@ -71,9 +71,9 @@ class JasyptConfig {
 |------|----------|
 | Application settings | `src/main/resources/application.yml` |
 | Profile-specific | `src/main/resources/application-{profile}.yml` |
-| Infrastructure configs | `src/main/kotlin/com/yapp2app/common/infra/config/` |
-| Security configs | `src/main/kotlin/com/yapp2app/auth/infra/security/` |
-| Swagger config | `src/main/kotlin/com/yapp2app/common/api/document/SwaggerConfig.kt` |
+| Infrastructure configs | `src/main/kotlin/com/neki/common/infra/config/` |
+| Security configs | `src/main/kotlin/com/neki/auth/infra/security/` |
+| Swagger config | `src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt` |
 
 ---
 
@@ -82,12 +82,12 @@ class JasyptConfig {
 ### JPA & QueryDSL
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/common/infra/config/JpaAuditingConfig.kt
+// src/main/kotlin/com/neki/common/infra/config/JpaAuditingConfig.kt
 @Configuration
 @EnableJpaAuditing
 class JpaAuditingConfig
 
-// src/main/kotlin/com/yapp2app/common/infra/config/QueryDslConfig.kt
+// src/main/kotlin/com/neki/common/infra/config/QueryDslConfig.kt
 @Configuration
 class QueryDslConfig {
     @Bean
@@ -98,7 +98,7 @@ class QueryDslConfig {
 ### Redis Cache
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/common/config/RedisCacheConfig.kt
+// src/main/kotlin/com/neki/common/config/RedisCacheConfig.kt
 @Configuration
 @EnableCaching
 class RedisCacheConfig {
@@ -110,7 +110,7 @@ class RedisCacheConfig {
 ### REST Client
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/common/infra/config/RestClientConfig.kt
+// src/main/kotlin/com/neki/common/infra/config/RestClientConfig.kt
 @Configuration
 class RestClientConfig {
     // HTTP client for external APIs
@@ -122,14 +122,14 @@ class RestClientConfig {
 ## S3 Configuration
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/media/infra/s3/S3Properties.kt
+// src/main/kotlin/com/neki/media/infra/s3/S3Properties.kt
 @ConfigurationProperties(prefix = "cloud.aws.s3")
 data class S3Properties(
     val bucket: String,
     val region: String,
 )
 
-// src/main/kotlin/com/yapp2app/media/infra/s3/S3MediaStorageConfig.kt
+// src/main/kotlin/com/neki/media/infra/s3/S3MediaStorageConfig.kt
 @Configuration
 class S3MediaStorageConfig {
     // S3 client bean configuration
@@ -143,7 +143,7 @@ class S3MediaStorageConfig {
 ### OAuth Properties
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/auth/infra/security/properties/OauthProperties.kt
+// src/main/kotlin/com/neki/auth/infra/security/properties/OauthProperties.kt
 @ConfigurationProperties(prefix = "oauth")
 data class OauthProperties(
     val kakao: KakaoProperties,
@@ -154,7 +154,7 @@ data class OauthProperties(
 ### JWT Settings
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/auth/infra/security/properties/AppProperties.kt
+// src/main/kotlin/com/neki/auth/infra/security/properties/AppProperties.kt
 @ConfigurationProperties(prefix = "app")
 data class AppProperties(
     val auth: AuthProperties,

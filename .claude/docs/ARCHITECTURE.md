@@ -48,7 +48,7 @@ Load this context when designing features, creating new domains, or refactoring.
 ## Domain Module Structure
 
 ```
-src/main/kotlin/com/yapp2app/
+src/main/kotlin/com/neki/
 ├── auth/              # Authentication domain
 │   ├── api/          # Controllers, DTOs
 │   ├── application/  # UseCases, Commands, Ports
@@ -90,7 +90,7 @@ src/main/kotlin/com/yapp2app/
 ❌ **Wrong**:
 ```kotlin
 // In photo domain
-import com.yapp2app.user.domain.entity.User  // Direct import!
+import com.neki.user.domain.entity.User  // Direct import!
 ```
 
 ✅ **Correct** - Use ports for cross-domain communication:
@@ -144,7 +144,7 @@ class CreateFolderUseCase(
 }
 ```
 
-Reference: `src/main/kotlin/com/yapp2app/common/annotation/UseCase.kt`
+Reference: `src/main/kotlin/com/neki/common/annotation/UseCase.kt`
 
 ---
 
@@ -153,7 +153,7 @@ Reference: `src/main/kotlin/com/yapp2app/common/annotation/UseCase.kt`
 ### Port (Interface in Application Layer)
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/photo/application/port/FolderRepositoryPort.kt
+// src/main/kotlin/com/neki/photo/application/port/FolderRepositoryPort.kt
 interface FolderRepositoryPort {
     fun save(folder: Folder): Folder
     fun findById(id: Long): Folder?
@@ -166,7 +166,7 @@ interface FolderRepositoryPort {
 ### Adapter (Implementation in Infrastructure Layer)
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/photo/infra/persist/FolderRepositoryAdapter.kt
+// src/main/kotlin/com/neki/photo/infra/persist/FolderRepositoryAdapter.kt
 @Repository
 class FolderRepositoryAdapter(
     private val jpaRepository: JpaFolderRepository
@@ -187,7 +187,7 @@ class FolderRepositoryAdapter(
 ### JPA Repository
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/photo/infra/persist/jpa/JpaFolderRepository.kt
+// src/main/kotlin/com/neki/photo/infra/persist/jpa/JpaFolderRepository.kt
 interface JpaFolderRepository : JpaRepository<Folder, Long> {
     fun findAllByUserId(userId: Long): List<Folder>
     fun existsByUserIdAndName(userId: Long, name: String): Boolean
@@ -215,7 +215,7 @@ Use consistent verb names across all ports:
 ### Command (Input)
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/photo/application/command/FolderCommand.kt
+// src/main/kotlin/com/neki/photo/application/command/FolderCommand.kt
 data class CreateFolderCommand(
     val userId: Long,
     val name: String,
@@ -230,7 +230,7 @@ data class DeleteFolderCommand(
 ### Result (Output)
 
 ```kotlin
-// src/main/kotlin/com/yapp2app/photo/application/result/FolderResult.kt
+// src/main/kotlin/com/neki/photo/application/result/FolderResult.kt
 data class CreateFolderResult(
     val folderId: Long,
 )
@@ -342,6 +342,6 @@ class DeletePhotoUseCase(
 
 | Component | Location |
 |-----------|----------|
-| UseCase annotation | `src/main/kotlin/com/yapp2app/common/annotation/UseCase.kt` |
-| Base entity | `src/main/kotlin/com/yapp2app/common/domain/BaseTimeEntity.kt` |
-| Transaction runner | `src/main/kotlin/com/yapp2app/common/transaction/TransactionRunner.kt` |
+| UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt` |
+| Base entity | `src/main/kotlin/com/neki/common/domain/BaseTimeEntity.kt` |
+| Transaction runner | `src/main/kotlin/com/neki/common/transaction/TransactionRunner.kt` |

@@ -28,8 +28,9 @@ val kotestVersion = "5.9.1"
 val kotestExtensionsVersion = "1.3.0"
 val mockkVersion = "1.13.10"
 val ktlintVersion = "1.5.0"
+val archunitVersion = "1.3.0"
 
-group = "com.yapp2app"
+group = "com.neki"
 version = "1.0.0"
 
 java {
@@ -111,6 +112,7 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
     testRuntimeOnly("com.h2database:h2")
     testImplementation("io.rest-assured:rest-assured")
+    testImplementation("com.tngtech.archunit:archunit-junit5:$archunitVersion")
 }
 
 spotless {

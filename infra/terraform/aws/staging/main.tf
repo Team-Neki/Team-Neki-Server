@@ -41,7 +41,7 @@ module "object_storage" {
   })
 
   tags = {
-    Project = "YAPP"
+    Project = "Neki"
     Purpose = "Public Image Storage"
   }
 }

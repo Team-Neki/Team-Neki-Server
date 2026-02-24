@@ -24,7 +24,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "YAPP"
+      Project     = "Neki"
       Environment = "staging"
       ManagedBy   = "Terraform"
     }

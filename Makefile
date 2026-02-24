@@ -18,7 +18,7 @@ RED    := \033[0;31m
 NC     := \033[0m
 
 help: ## Show available commands
-	@echo "$(GREEN)Yapp API Server - Available Commands$(NC)"
+	@echo "$(GREEN)Neki API Server - Available Commands$(NC)"
 	@echo ""
 	@echo "$(YELLOW)Usage:$(NC) make <target> SPRING_PROFILES=<profile>"
 	@echo "$(YELLOW)Default profile:$(NC) $(SPRING_PROFILES)"
