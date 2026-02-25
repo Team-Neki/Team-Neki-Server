@@ -6,7 +6,9 @@ import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
-import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 @Component
 @Primary
@@ -20,7 +22,7 @@ class RedisPoseViewCacheAdapter(private val redisTemplate: RedisTemplate<String,
         return try {
             val added = redisTemplate.opsForSet().add(key, userId) ?: 0
             if (added > 0) {
-                redisTemplate.expire(key, VIEW_TTL)
+                redisTemplate.expireAt(key, getMidnight())
                 true
             } else {
                 false
@@ -31,7 +33,12 @@ class RedisPoseViewCacheAdapter(private val redisTemplate: RedisTemplate<String,
         }
     }
 
+    private fun getMidnight(): Instant {
+        val tomorrow = LocalDate.now(KOREA_ZONE).plusDays(1)
+        return tomorrow.atStartOfDay(KOREA_ZONE).toInstant()
+    }
+
     companion object {
-        private val VIEW_TTL = Duration.ofHours(24)
+        private val KOREA_ZONE = ZoneId.of("Asia/Seoul")
     }
 }
