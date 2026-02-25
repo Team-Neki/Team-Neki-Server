@@ -110,4 +110,10 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .offset(offset)
         .limit(1)
         .fetchOne()
+
+    fun incrementViewCount(poseId: Long): Long = queryFactory
+        .update(pose)
+        .set(pose.viewCount, pose.viewCount.add(1))
+        .where(pose.id.eq(poseId))
+        .execute()
 }
