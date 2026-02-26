@@ -61,7 +61,8 @@ class PhotoImageRepositoryAdapter(
             return emptyList()
         }
 
-        jpaRepository.deleteAll(photos)
+        photos.forEach { it.softDelete() }
+        jpaRepository.saveAll(photos)
         jpaRepository.flush()
 
         return photos

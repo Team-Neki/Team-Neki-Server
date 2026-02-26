@@ -46,7 +46,7 @@ class MapApiClientAdapter(private val apiKey: String, private val restClient: Re
             }
             .header(HttpHeaders.AUTHORIZATION, "KakaoAK $apiKey")
             .retrieve()
-            .body(KakaoLocalSearchResult::class.java)
+            .body(KakaoLocalSearchPayload::class.java)
             ?: throw BusinessException(ResultCode.ERROR)
 
         return LocalSearchResult(

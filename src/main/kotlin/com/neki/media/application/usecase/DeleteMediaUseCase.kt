@@ -8,7 +8,6 @@ import com.neki.media.application.command.DeleteMediaCommand
 import com.neki.media.application.command.DeleteMediasCommand
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.application.port.MediaStoragePort
 import org.slf4j.LoggerFactory
 
 /**
@@ -22,7 +21,6 @@ import org.slf4j.LoggerFactory
 @UseCase
 class DeleteMediaUseCase(
     private val mediaRepository: MediaRepositoryPort,
-    private val mediaStorage: MediaStoragePort,
     private val cache: MediaBinaryCachePort,
     private val transactionRunner: TransactionRunner,
 ) {
@@ -33,83 +31,29 @@ class DeleteMediaUseCase(
      * media 단건 삭제 usecase
      */
     fun execute(command: DeleteMediaCommand) {
-        // DB media metadata 삭제
         val media = transactionRunner.run {
             val foundMedia = mediaRepository.getActiveMedia(command.ownerId, command.mediaId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND)
 
-            foundMedia.markAsDeleteRequested()
+            foundMedia.markAsDeleted()
+            mediaRepository.save(foundMedia)
             foundMedia
         }
 
-        cache.evict(media.storageKey) // cache 무효화 시도
-
-        return runCatching {
-            // object storage 삭제 요청
-            mediaStorage.deleteByKey(media.storageKey)
-        }.fold(
-            onSuccess = {
-                transactionRunner.runNew {
-                    // 추후 scheduling 검토
-                    mediaRepository.delete(media.id!!)
-                }
-            },
-            onFailure = { e ->
-                log.warn(
-                    "Media delete failed. Will retry later. fileId={}, key={}",
-                    media.id,
-                    media.storageKey,
-                    e,
-                )
-            },
-        )
-
-        // TODO : object storage 삭제 실패한 media에 대해 삭제 필요
+        cache.evict(media.storageKey)
     }
 
     /**
      * media bulk 삭제 usecase
      */
     fun execute(command: DeleteMediasCommand) {
-        // 삭제할 media 조회
         val medias = transactionRunner.run {
-            val foundMedias =
-                mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
-
-            foundMedias.forEach {
-                it.markAsDeleteRequested()
-                cache.evict(it.storageKey) // cache 무효화 시도
-            }
+            val foundMedias = mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
+            foundMedias.forEach { it.markAsDeleted() }
+            mediaRepository.saveAll(foundMedias)
             foundMedias
         }
 
-        val deletedMediaIds = mutableListOf<Long>()
-        val failedMedias = mutableListOf<Long>()
-
-        // object storage 삭제
-        medias.forEach { media ->
-            runCatching {
-                mediaStorage.deleteByKey(media.storageKey)
-            }.onSuccess {
-                deletedMediaIds.add(media.id!!)
-            }.onFailure { e ->
-                failedMedias.add(media.id!!)
-                log.warn(
-                    "Media delete failed. Will retry later. mediaId={}, key={}",
-                    media.id,
-                    media.storageKey,
-                    e,
-                )
-            }
-        }
-
-        // object storage 삭제 성공한 오브젝트에 대해 DB soft delete
-        if (deletedMediaIds.isNotEmpty()) {
-            transactionRunner.runNew {
-                mediaRepository.deleteAll(deletedMediaIds)
-            }
-        }
-
-        // TODO : object storage 삭제 실패한 media에 대해 삭제 필요
+        medias.forEach { cache.evict(it.storageKey) }
     }
 }

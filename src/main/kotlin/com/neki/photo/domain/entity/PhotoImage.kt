@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.DynamicUpdate
+import org.hibernate.annotations.SQLRestriction
+import java.time.LocalDateTime
 
 /**
  * fileName       : PhotoImage
@@ -17,6 +19,7 @@ import org.hibernate.annotations.DynamicUpdate
  */
 @Entity
 @DynamicUpdate
+@SQLRestriction("deleted_at IS NULL")
 @Table(name = "TB_PHOTO_IMAGE")
 class PhotoImage(
     @Id
@@ -34,4 +37,13 @@ class PhotoImage(
 
     @Column(name = "memo", nullable = true)
     var memo: String? = null,
-) : BaseTimeEntity()
+
+    @Column(name = "deleted_at", nullable = true)
+    var deletedAt: LocalDateTime? = null,
+) : BaseTimeEntity() {
+
+    fun softDelete() {
+        folderId = null
+        deletedAt = LocalDateTime.now()
+    }
+}

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 /**
  * 카카오 맵 수집 데이터 DTO
  */
-data class KakaoLocalSearchResult(
+data class KakaoLocalSearchPayload(
     @JsonProperty("documents")
     val documents: List<KakaoPlace>,
 

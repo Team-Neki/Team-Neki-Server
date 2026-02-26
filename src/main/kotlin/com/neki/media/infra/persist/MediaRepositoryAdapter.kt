@@ -35,6 +35,8 @@ class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : Me
 
     override fun save(media: Media): Media = jpaRepository.save(media)
 
+    override fun saveAll(medias: List<Media>): List<Media> = jpaRepository.saveAll(medias)
+
     override fun delete(id: Long) {
         jpaRepository.deleteById(id)
     }
