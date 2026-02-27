@@ -13,6 +13,7 @@ import com.neki.user.domain.enums.ProviderType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigInteger
@@ -41,7 +42,7 @@ import kotlin.collections.get
 @Component
 class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val objectMapper: ObjectMapper) :
     OauthHelper {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
         private const val HEADER_KID = "kid"
@@ -63,10 +64,10 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         platform: Platform,
     ): OauthInfoPayload {
         // Step 1: 헤더에서 kid 추출 (토큰 분리 및 Base64 디코딩)
-        val kid = extractKidFromTokenHeader(idToken)
+        val kid: String = extractKidFromTokenHeader(idToken)
 
         // Step 2: kid로 jwks 조회
-        val publicKey = findPublicKeyByKid(publicKeys.keys, kid)
+        val publicKey: OIDCPublicKeyDto = findPublicKeyByKid(publicKeys.keys, kid)
 
         // Step 3-7: 토큰 검증 및 Claims 추출 (iss, aud, exp, 서명 검증)
         // 플랫폼별 clientId 선택
@@ -75,7 +76,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
             Platform.ANDROID -> oauthProperties.kakao.androidClientId
         }
 
-        val payload = validateTokenAndExtractPayload(
+        val payload: OIDCDecodePayload = validateTokenAndExtractPayload(
             token = idToken,
             publicKey = publicKey,
             expectedIssuer = oauthProperties.kakao.issuer,
@@ -100,7 +101,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
     private fun extractKidFromTokenHeader(token: String): String {
         try {
             val headerJson = String(Base64.getUrlDecoder().decode(token.split(".")[0]))
-            val header = objectMapper.readValue(headerJson, Map::class.java)
+            val header: Map<*, *> = objectMapper.readValue(headerJson, Map::class.java)
 
             return header[HEADER_KID] as? String
                 ?: throw BusinessException(
@@ -134,8 +135,8 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
         expectedIssuer: String,
         expectedAudience: String,
     ): OIDCDecodePayload {
-        val rsaPublicKey = convertToRSAPublicKey(publicKey.n, publicKey.e)
-        val claims = verifyTokenSignatureAndClaims(token, rsaPublicKey, expectedIssuer, expectedAudience)
+        val rsaPublicKey: RSAPublicKey = convertToRSAPublicKey(publicKey.n, publicKey.e)
+        val claims: Claims = verifyTokenSignatureAndClaims(token, rsaPublicKey, expectedIssuer, expectedAudience)
 
         return OIDCDecodePayload(
             iss = claims.issuer,
@@ -180,7 +181,7 @@ class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val
      */
     private fun convertToRSAPublicKey(modulus: String, exponent: String): RSAPublicKey {
         try {
-            val keyFactory = KeyFactory.getInstance("RSA")
+            val keyFactory: KeyFactory = KeyFactory.getInstance("RSA")
             val n = BigInteger(1, Base64.getUrlDecoder().decode(modulus))
             val e = BigInteger(1, Base64.getUrlDecoder().decode(exponent))
             val keySpec = RSAPublicKeySpec(n, e)

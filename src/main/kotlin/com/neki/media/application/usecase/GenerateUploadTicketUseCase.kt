@@ -3,6 +3,7 @@ package com.neki.media.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.media.application.command.GenerateUploadTicketCommand
+import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.GenerateUploadTicketResult
@@ -31,7 +32,7 @@ class GenerateUploadTicketUseCase(
 
         val tickets = command.items.map { item ->
             // storageKey 생성
-            val storageKey = MediaKey.generate(item.mediaType, item.filename, item.contentType)
+            val storageKey: String = MediaKey.generate(item.mediaType, item.filename, item.contentType)
 
             val media = Media(
                 storageKey = storageKey,
@@ -42,10 +43,10 @@ class GenerateUploadTicketUseCase(
                 height = item.height,
                 size = item.size,
             )
-            val savedMedia = mediaRepository.save(media)
+            val savedMedia: Media = mediaRepository.save(media)
 
             // Upload Ticket 발급
-            val uploadTicket = mediaStorage.generateUploadTicket(
+            val uploadTicket: UploadTicket = mediaStorage.generateUploadTicket(
                 key = storageKey,
                 contentType = item.contentType,
             )

@@ -6,6 +6,8 @@ import com.neki.media.api.converter.MediaCommandConverter
 import com.neki.media.api.converter.MediaResultConverter
 import com.neki.media.api.dto.UploadTicketRequest
 import com.neki.media.api.dto.UploadTicketResponse
+import com.neki.media.application.command.GenerateUploadTicketCommand
+import com.neki.media.application.result.GenerateUploadTicketResult
 import com.neki.media.application.usecase.GenerateUploadTicketUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -61,11 +63,11 @@ class MediaController(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
         @Valid @RequestBody request: UploadTicketRequest,
     ): BaseResponse<UploadTicketResponse> {
-        val command = commandConverter.toGenerateUploadTicketCommand(ownerId, request)
+        val command: GenerateUploadTicketCommand = commandConverter.toGenerateUploadTicketCommand(ownerId, request)
 
-        val result = generateUploadTicketUseCase.execute(command)
+        val result: GenerateUploadTicketResult = generateUploadTicketUseCase.execute(command)
 
-        val response = resultConverter.toUploadTicketResponse(result)
+        val response: UploadTicketResponse = resultConverter.toUploadTicketResponse(result)
 
         return BaseResponse(data = response)
     }

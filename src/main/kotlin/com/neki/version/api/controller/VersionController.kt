@@ -5,6 +5,9 @@ import com.neki.version.api.converter.AppVersionCommandConverter
 import com.neki.version.api.converter.AppVersionResultConverter
 import com.neki.version.api.dto.GetAppVersionResponse
 import com.neki.version.api.dto.UpdateAppVersionRequest
+import com.neki.version.application.command.GetAppVersionCommand
+import com.neki.version.application.command.UpdateAppVersionCommand
+import com.neki.version.application.result.GetAppVersionResult
 import com.neki.version.application.usecase.GetAppVersionUseCase
 import com.neki.version.application.usecase.UpdateAppVersionUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -39,11 +42,11 @@ class VersionController(
     )
     @GetMapping("/{platform}")
     fun getAppVersion(@PathVariable platform: String): BaseResponse<GetAppVersionResponse> {
-        val command = commandConverter.toGetAppVersionCommand(platform)
+        val command: GetAppVersionCommand = commandConverter.toGetAppVersionCommand(platform)
 
-        val result = getAppVersionUseCase.execute(command)
+        val result: GetAppVersionResult = getAppVersionUseCase.execute(command)
 
-        val response = resultConverter.toGetAppVersionResponse(result)
+        val response: GetAppVersionResponse = resultConverter.toGetAppVersionResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -57,7 +60,7 @@ class VersionController(
         @PathVariable platform: String,
         @Valid @RequestBody request: UpdateAppVersionRequest,
     ): BaseResponse<Any> {
-        val command = commandConverter.toUpdateAppVersionCommand(platform, request)
+        val command: UpdateAppVersionCommand = commandConverter.toUpdateAppVersionCommand(platform, request)
 
         updateAppVersionUseCase.execute(command)
 

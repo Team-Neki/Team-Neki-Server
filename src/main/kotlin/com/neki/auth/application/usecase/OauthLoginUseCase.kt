@@ -1,5 +1,7 @@
 package com.neki.auth.application.usecase
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.neki.auth.application.command.RegisterOauthUserCommand
 import com.neki.auth.application.contract.KakaoTokenPayload
@@ -14,6 +16,7 @@ import com.neki.common.transaction.TransactionRunner
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.domain.entity.User
 import com.neki.user.domain.enums.RoleType
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
@@ -36,7 +39,7 @@ class OauthLoginUseCase(
 
     private val transactionRunner: TransactionRunner,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * 1. ProviderType에 따라 적절한 Adapter 선택
@@ -45,7 +48,7 @@ class OauthLoginUseCase(
      * 4. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
     fun execute(command: RegisterOauthUserCommand): GetAuthResult {
-        val oauthInfoPayload = oidcTokenValidatorPort.validateIdToken(
+        val oauthInfoPayload: OauthInfoPayload = oidcTokenValidatorPort.validateIdToken(
             command.idToken,
             command.providerType,
             command.platform,
@@ -55,14 +58,14 @@ class OauthLoginUseCase(
         val (user, _) = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoPayload) }
 
         // 토큰 생성
-        val accessToken = tokenProviderPort.createAccessToken(
+        val accessToken: String = tokenProviderPort.createAccessToken(
             id = user.id.toString(),
             roles = user.roles.split(","),
             name = user.name,
             providerType = user.providerType,
         )
 
-        val refreshToken = tokenProviderPort.createRefreshToken(
+        val refreshToken: String = tokenProviderPort.createRefreshToken(
             id = user.id.toString(),
             roles = user.roles.split(","),
             name = user.name,
@@ -76,7 +79,7 @@ class OauthLoginUseCase(
     }
 
     private fun registerOauthUserIfEmpty(oauthInfoPayload: OauthInfoPayload): Pair<User, Boolean> {
-        val existingUser = userRepositoryPort.findByOid(
+        val existingUser: User? = userRepositoryPort.findByOid(
             oid = oauthInfoPayload.oid,
             provider = oauthInfoPayload.providerType,
         )
@@ -84,8 +87,8 @@ class OauthLoginUseCase(
         return if (existingUser != null) {
             Pair(existingUser, false)
         } else {
-            val nickname = nicknameGenerator.generateUniqueNickname()
-            val newUser = userRepositoryPort.save(
+            val nickname: String = nicknameGenerator.generateUniqueNickname()
+            val newUser: User = userRepositoryPort.save(
                 User(
                     email = oauthInfoPayload.email,
                     oid = oauthInfoPayload.oid,
@@ -122,7 +125,7 @@ class OauthLoginUseCase(
             params.add("client_secret", clientSecret)
         }
 
-        val response = restClient.post()
+        val response: String = restClient.post()
             .uri("https://kauth.kakao.com/oauth/token")
             .contentType(MediaType.APPLICATION_FORM_URLENCODED)
             .body(params)
@@ -130,8 +133,8 @@ class OauthLoginUseCase(
             .body(String::class.java) ?: throw RuntimeException("Failed to get token from Kakao")
 
         // JSON 응답을 파싱하여 KakaoTokenResponse로 변환
-        val objectMapper = jacksonObjectMapper()
-        val jsonNode = objectMapper.readTree(response)
+        val objectMapper: ObjectMapper = jacksonObjectMapper()
+        val jsonNode: JsonNode = objectMapper.readTree(response)
 
         return KakaoTokenPayload(
             accessToken = jsonNode.get("access_token").asText(),

@@ -3,9 +3,12 @@ package com.neki.photo.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.photo.application.command.GetFavoritePhotosCommand
+import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.application.result.GetPhotosResult
+import com.neki.photo.domain.entity.PhotoImage
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
@@ -21,13 +24,13 @@ class GetFavoritePhotosUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun execute(command: GetFavoritePhotosCommand): GetPhotosResult {
         // size + 1개 조회하여 hasNext 판단
         val fetchSize = command.size + 1
 
-        val photos = transactionRunner.readOnly {
+        val photos: List<PhotoImage> = transactionRunner.readOnly {
             photoImageRepository.listOwnedFavoritePhotos(
                 userId = command.userId,
                 offset = command.page * command.size,
@@ -44,18 +47,18 @@ class GetFavoritePhotosUseCase(
         val hasNext = photos.size > command.size
 
         // 실제 반환할 사진 목록 (size개만)
-        val photosToReturn = if (hasNext) photos.dropLast(1) else photos
+        val photosToReturn: List<PhotoImage> = if (hasNext) photos.dropLast(1) else photos
 
         // storageKey 조회 (페이징된 결과에 대해서만)
-        val mediaStorageInfos = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
             command.userId,
             photosToReturn.map { it.mediaId },
         )
 
-        val mediaByFileId = mediaStorageInfos.associateBy { it.mediaId }
+        val mediaByFileId: Map<Long, MediaStorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result = photosToReturn.mapNotNull {
+        val result: List<GetPhotosResult.PhotoInfo> = photosToReturn.mapNotNull {
             val media = mediaByFileId[it.mediaId]
                 ?: run {
                     log.info(

@@ -7,6 +7,7 @@ import com.neki.auth.infra.security.token.UserPrincipal
 import com.neki.common.annotation.UseCase
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
+import org.springframework.security.core.Authentication
 
 /**
  * fileName       : RefreshTokenUseCase
@@ -24,11 +25,11 @@ class RefreshTokenUseCase(private val tokenProviderPort: AuthTokenProviderPort) 
         }
 
         // 2. RefreshToken에서 사용자 정보 추출
-        val authentication = tokenProviderPort.getAuthenticationFromRefreshToken(command.refreshToken)
+        val authentication: Authentication = tokenProviderPort.getAuthenticationFromRefreshToken(command.refreshToken)
         val userPrincipal = authentication.principal as UserPrincipal
 
         // 3. 새로운 AccessToken 생성
-        val newAccessToken = tokenProviderPort.createAccessToken(
+        val newAccessToken: String = tokenProviderPort.createAccessToken(
             id = userPrincipal.id.toString(),
             roles = userPrincipal.roles.toList(),
             name = userPrincipal.name,
@@ -36,7 +37,7 @@ class RefreshTokenUseCase(private val tokenProviderPort: AuthTokenProviderPort) 
         )
 
         // 4. 새로운 RefreshToken 생성 (Refresh Token Rotation 적용)
-        val newRefreshToken = tokenProviderPort.createRefreshToken(
+        val newRefreshToken: String = tokenProviderPort.createRefreshToken(
             id = userPrincipal.id.toString(),
             roles = userPrincipal.roles.toList(),
             name = userPrincipal.name,

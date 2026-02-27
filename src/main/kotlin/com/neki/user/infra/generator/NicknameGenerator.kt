@@ -33,12 +33,12 @@ class NicknameGenerator(private val userRepository: UserRepository) : NicknameGe
     }
 
     override fun generateUniqueNickname(): String {
-        val adjective = ADJECTIVES.random()
-        val noun = NOUNS.random()
+        val adjective: String = ADJECTIVES.random()
+        val noun: String = NOUNS.random()
         val baseName = "$adjective $noun"
 
         repeat(MAX_RETRY_COUNT) {
-            val number = (MIN_NUMBER..MAX_NUMBER).random()
+            val number: Int = (MIN_NUMBER..MAX_NUMBER).random()
             val nickname = "$baseName-$number"
             if (!userRepository.existsByName(nickname)) {
                 return nickname

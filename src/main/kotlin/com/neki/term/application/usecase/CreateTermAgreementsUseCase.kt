@@ -6,6 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.term.application.command.CreateTermAgreementsCommand
 import com.neki.term.application.port.TermRepositoryPort
 import com.neki.term.application.port.UserTermAgreementRepositoryPort
+import com.neki.term.domain.entity.Term
 import com.neki.term.domain.entity.UserTermAgreement
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -18,22 +19,22 @@ class CreateTermAgreementsUseCase(
 
     @Transactional
     fun execute(command: CreateTermAgreementsCommand) {
-        val agreedTermIds = command.agreements
+        val agreedTermIds: List<Long> = command.agreements
             .filter { it.agreed }
             .map { it.termId }
 
-        val requiredTerms = termRepository.findAllActiveTerms()
+        val requiredTerms: List<Term> = termRepository.findAllActiveTerms()
             .filter { it.isRequired }
 
-        val missingRequired = requiredTerms.filter { it.id !in agreedTermIds }
+        val missingRequired: List<Term> = requiredTerms.filter { it.id !in agreedTermIds }
         if (missingRequired.isNotEmpty()) {
             throw BusinessException(ResultCode.REQUIRED_TERMS_NOT_AGREED)
         }
 
-        val termsToAgree = termRepository.findAllByIds(agreedTermIds)
+        val termsToAgree: List<Term> = termRepository.findAllByIds(agreedTermIds)
         val now = LocalDateTime.now()
 
-        val agreements = termsToAgree.map { term ->
+        val agreements: List<UserTermAgreement> = termsToAgree.map { term ->
             UserTermAgreement(
                 userId = command.userId,
                 termId = term.id!!,

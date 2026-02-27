@@ -1,6 +1,7 @@
 package com.neki.auth.infra.oauth
 
 import com.neki.auth.application.contract.AuthCacheKeys
+import com.neki.auth.application.contract.OIDCPublicKeysPayload
 import com.neki.auth.application.contract.OauthInfoPayload
 import com.neki.auth.application.port.OidcTokenValidatorPort
 import com.neki.auth.domain.Platform
@@ -11,6 +12,7 @@ import com.neki.auth.infra.oauth.registry.OidcRegistry
 import com.neki.auth.infra.redis.AuthRedisCacheAdapter
 import com.neki.common.exception.BusinessException
 import com.neki.user.domain.enums.ProviderType
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -27,7 +29,7 @@ class OidcTokenValidator(
     private val authRedisCacheAdapter: AuthRedisCacheAdapter,
 ) : OidcTokenValidatorPort {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * 캐시된 공개키로 토큰 검증 시도 및 실패 시 재시도 로직
@@ -35,8 +37,8 @@ class OidcTokenValidator(
      * - BusinessException 발생 시: 캐시 무효화 후 재시도 (공개키 로테이션 대응)
      */
     override fun validateIdToken(idToken: String, providerType: ProviderType, platform: Platform): OauthInfoPayload {
-        val oidcAdapter = oidcRegistry.getAdapter(providerType)
-        val oauthHelperAdapter = oauthHelperRegistry.getAdapter(providerType)
+        val oidcAdapter: Oidc = oidcRegistry.getAdapter(providerType)
+        val oauthHelperAdapter: OauthHelper = oauthHelperRegistry.getAdapter(providerType)
 
         return try {
             // 1차 시도: 캐시된 공개키로 토큰 검증
@@ -61,7 +63,7 @@ class OidcTokenValidator(
         oauthHelper: OauthHelper,
         platform: Platform,
     ): OauthInfoPayload {
-        val publicKeys = oidc.getOIDCPublicKey()
+        val publicKeys: OIDCPublicKeysPayload = oidc.getOIDCPublicKey()
         return oauthHelper.getOauthInfoByIdToken(
             idToken = idToken,
             publicKeys = publicKeys,

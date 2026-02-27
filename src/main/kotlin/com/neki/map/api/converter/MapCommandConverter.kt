@@ -27,7 +27,7 @@ class MapCommandConverter {
         CollectPhotoBoothCommand(keyword = request.keyword!!, brandCode = request.brandCode!!)
 
     fun toGetPolygonLocationCommand(request: GetPolygonLocationRequest): GetPolygonLocationCommand {
-        val coordinates = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
+        val coordinates: List<Coordinate> = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
         return GetPolygonLocationCommand(
             coordinates = coordinates,
             brandIds = request.brandIds,

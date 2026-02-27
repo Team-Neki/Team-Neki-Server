@@ -3,8 +3,10 @@ package com.neki.pose.infra.client
 import com.neki.media.application.command.ConfirmMediasUploadedCommand
 import com.neki.media.application.command.GetMediaStorageInfoCommand
 import com.neki.media.application.command.GetMediaStorageInfosCommand
+import com.neki.media.application.result.ConfirmMediasUploadedResult
 import com.neki.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
 import com.neki.media.application.result.GetMediaStorageInfoResult
+import com.neki.media.application.result.GetMediaStorageInfosResult
 import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
@@ -45,7 +47,7 @@ class PoseMediaClient(
     }
 
     override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo> {
-        val result =
+        val result: GetMediaStorageInfosResult =
             getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(null, mediaIds))
 
         return result.storageInfos.map {
@@ -62,7 +64,7 @@ class PoseMediaClient(
     override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
         if (mediaIds.isEmpty()) return emptyMap()
 
-        val result = confirmMediaUploadedUseCase.execute(
+        val result: ConfirmMediasUploadedResult = confirmMediaUploadedUseCase.execute(
             ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = mediaIds),
         )
         return result.results.mapValues { (_, status) ->

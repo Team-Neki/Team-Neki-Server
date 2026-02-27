@@ -1,6 +1,7 @@
 package com.neki.pose.infra.cache.redis
 
 import com.neki.pose.application.port.PoseViewCachePort
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
@@ -15,12 +16,12 @@ import java.time.ZoneId
 @Profile("!test")
 class RedisPoseViewCacheAdapter(private val redisTemplate: RedisTemplate<String, Any>) : PoseViewCachePort {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun addViewer(poseId: Long, userId: Long): Boolean {
-        val key = PoseViewRedisCacheKey.viewKey(poseId)
+        val key: String = PoseViewRedisCacheKey.viewKey(poseId)
         return try {
-            val added = redisTemplate.opsForSet().add(key, userId) ?: 0
+            val added: Long = redisTemplate.opsForSet().add(key, userId) ?: 0
             if (added > 0) {
                 redisTemplate.expireAt(key, getMidnight())
                 true

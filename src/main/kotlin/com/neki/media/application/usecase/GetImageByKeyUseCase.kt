@@ -9,6 +9,7 @@ import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.GetImageByKeyResult
 import com.neki.media.domain.MediaType
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
 
@@ -29,21 +30,21 @@ class GetImageByKeyUseCase(
     private val cache: MediaBinaryCachePort,
     private val distributedLock: DistributedLockPort,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun execute(command: GetImageByKeyCommand): GetImageByKeyResult {
         val objectKey = command.objectKey
-        val contentType = resolveContentType(objectKey)
-        val mediaType = MediaType.fromObjectKey(objectKey)
+        val contentType: String = resolveContentType(objectKey)
+        val mediaType: MediaType? = MediaType.fromObjectKey(objectKey)
 
         // 캐싱 대상이 아닌 타입은 S3에서 직접 조회
         if (mediaType == null || !mediaType.isCacheable) {
-            val binaryData = mediaStorage.fetchBinaryByKey(objectKey)
+            val binaryData: ByteArray = mediaStorage.fetchBinaryByKey(objectKey)
             return GetImageByKeyResult(binaryData, contentType)
         }
 
         // cache를 조회하고 있다면 바로 반환
-        val cachedData = cache.get(objectKey)
+        val cachedData: ByteArray? = cache.get(objectKey)
         if (cachedData != null) {
             log.debug("[GetImage] Cache hit for key: $objectKey")
             return GetImageByKeyResult(cachedData, contentType)
@@ -51,7 +52,7 @@ class GetImageByKeyUseCase(
 
         // cache가 없다면 lock을 획득하여 S3에서 데이터를 가져오고 캐싱
         val cacheTtl = mediaType.cacheTtl!!
-        val binaryData =
+        val binaryData: ByteArray =
             distributedLock.executeWithLock(
                 key = objectKey,
                 ttl = Duration.ofSeconds(10),
@@ -79,7 +80,7 @@ class GetImageByKeyUseCase(
     }
 
     private fun resolveContentType(objectKey: String): String {
-        val extension = objectKey.substringAfterLast('.', "").lowercase()
+        val extension: String = objectKey.substringAfterLast('.', "").lowercase()
         return EXTENSION_TO_CONTENT_TYPE[extension] ?: DEFAULT_CONTENT_TYPE
     }
 

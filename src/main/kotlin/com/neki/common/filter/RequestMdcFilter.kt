@@ -30,7 +30,7 @@ class RequestMdcFilter : OncePerRequestFilter() {
     ) {
         try {
             // Request ID 설정 (헤더에서 가져오거나 새로 생성)
-            val requestId = request.getHeader("X-Request-ID") ?: generateRequestId()
+            val requestId: String = request.getHeader("X-Request-ID") ?: generateRequestId()
             MDC.put(REQUEST_ID, requestId)
 
             // 요청 정보 설정
@@ -74,7 +74,7 @@ class RequestMdcFilter : OncePerRequestFilter() {
         )
 
         for (header in headers) {
-            val ip = request.getHeader(header)
+            val ip: String? = request.getHeader(header)
             if (!ip.isNullOrBlank() && ip != "unknown") {
                 // X-Forwarded-For는 여러 IP가 콤마로 구분될 수 있음 (첫 번째가 실제 클라이언트 IP)
                 return ip.split(",").firstOrNull()?.trim() ?: ip

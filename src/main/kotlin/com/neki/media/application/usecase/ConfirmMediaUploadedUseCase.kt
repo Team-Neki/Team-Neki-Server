@@ -7,6 +7,7 @@ import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.ConfirmMediasUploadedResult
 import com.neki.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
+import com.neki.media.domain.entity.Media
 
 /**
  * fileName       : VerifyMediaUseCase
@@ -24,18 +25,21 @@ class ConfirmMediaUploadedUseCase(
     fun execute(command: ConfirmMediasUploadedCommand): ConfirmMediasUploadedResult {
         if (command.mediaIds.isEmpty()) return ConfirmMediasUploadedResult(emptyMap())
 
-        val medias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+        val medias: List<Media> = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
 
-        val s3ExistsMap = medias
+        val s3ExistsMap: Map<Long, Boolean> = medias
             .filter { !it.isUploaded() }
             .associate { it.id!! to mediaStorage.exists(it.storageKey) }
 
         return transactionRunner.runNew {
-            val freshMedias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+            val freshMedias: List<Media> = mediaRepository.getMediaForUploadConfirmation(
+                command.ownerId,
+                command.mediaIds,
+            )
 
-            val freshMediaMap = freshMedias.associateBy { it.id!! }
+            val freshMediaMap: Map<Long, Media> = freshMedias.associateBy { it.id!! }
 
-            val results = command.mediaIds.associateWith { mediaId ->
+            val results: Map<Long, UploadConfirmStatus> = command.mediaIds.associateWith { mediaId ->
                 val media = freshMediaMap[mediaId]
                 when {
                     media == null -> UploadConfirmStatus.NOT_FOUND
@@ -59,7 +63,7 @@ class ConfirmMediaUploadedUseCase(
         if (command.mediaIds.isEmpty()) return
 
         transactionRunner.runNew {
-            val medias = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
+            val medias: List<Media> = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
             medias.forEach { it.markAsInitiated() }
         }
     }

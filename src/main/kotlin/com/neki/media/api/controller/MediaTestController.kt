@@ -1,5 +1,7 @@
 package com.neki.media.api.controller
 
+import com.neki.media.application.contract.UploadTicket
+import com.neki.media.application.dto.MediaRef
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.domain.MediaKey
 import com.neki.media.domain.MediaType
@@ -27,7 +29,7 @@ class MediaTestController(private val mediaStorage: MediaStoragePort) {
 
     @GetMapping
     fun listMedia(@RequestParam(defaultValue = "temp/") prefix: String): MediaListResponse {
-        val mediaList = mediaStorage.findAll(prefix)
+        val mediaList: List<MediaRef> = mediaStorage.findAll(prefix)
         return MediaListResponse(
             prefix = prefix,
             count = mediaList.size,
@@ -49,10 +51,10 @@ class MediaTestController(private val mediaStorage: MediaStoragePort) {
         // filename이 없는 경우 contentType에서 확장자 추출하여 기본 파일명 생성
         val effectiveFilename = filename ?: "upload.${contentType.substringAfter("/", "jpg")}"
 
-        val key = MediaKey.generate(MediaType.TEMP, effectiveFilename, contentType)
+        val key: String = MediaKey.generate(MediaType.TEMP, effectiveFilename, contentType)
 
         // Presigned URL 생성
-        val uploadTicket = mediaStorage.generateUploadTicket(
+        val uploadTicket: UploadTicket = mediaStorage.generateUploadTicket(
             key = key,
             contentType = contentType,
         )
@@ -71,7 +73,7 @@ class MediaTestController(private val mediaStorage: MediaStoragePort) {
         // /api/media/test/object/ 이후의 전체 경로를 key로 사용
         val fullPath = request.requestURI
         val key = fullPath.removePrefix("/api/media/test/object/")
-        val url = mediaStorage.findByKey(key)
+        val url: String = mediaStorage.findByKey(key)
 
         return MediaUrlResponse(
             key = key,
