@@ -21,31 +21,32 @@ docker compose down                # Stop containers
 ## Project Overview
 
 **Neki** is a photo booth platform API server providing:
+
 - **Photo Poses**: Users share photo booth pose recommendations
 - **Photo Archiving**: Store and organize photos in folders
 - **Booth Location Search**: Map-based search across multiple photo booth brands
 
-| Profile | Infrastructure |
-|---------|---------------|
-| `local` | Docker Compose |
-| `staging` | k3s (Linux) |
-| `prod` | k3s (Linux) |
+| Profile   | Infrastructure |
+|-----------|----------------|
+| `local`   | Docker Compose |
+| `staging` | k3s (Linux)    |
+| `prod`    | k3s (Linux)    |
 
 ---
 
 ## Technology Stack
 
-| Category | Technology |
-|----------|------------|
-| Language | Kotlin 2.0, Java 21 |
-| Framework | Spring Boot 3.5 |
-| Database | PostgreSQL (main), Redis (cache) |
-| ORM | JPA + QueryDSL |
-| Auth | JWT, OAuth (Kakao, Apple OIDC) |
-| Storage | AWS S3 |
-| Docs | SpringDoc OpenAPI (Swagger) |
-| Testing | Kotest, MockK |
-| Code Style | ktlint via Spotless |
+| Category   | Technology                       |
+|------------|----------------------------------|
+| Language   | Kotlin 2.0, Java 21              |
+| Framework  | Spring Boot 3.5                  |
+| Database   | PostgreSQL (main), Redis (cache) |
+| ORM        | JPA + QueryDSL                   |
+| Auth       | JWT, OAuth (Kakao, Apple OIDC)   |
+| Storage    | AWS S3                           |
+| Docs       | SpringDoc OpenAPI (Swagger)      |
+| Testing    | Kotest, MockK                    |
+| Code Style | ktlint via Spotless              |
 
 ---
 
@@ -53,13 +54,13 @@ docker compose down                # Stop containers
 
 Before starting any task, load the relevant context document:
 
-| Task Type | Required Document |
-|-----------|-------------------|
-| Writing tests | `@.claude/docs/TESTING.md` |
-| API development | `@.claude/docs/API_PATTERNS.md` |
-| Architecture/Design | `@.claude/docs/ARCHITECTURE.md` |
-| Configuration | `@.claude/docs/CONFIGURATION.md` |
-| Logging/Metrics | `@.claude/docs/OBSERVABILITY.md` |
+| Task Type           | Required Document                |
+|---------------------|----------------------------------|
+| Writing tests       | `@.claude/docs/TESTING.md`       |
+| API development     | `@.claude/docs/API_PATTERNS.md`  |
+| Architecture/Design | `@.claude/docs/ARCHITECTURE.md`  |
+| Configuration       | `@.claude/docs/CONFIGURATION.md` |
+| Logging/Metrics     | `@.claude/docs/OBSERVABILITY.md` |
 
 ---
 
@@ -67,22 +68,22 @@ Before starting any task, load the relevant context document:
 
 ### ❌ NEVER DO
 
-| Constraint | Reason |
-|------------|--------|
-| Import from other domains | Breaks module isolation |
+| Constraint                            | Reason                                             |
+|---------------------------------------|----------------------------------------------------|
+| Import from other domains             | Breaks module isolation                            |
 | Bypass ports to access infra directly | Violates Clean Architecture (exception: auth/user) |
-| Remove observability code | Critical for production debugging |
+| Remove observability code             | Critical for production debugging                  |
 
 ### ✅ ALWAYS DO
 
-| Practice | Reason |
-|----------|--------|
-| Wrap responses in `BaseResponse` | Consistent API format |
-| Use `BusinessException` for errors | Centralized error handling |
-| Write E2E tests for new endpoints | Quality assurance |
-| Follow existing package structure | Maintainability |
-| Run `spotlessApply` before commit | Code style consistency |
-| Delete dependent entities first | Prevents orphan records and FK violations |
+| Practice                           | Reason                                    |
+|------------------------------------|-------------------------------------------|
+| Wrap responses in `BaseResponse`   | Consistent API format                     |
+| Use `BusinessException` for errors | Centralized error handling                |
+| Write E2E tests for new endpoints  | Quality assurance                         |
+| Follow existing package structure  | Maintainability                           |
+| Run `spotlessApply` before commit  | Code style consistency                    |
+| Delete dependent entities first    | Prevents orphan records and FK violations |
 
 ---
 
@@ -94,26 +95,33 @@ Before starting any task, load the relevant context document:
 4. **No reformatting**: Only modify relevant files
 5. **Test coverage**: Add E2E tests for new endpoints
 
+### Variable Type Declaration Convention
+
+- **Explicit type**: When assigning from method/function calls → `val result: Type = someMethod()`
+- **Type inference**: For constructors, literals, collection builders, type conversions, property
+  access
+- Reference: `.claude/commands/add-types.md` for full rules
+
 ---
 
 ## Context Loading Guide
 
 Load additional context as needed using `@` references:
 
-| Task | Load Command |
-|------|--------------|
-| Writing tests | `@.claude/docs/TESTING.md` |
-| API development | `@.claude/docs/API_PATTERNS.md` |
-| Architecture/Design | `@.claude/docs/ARCHITECTURE.md` |
-| Configuration | `@.claude/docs/CONFIGURATION.md` |
-| Logging/Metrics | `@.claude/docs/OBSERVABILITY.md` |
+| Task                | Load Command                     |
+|---------------------|----------------------------------|
+| Writing tests       | `@.claude/docs/TESTING.md`       |
+| API development     | `@.claude/docs/API_PATTERNS.md`  |
+| Architecture/Design | `@.claude/docs/ARCHITECTURE.md`  |
+| Configuration       | `@.claude/docs/CONFIGURATION.md` |
+| Logging/Metrics     | `@.claude/docs/OBSERVABILITY.md` |
 
 ### Quick File Reference
 
-| Component | Location |
-|-----------|----------|
-| UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt` |
-| Base response | `src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt` |
-| Result codes | `src/main/kotlin/com/neki/common/api/dto/ResultCode.kt` |
+| Component          | Location                                                         |
+|--------------------|------------------------------------------------------------------|
+| UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt`          |
+| Base response      | `src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`        |
+| Result codes       | `src/main/kotlin/com/neki/common/api/dto/ResultCode.kt`          |
 | Business exception | `src/main/kotlin/com/neki/common/exception/BusinessException.kt` |
-| E2E test base | `src/test/kotlin/com/neki/e2e/E2ETestBase.kt` |
+| E2E test base      | `src/test/kotlin/com/neki/e2e/E2ETestBase.kt`                    |
