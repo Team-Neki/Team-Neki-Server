@@ -38,7 +38,7 @@ class NicknameGenerator(private val userRepository: UserRepository) : NicknameGe
             val adjective = ADJECTIVES.random()
             val noun = NOUNS.random()
             val number = (MIN_NUMBER..MAX_NUMBER).random()
-            val nickname = "$adjective $noun-$number"
+            val nickname = "$adjective$noun-$number"
             if (nickname.length <= MAX_LENGTH && !userRepository.existsByName(nickname)) {
                 return nickname
             }
@@ -47,7 +47,7 @@ class NicknameGenerator(private val userRepository: UserRepository) : NicknameGe
         // fallback: 타임스탬프 기반 2자리
         val adjective = ADJECTIVES.random()
         val noun = NOUNS.random()
-        val nickname = "$adjective $noun-${System.currentTimeMillis() % FALLBACK_MODULO}"
+        val nickname = "$adjective$noun-${System.currentTimeMillis() % FALLBACK_MODULO}"
         return nickname.take(MAX_LENGTH)
     }
 }
