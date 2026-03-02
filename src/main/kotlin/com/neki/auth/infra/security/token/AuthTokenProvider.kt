@@ -82,7 +82,7 @@ class AuthTokenProvider(private val appProperties: AppProperties) : AuthTokenPro
     }
 
     override fun getAuthenticationFromRefreshToken(token: String): Authentication {
-        val claims = getRefreshTokenClaims(token)
+        val claims: Claims = getRefreshTokenClaims(token)
 
         @Suppress("UNCHECKED_CAST")
         val roles = (claims[AUTHORITIES_KEY] as? List<*>)
@@ -93,7 +93,7 @@ class AuthTokenProvider(private val appProperties: AppProperties) : AuthTokenPro
         val providerTypeStr = claims[PROVIDER_TYPE_KEY] as? String
             ?: throw IllegalArgumentException("Provider type not found in token")
 
-        val authorities = roles.map { SimpleGrantedAuthority(it) }
+        val authorities: List<SimpleGrantedAuthority> = roles.map { SimpleGrantedAuthority(it) }
 
         val principal = UserPrincipal(
             id = claims.subject.toLong(),
@@ -115,7 +115,7 @@ class AuthTokenProvider(private val appProperties: AppProperties) : AuthTokenPro
     }
 
     fun getAuthentication(token: String): Authentication {
-        val claims = getAccessTokenClaims(token)
+        val claims: Claims = getAccessTokenClaims(token)
 
         @Suppress("UNCHECKED_CAST")
         val roles = (claims[AUTHORITIES_KEY] as? List<*>)
@@ -126,7 +126,7 @@ class AuthTokenProvider(private val appProperties: AppProperties) : AuthTokenPro
         val providerTypeStr = claims[PROVIDER_TYPE_KEY] as? String
             ?: throw IllegalArgumentException("Provider type not found in token")
 
-        val authorities = roles.map { SimpleGrantedAuthority(it) }
+        val authorities: List<SimpleGrantedAuthority> = roles.map { SimpleGrantedAuthority(it) }
 
         val principal = UserPrincipal(
             id = claims.subject.toLong(), // JWT subject(String)를 Long으로 변환

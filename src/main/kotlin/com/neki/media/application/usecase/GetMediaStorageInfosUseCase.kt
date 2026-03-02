@@ -4,6 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.media.application.command.GetMediaStorageInfosCommand
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.result.GetMediaStorageInfosResult
+import com.neki.media.domain.entity.Media
 
 /**
  * fileName       : GetMediaStorageInfosUseCase
@@ -15,11 +16,11 @@ import com.neki.media.application.result.GetMediaStorageInfosResult
 class GetMediaStorageInfosUseCase(private val mediaRepository: MediaRepositoryPort) {
 
     fun execute(command: GetMediaStorageInfosCommand): GetMediaStorageInfosResult {
-        val medias = command.ownerId?.let {
+        val medias: List<Media> = command.ownerId?.let {
             mediaRepository.getActiveMedias(it, command.mediaIds)
         } ?: mediaRepository.getActiveMedias(command.mediaIds)
 
-        val storageInfos = medias.map {
+        val storageInfos: List<GetMediaStorageInfosResult.StorageInfo> = medias.map {
             GetMediaStorageInfosResult.StorageInfo(
                 mediaId = it.id!!,
                 storageKey = it.storageKey,

@@ -9,6 +9,7 @@ import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.domain.entity.PhotoImage
 
 /**
  * fileName       : DeleteFolderUseCase
@@ -27,7 +28,7 @@ class DeleteFoldersUseCase(
 
     fun execute(command: DeleteFoldersCommand) {
         // 삭제할 사진 ID 조회
-        val photoIdsToDelete = if (command.deletePhotos) {
+        val photoIdsToDelete: List<Long> = if (command.deletePhotos) {
             transactionRunner.readOnly {
                 photoImageRepository.getPhotoIdsByFolderIds(command.userId, command.folderIds)
             }
@@ -35,7 +36,7 @@ class DeleteFoldersUseCase(
             emptyList()
         }
 
-        val deletedPhotos = transactionRunner.run {
+        val deletedPhotos: List<PhotoImage> = transactionRunner.run {
             if (command.deletePhotos) {
                 // 사진까지 삭제하는 경우 즐겨찾기 먼저 삭제
                 if (photoIdsToDelete.isNotEmpty()) {
@@ -47,7 +48,7 @@ class DeleteFoldersUseCase(
             }
 
             // 폴더 삭제
-            val deletedCount = folderRepository.deleteOwnedFolders(
+            val deletedCount: Int = folderRepository.deleteOwnedFolders(
                 command.userId,
                 command.folderIds,
             )

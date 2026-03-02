@@ -32,7 +32,7 @@ class PhotoBoothLocationQueryRepository(
      */
     fun findByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationDto> {
         // LINESTRING 생성을 위한 좌표 문자열 생성
-        val lineString = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
+        val lineString: String = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
 
         val query = queryFactory
             .select(

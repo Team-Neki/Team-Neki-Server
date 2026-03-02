@@ -24,7 +24,7 @@ class CreateFolderUseCase(private val folderRepository: FolderRepositoryPort) {
             throw BusinessException(ResultCode.CONFLICT_FOLDER)
         }
 
-        val savedFolder = folderRepository.save(
+        val savedFolder: Folder = folderRepository.save(
             Folder(
                 userId = command.userId,
                 name = command.name,

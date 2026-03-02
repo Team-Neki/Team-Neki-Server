@@ -2,6 +2,7 @@ package com.neki.media.infra.cache.redis
 
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.domain.MediaType
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
@@ -28,12 +29,12 @@ import java.util.concurrent.TimeUnit
 class RedisMediaBinaryCacheAdapter(private val binaryRedisTemplate: RedisTemplate<String, ByteArray>) :
     MediaBinaryCachePort {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun get(key: String): ByteArray? {
-        val cacheKey = MediaRedisCacheKey.binaryKey(key)
+        val cacheKey: String = MediaRedisCacheKey.binaryKey(key)
         return try {
-            val cached = binaryRedisTemplate.opsForValue().get(cacheKey)
+            val cached: ByteArray? = binaryRedisTemplate.opsForValue().get(cacheKey)
             if (cached != null) {
                 log.debug("[MediaCache] Cache hit for key: $key")
 
@@ -52,7 +53,7 @@ class RedisMediaBinaryCacheAdapter(private val binaryRedisTemplate: RedisTemplat
     }
 
     override fun put(key: String, value: ByteArray, ttl: Duration) {
-        val cacheKey = MediaRedisCacheKey.binaryKey(key)
+        val cacheKey: String = MediaRedisCacheKey.binaryKey(key)
         try {
             binaryRedisTemplate.opsForValue().set(cacheKey, value, ttl)
             log.debug("[MediaCache] Cache put successful for key: $key (TTL: $ttl)")

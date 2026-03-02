@@ -5,6 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.version.application.command.UpdateAppVersionCommand
 import com.neki.version.application.port.AppVersionRepositoryPort
+import com.neki.version.domain.entity.AppVersion
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -18,7 +19,7 @@ class UpdateAppVersionUseCase(private val appVersionRepository: AppVersionReposi
 
     @Transactional
     fun execute(command: UpdateAppVersionCommand) {
-        val appVersion = appVersionRepository.findByPlatform(command.platform)
+        val appVersion: AppVersion = appVersionRepository.findByPlatform(command.platform)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
         appVersion.minVersion = command.minVersion

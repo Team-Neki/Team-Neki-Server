@@ -4,6 +4,9 @@ import com.neki.common.annotation.UseCase
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MediaClientPort
 import com.neki.map.application.result.GetBrandResult
+import com.neki.map.domain.entity.Brand
+import com.neki.photo.application.contract.MediaStorageInfo
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
@@ -15,12 +18,16 @@ import org.slf4j.LoggerFactory
 @UseCase
 class GetBrandUseCase(private val brandRepository: BrandRepositoryPort, private val mediaClient: MediaClientPort) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun execute(): List<GetBrandResult> {
-        val brands = brandRepository.findAll()
+        val brands: List<Brand> = brandRepository.findAll()
 
-        val mediaStorageInfos = mediaClient.getMediaStorageInfos(brands.mapNotNull { it.mediaId })
+        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
+            brands.mapNotNull {
+                it.mediaId
+            },
+        )
 
         val mediaByMediaId = mediaStorageInfos.associateBy { it.mediaId }
 

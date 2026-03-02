@@ -42,7 +42,7 @@ class MapResultConverter(private val appProperties: AppProperties) {
         )
 
     fun toGetPolygonLocationResponse(result: GetPolygonLocationResult): GetPolygonLocationResponse {
-        val items = result.locations.map {
+        val items: List<GetPolygonLocationResponse.PhotoBoothLocationInfo> = result.locations.map {
             GetPolygonLocationResponse.PhotoBoothLocationInfo(
                 id = it.id,
                 brandName = it.brandName,
@@ -56,7 +56,7 @@ class MapResultConverter(private val appProperties: AppProperties) {
     }
 
     fun toGetPointLocationResponse(result: GetPointLocationResult): GetPointLocationResponse {
-        val items = result.locations.map {
+        val items: List<GetPointLocationResponse.PhotoBoothLocationWithDistanceInfo> = result.locations.map {
             GetPointLocationResponse.PhotoBoothLocationWithDistanceInfo(
                 id = it.id,
                 brandName = it.brandName,

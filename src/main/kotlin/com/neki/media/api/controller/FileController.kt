@@ -2,6 +2,8 @@ package com.neki.media.api.controller
 
 import com.neki.media.api.converter.FileCommandConverter
 import com.neki.media.api.converter.FileResultConverter
+import com.neki.media.application.command.GetImageByKeyCommand
+import com.neki.media.application.result.GetImageByKeyResult
 import com.neki.media.application.usecase.GetImageByKeyUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -37,13 +39,13 @@ class FileController(
     )
     @GetMapping("/image/**")
     fun getImage(request: HttpServletRequest): ResponseEntity<ByteArray> {
-        val objectKey = extractObjectKey(request)
+        val objectKey: String = extractObjectKey(request)
 
-        val command = commandConverter.toGetImageByKeyCommand(objectKey)
+        val command: GetImageByKeyCommand = commandConverter.toGetImageByKeyCommand(objectKey)
 
-        val result = getImageByKeyUseCase.execute(command)
+        val result: GetImageByKeyResult = getImageByKeyUseCase.execute(command)
 
-        val response = resultConverter.toImageResponse(result)
+        val response: ResponseEntity<ByteArray> = resultConverter.toImageResponse(result)
 
         return response
     }

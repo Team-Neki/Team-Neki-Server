@@ -6,6 +6,10 @@ import com.neki.auth.api.dto.CreateAuthRequest
 import com.neki.auth.api.dto.GetAuthResponse
 import com.neki.auth.api.dto.GetKakaoTokenResponse
 import com.neki.auth.api.dto.RefreshTokenRequest
+import com.neki.auth.application.command.RefreshTokenCommand
+import com.neki.auth.application.command.RegisterOauthUserCommand
+import com.neki.auth.application.contract.KakaoTokenPayload
+import com.neki.auth.application.result.GetAuthResult
 import com.neki.auth.application.usecase.OauthLoginUseCase
 import com.neki.auth.application.usecase.RefreshTokenUseCase
 import com.neki.common.api.dto.BaseResponse
@@ -114,11 +118,11 @@ class AuthController(
         @PathVariable(name = "providerType") providerType: String,
         @RequestBody @Valid request: CreateAuthRequest,
     ): BaseResponse<GetAuthResponse> {
-        val command = commandConverter.toCreateAuthCommand(request, providerType)
+        val command: RegisterOauthUserCommand = commandConverter.toCreateAuthCommand(request, providerType)
 
-        val result = oauthLoginUseCase.execute(command)
+        val result: GetAuthResult = oauthLoginUseCase.execute(command)
 
-        val response = resultConverter.toCreateAuthResponse(result)
+        val response: GetAuthResponse = resultConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -152,11 +156,11 @@ class AuthController(
     )
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetAuthResponse> {
-        val command = commandConverter.toRefreshTokenCommand(request)
+        val command: RefreshTokenCommand = commandConverter.toRefreshTokenCommand(request)
 
-        val result = refreshTokenUseCase.execute(command)
+        val result: GetAuthResult = refreshTokenUseCase.execute(command)
 
-        val response = resultConverter.toCreateAuthResponse(result)
+        val response: GetAuthResponse = resultConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -169,7 +173,7 @@ class AuthController(
     @Hidden
     @GetMapping("/test/kakao/redirect")
     fun kakaoTestRedirect(@RequestParam code: String): BaseResponse<GetKakaoTokenResponse> {
-        val tokenResponse = oauthLoginUseCase.getAccessTokenByCode(code)
+        val tokenResponse: KakaoTokenPayload = oauthLoginUseCase.getAccessTokenByCode(code)
         return BaseResponse(
             data = GetKakaoTokenResponse(
                 accessToken = tokenResponse.accessToken,

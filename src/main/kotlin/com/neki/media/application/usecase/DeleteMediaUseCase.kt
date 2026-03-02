@@ -8,6 +8,8 @@ import com.neki.media.application.command.DeleteMediaCommand
 import com.neki.media.application.command.DeleteMediasCommand
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
+import com.neki.media.domain.entity.Media
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
@@ -25,14 +27,14 @@ class DeleteMediaUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * media 단건 삭제 usecase
      */
     fun execute(command: DeleteMediaCommand) {
-        val media = transactionRunner.run {
-            val foundMedia = mediaRepository.getActiveMedia(command.ownerId, command.mediaId)
+        val media: Media = transactionRunner.run {
+            val foundMedia: Media = mediaRepository.getActiveMedia(command.ownerId, command.mediaId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND)
 
             foundMedia.markAsDeleted()
@@ -47,8 +49,8 @@ class DeleteMediaUseCase(
      * media bulk 삭제 usecase
      */
     fun execute(command: DeleteMediasCommand) {
-        val medias = transactionRunner.run {
-            val foundMedias = mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
+        val medias: List<Media> = transactionRunner.run {
+            val foundMedias: List<Media> = mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
             foundMedias.forEach { it.markAsDeleted() }
             mediaRepository.saveAll(foundMedias)
             foundMedias

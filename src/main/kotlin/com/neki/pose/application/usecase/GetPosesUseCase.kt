@@ -3,10 +3,12 @@ package com.neki.pose.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.pose.application.command.GetPosesCommand
+import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.contract.PoseWithScrap
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.result.GetPosesResult
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
@@ -21,7 +23,7 @@ class GetPosesUseCase(
     private val mediaClient: MediaClientPort,
     private val transactionRunner: TransactionRunner,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun execute(command: GetPosesCommand): GetPosesResult {
         // size + 1개 조회하여 hasNext 판단
@@ -48,15 +50,15 @@ class GetPosesUseCase(
         val posesToReturn = if (hasNext) poses.dropLast(1) else poses
 
         // storageKey 조회 (페이징된 결과에 대해서만)
-        val mediaStorageInfos = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
             posesToReturn.map { it.pose.mediaId },
         )
 
-        val mediaByFileId = mediaStorageInfos.associateBy { it.mediaId }
+        val mediaByFileId: Map<Long, MediaStorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result = posesToReturn.mapNotNull { (pose, isScraped) ->
-            val media = mediaByFileId[pose.mediaId]
+        val result: List<GetPosesResult.PoseInfo> = posesToReturn.mapNotNull { (pose, isScraped) ->
+            val media: MediaStorageInfo = mediaByFileId[pose.mediaId]
                 ?: run {
                     log.info(
                         "Media not found yet. photoId={}, fileId={}",

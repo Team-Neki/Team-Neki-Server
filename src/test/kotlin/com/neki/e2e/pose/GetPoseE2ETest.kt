@@ -5,6 +5,7 @@ import com.neki.media.domain.entity.MediaStatus
 import com.neki.pose.domain.HeadCount
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.notNullValue
 import org.hamcrest.Matchers.startsWith
@@ -88,6 +89,53 @@ class GetPoseE2ETest : PoseE2ETestBase() {
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.poseId", equalTo(pose.id!!.toInt()))
                 .body("data.scrap", equalTo(true))
+        }
+
+        @Test
+        @DisplayName("포즈 상세 조회 성공 - 조회수 증가")
+        fun givenPoseExists_whenGetPose_thenViewCountIncreases() {
+            // given
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            val pose = createPose(userId = testUser.id!!, mediaId = media.id!!, headCount = HeadCount.ONE)
+
+            // when
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .`when`()
+                .get("/api/poses/${pose.id}")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+
+            // then
+            val updated = poseRepository.findById(pose.id!!).get()
+            assertThat(updated.viewCount).isEqualTo(1)
+        }
+
+        @Test
+        @DisplayName("포즈 상세 조회 성공 - 동일 유저 중복 조회 시 조회수 미증가")
+        fun givenSameUser_whenGetPoseTwice_thenViewCountIncreasesOnce() {
+            // given
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            val pose = createPose(userId = testUser.id!!, mediaId = media.id!!, headCount = HeadCount.ONE)
+
+            // when: 같은 유저가 두 번 조회
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .`when`()
+                .get("/api/poses/${pose.id}")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .`when`()
+                .get("/api/poses/${pose.id}")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+
+            // then: 조회수는 1만 증가
+            val updated = poseRepository.findById(pose.id!!).get()
+            assertThat(updated.viewCount).isEqualTo(1)
         }
 
         @Test

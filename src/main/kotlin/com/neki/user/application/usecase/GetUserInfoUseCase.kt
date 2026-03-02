@@ -27,11 +27,11 @@ class GetUserInfoUseCase(
         val user: User = userRepository.findById(command.userId)
             ?: throw BusinessException(ResultCode.NOT_FOUND_USER)
 
-        val storageKey = user.profileImageId?.let {
+        val storageKey: String? = user.profileImageId?.let {
             mediaClient.getStorageKey(ownerId = user.id!!, mediaId = it)
         }
 
-        val hasAgreedToLatestTerms = termClient.hasAgreedToLatestTerms(user.id!!)
+        val hasAgreedToLatestTerms: Boolean = termClient.hasAgreedToLatestTerms(user.id!!)
 
         return GetUserResult(
             userId = user.id!!,

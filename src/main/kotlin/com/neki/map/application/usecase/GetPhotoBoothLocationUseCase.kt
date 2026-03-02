@@ -4,9 +4,12 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.map.application.command.GetPointLocationCommand
 import com.neki.map.application.command.GetPolygonLocationCommand
+import com.neki.map.application.contract.PhotoBoothLocationDto
+import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.application.result.GetPointLocationResult
 import com.neki.map.application.result.GetPolygonLocationResult
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
@@ -21,13 +24,13 @@ class GetPhotoBoothLocationUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * 다각형 기준으로 포토부스 위치 조회
      */
     fun execute(command: GetPolygonLocationCommand): GetPolygonLocationResult {
-        val locations = transactionRunner.readOnly {
+        val locations: List<PhotoBoothLocationDto> = transactionRunner.readOnly {
             photoBoothLocationRepository.listPolygonLocations(
                 coordinates = command.coordinates,
                 brandIds = command.brandIds,
@@ -45,7 +48,7 @@ class GetPhotoBoothLocationUseCase(
      * 특정 Point(사용자) 기준으로 포토부스 위치 조회
      */
     fun execute(command: GetPointLocationCommand): GetPointLocationResult {
-        val locations = transactionRunner.readOnly {
+        val locations: List<PhotoBoothLocationWithDistanceDto> = transactionRunner.readOnly {
             photoBoothLocationRepository.listPointLocations(
                 coordinate = command.coordinate,
                 radiusInMeters = command.radiusInMeters,

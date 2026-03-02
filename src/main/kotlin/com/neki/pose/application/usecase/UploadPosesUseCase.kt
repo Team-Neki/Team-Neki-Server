@@ -25,10 +25,10 @@ class UploadPosesUseCase(
     fun execute(command: UploadPosesCommand) {
         validateNoDuplicateMediaIds(command.uploads)
 
-        val mediaIds = command.uploads.map { it.mediaId }
+        val mediaIds: List<Long> = command.uploads.map { it.mediaId }
 
         // 모든 media가 object storage에 정상적으로 저장되었는지 일괄 확인
-        val availabilities = mediaClient.verifyMediasUploaded(
+        val availabilities: Map<Long, MediaAvailability> = mediaClient.verifyMediasUploaded(
             ownerId = command.userId,
             mediaIds = mediaIds,
         )
@@ -55,8 +55,8 @@ class UploadPosesUseCase(
     }
 
     private fun validateNoDuplicateMediaIds(uploads: List<UploadPosesCommand.UploadItem>) {
-        val mediaIds = uploads.map { it.mediaId }
-        val duplicates = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
+        val mediaIds: List<Long> = uploads.map { it.mediaId }
+        val duplicates: Set<Long> = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
 
         if (duplicates.isNotEmpty()) {
             throw BusinessException(ResultCode.INVALID_PARAMETER)
@@ -64,7 +64,7 @@ class UploadPosesUseCase(
     }
 
     private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaAvailability>) {
-        val unavailableMediaIds = availabilities
+        val unavailableMediaIds: Set<Long> = availabilities
             .filter { it.value != MediaAvailability.AVAILABLE }
             .keys
 
