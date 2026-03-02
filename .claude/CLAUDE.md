@@ -84,6 +84,7 @@ Before starting any task, load the relevant skill (auto-loaded based on context,
 | Follow existing package structure | Maintainability |
 | Run `spotlessApply` before commit | Code style consistency |
 | Delete dependent entities first | Prevents orphan records and FK violations |
+| Add Flyway migration when changing DB schema | `@Column` length, type, constraint 변경 시 `src/main/resources/db/migration/` 에 다음 버전의 SQL 파일 추가 필수 |
 
 ---
 
