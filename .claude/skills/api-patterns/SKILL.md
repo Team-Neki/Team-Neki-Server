@@ -1,3 +1,8 @@
+---
+name: api-patterns
+description: Load when developing API endpoints, designing request/response DTOs, creating controllers, or working with BaseResponse wrapper and exception handling patterns.
+---
+
 # API Development Patterns
 
 Load this context when creating or modifying API endpoints.
@@ -17,6 +22,7 @@ data class BaseResponse<T>(
 ```
 
 **Usage in Controller:**
+
 ```kotlin
 @GetMapping
 fun getAllFolders(): BaseResponse<GetAllFolderResponse> {
@@ -87,6 +93,7 @@ enum class ResultCode(val code: String, val message: String) {
     NOT_FOUND("D-04", "Data not found"),
     ALREADY_REQUEST("D-05", "Already processed"),
     CONFLICT_FOLDER("D-06", "Folder already exists"),
+
     // Token errors
     EXPIRED_TOKEN_ERROR("D-997", "Token expired"),
     INVALID_TOKEN_ERROR("D-998", "Invalid token"),
@@ -95,6 +102,7 @@ enum class ResultCode(val code: String, val message: String) {
 ```
 
 Key files:
+
 - `src/main/kotlin/com/neki/common/exception/BusinessException.kt`
 - `src/main/kotlin/com/neki/common/api/dto/ResultCode.kt`
 - `src/main/kotlin/com/neki/common/exception/handler/ExceptionHandler.kt`
@@ -161,14 +169,18 @@ data class CreateFolderRequest(
 ```
 
 Validation errors are automatically handled and return:
+
 ```json
 {
-    "resultCode": "D-01",
-    "message": "Folder name is required",
-    "success": false,
-    "errors": [
-        { "field": "name", "message": "Folder name is required" }
-    ]
+  "resultCode": "D-01",
+  "message": "Folder name is required",
+  "success": false,
+  "errors": [
+    {
+      "field": "name",
+      "message": "Folder name is required"
+    }
+  ]
 }
 ```
 
@@ -198,4 +210,4 @@ fun createFolder(
 - [ ] Add `@Operation` with summary and description
 - [ ] Add `@RequiresSecurity` if authentication required
 - [ ] Add validation annotations to request DTOs
-- [ ] Write E2E tests (see `@.claude/docs/TESTING.md`)
+- [ ] Write E2E tests (use `/testing` skill)

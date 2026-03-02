@@ -1,3 +1,8 @@
+---
+name: architecture
+description: Load when designing new domains or modules, refactoring architecture, working with Clean Architecture layers, ports/adapters pattern, or cross-domain communication.
+---
+
 # Architecture & Design Patterns
 
 Load this context when designing features, creating new domains, or refactoring.
@@ -32,14 +37,15 @@ Load this context when designing features, creating new domains, or refactoring.
 
 ### Dependency Rules
 
-| Layer | Can Depend On | Cannot Depend On |
-|-------|---------------|------------------|
-| API | Application, Domain | Infrastructure (directly) |
-| Application | Domain | API, Infrastructure |
-| Domain | Nothing | Any other layer |
-| Infrastructure | Application, Domain | API |
+| Layer          | Can Depend On       | Cannot Depend On          |
+|----------------|---------------------|---------------------------|
+| API            | Application, Domain | Infrastructure (directly) |
+| Application    | Domain              | API, Infrastructure       |
+| Domain         | Nothing             | Any other layer           |
+| Infrastructure | Application, Domain | API                       |
 
 **Critical**: Inner layers MUST NOT depend on outer layers.
+
 - ✅ `application` → `domain`
 - ❌ `application` → `api` or `infra`
 
@@ -88,12 +94,14 @@ src/main/kotlin/com/neki/
 **Domains MUST NOT import from other domains directly.**
 
 ❌ **Wrong**:
+
 ```kotlin
 // In photo domain
 import com.neki.user.domain.entity.User  // Direct import!
 ```
 
 ✅ **Correct** - Use ports for cross-domain communication:
+
 ```kotlin
 // In photo domain - define a port
 interface UserInfoPort {
@@ -198,13 +206,13 @@ interface JpaFolderRepository : JpaRepository<Folder, Long> {
 
 Use consistent verb names across all ports:
 
-| Operation | Method Name | Example |
-|-----------|-------------|---------|
-| Create | `add`, `save`, `create` | `add(userId, photoId)` |
-| Read | `find*`, `get*`, `exists` | `findById(id)`, `existsByName(name)` |
-| Update | `update`, `modify` | `update(entity)` |
-| Delete | `delete`, `remove` | `delete(userId, photoId)` |
-| Count | `count*` | `countByUserId(userId)` |
+| Operation | Method Name               | Example                              |
+|-----------|---------------------------|--------------------------------------|
+| Create    | `add`, `save`, `create`   | `add(userId, photoId)`               |
+| Read      | `find*`, `get*`, `exists` | `findById(id)`, `existsByName(name)` |
+| Update    | `update`, `modify`        | `update(entity)`                     |
+| Delete    | `delete`, `remove`        | `delete(userId, photoId)`            |
+| Count     | `count*`                  | `countByUserId(userId)`              |
 
 **Prefer `delete` over `remove` for consistency with SQL terminology.**
 
@@ -244,9 +252,11 @@ data class GetFoldersResult(
 
 ## QueryDSL for Batch Operations
 
-When you need batch operations (delete/update multiple records), use QueryDSL instead of Spring Data JPA for better performance.
+When you need batch operations (delete/update multiple records), use QueryDSL instead of Spring Data
+JPA for better performance.
 
 ### Naming Convention
+
 - **Spring Data JPA**: `Jpa*Repository` (e.g., `JpaFolderRepository`)
 - **QueryDSL**: `*QueryRepository` (e.g., `FolderQueryRepository`)
 
@@ -290,7 +300,8 @@ class FavoriteImageRepositoryAdapter(
 
 ### Cascade Deletion Order
 
-When deleting entities with relationships, delete dependent entities FIRST to prevent orphan records.
+When deleting entities with relationships, delete dependent entities FIRST to prevent orphan
+records.
 
 **Example: Photo with Favorites**
 
@@ -318,6 +329,7 @@ class DeletePhotoUseCase(
 ```
 
 **Key Points:**
+
 - Delete dependent entities before parent entities
 - Use transactions to ensure atomicity
 - External service calls (S3, etc.) happen AFTER transaction commits
@@ -340,8 +352,8 @@ class DeletePhotoUseCase(
 
 ## File References
 
-| Component | Location |
-|-----------|----------|
-| UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt` |
-| Base entity | `src/main/kotlin/com/neki/common/domain/BaseTimeEntity.kt` |
+| Component          | Location                                                           |
+|--------------------|--------------------------------------------------------------------|
+| UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt`            |
+| Base entity        | `src/main/kotlin/com/neki/common/domain/BaseTimeEntity.kt`         |
 | Transaction runner | `src/main/kotlin/com/neki/common/transaction/TransactionRunner.kt` |

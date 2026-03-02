@@ -1,3 +1,8 @@
+---
+name: observability
+description: Load when adding logging, metrics, monitoring, MDC context, or working with Prometheus/Grafana observability infrastructure.
+---
+
 # Observability Guide
 
 Load this context when adding logging, metrics, or monitoring.
@@ -65,6 +70,7 @@ management:
 ```
 
 Endpoints:
+
 - `/actuator/health` - Health check
 - `/actuator/metrics` - Application metrics
 - `/actuator/prometheus` - Prometheus format metrics
@@ -75,14 +81,15 @@ Endpoints:
 
 **Single Source of Truth**: `infra/monitoring/`
 
-| Tool | Purpose |
-|------|---------|
+| Tool       | Purpose            |
+|------------|--------------------|
 | Prometheus | Metrics collection |
-| Grafana | Dashboards |
+| Grafana    | Dashboards         |
 
 ### Important Note
 
-Prometheus also collects **load-test metrics**. Do not modify the monitoring setup without considering load testing impact.
+Prometheus also collects **load-test metrics**. Do not modify the monitoring setup without
+considering load testing impact.
 
 ---
 

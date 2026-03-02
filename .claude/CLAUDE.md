@@ -52,15 +52,17 @@ docker compose down                # Stop containers
 
 ## Pre-Task Checklist (Mandatory)
 
-Before starting any task, load the relevant context document:
+Before starting any task, load the relevant skill (auto-loaded based on context, or invoke via slash
+command):
 
-| Task Type           | Required Document                |
-|---------------------|----------------------------------|
-| Writing tests       | `@.claude/docs/TESTING.md`       |
-| API development     | `@.claude/docs/API_PATTERNS.md`  |
-| Architecture/Design | `@.claude/docs/ARCHITECTURE.md`  |
-| Configuration       | `@.claude/docs/CONFIGURATION.md` |
-| Logging/Metrics     | `@.claude/docs/OBSERVABILITY.md` |
+| Task Type           | Skill (slash command) |
+|---------------------|-----------------------|
+| Writing tests       | `/testing`            |
+| API development     | `/api-patterns`       |
+| Architecture/Design | `/architecture`       |
+| Configuration       | `/configuration`      |
+| Logging/Metrics     | `/observability`      |
+| S3 uploads/Media    | `/presigned-url-flow` |
 
 ---
 
@@ -76,14 +78,15 @@ Before starting any task, load the relevant context document:
 
 ### ✅ ALWAYS DO
 
-| Practice                           | Reason                                    |
-|------------------------------------|-------------------------------------------|
-| Wrap responses in `BaseResponse`   | Consistent API format                     |
-| Use `BusinessException` for errors | Centralized error handling                |
-| Write E2E tests for new endpoints  | Quality assurance                         |
-| Follow existing package structure  | Maintainability                           |
-| Run `spotlessApply` before commit  | Code style consistency                    |
-| Delete dependent entities first    | Prevents orphan records and FK violations |
+| Practice                                     | Reason                                                                                           |
+|----------------------------------------------|--------------------------------------------------------------------------------------------------|
+| Wrap responses in `BaseResponse`             | Consistent API format                                                                            |
+| Use `BusinessException` for errors           | Centralized error handling                                                                       |
+| Write E2E tests for new endpoints            | Quality assurance                                                                                |
+| Follow existing package structure            | Maintainability                                                                                  |
+| Run `spotlessApply` before commit            | Code style consistency                                                                           |
+| Delete dependent entities first              | Prevents orphan records and FK violations                                                        |
+| Add Flyway migration when changing DB schema | `@Column` length, type, constraint 변경 시 `src/main/resources/db/migration/` 에 다음 버전의 SQL 파일 추가 필수 |
 
 ---
 
@@ -104,17 +107,18 @@ Before starting any task, load the relevant context document:
 
 ---
 
-## Context Loading Guide
+## Skills (Auto-loaded Context)
 
-Load additional context as needed using `@` references:
+Skills are auto-loaded when relevant tasks are detected, or can be invoked manually:
 
-| Task                | Load Command                     |
-|---------------------|----------------------------------|
-| Writing tests       | `@.claude/docs/TESTING.md`       |
-| API development     | `@.claude/docs/API_PATTERNS.md`  |
-| Architecture/Design | `@.claude/docs/ARCHITECTURE.md`  |
-| Configuration       | `@.claude/docs/CONFIGURATION.md` |
-| Logging/Metrics     | `@.claude/docs/OBSERVABILITY.md` |
+| Skill                | Slash Command         | Auto-loads When                                   |
+|----------------------|-----------------------|---------------------------------------------------|
+| `api-patterns`       | `/api-patterns`       | API endpoint development, request/response design |
+| `architecture`       | `/architecture`       | New domain/module design, Clean Architecture      |
+| `configuration`      | `/configuration`      | Environment settings, profiles, secrets           |
+| `observability`      | `/observability`      | Logging, metrics, monitoring                      |
+| `testing`            | `/testing`            | Writing tests, test coverage                      |
+| `presigned-url-flow` | `/presigned-url-flow` | S3 upload, media/image handling                   |
 
 ### Quick File Reference
 

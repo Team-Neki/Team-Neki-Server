@@ -1,3 +1,8 @@
+---
+name: configuration
+description: Load when working with environment settings, application profiles (local/staging/prod), Jasypt encryption, secrets management, or infrastructure configuration.
+---
+
 # Configuration Guide
 
 Load this context when setting up environments, managing secrets, or modifying infrastructure.
@@ -6,11 +11,11 @@ Load this context when setting up environments, managing secrets, or modifying i
 
 ## Environment Profiles
 
-| Profile | Infrastructure | Usage |
-|---------|---------------|-------|
-| `local` | Docker Compose | Local development |
-| `staging` | k3s (Linux) | Pre-production testing |
-| `prod` | k3s (Linux) | Production |
+| Profile   | Infrastructure | Usage                  |
+|-----------|----------------|------------------------|
+| `local`   | Docker Compose | Local development      |
+| `staging` | k3s (Linux)    | Pre-production testing |
+| `prod`    | k3s (Linux)    | Production             |
 
 ### Local Development Setup
 
@@ -67,13 +72,13 @@ class JasyptConfig {
 
 ## Configuration File Locations
 
-| Type | Location |
-|------|----------|
-| Application settings | `src/main/resources/application.yml` |
-| Profile-specific | `src/main/resources/application-{profile}.yml` |
-| Infrastructure configs | `src/main/kotlin/com/neki/common/infra/config/` |
-| Security configs | `src/main/kotlin/com/neki/auth/infra/security/` |
-| Swagger config | `src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt` |
+| Type                   | Location                                                        |
+|------------------------|-----------------------------------------------------------------|
+| Application settings   | `src/main/resources/application.yml`                            |
+| Profile-specific       | `src/main/resources/application-{profile}.yml`                  |
+| Infrastructure configs | `src/main/kotlin/com/neki/common/infra/config/`                 |
+| Security configs       | `src/main/kotlin/com/neki/auth/infra/security/`                 |
+| Swagger config         | `src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt` |
 
 ---
 

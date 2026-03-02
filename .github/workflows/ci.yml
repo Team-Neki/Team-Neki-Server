@@ -81,3 +81,75 @@ jobs:
       - name: Success Message
         if: steps.test.outcome == 'success'
         run: echo "✅ All tests passed!"
+
+  spotless-check:
+    name: Code Format Check (Spotless)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Spotless Check
+        id: spotless
+        run: ./gradlew spotlessCheck --no-daemon
+        continue-on-error: true
+
+      - name: Comment PR with Spotless Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const outcome = '${{ steps.spotless.outcome }}';
+            const icon = outcome === 'success' ? '✅' : '❌';
+            const status = outcome === 'success' ? 'PASSED' : 'FAILED';
+
+            const output = `#### Code Format Check ${icon} \`${status}\`
+
+            **Spotless Check**: \`${{ steps.spotless.outcome }}\`
+
+            ${outcome === 'failure' ? `
+            ⚠️ **Code formatting issues detected!**
+
+            Please run the following command to fix formatting issues:
+            \`\`\`bash
+            ./gradlew spotlessApply
+            \`\`\`
+
+            Then commit the changes and push again.
+            ` : '✨ All code formatting checks passed!'}
+
+            ---
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Spotless Check Status
+        if: steps.spotless.outcome == 'failure'
+        run: |
+          echo "❌ Spotless check failed!"
+          echo "Please run './gradlew spotlessApply' to fix formatting issues."
+          exit 1
+
+      - name: Success Message
+        if: steps.spotless.outcome == 'success'
+        run: echo "✅ All code formatting checks passed!"

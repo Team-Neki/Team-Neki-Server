@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 /**
  * fileName       : NicknameGenerator
  * author         : koo
- * date           : 2026. 1. 28.
+ * date           : 2026. 2. 28.
  * description    : 랜덤 닉네임 생성기 구현체
  */
 @Component
@@ -30,22 +30,24 @@ class NicknameGenerator(private val userRepository: UserRepository) : NicknameGe
         private const val MIN_NUMBER = 1
         private const val MAX_NUMBER = 99
         private const val FALLBACK_MODULO = 100
+        private const val MAX_LENGTH = 10
     }
 
     override fun generateUniqueNickname(): String {
-        val adjective: String = ADJECTIVES.random()
-        val noun: String = NOUNS.random()
-        val baseName = "$adjective $noun"
-
         repeat(MAX_RETRY_COUNT) {
+            val adjective: String = ADJECTIVES.random()
+            val noun: String = NOUNS.random()
             val number: Int = (MIN_NUMBER..MAX_NUMBER).random()
-            val nickname = "$baseName-$number"
-            if (!userRepository.existsByName(nickname)) {
+            val nickname = "$adjective$noun-$number"
+            if (nickname.length <= MAX_LENGTH && !userRepository.existsByName(nickname)) {
                 return nickname
             }
         }
 
         // fallback: 타임스탬프 기반 2자리
-        return "$baseName-${System.currentTimeMillis() % FALLBACK_MODULO}"
+        val adjective = ADJECTIVES.random()
+        val noun = NOUNS.random()
+        val nickname = "$adjective$noun-${System.currentTimeMillis() % FALLBACK_MODULO}"
+        return nickname.take(MAX_LENGTH)
     }
 }
