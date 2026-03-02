@@ -1,3 +1,8 @@
+---
+name: testing
+description: Load when writing tests, modifying test infrastructure, working with E2E test base classes, or improving test coverage.
+---
+
 # Testing Guide
 
 Load this context when writing or modifying tests.
@@ -6,12 +11,13 @@ Load this context when writing or modifying tests.
 
 ## Test Strategy
 
-| Type | When to Write | Coverage Goal |
-|------|---------------|---------------|
-| **E2E** | Required for ALL API endpoints | 100% endpoint coverage |
-| **Unit** | Complex logic, exception-heavy code | Selective |
+| Type     | When to Write                       | Coverage Goal          |
+|----------|-------------------------------------|------------------------|
+| **E2E**  | Required for ALL API endpoints      | 100% endpoint coverage |
+| **Unit** | Complex logic, exception-heavy code | Selective              |
 
-**Philosophy**: Prefer E2E tests over unit tests. Unit tests only when logic is complex enough to warrant isolated testing.
+**Philosophy**: Prefer E2E tests over unit tests. Unit tests only when logic is complex enough to
+warrant isolated testing.
 
 ---
 
@@ -151,12 +157,12 @@ class MyE2ETest : E2ETestBase() {
 
 ## Testing Tools
 
-| Tool | Purpose |
-|------|---------|
-| **Kotest** | Test framework with DSL |
-| **MockK** | Mocking library for Kotlin |
-| **RestAssured** | HTTP testing |
-| **Testcontainers** | Database containers |
+| Tool               | Purpose                    |
+|--------------------|----------------------------|
+| **Kotest**         | Test framework with DSL    |
+| **MockK**          | Mocking library for Kotlin |
+| **RestAssured**    | HTTP testing               |
+| **Testcontainers** | Database containers        |
 
 ---
 
@@ -181,10 +187,12 @@ fun jasyptGeneratTest() {
 ### Organization Rules
 
 1. **Shared helpers go in base classes** - Don't duplicate helper methods across test files
-2. **Domain-specific helpers in domain base** - E.g., `createFavoritePhotoImage` in `PhotoImageE2ETestBase`
+2. **Domain-specific helpers in domain base** - E.g., `createFavoritePhotoImage` in
+   `PhotoImageE2ETestBase`
 3. **Test-specific helpers stay local** - Only create local helpers if truly test-specific
 
 **Example:**
+
 ```kotlin
 // ✅ GOOD: Helper in base class
 abstract class PhotoImageE2ETestBase : E2ETestBase() {
@@ -203,7 +211,8 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
 
 // ❌ BAD: Duplicating same helper in multiple test files
 class GetFavoritePhotosE2ETest : PhotoImageE2ETestBase() {
-    fun createFavoritePhotoImage(...) { /* duplicate! */ }
+    fun createFavoritePhotoImage(...) { /* duplicate! */
+    }
 }
 ```
 
