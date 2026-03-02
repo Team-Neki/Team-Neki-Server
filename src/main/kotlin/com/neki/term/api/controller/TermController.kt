@@ -6,6 +6,8 @@ import com.neki.term.api.converter.TermCommandConverter
 import com.neki.term.api.converter.TermResultConverter
 import com.neki.term.api.dto.CreateTermAgreementsRequest
 import com.neki.term.api.dto.GetTermsResponse
+import com.neki.term.application.command.CreateTermAgreementsCommand
+import com.neki.term.application.result.GetTermsResult
 import com.neki.term.application.usecase.CreateTermAgreementsUseCase
 import com.neki.term.application.usecase.GetTermsUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -34,8 +36,8 @@ class TermController(
     )
     @GetMapping
     fun getTerms(): BaseResponse<GetTermsResponse> {
-        val result = getTermsUseCase.execute()
-        val response = resultConverter.toGetTermsResponse(result)
+        val result: GetTermsResult = getTermsUseCase.execute()
+        val response: GetTermsResponse = resultConverter.toGetTermsResponse(result)
         return BaseResponse(data = response)
     }
 
@@ -49,7 +51,7 @@ class TermController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: CreateTermAgreementsRequest,
     ): BaseResponse<Any> {
-        val command = commandConverter.toCreateTermAgreementsCommand(userId, request)
+        val command: CreateTermAgreementsCommand = commandConverter.toCreateTermAgreementsCommand(userId, request)
         createTermAgreementsUseCase.execute(command)
         return BaseResponse()
     }

@@ -4,6 +4,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.port.MapApiClientPort
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.web.client.RestClient
@@ -15,7 +16,7 @@ import org.springframework.web.client.RestClient
  * description    : Kakao Local API 클라이언트
  */
 class MapApiClientAdapter(private val apiKey: String, private val restClient: RestClient) : MapApiClientPort {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * Kakao Local API 키워드 검색
@@ -28,7 +29,7 @@ class MapApiClientAdapter(private val apiKey: String, private val restClient: Re
     override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): LocalSearchResult {
         log.info("Kakao API Request - query: {}, page: {}, size: {}, rect: {}", query, page, size, rect)
 
-        val response = restClient.get()
+        val response: KakaoLocalSearchPayload = restClient.get()
             .uri { uriBuilder ->
                 uriBuilder
                     .scheme("https")

@@ -4,6 +4,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.exception.dto.ExceptionMsg
 import com.neki.common.exception.dto.FieldErrorDetail
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -27,7 +28,7 @@ import java.util.function.Consumer
  */
 @RestControllerAdvice
 class ExceptionHandler {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(BusinessException::class)
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {

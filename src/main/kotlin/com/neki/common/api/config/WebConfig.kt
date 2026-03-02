@@ -22,7 +22,7 @@ class WebConfig(private val appProperties: AppProperties) {
         val configuration = CorsConfiguration()
 
         // 허용할 Origin 설정
-        val allowedOrigins = appProperties.cors.allowedOrigins.ifEmpty {
+        val allowedOrigins: List<String> = appProperties.cors.allowedOrigins.ifEmpty {
             listOf("http://localhost:3000", "http://127.0.0.1:3000", "file://")
         }
         configuration.allowedOrigins = allowedOrigins

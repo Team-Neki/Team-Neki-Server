@@ -3,6 +3,7 @@ package com.neki.common.filter
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.web.filter.OncePerRequestFilter
@@ -16,19 +17,19 @@ import org.springframework.web.filter.OncePerRequestFilter
  */
 class RequestLoggingFilter : OncePerRequestFilter() {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        val startTime = System.currentTimeMillis()
+        val startTime: Long = System.currentTimeMillis()
 
         try {
             filterChain.doFilter(request, response)
         } finally {
-            val duration = System.currentTimeMillis() - startTime
+            val duration: Long = System.currentTimeMillis() - startTime
             val status = response.status
 
             MDC.put("logCategory", "API_REQUEST")

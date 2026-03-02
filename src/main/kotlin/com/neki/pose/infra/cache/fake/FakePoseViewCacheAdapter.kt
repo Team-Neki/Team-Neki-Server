@@ -12,7 +12,7 @@ class FakePoseViewCacheAdapter : PoseViewCachePort {
     private val viewers = ConcurrentHashMap<Long, MutableSet<Long>>()
 
     override fun addViewer(poseId: Long, userId: Long): Boolean {
-        val userSet = viewers.computeIfAbsent(poseId) { ConcurrentHashMap.newKeySet() }
+        val userSet: MutableSet<Long> = viewers.computeIfAbsent(poseId) { ConcurrentHashMap.newKeySet() }
         return userSet.add(userId)
     }
 

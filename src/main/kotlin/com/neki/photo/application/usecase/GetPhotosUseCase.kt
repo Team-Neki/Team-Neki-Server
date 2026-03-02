@@ -2,10 +2,12 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.photo.application.command.GetPhotosCommand
+import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.contract.PhotoWithFavorite
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.application.result.GetPhotosResult
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.collections.dropLast
 import kotlin.collections.map
@@ -23,7 +25,7 @@ class GetPhotosUseCase(
     private val mediaClient: MediaClientPort,
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun execute(command: GetPhotosCommand): GetPhotosResult {
         // size + 1개 조회하여 hasNext 판단
@@ -45,18 +47,24 @@ class GetPhotosUseCase(
         val hasNext = photosWithFavorite.size > command.size
 
         // 실제 반환할 사진 목록 (size개만)
-        val photosToReturn = if (hasNext) photosWithFavorite.dropLast(1) else photosWithFavorite
+        val photosToReturn: List<PhotoWithFavorite> = if (hasNext) {
+            photosWithFavorite.dropLast(
+                1,
+            )
+        } else {
+            photosWithFavorite
+        }
 
         // storageKey 조회 (페이징된 결과에 대해서만)
-        val mediaStorageInfos = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
             command.userId,
             photosToReturn.map { it.photo.mediaId },
         )
 
-        val mediaByFileId = mediaStorageInfos.associateBy { it.mediaId }
+        val mediaByFileId: Map<Long, MediaStorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result = photosToReturn.mapNotNull { (photo, isFavorite) ->
+        val result: List<GetPhotosResult.PhotoInfo> = photosToReturn.mapNotNull { (photo, isFavorite) ->
             val media = mediaByFileId[photo.mediaId]
                 ?: run {
                     log.info(

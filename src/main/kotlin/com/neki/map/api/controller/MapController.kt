@@ -11,6 +11,13 @@ import com.neki.map.api.dto.GetPointLocationRequest
 import com.neki.map.api.dto.GetPointLocationResponse
 import com.neki.map.api.dto.GetPolygonLocationRequest
 import com.neki.map.api.dto.GetPolygonLocationResponse
+import com.neki.map.application.command.CollectPhotoBoothCommand
+import com.neki.map.application.command.GetPointLocationCommand
+import com.neki.map.application.command.GetPolygonLocationCommand
+import com.neki.map.application.result.CollectPhotoBoothResult
+import com.neki.map.application.result.GetBrandResult
+import com.neki.map.application.result.GetPointLocationResult
+import com.neki.map.application.result.GetPolygonLocationResult
 import com.neki.map.application.usecase.CollectPhotoBoothLocationUseCase
 import com.neki.map.application.usecase.GetBrandUseCase
 import com.neki.map.application.usecase.GetPhotoBoothLocationUseCase
@@ -50,9 +57,9 @@ class MapController(
     )
     @GetMapping("/brand")
     fun getBrand(): BaseResponse<List<GetBrandResponse>> {
-        val result = getBrandUseCase.execute()
+        val result: List<GetBrandResult> = getBrandUseCase.execute()
 
-        val response = resultConverter.toGetBrandResponse(result)
+        val response: List<GetBrandResponse> = resultConverter.toGetBrandResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -69,11 +76,11 @@ class MapController(
     fun collectPhotoBooths(
         @Valid @RequestBody request: CollectPhotoBoothRequest,
     ): BaseResponse<CollectPhotoBoothResponse> {
-        val command = commandConverter.toCollectPhotoBoothCommand(request)
+        val command: CollectPhotoBoothCommand = commandConverter.toCollectPhotoBoothCommand(request)
 
-        val result = collectPhotoBoothLocationUseCase.execute(command)
+        val result: CollectPhotoBoothResult = collectPhotoBoothLocationUseCase.execute(command)
 
-        val response = resultConverter.toCollectPhotoBoothResponse(result)
+        val response: CollectPhotoBoothResponse = resultConverter.toCollectPhotoBoothResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -91,11 +98,11 @@ class MapController(
     fun getPhotoBoothsByPolygon(
         @Valid @RequestBody request: GetPolygonLocationRequest,
     ): BaseResponse<GetPolygonLocationResponse> {
-        val command = commandConverter.toGetPolygonLocationCommand(request)
+        val command: GetPolygonLocationCommand = commandConverter.toGetPolygonLocationCommand(request)
 
-        val result = getPhotoBoothLocationUseCase.execute(command)
+        val result: GetPolygonLocationResult = getPhotoBoothLocationUseCase.execute(command)
 
-        val response = resultConverter.toGetPolygonLocationResponse(result)
+        val response: GetPolygonLocationResponse = resultConverter.toGetPolygonLocationResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -113,11 +120,11 @@ class MapController(
     fun getPhotoBoothsByPoint(
         @Valid @RequestBody request: GetPointLocationRequest,
     ): BaseResponse<GetPointLocationResponse> {
-        val command = commandConverter.toGetPointLocationCommand(request)
+        val command: GetPointLocationCommand = commandConverter.toGetPointLocationCommand(request)
 
-        val result = getPhotoBoothLocationUseCase.execute(command)
+        val result: GetPointLocationResult = getPhotoBoothLocationUseCase.execute(command)
 
-        val response = resultConverter.toGetPointLocationResponse(result)
+        val response: GetPointLocationResponse = resultConverter.toGetPointLocationResponse(result)
 
         return BaseResponse(data = response)
     }

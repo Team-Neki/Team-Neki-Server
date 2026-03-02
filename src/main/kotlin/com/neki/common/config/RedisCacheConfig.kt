@@ -70,7 +70,7 @@ class RedisCacheConfig(private val objectMapper: ObjectMapper) {
         template.hashKeySerializer = StringRedisSerializer()
 
         // Value는 ByteArray로 직렬화 (이미지 바이너리 데이터)
-        val byteArraySerializer = RedisSerializer.byteArray()
+        val byteArraySerializer: RedisSerializer<ByteArray> = RedisSerializer.byteArray()
         template.valueSerializer = byteArraySerializer
         template.hashValueSerializer = byteArraySerializer
 

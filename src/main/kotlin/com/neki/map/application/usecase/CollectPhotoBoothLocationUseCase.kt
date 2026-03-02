@@ -12,6 +12,7 @@ import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.application.result.CollectPhotoBoothResult
 import com.neki.map.domain.entity.PhotoBoothLocation
 import com.neki.map.domain.vo.GeoPoint
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
@@ -27,7 +28,7 @@ class CollectPhotoBoothLocationUseCase(
     private val transactionRunner: TransactionRunner,
     private val mapSearch: MapSearchPort,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun execute(command: CollectPhotoBoothCommand): CollectPhotoBoothResult {
         log.info(
@@ -48,7 +49,7 @@ class CollectPhotoBoothLocationUseCase(
         log.info("Existing locations count: {}", existingLocations.size)
 
         // 2. 카카오 API에서 검색 (인프라 계층에서 rate limiting, retry 처리)
-        val places = mapSearch.searchAllKorea(command.keyword)
+        val places: List<LocalSearchResult.Place> = mapSearch.searchAllKorea(command.keyword)
 
         // 3. 도메인 엔티티로 변환
         val processed = places.associateBy({ it.id }) { place ->
@@ -84,9 +85,9 @@ class CollectPhotoBoothLocationUseCase(
         processed: Map<String, PhotoBoothLocation>,
         existingLocations: Map<String, PhotoBoothLocation>,
     ): CollectPhotoBoothResult {
-        val insertCount = processed.keys.count { it !in existingLocations }
-        val updateCount = processed.keys.count { it in existingLocations }
-        val toDelete = existingLocations.values.filter { it.mapId !in processed }
+        val insertCount: Int = processed.keys.count { it !in existingLocations }
+        val updateCount: Int = processed.keys.count { it in existingLocations }
+        val toDelete: List<PhotoBoothLocation> = existingLocations.values.filter { it.mapId !in processed }
 
         log.info("Batch processing - insert: {}, update: {}, delete: {}", insertCount, updateCount, toDelete.size)
 

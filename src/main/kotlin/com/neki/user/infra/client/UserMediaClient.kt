@@ -9,6 +9,7 @@ import com.neki.media.application.usecase.DeleteMediaUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
 import com.neki.user.application.contract.MediaAvailability
 import com.neki.user.application.port.MediaClientPort
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -25,7 +26,7 @@ class UserMediaClient(
     private val getMediaStorageInfoUseCase: GetMediaStorageInfoUseCase,
 ) : MediaClientPort {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun deleteMedia(ownerId: Long, mediaId: Long) {
         runCatching {
@@ -41,7 +42,7 @@ class UserMediaClient(
     }
 
     override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability {
-        val result = confirmMediaUploadedUseCase.execute(
+        val result: ConfirmMediasUploadedResult = confirmMediaUploadedUseCase.execute(
             ConfirmMediasUploadedCommand(
                 ownerId = ownerId,
                 mediaIds = listOf(mediaId),

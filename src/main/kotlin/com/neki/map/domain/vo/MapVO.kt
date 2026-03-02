@@ -28,7 +28,7 @@ data class GeoPoint(val point: Point) {
                 "latitude must be between -90 and 90"
             }
 
-            val point = geometryFactory.createPoint(Coordinate(longitude, latitude))
+            val point: Point = geometryFactory.createPoint(Coordinate(longitude, latitude))
 
             return GeoPoint(point)
         }

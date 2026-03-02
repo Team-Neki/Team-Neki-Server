@@ -3,10 +3,13 @@ package com.neki.photo.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.photo.application.command.GetFavoriteSummaryCommand
+import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.application.result.GetFavoriteSummaryResult
+import com.neki.photo.domain.entity.PhotoImage
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
@@ -24,10 +27,10 @@ class GetFavoriteSummaryUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     fun execute(command: GetFavoriteSummaryCommand): GetFavoriteSummaryResult {
-        val totalCount = transactionRunner.readOnly {
+        val totalCount: Long = transactionRunner.readOnly {
             favoriteImageRepository.countByUserId(command.userId)
         }
 
@@ -35,7 +38,7 @@ class GetFavoriteSummaryUseCase(
             return GetFavoriteSummaryResult(storageKey = null, totalCount = 0)
         }
 
-        val latestPhoto = transactionRunner.readOnly {
+        val latestPhoto: PhotoImage? = transactionRunner.readOnly {
             photoImageRepository.getLatestFavoritePhoto(command.userId)
         }
 
@@ -44,12 +47,12 @@ class GetFavoriteSummaryUseCase(
             return GetFavoriteSummaryResult(storageKey = null, totalCount = totalCount)
         }
 
-        val mediaStorageInfos = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
             command.userId,
             listOf(latestPhoto.mediaId),
         )
 
-        val media = mediaStorageInfos.firstOrNull()
+        val media: MediaStorageInfo? = mediaStorageInfos.firstOrNull()
         if (media == null) {
             log.info("Media not found yet. photoId=${latestPhoto.id}, mediaId=${latestPhoto.mediaId}")
             return GetFavoriteSummaryResult(storageKey = null, totalCount = totalCount)

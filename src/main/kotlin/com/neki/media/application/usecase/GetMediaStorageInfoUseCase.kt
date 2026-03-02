@@ -6,6 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.media.application.command.GetMediaStorageInfoCommand
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.result.GetMediaStorageInfoResult
+import com.neki.media.domain.entity.Media
 
 /**
  * fileName       : GetMediaStorageInfoUseCase
@@ -17,7 +18,7 @@ import com.neki.media.application.result.GetMediaStorageInfoResult
 class GetMediaStorageInfoUseCase(private val mediaRepository: MediaRepositoryPort) {
 
     fun execute(command: GetMediaStorageInfoCommand): GetMediaStorageInfoResult {
-        val media = command.ownerId?.let {
+        val media: Media? = command.ownerId?.let {
             mediaRepository.getActiveMedia(command.ownerId, command.mediaId)
         } ?: mediaRepository.getActiveMedia(command.mediaId)
 

@@ -16,12 +16,12 @@ import org.springframework.stereotype.Component
 class AppVersionCommandConverter {
 
     fun toGetAppVersionCommand(platformStr: String): GetAppVersionCommand {
-        val platformEnum = Platform.from(platformStr)
+        val platformEnum: Platform = Platform.from(platformStr)
         return GetAppVersionCommand(platformEnum)
     }
 
     fun toUpdateAppVersionCommand(platformStr: String, request: UpdateAppVersionRequest): UpdateAppVersionCommand {
-        val platformEnum = Platform.from(platformStr)
+        val platformEnum: Platform = Platform.from(platformStr)
         return UpdateAppVersionCommand(
             platform = platformEnum,
             minVersion = request.minVersion,

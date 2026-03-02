@@ -2,6 +2,7 @@ package com.neki.map.infra.client
 
 import com.neki.map.application.port.MediaClientPort
 import com.neki.media.application.command.GetMediaStorageInfosCommand
+import com.neki.media.application.result.GetMediaStorageInfosResult
 import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
 import com.neki.photo.application.contract.MediaStorageInfo
 import org.springframework.stereotype.Component
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Component
 @Component
 class MapMediaClient(private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase) : MediaClientPort {
     override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo> {
-        val result = getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(null, mediaIds))
+        val result: GetMediaStorageInfosResult = getMediaStorageInfosUseCase.execute(
+            GetMediaStorageInfosCommand(null, mediaIds),
+        )
 
         return result.storageInfos.map {
             MediaStorageInfo(

@@ -6,6 +6,7 @@ import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.GetMediasResult
+import com.neki.media.domain.entity.Media
 
 /**
  * fileName       : GetMediasUseCase
@@ -22,9 +23,9 @@ class GetMediasUseCase(
 ) {
 
     fun execute(command: GetMediasCommand): GetMediasResult {
-        val medias = mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
+        val medias: List<Media> = mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
 
-        val mediaInfos = medias.map { it ->
+        val mediaInfos: List<GetMediasResult.MediaInfo> = medias.map { it ->
             val storageKey = it.storageKey
 
             val binaryData = if (it.mediaType.isCacheable) {

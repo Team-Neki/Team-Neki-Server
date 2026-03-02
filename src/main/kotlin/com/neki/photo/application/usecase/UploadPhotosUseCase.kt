@@ -32,12 +32,12 @@ class UploadPhotosUseCase(
         validateNoDuplicateMediaIds(command.uploads)
         validateFolderOwnership(command.userId, command.folderId)
 
-        val newUploads = filterNewUploads(command.uploads)
+        val newUploads: List<UploadPhotoCommand.UploadItem> = filterNewUploads(command.uploads)
         if (newUploads.isEmpty()) return
 
-        val newMediaIds = newUploads.map { it.mediaId }
+        val newMediaIds: List<Long> = newUploads.map { it.mediaId }
 
-        val availabilities = mediaClient.verifyMediasUploaded(
+        val availabilities: Map<Long, MediaAvailability> = mediaClient.verifyMediasUploaded(
             ownerId = command.userId,
             mediaIds = newMediaIds,
         )
@@ -54,7 +54,7 @@ class UploadPhotosUseCase(
 
         try {
             transactionRunner.run {
-                val savedPhotos = photoImageRepository.saveAll(photos)
+                val savedPhotos: List<PhotoImage> = photoImageRepository.saveAll(photos)
                 if (command.favorite) {
                     favoriteImageRepository.addAll(command.userId, savedPhotos.map { it.id!! })
                 }
@@ -70,14 +70,14 @@ class UploadPhotosUseCase(
     }
 
     private fun filterNewUploads(uploads: List<UploadPhotoCommand.UploadItem>): List<UploadPhotoCommand.UploadItem> {
-        val mediaIds = uploads.map { it.mediaId }
-        val existingMediaIds = photoImageRepository.getRegisteredMediaIds(mediaIds)
+        val mediaIds: List<Long> = uploads.map { it.mediaId }
+        val existingMediaIds: Set<Long> = photoImageRepository.getRegisteredMediaIds(mediaIds)
         return uploads.filter { it.mediaId !in existingMediaIds }
     }
 
     private fun validateNoDuplicateMediaIds(uploads: List<UploadPhotoCommand.UploadItem>) {
-        val mediaIds = uploads.map { it.mediaId }
-        val duplicates = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
+        val mediaIds: List<Long> = uploads.map { it.mediaId }
+        val duplicates: Set<Long> = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
 
         if (duplicates.isNotEmpty()) {
             throw BusinessException(ResultCode.INVALID_PARAMETER)
@@ -92,12 +92,12 @@ class UploadPhotosUseCase(
     }
 
     private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaAvailability>) {
-        val unavailableMediaIds = availabilities
+        val unavailableMediaIds: Set<Long> = availabilities
             .filter { it.value != MediaAvailability.AVAILABLE }
             .keys
 
         if (unavailableMediaIds.isNotEmpty()) {
-            val successfulMediaIds = availabilities
+            val successfulMediaIds: List<Long> = availabilities
                 .filter { it.value == MediaAvailability.AVAILABLE }
                 .keys
                 .toList()

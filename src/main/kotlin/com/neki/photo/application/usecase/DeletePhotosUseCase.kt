@@ -6,6 +6,7 @@ import com.neki.photo.application.command.DeletePhotosCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.domain.entity.PhotoImage
 
 /**
  * fileName       : DeletePhotoUseCase
@@ -23,7 +24,7 @@ class DeletePhotosUseCase(
 ) {
 
     fun execute(command: DeletePhotosCommand) {
-        val deletedPhotos = transactionRunner.run {
+        val deletedPhotos: List<PhotoImage> = transactionRunner.run {
             favoriteImageRepository.deleteAll(command.userId, command.photoIds)
 
             photoImageRepository.deleteOwnedPhotos(

@@ -65,14 +65,14 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
         platform: Platform,
     ): OauthInfoPayload {
         // Step 1: 헤더에서 kid 추출
-        val kid = extractKidFromTokenHeader(idToken)
+        val kid: String = extractKidFromTokenHeader(idToken)
 
         // Step 2: kid로 jwks 조회
-        val publicKey = findPublicKeyByKid(publicKeys.keys, kid)
+        val publicKey: OIDCPublicKeyDto = findPublicKeyByKid(publicKeys.keys, kid)
 
         // Step 3-6: 토큰 검증 및 Claims 추출
         // Apple은 플랫폼 구분 불필요, 동일한 clientId 사용
-        val payload = validateTokenAndExtractPayload(
+        val payload: OIDCDecodePayload = validateTokenAndExtractPayload(
             token = idToken,
             publicKey = publicKey,
             expectedIssuer = oauthProperties.apple.issuer,

@@ -6,6 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.version.application.command.GetAppVersionCommand
 import com.neki.version.application.port.AppVersionRepositoryPort
 import com.neki.version.application.result.GetAppVersionResult
+import com.neki.version.domain.entity.AppVersion
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -19,7 +20,7 @@ class GetAppVersionUseCase(private val appVersionRepository: AppVersionRepositor
 
     @Transactional(readOnly = true)
     fun execute(command: GetAppVersionCommand): GetAppVersionResult {
-        val appVersion = appVersionRepository.findByPlatform(command.platform)
+        val appVersion: AppVersion = appVersionRepository.findByPlatform(command.platform)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
         return GetAppVersionResult(

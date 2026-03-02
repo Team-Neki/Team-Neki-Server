@@ -4,6 +4,7 @@ import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.port.MapApiClientPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.domain.vo.GeographicKoreaBounds
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSearchPort {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
         private const val PAGE_SIZE = 15
@@ -26,21 +27,21 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
      * 한국 전역을 그리드로 나누어 검색
      */
     override fun searchAllKorea(keyword: String): List<LocalSearchResult.Place> {
-        val grids = GeographicKoreaBounds.divideIntoGrids()
+        val grids: List<GeographicKoreaBounds> = GeographicKoreaBounds.divideIntoGrids()
         val allPlaces = mutableMapOf<String, LocalSearchResult.Place>()
 
         grids.forEachIndexed { index, grid ->
             if (index > 0) {
                 val delayMin = KakaoApiRateLimitProperties.DEFAULT.gridDelayMin
                 val delayMax = KakaoApiRateLimitProperties.DEFAULT.gridDelayMax
-                val gridDelay = (delayMin..delayMax).random()
+                val gridDelay: Long = (delayMin..delayMax).random()
                 log.debug("Waiting {}ms before next grid...", gridDelay)
                 Thread.sleep(gridDelay)
             }
 
             log.info("Processing grid {}/{} - rect: {}", index + 1, grids.size, grid.toRectString())
 
-            val gridPlaces = searchInGrid(keyword, grid.toRectString())
+            val gridPlaces: List<LocalSearchResult.Place> = searchInGrid(keyword, grid.toRectString())
             gridPlaces.forEach { place ->
                 allPlaces[place.id] = place
             }
@@ -66,7 +67,7 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
         log.debug("Initial delay {}ms before first API call", KakaoApiRateLimitProperties.DEFAULT.initialDelay)
 
         // 첫 페이지 조회
-        val firstPageResponse = fetchPageWithRetry(keyword, 1, rect, skipDelay = true)
+        val firstPageResponse: LocalSearchResult = fetchPageWithRetry(keyword, 1, rect, skipDelay = true)
         val lastPage = firstPageResponse.searchPaginationMeta.pageableCount
 
         log.debug(
@@ -80,17 +81,17 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
         var previousPageIds: Set<String>? = null
 
         // 첫 페이지 처리
-        val firstPageIds = firstPageResponse.documents.map { it.id }.toSet()
+        val firstPageIds: Set<String> = firstPageResponse.documents.map { it.id }.toSet()
         allPlaces.addAll(firstPageResponse.documents)
         previousPageIds = firstPageIds
 
         // 2페이지부터 조회
         for (page in 2..lastPage) {
-            val response = fetchPageWithRetry(keyword, page, rect)
+            val response: LocalSearchResult = fetchPageWithRetry(keyword, page, rect)
 
             log.debug("Page {} - Documents: {}", page, response.documents.size)
 
-            val currentPageIds = response.documents.map { it.id }.toSet()
+            val currentPageIds: Set<String> = response.documents.map { it.id }.toSet()
             if (currentPageIds == previousPageIds) {
                 log.debug("Page {} has same results as previous page. Stopping pagination.", page)
                 break
@@ -118,7 +119,7 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
                 if (!skipDelay && page > 1) {
                     val pageDelayMin = KakaoApiRateLimitProperties.DEFAULT.pageDelayMin
                     val pageDelayMax = KakaoApiRateLimitProperties.DEFAULT.pageDelayMax
-                    val delayMillis = (pageDelayMin..pageDelayMax).random()
+                    val delayMillis: Long = (pageDelayMin..pageDelayMax).random()
                     Thread.sleep(delayMillis)
                     log.debug("Delayed {}ms before requesting page {}", delayMillis, page)
                 }
