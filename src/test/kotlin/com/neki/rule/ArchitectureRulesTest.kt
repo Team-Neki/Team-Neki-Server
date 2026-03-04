@@ -19,18 +19,16 @@ class ArchitectureRulesTest {
 
     companion object {
         private val ALL_DOMAIN_PACKAGES = listOf(
-            "com.neki.auth",
             "com.neki.user",
             "com.neki.photo",
             "com.neki.media",
             "com.neki.pose",
             "com.neki.map",
-            "com.neki.term",
-            "com.neki.version",
+            "com.neki.support",
         )
 
-        /** 격리 검증 대상 도메인 (auth, user, map은 알려진 예외로 제외) */
-        private val ISOLATED_DOMAINS = listOf("photo", "media", "pose", "term", "version")
+        /** 격리 검증 대상 도메인 (user, map은 알려진 예외로 제외) */
+        private val ISOLATED_DOMAINS = listOf("photo", "media", "pose", "support")
 
         private fun domainApiPackages(): Array<String> = ALL_DOMAIN_PACKAGES.map { "$it.api.." }.toTypedArray()
 
@@ -92,15 +90,15 @@ class ArchitectureRulesTest {
                 .check(importedClasses)
         }
 
-        // TODO: auth 도메인은 application→infra 의존이 존재 (OauthProperties, UserPrincipal)
+        // TODO: user 도메인은 application→infra 의존이 존재 (OauthProperties, UserPrincipal)
         //  장기적으로 리팩토링하여 이 예외를 제거해야 함
         @Test
-        fun `Application 계층은 Infra 계층을 의존할 수 없다 (auth 도메인 제외)`() {
+        fun `Application 계층은 Infra 계층을 의존할 수 없다 (user 도메인 제외)`() {
             noClasses()
                 .that().resideInAnyPackage("..application..")
-                .and().resideOutsideOfPackage("com.neki.auth.application..")
+                .and().resideOutsideOfPackage("com.neki.user.application..")
                 .should().dependOnClassesThat().resideInAnyPackage("..infra..")
-                .because("Application layer must not depend on Infrastructure layer (auth domain excluded)")
+                .because("Application layer must not depend on Infrastructure layer (user domain excluded)")
                 .check(importedClasses)
         }
 
@@ -134,7 +132,7 @@ class ArchitectureRulesTest {
     inner class DomainIsolation {
 
         // 위반 없는 도메인에 대해 격리 규칙 적용
-        // auth ↔ user: 문서에 명시된 예외 (인증-사용자 결합)
+        // user: auth 통합으로 인한 예외
         // map → photo: 기존 위반 (MediaClientPort → MediaStorageInfo), 장기적으로 수정 필요
 
         @ParameterizedTest(name = "{0} 도메인은 다른 도메인에 의존할 수 없다")
@@ -228,15 +226,15 @@ class ArchitectureRulesTest {
     @DisplayName("포트/어댑터 패턴 규칙")
     inner class PortAdapterPattern {
 
-        // TODO: auth 도메인은 UseCase→infra 의존이 존재 (OauthProperties, UserPrincipal)
+        // TODO: user 도메인은 UseCase→infra 의존이 존재 (OauthProperties, UserPrincipal)
         //  장기적으로 리팩토링하여 이 예외를 제거해야 함
         @Test
-        fun `@UseCase 클래스는 infra 계층을 의존할 수 없다 (auth 도메인 제외)`() {
+        fun `@UseCase 클래스는 infra 계층을 의존할 수 없다 (user 도메인 제외)`() {
             noClasses()
                 .that().areAnnotatedWith(com.neki.common.annotation.UseCase::class.java)
-                .and().resideOutsideOfPackage("com.neki.auth..")
+                .and().resideOutsideOfPackage("com.neki.user..")
                 .should().dependOnClassesThat().resideInAnyPackage("..infra..")
-                .because("@UseCase classes must depend on ports, not infrastructure (auth domain excluded)")
+                .because("@UseCase classes must depend on ports, not infrastructure (user domain excluded)")
                 .check(importedClasses)
         }
     }

@@ -73,7 +73,7 @@ command):
 | Constraint                            | Reason                                             |
 |---------------------------------------|----------------------------------------------------|
 | Import from other domains             | Breaks module isolation                            |
-| Bypass ports to access infra directly | Violates Clean Architecture (exception: auth/user) |
+| Bypass ports to access infra directly | Violates Clean Architecture (exception: user) |
 | Remove observability code             | Critical for production debugging                  |
 
 ### ✅ ALWAYS DO

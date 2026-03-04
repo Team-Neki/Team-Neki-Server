@@ -1,6 +1,6 @@
 package com.neki.user.infra.generator
 
-import com.neki.auth.application.port.NicknameGeneratorPort
+import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.infra.persist.jpa.UserRepository
 import org.springframework.stereotype.Component
 
