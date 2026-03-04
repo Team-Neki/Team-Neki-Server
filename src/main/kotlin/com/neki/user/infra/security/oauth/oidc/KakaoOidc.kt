@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.oauth.oidc
 
-import com.neki.user.contract.AuthCacheKeys
-import com.neki.user.contract.OIDCPublicKeysPayload
+import com.neki.user.application.contract.AuthCacheKeys
+import com.neki.user.application.contract.OIDCPublicKeysPayload
 import com.neki.user.infra.cache.AuthRedisCacheAdapter
 import com.neki.user.infra.security.config.OauthProperties
 import org.slf4j.LoggerFactory

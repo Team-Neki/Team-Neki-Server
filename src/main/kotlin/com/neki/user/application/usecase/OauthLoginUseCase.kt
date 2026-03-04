@@ -6,8 +6,8 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.user.application.command.RegisterOauthUserCommand
-import com.neki.user.contract.KakaoTokenPayload
-import com.neki.user.contract.OauthInfoPayload
+import com.neki.user.application.contract.KakaoTokenPayload
+import com.neki.user.application.contract.OauthInfoPayload
 import com.neki.user.application.port.AuthTokenProviderPort
 import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort

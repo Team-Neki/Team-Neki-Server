@@ -1,4 +1,4 @@
-package com.neki.user.contract
+package com.neki.user.application.contract
 
 /**
  * fileName       : MediaAvailability

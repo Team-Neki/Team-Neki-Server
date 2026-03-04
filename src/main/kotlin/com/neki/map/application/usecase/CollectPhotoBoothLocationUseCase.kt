@@ -5,7 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
 import com.neki.map.application.command.CollectPhotoBoothCommand
-import com.neki.map.contract.LocalSearchResult
+import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort

@@ -1,4 +1,4 @@
-package com.neki.photo.contract
+package com.neki.photo.application.contract
 
 import com.neki.photo.domain.entity.PhotoImage
 

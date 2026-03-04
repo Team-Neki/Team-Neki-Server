@@ -1,6 +1,6 @@
 package com.neki.user.application.port
 
-import com.neki.user.contract.OIDCPublicKeysPayload
+import com.neki.user.application.contract.OIDCPublicKeysPayload
 import java.time.Duration
 
 /**

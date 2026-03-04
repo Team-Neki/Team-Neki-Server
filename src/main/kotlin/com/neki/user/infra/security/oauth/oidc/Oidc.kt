@@ -1,6 +1,6 @@
 package com.neki.user.infra.security.oauth.oidc
 
-import com.neki.user.contract.OIDCPublicKeysPayload
+import com.neki.user.application.contract.OIDCPublicKeysPayload
 
 /**
  * fileName       : Oidc

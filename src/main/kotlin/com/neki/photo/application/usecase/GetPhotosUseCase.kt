@@ -2,8 +2,8 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.photo.application.command.GetPhotosCommand
-import com.neki.photo.contract.MediaStorageInfo
-import com.neki.photo.contract.PhotoWithFavorite
+import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.contract.PhotoWithFavorite
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.application.result.GetPhotosResult

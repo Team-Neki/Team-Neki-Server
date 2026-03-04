@@ -10,8 +10,8 @@ import com.neki.media.application.result.GetMediaStorageInfosResult
 import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
-import com.neki.pose.contract.MediaAvailability
-import com.neki.pose.contract.MediaStorageInfo
+import com.neki.pose.application.contract.MediaAvailability
+import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.port.MediaClientPort
 import org.springframework.stereotype.Component
 

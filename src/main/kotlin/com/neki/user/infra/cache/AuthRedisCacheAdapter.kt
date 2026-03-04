@@ -1,7 +1,7 @@
 package com.neki.user.infra.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.neki.user.contract.OIDCPublicKeysPayload
+import com.neki.user.application.contract.OIDCPublicKeysPayload
 import com.neki.user.application.port.AuthCachePort
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.core.RedisTemplate

@@ -1,6 +1,6 @@
 package com.neki.map.application.port
 
-import com.neki.map.contract.LocalSearchResult
+import com.neki.map.application.contract.LocalSearchResult
 
 /**
  * fileName       : MapSearchPort

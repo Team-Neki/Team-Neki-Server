@@ -4,7 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.pose.application.command.GetRandomPoseCommand
-import com.neki.pose.contract.MediaStorageInfo
+import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.RandomGeneratorPort

@@ -3,7 +3,7 @@ package com.neki.photo.infra.persist
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.domain.vo.SortOrder
 import com.neki.common.exception.BusinessException
-import com.neki.photo.contract.PhotoWithFavorite
+import com.neki.photo.application.contract.PhotoWithFavorite
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.domain.entity.PhotoImage
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository

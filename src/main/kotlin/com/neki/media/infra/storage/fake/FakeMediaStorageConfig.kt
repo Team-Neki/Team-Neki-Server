@@ -1,6 +1,6 @@
 package com.neki.media.infra.storage.fake
 
-import com.neki.media.contract.UploadTicket
+import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.dto.MediaRef
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.domain.MediaType

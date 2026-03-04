@@ -3,7 +3,7 @@ package com.neki.pose.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.pose.application.command.GetScrapPosesCommand
-import com.neki.pose.contract.MediaStorageInfo
+import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.result.GetPosesResult

@@ -1,4 +1,4 @@
-package com.neki.media.contract
+package com.neki.media.application.contract
 
 import java.time.Instant
 

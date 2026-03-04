@@ -1,6 +1,6 @@
 package com.neki.map.application.port
 
-import com.neki.photo.contract.MediaStorageInfo
+import com.neki.photo.application.contract.MediaStorageInfo
 
 /**
  * fileName       : MediaClient

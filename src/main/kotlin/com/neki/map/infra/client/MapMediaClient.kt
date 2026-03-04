@@ -4,7 +4,7 @@ import com.neki.map.application.port.MediaClientPort
 import com.neki.media.application.command.GetMediaStorageInfosCommand
 import com.neki.media.application.result.GetMediaStorageInfosResult
 import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
-import com.neki.photo.contract.MediaStorageInfo
+import com.neki.photo.application.contract.MediaStorageInfo
 import org.springframework.stereotype.Component
 
 /**

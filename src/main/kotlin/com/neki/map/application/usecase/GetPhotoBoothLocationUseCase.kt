@@ -4,8 +4,8 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.map.application.command.GetPointLocationCommand
 import com.neki.map.application.command.GetPolygonLocationCommand
-import com.neki.map.contract.PhotoBoothLocationDto
-import com.neki.map.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.application.contract.PhotoBoothLocationDto
+import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.application.result.GetPointLocationResult
 import com.neki.map.application.result.GetPolygonLocationResult

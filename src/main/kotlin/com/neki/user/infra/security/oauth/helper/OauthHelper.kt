@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.oauth.helper
 
-import com.neki.user.contract.OIDCPublicKeysPayload
-import com.neki.user.contract.OauthInfoPayload
+import com.neki.user.application.contract.OIDCPublicKeysPayload
+import com.neki.user.application.contract.OauthInfoPayload
 import com.neki.user.domain.enums.Platform
 
 /**

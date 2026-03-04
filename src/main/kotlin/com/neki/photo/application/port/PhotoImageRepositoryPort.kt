@@ -1,7 +1,7 @@
 package com.neki.photo.application.port
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.contract.PhotoWithFavorite
+import com.neki.photo.application.contract.PhotoWithFavorite
 import com.neki.photo.domain.entity.PhotoImage
 
 /**

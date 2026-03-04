@@ -1,7 +1,7 @@
 package com.neki.map.application.result
 
-import com.neki.map.contract.PhotoBoothLocationDto
-import com.neki.map.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.application.contract.PhotoBoothLocationDto
+import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
 
 /**
  * fileName       : MapResult
