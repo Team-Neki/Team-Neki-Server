@@ -1,7 +1,7 @@
 package com.neki.pose.application.port
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.application.contract.PoseWithScrap
+import com.neki.pose.contract.PoseWithScrap
 import com.neki.pose.domain.HeadCount
 import com.neki.pose.domain.entity.Pose
 

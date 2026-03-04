@@ -2,7 +2,7 @@ package com.neki.map.infra.client.kakao
 
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.contract.LocalSearchResult
+import com.neki.map.contract.LocalSearchResult
 import com.neki.map.application.port.MapApiClientPort
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

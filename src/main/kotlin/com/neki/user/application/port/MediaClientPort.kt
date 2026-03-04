@@ -1,6 +1,6 @@
 package com.neki.user.application.port
 
-import com.neki.user.application.contract.MediaAvailability
+import com.neki.user.contract.MediaAvailability
 
 /**
  * fileName       : MediaClientPort

@@ -2,7 +2,7 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.photo.application.command.GetFoldersCommand
-import com.neki.photo.application.contract.FolderWithStats
+import com.neki.photo.contract.FolderWithStats
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.result.GetFoldersResult
 import org.springframework.transaction.annotation.Transactional

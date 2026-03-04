@@ -1,6 +1,6 @@
 package com.neki.media.application.port
 
-import com.neki.media.application.contract.UploadTicket
+import com.neki.media.contract.UploadTicket
 import com.neki.media.application.dto.MediaRef
 
 /**

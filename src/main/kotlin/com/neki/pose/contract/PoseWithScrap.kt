@@ -1,4 +1,4 @@
-package com.neki.pose.application.contract
+package com.neki.pose.contract
 
 import com.neki.pose.domain.entity.Pose
 

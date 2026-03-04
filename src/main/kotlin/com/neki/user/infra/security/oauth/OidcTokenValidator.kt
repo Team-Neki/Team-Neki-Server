@@ -1,9 +1,9 @@
 package com.neki.user.infra.security.oauth
 
 import com.neki.common.exception.BusinessException
-import com.neki.user.application.contract.AuthCacheKeys
-import com.neki.user.application.contract.OIDCPublicKeysPayload
-import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.contract.AuthCacheKeys
+import com.neki.user.contract.OIDCPublicKeysPayload
+import com.neki.user.contract.OauthInfoPayload
 import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.domain.enums.Platform
 import com.neki.user.domain.enums.ProviderType

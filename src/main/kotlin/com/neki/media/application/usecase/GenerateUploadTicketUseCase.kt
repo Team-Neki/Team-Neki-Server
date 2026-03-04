@@ -3,7 +3,7 @@ package com.neki.media.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.media.application.command.GenerateUploadTicketCommand
-import com.neki.media.application.contract.UploadTicket
+import com.neki.media.contract.UploadTicket
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.GenerateUploadTicketResult

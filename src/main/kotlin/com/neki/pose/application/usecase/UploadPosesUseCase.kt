@@ -5,7 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
 import com.neki.pose.application.command.UploadPosesCommand
-import com.neki.pose.application.contract.MediaAvailability
+import com.neki.pose.contract.MediaAvailability
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.domain.entity.Pose

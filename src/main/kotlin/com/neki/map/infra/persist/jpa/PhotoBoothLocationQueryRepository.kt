@@ -1,7 +1,7 @@
 package com.neki.map.infra.persist.jpa
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
-import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.contract.PhotoBoothLocationDto
+import com.neki.map.contract.PhotoBoothLocationWithDistanceDto
 import com.neki.map.domain.entity.QBrand.brand
 import com.neki.map.domain.entity.QPhotoBoothLocation.photoBoothLocation
 import com.querydsl.core.types.Projections

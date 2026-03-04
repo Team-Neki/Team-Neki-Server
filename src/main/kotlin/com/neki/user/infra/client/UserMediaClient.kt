@@ -7,7 +7,7 @@ import com.neki.media.application.result.ConfirmMediasUploadedResult
 import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.neki.media.application.usecase.DeleteMediaUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
-import com.neki.user.application.contract.MediaAvailability
+import com.neki.user.contract.MediaAvailability
 import com.neki.user.application.port.MediaClientPort
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

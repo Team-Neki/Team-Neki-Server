@@ -1,7 +1,7 @@
 package com.neki.photo.infra.persist.jpa
 
 import com.neki.media.domain.entity.QMedia.media
-import com.neki.photo.application.contract.FolderWithStats
+import com.neki.photo.contract.FolderWithStats
 import com.neki.photo.domain.entity.QFolder.folder
 import com.neki.photo.domain.entity.QPhotoImage
 import com.neki.photo.domain.entity.QPhotoImage.photoImage

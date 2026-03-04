@@ -1,4 +1,4 @@
-package com.neki.map.application.contract
+package com.neki.map.contract
 
 import org.locationtech.jts.geom.Point
 

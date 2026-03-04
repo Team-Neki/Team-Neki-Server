@@ -1,4 +1,4 @@
-package com.neki.photo.application.contract
+package com.neki.photo.contract
 
 /**
  * fileName       : FolderWithStats

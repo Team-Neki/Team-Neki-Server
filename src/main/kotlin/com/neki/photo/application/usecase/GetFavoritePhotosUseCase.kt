@@ -3,7 +3,7 @@ package com.neki.photo.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
 import com.neki.photo.application.command.GetFavoritePhotosCommand
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.contract.MediaStorageInfo
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.application.result.GetPhotosResult

@@ -5,7 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
 import com.neki.photo.application.command.UploadPhotoCommand
-import com.neki.photo.application.contract.MediaAvailability
+import com.neki.photo.contract.MediaAvailability
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort

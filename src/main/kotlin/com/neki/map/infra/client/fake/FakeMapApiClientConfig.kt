@@ -1,6 +1,6 @@
 package com.neki.map.infra.client.fake
 
-import com.neki.map.application.contract.LocalSearchResult
+import com.neki.map.contract.LocalSearchResult
 import com.neki.map.application.port.MapApiClientPort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

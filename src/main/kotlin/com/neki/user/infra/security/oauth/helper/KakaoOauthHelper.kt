@@ -3,10 +3,10 @@ package com.neki.user.infra.security.oauth.helper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.application.contract.OIDCDecodePayload
-import com.neki.user.application.contract.OIDCPublicKeyDto
-import com.neki.user.application.contract.OIDCPublicKeysPayload
-import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.contract.OIDCDecodePayload
+import com.neki.user.contract.OIDCPublicKeyDto
+import com.neki.user.contract.OIDCPublicKeysPayload
+import com.neki.user.contract.OauthInfoPayload
 import com.neki.user.domain.enums.Platform
 import com.neki.user.domain.enums.ProviderType
 import com.neki.user.infra.security.config.OauthProperties

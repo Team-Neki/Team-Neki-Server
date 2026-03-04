@@ -12,9 +12,9 @@ import com.neki.media.application.usecase.DeleteMediaUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
 import com.neki.media.application.usecase.GetMediasUseCase
-import com.neki.photo.application.contract.MediaAvailability
-import com.neki.photo.application.contract.MediaInfo
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.contract.MediaAvailability
+import com.neki.photo.contract.MediaInfo
+import com.neki.photo.contract.MediaStorageInfo
 import com.neki.photo.application.port.MediaClientPort
 import org.springframework.stereotype.Component
 

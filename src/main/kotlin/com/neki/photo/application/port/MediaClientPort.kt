@@ -1,8 +1,8 @@
 package com.neki.photo.application.port
 
-import com.neki.photo.application.contract.MediaAvailability
-import com.neki.photo.application.contract.MediaInfo
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.contract.MediaAvailability
+import com.neki.photo.contract.MediaInfo
+import com.neki.photo.contract.MediaStorageInfo
 
 /**
  * fileName       : MediaClient

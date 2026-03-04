@@ -9,7 +9,7 @@ import com.neki.user.api.dto.GetKakaoTokenResponse
 import com.neki.user.api.dto.RefreshTokenRequest
 import com.neki.user.application.command.RefreshTokenCommand
 import com.neki.user.application.command.RegisterOauthUserCommand
-import com.neki.user.application.contract.KakaoTokenPayload
+import com.neki.user.contract.KakaoTokenPayload
 import com.neki.user.application.result.GetAuthResult
 import com.neki.user.application.usecase.OauthLoginUseCase
 import com.neki.user.application.usecase.RefreshTokenUseCase

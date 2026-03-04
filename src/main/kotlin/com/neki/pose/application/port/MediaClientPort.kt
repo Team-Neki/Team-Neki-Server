@@ -1,7 +1,7 @@
 package com.neki.pose.application.port
 
-import com.neki.pose.application.contract.MediaAvailability
-import com.neki.pose.application.contract.MediaStorageInfo
+import com.neki.pose.contract.MediaAvailability
+import com.neki.pose.contract.MediaStorageInfo
 
 /**
  * fileName       : MediaClientPort

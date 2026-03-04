@@ -1,7 +1,7 @@
 package com.neki.photo.infra.persist.jpa
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.contract.PhotoWithFavorite
+import com.neki.photo.contract.PhotoWithFavorite
 import com.neki.photo.domain.entity.PhotoImage
 import com.neki.photo.domain.entity.QFavoritePhoto.favoritePhoto
 import com.neki.photo.domain.entity.QPhotoImage.photoImage

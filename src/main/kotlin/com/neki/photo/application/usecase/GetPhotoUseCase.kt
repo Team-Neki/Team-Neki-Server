@@ -4,7 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.GetPhotoCommand
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.contract.MediaStorageInfo
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.application.result.GetPhotoResult

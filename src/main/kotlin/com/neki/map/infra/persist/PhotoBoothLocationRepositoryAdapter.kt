@@ -1,7 +1,7 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
-import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.contract.PhotoBoothLocationDto
+import com.neki.map.contract.PhotoBoothLocationWithDistanceDto
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.domain.entity.PhotoBoothLocation
 import com.neki.map.infra.persist.jpa.JpaPhotoBoothLocationRepository

@@ -1,6 +1,6 @@
 package com.neki.user.application.port
 
-import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.contract.OauthInfoPayload
 import com.neki.user.domain.enums.Platform
 import com.neki.user.domain.enums.ProviderType
 
