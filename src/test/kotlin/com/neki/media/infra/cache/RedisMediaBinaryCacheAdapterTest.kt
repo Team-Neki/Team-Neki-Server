@@ -1,6 +1,6 @@
 package com.neki.media.infra.cache
 
-import com.neki.media.infra.cache.redis.MediaRedisCacheKey
+import com.neki.media.infra.cache.MediaRedisCacheKey
 import com.neki.media.infra.cache.redis.RedisMediaBinaryCacheAdapter
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

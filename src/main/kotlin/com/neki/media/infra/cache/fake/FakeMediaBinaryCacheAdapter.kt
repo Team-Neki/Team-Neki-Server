@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
  * description    : TTL 추적이 가능한 In-Memory 캐시 어댑터 (테스트 환경 전용)
  */
 @Component
-@Profile("test")
+@Profile("!prod")
 class FakeMediaBinaryCacheAdapter : MediaBinaryCachePort {
 
     private val cache = ConcurrentHashMap<String, CacheEntry>()
