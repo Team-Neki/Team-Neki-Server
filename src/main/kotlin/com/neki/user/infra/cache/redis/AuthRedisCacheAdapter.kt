@@ -1,9 +1,10 @@
-package com.neki.user.infra.cache
+package com.neki.user.infra.cache.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.user.application.contract.OIDCPublicKeysPayload
 import com.neki.user.application.port.AuthCachePort
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -15,6 +16,7 @@ import java.time.Duration
  * description    : Redis 캐시 직접 제어 서비스
  *
  */
+@Profile("prod")
 @Component
 class AuthRedisCacheAdapter(
     private val redisTemplate: RedisTemplate<String, Any>,
