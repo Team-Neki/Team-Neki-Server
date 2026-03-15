@@ -2,7 +2,7 @@ package com.neki.user.infra.security.oauth.oidc
 
 import com.neki.user.application.contract.AuthCacheKeys
 import com.neki.user.application.contract.OIDCPublicKeysPayload
-import com.neki.user.infra.cache.AuthRedisCacheAdapter
+import com.neki.user.application.port.AuthCachePort
 import com.neki.user.infra.security.config.OauthProperties
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -24,7 +24,7 @@ import java.time.Duration
 class KakaoOidc(
     private val restClient: RestClient,
     private val oauthProperties: OauthProperties,
-    private val authRedisCacheAdapter: AuthRedisCacheAdapter,
+    private val authRedisCacheAdapter: AuthCachePort,
 ) : Oidc {
 
     private val log = LoggerFactory.getLogger(javaClass)
