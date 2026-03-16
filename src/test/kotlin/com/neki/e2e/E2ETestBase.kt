@@ -1,10 +1,10 @@
 package com.neki.e2e
 
-import com.neki.auth.infra.security.token.AuthTokenProvider
 import com.neki.user.domain.entity.User
 import com.neki.user.domain.enums.ProviderType
 import com.neki.user.domain.enums.RoleType
 import com.neki.user.infra.persist.jpa.UserRepository
+import com.neki.user.infra.security.token.AuthTokenProvider
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 
