@@ -215,38 +215,3 @@ jobs:
                  }]
                }' \
                ${{ secrets.DISCORD_WEBHOOK_PROD_URL }}
-
-# ============================================================
-# [DEPRECATED] 기존 SSH 직접 배포 방식 - 주석 처리
-# GitOps 방식으로 전환됨 (ArgoCD가 자동 배포)
-# ============================================================
-#     - name: Deploy to K3s (On-premise) with Zero-Downtime
-#       id: deploy
-#       uses: appleboy/ssh-action@v1.0.3
-#       with:
-#         host: ${{ secrets.SSH_HOST }}
-#         username: ${{ secrets.SSH_USER }}
-#         password: ${{ secrets.SSH_PASSWORD }}
-#         port: ${{ secrets.SSH_PORT }}
-#         script: |
-#           echo "🚀 Starting Zero-Downtime deployment to K3s..."
-#           cd /home/yapp/k3s/prod
-#           CURRENT_IMAGE=$(kubectl get deployment neki-prod -n prod -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "none")
-#           echo "📌 Current image: $CURRENT_IMAGE"
-#           NEW_IMAGE="${{ secrets.DOCKER_USERNAME }}/neki-prod:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}"
-#           echo "📦 New image: $NEW_IMAGE"
-#           sed -i "s|image: .*neki-prod:.*|image: $NEW_IMAGE|g" deployment.yaml
-#           echo "🔄 Applying deployment... Rolling update will start automatically"
-#           kubectl apply -f deployment.yaml
-#           echo "⏳ Waiting for new pods to be ready..."
-#           if kubectl rollout status deployment/neki-prod -n prod --timeout=10m; then
-#             echo "✅ Rollout completed successfully!"
-#             echo "📊 Pod status:"
-#             kubectl get pods -n prod -l app=neki-prod
-#             DEPLOYED_IMAGE=$(kubectl get deployment neki-prod -n prod -o jsonpath='{.spec.template.spec.containers[0].image}')
-#             echo "✅ Deployment completed! Deployed image: $DEPLOYED_IMAGE"
-#           else
-#             echo "❌ Rollout failed or timed out!"
-#             kubectl get pods -n prod -l app=neki-prod
-#             exit 1
-#           fi
