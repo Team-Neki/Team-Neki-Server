@@ -1,14 +1,19 @@
-name: Deploy to Staging (K3s)
+name: Deploy to Staging (K3s + GitOps)
 
 on:
   push:
     branches:
-      - staging
+      - 'chore/#171'  # 테스트용 임시 변경 (원래: staging)
   workflow_dispatch:  # 수동 실행 가능
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/yapp-dev
+  GITOPS_REPO: YAPP-Github/27th-App-Team-2-BE-gitops
+  GITOPS_PATH: overlays/staging/deployment.yaml
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy to K3s
+    name: Build and Deploy via GitOps
     runs-on: ubuntu-latest
 
     steps:
@@ -50,8 +55,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/yapp-dev:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}
-            ${{ secrets.DOCKER_USERNAME }}/yapp-dev:latest
+            ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}
+            ${{ env.DOCKER_IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -61,8 +66,8 @@ jobs:
           curl -H "Content-Type: application/json" \
                -d '{
                  "embeds": [{
-                   "title": "🚀 Staging 배포 시작",
-                   "description": "K3s 배포를 시작합니다",
+                   "title": "🚀 Staging 배포 시작 (GitOps)",
+                   "description": "이미지 빌드 완료, GitOps 레포 업데이트 중...",
                    "color": 3447003,
                    "fields": [
                      {
@@ -96,50 +101,43 @@ jobs:
                }' \
                ${{ secrets.DISCORD_WEBHOOK_URL }}
 
-      - name: Deploy to K3s (On-premise) with Zero-Downtime
-        id: deploy
-        uses: appleboy/ssh-action@v1.0.3
+      # ============================================================
+      # GitOps: GitOps 레포의 이미지 태그 업데이트
+      # ArgoCD가 변경을 감지하여 자동 배포
+      # ============================================================
+      - name: Checkout GitOps Repository
+        uses: actions/checkout@v4
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            echo "🚀 Starting Zero-Downtime deployment to K3s..."
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
 
-            # K3s deployment 디렉토리로 이동
-            cd /home/yapp/k3s/staging
+      - name: Update image tag in GitOps repo
+        run: |
+          cd gitops
+          NEW_IMAGE="${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}"
+          echo "📦 Updating image to: $NEW_IMAGE"
 
-            # 현재 실행 중인 이미지 확인
-            CURRENT_IMAGE=$(kubectl get deployment yapp-app-staging -n staging -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "none")
-            echo "📌 Current image: $CURRENT_IMAGE"
+          # deployment.yaml의 이미지 태그 업데이트
+          sed -i "s|image: .*yapp-dev:.*|image: $NEW_IMAGE|g" ${{ env.GITOPS_PATH }}
 
-            # 이미지 태그 업데이트
-            NEW_IMAGE="${{ secrets.DOCKER_USERNAME }}/yapp-dev:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}"
-            echo "📦 New image: $NEW_IMAGE"
-            sed -i "s|image: .*yapp-dev:.*|image: $NEW_IMAGE|g" deployment.yaml
+          # 변경사항 확인
+          echo "📄 Updated deployment.yaml:"
+          grep "image:" ${{ env.GITOPS_PATH }}
 
-            # K3s에 배포 적용 (Rolling Update 자동 실행)
-            echo "🔄 Applying deployment... Rolling update will start automatically"
-            kubectl apply -f deployment.yaml
+      - name: Commit and push to GitOps repo
+        run: |
+          cd gitops
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            # 배포 상태 확인 (새 파드가 완전히 준비될 때까지 대기)
-            echo "⏳ Waiting for new pods to be ready..."
-            if kubectl rollout status deployment/yapp-app-staging -n staging --timeout=10m; then
-              echo "✅ Rollout completed successfully!"
+          git add .
+          git commit -m "chore(staging): update image to ${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}
 
-              # 배포된 파드 정보 확인
-              echo "📊 Pod status:"
-              kubectl get pods -n staging -l app=yapp-app-staging
+          Triggered by: ${{ github.repository }}@${{ github.sha }}
+          Author: ${{ github.actor }}"
 
-              # 최종 이미지 확인
-              DEPLOYED_IMAGE=$(kubectl get deployment yapp-app-staging -n staging -o jsonpath='{.spec.template.spec.containers[0].image}')
-              echo "✅ Deployment completed! Deployed image: $DEPLOYED_IMAGE"
-            else
-              echo "❌ Rollout failed or timed out!"
-              kubectl get pods -n staging -l app=yapp-app-staging
-              exit 1
-            fi
+          git push
 
       - name: Discord notification - Deployment success
         if: success()
@@ -147,8 +145,8 @@ jobs:
           curl -H "Content-Type: application/json" \
                -d '{
                  "embeds": [{
-                   "title": "✅ Staging 배포 성공",
-                   "description": "K3s 배포가 성공적으로 완료되었습니다",
+                   "title": "✅ Staging GitOps 업데이트 완료",
+                   "description": "ArgoCD가 자동으로 배포를 진행합니다",
                    "color": 5763719,
                    "fields": [
                      {
@@ -172,8 +170,8 @@ jobs:
                        "inline": false
                      },
                      {
-                       "name": "배포 링크",
-                       "value": "[GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                       "name": "GitOps 레포",
+                       "value": "[27th-App-Team-2-BE-gitops](https://github.com/${{ env.GITOPS_REPO }})",
                        "inline": false
                      }
                    ],
@@ -189,7 +187,7 @@ jobs:
                -d '{
                  "embeds": [{
                    "title": "❌ Staging 배포 실패",
-                   "description": "K3s 배포 중 오류가 발생했습니다",
+                   "description": "빌드 또는 GitOps 업데이트 중 오류 발생",
                    "color": 15158332,
                    "fields": [
                      {
@@ -217,3 +215,38 @@ jobs:
                  }]
                }' \
                ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+# ============================================================
+# [DEPRECATED] 기존 SSH 직접 배포 방식 - 주석 처리
+# GitOps 방식으로 전환됨 (ArgoCD가 자동 배포)
+# ============================================================
+#     - name: Deploy to K3s (On-premise) with Zero-Downtime
+#       id: deploy
+#       uses: appleboy/ssh-action@v1.0.3
+#       with:
+#         host: ${{ secrets.SSH_HOST }}
+#         username: ${{ secrets.SSH_USER }}
+#         password: ${{ secrets.SSH_PASSWORD }}
+#         port: ${{ secrets.SSH_PORT }}
+#         script: |
+#           echo "🚀 Starting Zero-Downtime deployment to K3s..."
+#           cd /home/yapp/k3s/staging
+#           CURRENT_IMAGE=$(kubectl get deployment yapp-app-staging -n staging -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "none")
+#           echo "📌 Current image: $CURRENT_IMAGE"
+#           NEW_IMAGE="${{ secrets.DOCKER_USERNAME }}/yapp-dev:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}"
+#           echo "📦 New image: $NEW_IMAGE"
+#           sed -i "s|image: .*yapp-dev:.*|image: $NEW_IMAGE|g" deployment.yaml
+#           echo "🔄 Applying deployment... Rolling update will start automatically"
+#           kubectl apply -f deployment.yaml
+#           echo "⏳ Waiting for new pods to be ready..."
+#           if kubectl rollout status deployment/yapp-app-staging -n staging --timeout=10m; then
+#             echo "✅ Rollout completed successfully!"
+#             echo "📊 Pod status:"
+#             kubectl get pods -n staging -l app=yapp-app-staging
+#             DEPLOYED_IMAGE=$(kubectl get deployment yapp-app-staging -n staging -o jsonpath='{.spec.template.spec.containers[0].image}')
+#             echo "✅ Deployment completed! Deployed image: $DEPLOYED_IMAGE"
+#           else
+#             echo "❌ Rollout failed or timed out!"
+#             kubectl get pods -n staging -l app=yapp-app-staging
+#             exit 1
+#           fi
