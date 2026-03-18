@@ -1,11 +1,13 @@
 package com.neki.photo.api.dto
 
+import com.neki.photo.domain.enums.UploadMethod
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.annotation.Nullable
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import java.time.LocalDateTime
 
 /**
  * fileName       : PhotoImageRequest
@@ -29,7 +31,19 @@ data class UploadPhotoRequest(
         @field:NotNull(message = "mediaId는 필수 입력값입니다.")
         val mediaId: Long?,
 
+        @field:Schema(
+            description = "업로드 방식",
+            example = "QR",
+            allowableValues = ["QR", "DIRECT_UPLOAD"],
+        )
+        @field:NotNull(message = "uploadMethod는 필수 입력값입니다.")
+        val uploadMethod: UploadMethod? = null,
+
+        @field:Schema(description = "메모", example = "대학교 친구들이랑")
         val memo: String?,
+
+        @field:Schema(description = "사진 찍은 날짜", example = "2025-12-23T07:09:00")
+        val capturedAt: LocalDateTime?,
     )
 }
 
@@ -38,7 +52,13 @@ data class DeletePhotosRequest(
     val photoIds: List<Long>,
 )
 
-data class UpdatePhotoRequest(val memo: String?)
+data class UpdatePhotoRequest(
+    @field:Schema(description = "메모", example = "수정된 메모")
+    val memo: String?,
+
+    @field:Schema(description = "사진 찍은 날짜", example = "2025-12-23T07:09:00")
+    val capturedAt: LocalDateTime?,
+)
 
 data class UpdatePhotoFavoriteRequest(
     @field:Schema(description = "변경하고자 하는 즐겨찾기 상태", example = "true")
