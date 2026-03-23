@@ -4,10 +4,10 @@ import com.neki.common.exception.BusinessException
 import com.neki.user.application.contract.AuthCacheKeys
 import com.neki.user.application.contract.OIDCPublicKeysPayload
 import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.application.port.AuthCachePort
 import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.domain.enums.Platform
 import com.neki.user.domain.enums.ProviderType
-import com.neki.user.infra.cache.AuthRedisCacheAdapter
 import com.neki.user.infra.security.oauth.helper.OauthHelper
 import com.neki.user.infra.security.oauth.oidc.Oidc
 import com.neki.user.infra.security.oauth.registry.OauthHelperRegistry
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component
 class OidcTokenValidator(
     private val oidcRegistry: OidcRegistry,
     private val oauthHelperRegistry: OauthHelperRegistry,
-    private val authRedisCacheAdapter: AuthRedisCacheAdapter,
+    private val authRedisCacheAdapter: AuthCachePort,
 ) : OidcTokenValidatorPort {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)

@@ -14,17 +14,10 @@ import java.util.concurrent.ConcurrentHashMap
  * description    : TTL 추적이 가능한 In-Memory 캐시 어댑터 (테스트 환경 전용)
  */
 @Component
-@Profile("test")
+@Profile("!prod")
 class FakeMediaBinaryCacheAdapter : MediaBinaryCachePort {
 
     private val cache = ConcurrentHashMap<String, CacheEntry>()
-
-    data class CacheEntry(val data: ByteArray, val expiresAt: Instant) {
-        fun isExpired(): Boolean = Instant.now().isAfter(expiresAt)
-
-        fun remainingTtl(): Duration =
-            Duration.between(Instant.now(), expiresAt).takeIf { !it.isNegative } ?: Duration.ZERO
-    }
 
     override fun get(key: String): ByteArray? {
         val entry = cache[key] ?: return null
@@ -46,20 +39,8 @@ class FakeMediaBinaryCacheAdapter : MediaBinaryCachePort {
     override fun evict(key: String) {
         cache.remove(key)
     }
+}
 
-    // 테스트용 메서드
-    fun putWithTtl(key: String, value: ByteArray, ttl: Duration) {
-        cache[key] = CacheEntry(
-            data = value,
-            expiresAt = Instant.now().plus(ttl),
-        )
-    }
-
-    fun getRemainingTtl(key: String): Duration? = cache[key]?.remainingTtl()
-
-    fun clearAll() {
-        cache.clear()
-    }
-
-    fun size(): Int = cache.size
+data class CacheEntry(val data: ByteArray, val expiresAt: Instant) {
+    fun isExpired(): Boolean = Instant.now().isAfter(expiresAt)
 }

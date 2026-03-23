@@ -1,4 +1,4 @@
-package com.neki.media.infra.cache.redis
+package com.neki.media.infra.cache
 
 /**
  * Redis 캐시 키 네이밍 컨벤션 관리
