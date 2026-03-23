@@ -3,7 +3,7 @@ name: Deploy to Staging (K3s + GitOps)
 on:
   push:
     branches:
-      - staging
+      - chore/#171
   workflow_dispatch:  # 수동 실행 가능
 
 env:
