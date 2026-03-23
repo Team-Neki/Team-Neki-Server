@@ -1,8 +1,11 @@
 package com.neki.photo.domain.entity
 
 import com.neki.common.domain.BaseTimeEntity
+import com.neki.photo.domain.enums.UploadMethod
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -38,12 +41,25 @@ class PhotoImage(
     @Column(name = "memo", nullable = true)
     var memo: String? = null,
 
+    @Column(name = "upload_method", nullable = true, length = 15)
+    @Enumerated(EnumType.STRING)
+    val uploadMethod: UploadMethod? = null,
+
     @Column(name = "deleted_at", nullable = true)
     var deletedAt: LocalDateTime? = null,
+
+    @Column(name = "captured_at", nullable = true)
+    var capturedAt: LocalDateTime? = null,
+
 ) : BaseTimeEntity() {
 
     fun softDelete() {
         folderId = null
         deletedAt = LocalDateTime.now()
+    }
+
+    fun update(memo: String?, capturedAt: LocalDateTime?) {
+        this.memo = memo
+        this.capturedAt = capturedAt
     }
 }

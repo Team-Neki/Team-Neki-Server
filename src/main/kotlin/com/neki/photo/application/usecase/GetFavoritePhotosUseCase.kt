@@ -75,9 +75,11 @@ class GetFavoritePhotosUseCase(
                 storageKey = media.storageKey,
                 favorite = true,
                 contentType = media.contentType,
+                uploadMethod = it.uploadMethod,
                 width = media.width,
                 height = media.height,
                 createdAt = it.createdAt!!,
+                capturedAt = it.capturedAt,
             )
         }.toList()
 

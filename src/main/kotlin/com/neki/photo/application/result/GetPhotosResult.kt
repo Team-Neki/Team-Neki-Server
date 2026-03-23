@@ -1,5 +1,6 @@
 package com.neki.photo.application.result
 
+import com.neki.photo.domain.enums.UploadMethod
 import java.time.LocalDateTime
 
 /**
@@ -15,9 +16,11 @@ data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean) {
         val storageKey: String,
         val favorite: Boolean,
         val contentType: String,
+        val uploadMethod: UploadMethod?,
         val width: Int? = null,
         val height: Int? = null,
         val createdAt: LocalDateTime,
+        val capturedAt: LocalDateTime?,
     )
 }
 
@@ -26,9 +29,11 @@ data class GetPhotoResult(
     val storageKey: String,
     val favorite: Boolean,
     val contentType: String,
+    val uploadMethod: UploadMethod?,
     val width: Int? = null,
     val height: Int? = null,
     val createdAt: LocalDateTime,
+    val capturedAt: LocalDateTime?,
 )
 
 data class GetFavoriteSummaryResult(val storageKey: String?, val totalCount: Long)

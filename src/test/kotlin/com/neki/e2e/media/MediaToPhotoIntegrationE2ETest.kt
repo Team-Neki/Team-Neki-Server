@@ -6,6 +6,7 @@ import com.neki.media.domain.MediaType
 import com.neki.media.domain.entity.MediaStatus
 import com.neki.photo.api.dto.UploadPhotoRequest
 import com.neki.photo.domain.entity.Folder
+import com.neki.photo.domain.enums.UploadMethod
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -94,7 +95,9 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
+                    uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
+                    capturedAt = null,
                 )
             },
         )
@@ -161,7 +164,9 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
+                    uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = "테스트 메모",
+                    capturedAt = null,
                 )
             },
         )
@@ -225,7 +230,9 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
+                    uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
+                    capturedAt = null,
                 )
             },
         )
@@ -284,7 +291,9 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
+                    uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
+                    capturedAt = null,
                 )
             },
         )
@@ -334,7 +343,9 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
+                    uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
+                    capturedAt = null,
                 )
             },
         )

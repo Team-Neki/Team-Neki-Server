@@ -13,6 +13,7 @@ import com.neki.photo.api.dto.UploadPhotoRequest
 import com.neki.photo.application.command.DeletePhotosCommand
 import com.neki.photo.application.command.GetPhotoCommand
 import com.neki.photo.application.command.GetPhotosCommand
+import com.neki.photo.application.command.PutPhotoCommand
 import com.neki.photo.application.command.UpdatePhotoCommand
 import com.neki.photo.application.command.UploadPhotoCommand
 import com.neki.photo.application.result.GetPhotoResult
@@ -20,6 +21,7 @@ import com.neki.photo.application.result.GetPhotosResult
 import com.neki.photo.application.usecase.DeletePhotosUseCase
 import com.neki.photo.application.usecase.GetPhotoUseCase
 import com.neki.photo.application.usecase.GetPhotosUseCase
+import com.neki.photo.application.usecase.PutPhotoUseCase
 import com.neki.photo.application.usecase.UpdatePhotoUseCase
 import com.neki.photo.application.usecase.UploadPhotosUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -33,6 +35,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -54,6 +57,7 @@ class PhotoController(
     private val getPhotoUseCase: GetPhotoUseCase,
     private val deletePhotosUseCase: DeletePhotosUseCase,
     private val updatePhotoUseCase: UpdatePhotoUseCase,
+    private val putPhotoUseCase: PutPhotoUseCase,
 
     private val commandConverter: PhotoImageCommandConverter,
     private val resultConverter: PhotoImageResultConverter,
@@ -134,7 +138,30 @@ class PhotoController(
 
     @Operation(
         summary = "사진 갱신 API",
-        description = "사진 정보를 갱신합니다.",
+        description = "사진 정보를 갱신합니다. 기존 PATCH /api/photos/{photoId} 대신 사용해주세요.",
+    )
+    @PutMapping("/{photoId}")
+    fun putPhoto(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @PathVariable photoId: Long,
+        @Valid @RequestBody request: UpdatePhotoRequest,
+    ): BaseResponse<Any> {
+        val command: PutPhotoCommand = commandConverter.toPutPhotoCommand(userId, photoId, request)
+
+        putPhotoUseCase.execute(command)
+
+        return BaseResponse()
+    }
+
+    @Deprecated(message = "PUT API 변경 후 제거")
+    @Operation(
+        summary = "사진 갱신 API",
+        description = """사진 정보를 갱신합니다. @Deprecated
+
+            null 처리를 용이하게 하기 위해 새롭게 PUT API를 추가하였습니다.
+            API 변경 후 삭제 예정입니다. (PUT /api/photos/{photoId} 사용)
+            변경 완료 후 서버 채널에 공유 부탁드립니다.
+        """,
     )
     @PatchMapping("/{photoId}")
     fun updatePhoto(
