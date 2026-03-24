@@ -27,7 +27,7 @@ class PhotoImageCommandConverter {
         uploads = request.uploads.map { item ->
             UploadPhotoCommand.UploadItem(
                 mediaId = item.mediaId!!,
-                uploadMethod = item.uploadMethod!!,
+                uploadMethod = item.uploadMethod,
                 memo = item.memo,
                 capturedAt = item.capturedAt,
             )
