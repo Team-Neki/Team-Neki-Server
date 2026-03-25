@@ -9,12 +9,14 @@ import com.neki.user.application.command.RegisterOauthUserCommand
 import com.neki.user.application.contract.KakaoTokenPayload
 import com.neki.user.application.contract.OauthInfoPayload
 import com.neki.user.application.port.AuthTokenProviderPort
+import com.neki.user.application.port.DomainEventPublisherPort
 import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.application.result.GetAuthResult
 import com.neki.user.domain.entity.User
 import com.neki.user.domain.enums.RoleType
+import com.neki.user.domain.event.UserRegisteredEvent
 import com.neki.user.infra.security.config.OauthProperties
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -36,6 +38,7 @@ class OauthLoginUseCase(
     private val tokenProviderPort: AuthTokenProviderPort,
     private val userRepositoryPort: UserRepositoryPort,
     private val nicknameGenerator: NicknameGeneratorPort,
+    private val domainEventPublisherPort: DomainEventPublisherPort,
 
     private val transactionRunner: TransactionRunner,
 ) {
@@ -55,7 +58,19 @@ class OauthLoginUseCase(
         )
 
         // 신규 사용자 추가
-        val (user, _) = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoPayload) }
+        val (user, isNew) = transactionRunner.run { registerOauthUserIfEmpty(oauthInfoPayload) }
+
+        // 신규 사용자 알림 (트랜잭션 커밋 이후 비동기 처리)
+        if (isNew) {
+            domainEventPublisherPort.publish(
+                UserRegisteredEvent(
+                    userId = user.id!!,
+                    nickname = user.name!!,
+                    providerType = user.providerType.name,
+                    platform = command.platform.value,
+                ),
+            )
+        }
 
         // 토큰 생성
         val accessToken: String = tokenProviderPort.createAccessToken(

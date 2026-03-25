@@ -1,0 +1,54 @@
+package com.neki.notification.infra.discord
+
+import com.neki.notification.infra.config.DiscordProperties
+import com.neki.user.domain.event.UserRegisteredEvent
+import org.slf4j.LoggerFactory
+import org.springframework.core.env.Environment
+import org.springframework.http.MediaType
+import org.springframework.scheduling.annotation.Async
+import org.springframework.stereotype.Component
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
+import org.springframework.web.client.RestClient
+
+@Component
+class UserRegisteredDiscordListener(
+    private val discordProperties: DiscordProperties,
+    private val restClient: RestClient,
+    private val environment: Environment,
+) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    fun onUserRegistered(event: UserRegisteredEvent) {
+        if (discordProperties.webhookUrl.isBlank()) return
+
+        val profile: String = environment.activeProfiles.firstOrNull() ?: "unknown"
+
+        runCatching {
+            val body: Map<String, Any> = mapOf(
+                "embeds" to listOf(
+                    mapOf(
+                        "title" to "Neki 신규 사용자 가입 알림",
+                        "color" to 5763719, // Discord green
+                        "fields" to listOf(
+                            mapOf("name" to "환경", "value" to profile, "inline" to false),
+                            mapOf("name" to "ID", "value" to event.userId.toString(), "inline" to false),
+                            mapOf("name" to "닉네임", "value" to event.nickname, "inline" to false),
+                            mapOf("name" to "프로바이더", "value" to event.providerType, "inline" to false),
+                            mapOf("name" to "플랫폼", "value" to event.platform, "inline" to false),
+
+                        ),
+                    ),
+                ),
+            )
+            restClient.post()
+                .uri(discordProperties.webhookUrl)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .retrieve()
+                .toBodilessEntity()
+        }.onFailure { log.warn("Discord notification failed: {}", it.message) }
+    }
+}
