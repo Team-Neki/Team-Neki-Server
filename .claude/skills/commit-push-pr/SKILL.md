@@ -78,13 +78,12 @@ gh api graphql -f query='
 
 1. Stage all changes and create a single commit with an appropriate message.
 2. Push the branch to origin.
-3. Read `.github/PULL_REQUEST_TEMPLATE.md`를 읽어 PR body 포맷을 확인한다.
-4. **현재 branch의 변경 사항만** 반영하여 template을 작성한다. base branch와의 diff(`git diff {base}...HEAD`)를 기준으로 작성한다.
-5. Sub-issue인 경우 GraphQL API로 progress table을 생성한다.
-6. Create a PR using `gh pr create` with:
+3. `.github/PULL_REQUEST_TEMPLATE.md`를 사용하여 PR body를 생성한다. base branch와의 diff(`git diff {base}...HEAD`)를 기준으로 **현재 branch의 변경 사항만** 반영한다.
+4. Sub-issue인 경우 GraphQL API로 progress table을 생성한다.
+5. Create a PR using `gh pr create` with:
    - `--title`: convention에 맞는 제목
    - `--base`: PR Chaining 규칙에 따른 base branch
    - `--label`: branch prefix에 해당하는 label (매핑이 있는 경우만)
    - `--assignee @me`
    - `--body`: 템플릿을 채운 내용 (HEREDOC 사용)
-7. You MUST do all of the above in a single message. Do not use any other tools or do anything else.
+6. You MUST do all of the above in a single message. Do not use any other tools or do anything else.
