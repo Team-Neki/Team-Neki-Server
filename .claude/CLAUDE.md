@@ -116,11 +116,11 @@ Skills are auto-loaded when relevant tasks are detected, or can be invoked manua
 |----------------------|-----------------------|---------------------------------------------------|
 | `api-patterns`       | `/api-patterns`       | API endpoint development, request/response design |
 | `architecture`       | `/architecture`       | New domain/module design, Clean Architecture      |
+| `commit`             | `/commit`             | 코드 작업 완료 후 커밋 생성                                  |
 | `configuration`      | `/configuration`      | Environment settings, profiles, secrets           |
 | `observability`      | `/observability`      | Logging, metrics, monitoring                      |
-| `testing`            | `/testing`            | Writing tests, test coverage                      |
-| `commit`             | `/commit`             | 코드 작업 완료 후 커밋 생성                                  |
 | `presigned-url-flow` | `/presigned-url-flow` | S3 upload, media/image handling                   |
+| `testing`            | `/testing`            | Writing tests, test coverage                      |
 
 ### Quick File Reference
 

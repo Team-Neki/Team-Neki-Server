@@ -24,10 +24,10 @@ description: 프로젝트 컨벤션에 맞는 일관된 커밋 메시지를 생�
 ### 동작 흐름
 
 1. `git status`로 변경 사항 확인
-2. `git diff HEAD`로 변경 내용 분석
+2. `git diff --staged`로 스테이징된 변경 내용 분석
 3. `git log --oneline -10`으로 최근 커밋 스타일 참조
 4. 아래 컨벤션에 맞는 커밋 메시지 생성
-5. 관련 파일 staging 후 커밋 수행
+5. `git commit` 수행
 
 ---
 
