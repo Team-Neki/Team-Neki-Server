@@ -18,13 +18,12 @@ class MovePhotosToFolderUseCase(
     fun execute(command: MovePhotosToFolderCommand) {
         if (command.sourceFolderId == command.targetFolderId) return
 
-        // source 폴더 소유권 확인
-        folderRepository.getOwnedFolder(command.userId, command.sourceFolderId)
-            ?: throw BusinessException(ResultCode.NOT_FOUND)
-
-        // target 폴더 소유권 확인
-        folderRepository.getOwnedFolder(command.userId, command.targetFolderId)
-            ?: throw BusinessException(ResultCode.NOT_FOUND)
+        // source, target 폴더 소유권 확인 (단일 쿼리)
+        val ownedFolders = folderRepository.getOwnedFolders(
+            command.userId,
+            listOf(command.sourceFolderId, command.targetFolderId),
+        )
+        if (ownedFolders.size != 2) throw BusinessException(ResultCode.NOT_FOUND)
 
         // source 폴더에서 연관 삭제
         photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(command.photoIds, command.sourceFolderId)
