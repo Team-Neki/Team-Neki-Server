@@ -18,7 +18,7 @@ data class UploadPhotoCommand(
 ) {
     data class UploadItem(
         val mediaId: Long,
-        val uploadMethod: UploadMethod,
+        val uploadMethod: UploadMethod?,
         val memo: String?,
         val capturedAt: LocalDateTime?,
     )
