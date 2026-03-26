@@ -1,7 +1,7 @@
 package com.neki.notification.infra.discord
 
-import com.neki.notification.infra.config.DiscordProperties
-import com.neki.user.domain.event.UserRegisteredEvent
+import com.neki.notification.properties.DiscordProperties
+import com.neki.user.application.event.UserRegisteredEvent
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 import org.springframework.http.MediaType
@@ -36,9 +36,9 @@ class UserRegisteredDiscordListener(
                             mapOf("name" to "환경", "value" to profile, "inline" to false),
                             mapOf("name" to "ID", "value" to event.userId.toString(), "inline" to false),
                             mapOf("name" to "닉네임", "value" to event.nickname, "inline" to false),
-                            mapOf("name" to "프로바이더", "value" to event.providerType, "inline" to false),
+                            mapOf("name" to "로그인 유형", "value" to event.providerType, "inline" to false),
                             mapOf("name" to "플랫폼", "value" to event.platform, "inline" to false),
-
+                            mapOf("name" to "누적 가입자 (탈퇴 제외)", "value" to event.activeUserCount, "inline" to false),
                         ),
                     ),
                 ),

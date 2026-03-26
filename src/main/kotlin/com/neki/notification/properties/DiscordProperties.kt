@@ -1,4 +1,4 @@
-package com.neki.notification.infra.config
+package com.neki.notification.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
