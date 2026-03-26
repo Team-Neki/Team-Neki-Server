@@ -15,3 +15,10 @@ data class GetFoldersCommand(val userId: Long, val limit: Int?)
 data class UpdateFolderCommand(val userId: Long, val folderId: Long, val newName: String)
 
 data class RemovePhotosFromFolderCommand(val userId: Long, val folderId: Long, val photoIds: List<Long>)
+
+data class MovePhotosToFolderCommand(
+    val userId: Long,
+    val sourceFolderId: Long,
+    val photoIds: List<Long>,
+    val targetFolderId: Long,
+)
