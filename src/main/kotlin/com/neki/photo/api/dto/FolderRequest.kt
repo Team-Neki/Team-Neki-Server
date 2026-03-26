@@ -56,3 +56,17 @@ data class MovePhotosToFolderRequest(
     )
     val targetFolderId: Long,
 )
+
+data class CopyPhotosToFolderRequest(
+    @field:Schema(
+        description = "복제할 사진 ID 목록",
+        example = "[1, 2, 3]",
+    )
+    @field:NotEmpty(message = "복제할 사진 ID 목록은 비어있을 수 없습니다.")
+    val photoIds: List<Long>,
+    @field:Schema(
+        description = "복제 대상 폴더 ID",
+        example = "5",
+    )
+    val targetFolderId: Long,
+)
