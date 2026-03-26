@@ -11,6 +11,7 @@ description: Create a GitHub issue following project conventions. Use when creat
 - Feature template: !`cat .github/ISSUE_TEMPLATE/feature.yml`
 - Bug template: !`cat .github/ISSUE_TEMPLATE/bug.yml`
 - Chore template: !`cat .github/ISSUE_TEMPLATE/chore.yml`
+- Docs template: !`cat .github/ISSUE_TEMPLATE/docs.yml`
 
 ## Conventions
 
