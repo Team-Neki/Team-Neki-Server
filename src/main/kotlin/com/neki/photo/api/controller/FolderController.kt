@@ -8,11 +8,13 @@ import com.neki.photo.api.dto.CreateFolderRequest
 import com.neki.photo.api.dto.CreateFolderResponse
 import com.neki.photo.api.dto.DeleteFoldersRequest
 import com.neki.photo.api.dto.GetAllFolderResponse
+import com.neki.photo.api.dto.MovePhotosToFolderRequest
 import com.neki.photo.api.dto.RemovePhotosFromFolderRequest
 import com.neki.photo.api.dto.UpdateFolderRequest
 import com.neki.photo.application.command.CreateFolderCommand
 import com.neki.photo.application.command.DeleteFoldersCommand
 import com.neki.photo.application.command.GetFoldersCommand
+import com.neki.photo.application.command.MovePhotosToFolderCommand
 import com.neki.photo.application.command.RemovePhotosFromFolderCommand
 import com.neki.photo.application.command.UpdateFolderCommand
 import com.neki.photo.application.result.CreateFolderResult
@@ -20,6 +22,7 @@ import com.neki.photo.application.result.GetFoldersResult
 import com.neki.photo.application.usecase.CreateFolderUseCase
 import com.neki.photo.application.usecase.DeleteFoldersUseCase
 import com.neki.photo.application.usecase.GetFoldersUseCase
+import com.neki.photo.application.usecase.MovePhotosToFolderUseCase
 import com.neki.photo.application.usecase.RemovePhotosFromFolderUseCase
 import com.neki.photo.application.usecase.UpdateFolderUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -53,6 +56,7 @@ class FolderController(
     private val deleteFoldersUseCase: DeleteFoldersUseCase,
     private val updateFolderUseCase: UpdateFolderUseCase,
     private val removePhotosFromFolderUseCase: RemovePhotosFromFolderUseCase,
+    private val movePhotosToFolderUseCase: MovePhotosToFolderUseCase,
     private val commandConverter: FolderCommandConverter,
     private val resultConverter: FolderResultConverter,
 ) {
@@ -123,6 +127,27 @@ class FolderController(
         val command: UpdateFolderCommand = commandConverter.toUpdateFolderCommand(request, folderId, userId)
 
         updateFolderUseCase.execute(command)
+
+        return BaseResponse()
+    }
+
+    @Operation(
+        summary = "사진 이동 API",
+        description = "사진을 source 폴더에서 target 폴더로 이동합니다.",
+    )
+    @PatchMapping("/{sourceFolderId}/photos/move")
+    fun movePhotosToFolder(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @PathVariable sourceFolderId: Long,
+        @Valid @RequestBody request: MovePhotosToFolderRequest,
+    ): BaseResponse<Any> {
+        val command: MovePhotosToFolderCommand = commandConverter.toMovePhotosToFolderCommand(
+            request,
+            sourceFolderId,
+            userId,
+        )
+
+        movePhotosToFolderUseCase.execute(command)
 
         return BaseResponse()
     }
