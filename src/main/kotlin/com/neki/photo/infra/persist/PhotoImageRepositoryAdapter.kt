@@ -4,6 +4,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.domain.vo.SortOrder
 import com.neki.common.exception.BusinessException
 import com.neki.photo.application.contract.PhotoWithFavorite
+import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.domain.entity.PhotoImage
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Repository
 class PhotoImageRepositoryAdapter(
     private val jpaRepository: JpaPhotoImageRepository,
     private val queryRepository: PhotoImageQueryRepository,
+    private val photoImageFolderRepository: PhotoImageFolderRepositoryPort,
 ) : PhotoImageRepositoryPort {
 
     override fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite? =
@@ -64,6 +66,9 @@ class PhotoImageRepositoryAdapter(
         photos.forEach { it.softDelete() }
         jpaRepository.saveAll(photos)
         jpaRepository.flush()
+
+        // 중간 테이블에서도 연관 삭제 (dual-write)
+        photoImageFolderRepository.deleteByPhotoImageIds(photoIds)
 
         return photos
     }
