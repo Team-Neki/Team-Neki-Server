@@ -238,10 +238,10 @@ class DeleteFoldersE2ETest : PhotoImageE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
-        // Then: 폴더는 삭제되고 사진은 유지 (folderId는 NULL)
+        // Then: 폴더는 삭제되고 사진은 유지 (중간 테이블 연관도 CASCADE로 삭제됨)
         assertThat(folderRepository.findById(folder.id!!)).isEmpty
         val remainingPhoto = photoImageRepository.findById(photo.id!!).orElseThrow()
-        assertThat(remainingPhoto.folderId).isNull()
+        assertThat(remainingPhoto.mediaId).isEqualTo(media.id!!)
     }
 
     @Test

@@ -7,8 +7,10 @@ import com.neki.media.domain.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.photo.domain.entity.Folder
 import com.neki.photo.domain.entity.PhotoImage
+import com.neki.photo.domain.entity.PhotoImageFolder
 import com.neki.photo.infra.persist.jpa.JpaFavoriteImageRepository
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
+import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,9 +36,13 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
     @Autowired
     protected lateinit var favoritePhotoRepository: JpaFavoriteImageRepository
 
+    @Autowired
+    protected lateinit var photoImageFolderRepository: JpaPhotoImageFolderRepository
+
     @AfterEach
     override fun tearDown() {
         favoritePhotoRepository.deleteAllInBatch()
+        photoImageFolderRepository.deleteAllInBatch()
         photoImageRepository.deleteAllInBatch()
         folderRepository.deleteAllInBatch()
         mediaRepository.deleteAllInBatch()
@@ -65,14 +71,18 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
         ),
     )
 
-    protected fun createPhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage =
-        photoImageRepository.save(
+    protected fun createPhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage {
+        val photo = photoImageRepository.save(
             PhotoImage(
                 userId = userId,
                 mediaId = mediaId,
-                folderId = folderId,
             ),
         )
+        if (folderId != null) {
+            photoImageFolderRepository.save(PhotoImageFolder(photoImageId = photo.id!!, folderId = folderId))
+        }
+        return photo
+    }
 
     protected fun createFavoritePhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage {
         val photo = createPhotoImage(userId, mediaId, folderId)
