@@ -9,4 +9,6 @@ interface PhotoImageFolderRepositoryPort {
     fun deleteByFolderIds(folderIds: List<Long>)
 
     fun deleteByPhotoImageIdsAndFolderId(photoImageIds: List<Long>, folderId: Long)
+
+    fun getPhotoImageIdsByFolderIds(folderIds: List<Long>): List<Long>
 }

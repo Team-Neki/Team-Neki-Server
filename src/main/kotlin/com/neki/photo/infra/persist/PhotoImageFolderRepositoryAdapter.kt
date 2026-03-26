@@ -29,4 +29,9 @@ class PhotoImageFolderRepositoryAdapter(private val jpaRepository: JpaPhotoImage
         if (photoImageIds.isEmpty()) return
         jpaRepository.deleteAllByPhotoImageIdInAndFolderId(photoImageIds, folderId)
     }
+
+    override fun getPhotoImageIdsByFolderIds(folderIds: List<Long>): List<Long> {
+        if (folderIds.isEmpty()) return emptyList()
+        return jpaRepository.findAllByFolderIdIn(folderIds).map { it.photoImageId }
+    }
 }
