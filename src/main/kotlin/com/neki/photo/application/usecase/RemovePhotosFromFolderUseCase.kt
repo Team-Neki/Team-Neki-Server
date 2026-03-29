@@ -5,6 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.RemovePhotosFromFolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
+import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 class RemovePhotosFromFolderUseCase(
     private val folderRepository: FolderRepositoryPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
+    private val photoImageFolderRepository: PhotoImageFolderRepositoryPort,
 ) {
 
     @Transactional
@@ -32,5 +34,8 @@ class RemovePhotosFromFolderUseCase(
             command.folderId,
             command.photoIds,
         )
+
+        // 중간 테이블에서도 연관 삭제 (dual-write)
+        photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(command.photoIds, command.folderId)
     }
 }
