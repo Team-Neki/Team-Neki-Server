@@ -9,6 +9,7 @@ import com.neki.photo.application.contract.MediaAvailability
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
+import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.domain.entity.PhotoImage
 
@@ -22,6 +23,7 @@ import com.neki.photo.domain.entity.PhotoImage
 class UploadPhotosUseCase(
     private val mediaClient: MediaClientPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
+    private val photoImageFolderRepository: PhotoImageFolderRepositoryPort,
     private val folderRepository: FolderRepositoryPort,
     private val favoriteImageRepository: FavoriteImageRepositoryPort,
 
@@ -57,8 +59,12 @@ class UploadPhotosUseCase(
         try {
             transactionRunner.run {
                 val savedPhotos: List<PhotoImage> = photoImageRepository.saveAll(photos)
+                val savedPhotoIds: List<Long> = savedPhotos.map { it.id!! }
+                if (command.folderId != null) {
+                    photoImageFolderRepository.saveAll(savedPhotoIds, command.folderId)
+                }
                 if (command.favorite) {
-                    favoriteImageRepository.addAll(command.userId, savedPhotos.map { it.id!! })
+                    favoriteImageRepository.addAll(command.userId, savedPhotoIds)
                 }
             }
         } catch (e: BusinessException) {

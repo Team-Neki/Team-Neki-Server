@@ -36,7 +36,6 @@ data class UploadPhotoRequest(
             example = "QR",
             allowableValues = ["QR", "DIRECT_UPLOAD"],
         )
-        @field:NotNull(message = "uploadMethod는 필수 입력값입니다.")
         val uploadMethod: UploadMethod? = null,
 
         @field:Schema(description = "메모", example = "대학교 친구들이랑")
