@@ -4,6 +4,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.media.api.dto.UploadTicketRequest
 import com.neki.media.domain.MediaType
 import com.neki.photo.api.dto.UploadPhotoRequest
+import com.neki.photo.domain.enums.UploadMethod
 import com.neki.photo.infra.persist.jpa.PhotoImageQueryRepository
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -83,7 +84,9 @@ class UploadPhotosIdempotencyE2ETest : PhotoImageE2ETestBase() {
             uploads = mediaIds.map {
                 UploadPhotoRequest.UploadPhotoItem(
                     mediaId = it,
+                    uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
+                    capturedAt = null,
                 )
             },
         )

@@ -1,6 +1,8 @@
 package com.neki.photo.application.command
 
 import com.neki.common.domain.vo.SortOrder
+import com.neki.photo.domain.enums.UploadMethod
+import java.time.LocalDateTime
 
 /**
  * fileName       : PhotoImageCommand
@@ -14,7 +16,12 @@ data class UploadPhotoCommand(
     val uploads: List<UploadItem>,
     val favorite: Boolean,
 ) {
-    data class UploadItem(val mediaId: Long, val memo: String?)
+    data class UploadItem(
+        val mediaId: Long,
+        val uploadMethod: UploadMethod?,
+        val memo: String?,
+        val capturedAt: LocalDateTime?,
+    )
 }
 
 data class GetPhotosCommand(
@@ -36,7 +43,10 @@ data class GetFavoritePhotosCommand(
 
 data class DeletePhotosCommand(val userId: Long, val photoIds: List<Long>)
 
+@Deprecated(message = "PUT API 변경 후 제거")
 data class UpdatePhotoCommand(val userId: Long, val photoId: Long, val memo: String?)
+
+data class PutPhotoCommand(val userId: Long, val photoId: Long, val memo: String?, val capturedAt: LocalDateTime?)
 
 data class UpdatePhotoFavoriteCommand(val userId: Long, val photoId: Long, val favorite: Boolean)
 

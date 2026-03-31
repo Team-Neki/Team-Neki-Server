@@ -7,6 +7,7 @@ import com.neki.photo.api.dto.UploadPhotoRequest
 import com.neki.photo.application.command.DeletePhotosCommand
 import com.neki.photo.application.command.GetPhotoCommand
 import com.neki.photo.application.command.GetPhotosCommand
+import com.neki.photo.application.command.PutPhotoCommand
 import com.neki.photo.application.command.UpdatePhotoCommand
 import com.neki.photo.application.command.UploadPhotoCommand
 import org.springframework.stereotype.Component
@@ -26,7 +27,9 @@ class PhotoImageCommandConverter {
         uploads = request.uploads.map { item ->
             UploadPhotoCommand.UploadItem(
                 mediaId = item.mediaId!!,
+                uploadMethod = item.uploadMethod,
                 memo = item.memo,
+                capturedAt = item.capturedAt,
             )
         },
         favorite = request.favorite ?: false,
@@ -56,9 +59,17 @@ class PhotoImageCommandConverter {
         photoIds = request.photoIds,
     )
 
+    @Deprecated(message = "PUT API 변경 후 제거")
     fun toUpdatePhotoCommand(userId: Long, photoId: Long, request: UpdatePhotoRequest) = UpdatePhotoCommand(
         userId = userId,
         photoId = photoId,
         memo = request.memo,
+    )
+
+    fun toPutPhotoCommand(userId: Long, photoId: Long, request: UpdatePhotoRequest) = PutPhotoCommand(
+        userId = userId,
+        photoId = photoId,
+        memo = request.memo,
+        capturedAt = request.capturedAt,
     )
 }

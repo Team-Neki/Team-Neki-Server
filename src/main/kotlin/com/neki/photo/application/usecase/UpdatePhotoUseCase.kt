@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional
  * date           : 2026. 1. 9. 오후 3:53
  * description    : 사진 업데이트 UseCase
  */
+@Deprecated(message = "PUT API 변경 후 제거")
 @UseCase
 class UpdatePhotoUseCase(private val photoImageRepository: PhotoImageRepositoryPort) {
 

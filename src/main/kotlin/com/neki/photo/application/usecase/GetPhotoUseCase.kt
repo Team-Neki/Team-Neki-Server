@@ -32,9 +32,11 @@ class GetPhotoUseCase(
             storageKey = mediaInfo.storageKey,
             favorite = isFavorite,
             contentType = mediaInfo.contentType,
+            uploadMethod = photo.uploadMethod,
             width = mediaInfo.width,
             height = mediaInfo.height,
             createdAt = photo.createdAt!!,
+            capturedAt = photo.capturedAt,
         )
     }
 }
