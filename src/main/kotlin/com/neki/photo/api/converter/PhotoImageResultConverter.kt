@@ -43,6 +43,7 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
         contentType = result.contentType,
         width = result.width,
         height = result.height,
+        memo = result.memo,
         createdAt = result.createdAt,
     )
 

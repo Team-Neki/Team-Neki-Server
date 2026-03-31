@@ -32,6 +32,7 @@ data class GetPhotoResult(
     val uploadMethod: UploadMethod?,
     val width: Int? = null,
     val height: Int? = null,
+    val memo: String?,
     val createdAt: LocalDateTime,
     val capturedAt: LocalDateTime?,
 )
