@@ -1,7 +1,7 @@
 package com.neki.notification.infra.discord
 
 import com.neki.notification.properties.DiscordProperties
-import com.neki.user.event.UserRegisteredEvent
+import com.neki.user.event.UserWithdrawnEvent
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.Environment
 import org.springframework.http.MediaType
@@ -12,7 +12,7 @@ import org.springframework.transaction.event.TransactionalEventListener
 import org.springframework.web.client.RestClient
 
 @Component
-class UserRegisteredDiscordListener(
+class UserWithdrawnDiscordListener(
     private val discordProperties: DiscordProperties,
     private val restClient: RestClient,
     private val environment: Environment,
@@ -21,7 +21,7 @@ class UserRegisteredDiscordListener(
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
-    fun onUserRegistered(event: UserRegisteredEvent) {
+    fun onUserWithdrawn(event: UserWithdrawnEvent) {
         if (discordProperties.webhookUrl.isBlank()) return
 
         val profile: String = environment.activeProfiles.firstOrNull() ?: "unknown"
@@ -30,14 +30,12 @@ class UserRegisteredDiscordListener(
             val body: Map<String, Any> = mapOf(
                 "embeds" to listOf(
                     mapOf(
-                        "title" to "Neki 신규 사용자 가입 알림",
-                        "color" to 5763719, // Discord green
+                        "title" to "Neki 사용자 탈퇴 알림",
+                        "color" to 15548997, // Discord red
                         "fields" to listOf(
                             mapOf("name" to "환경", "value" to profile, "inline" to false),
                             mapOf("name" to "ID", "value" to event.userId.toString(), "inline" to false),
                             mapOf("name" to "닉네임", "value" to event.nickname, "inline" to false),
-                            mapOf("name" to "로그인 유형", "value" to event.providerType, "inline" to false),
-                            mapOf("name" to "플랫폼", "value" to event.platform, "inline" to false),
                             mapOf("name" to "누적 가입자 (탈퇴 제외)", "value" to event.activeUserCount, "inline" to false),
                         ),
                     ),

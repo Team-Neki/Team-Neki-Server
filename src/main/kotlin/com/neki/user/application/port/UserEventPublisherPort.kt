@@ -1,5 +1,5 @@
 package com.neki.user.application.port
 
-interface DomainEventPublisherPort {
+interface UserEventPublisherPort {
     fun publish(event: Any)
 }
