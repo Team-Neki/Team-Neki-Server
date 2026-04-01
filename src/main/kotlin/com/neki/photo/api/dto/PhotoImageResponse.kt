@@ -28,6 +28,8 @@ data class GetPhotosResponse(
         val width: Int? = null,
         @field:Schema(description = "이미지 높이", example = "1440", nullable = true)
         val height: Int? = null,
+        @field:Schema(description = "메모", example = "친구들이랑 함께", nullable = true)
+        val memo: String? = null,
         @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
         val createdAt: LocalDateTime,
     )
@@ -46,6 +48,8 @@ data class GetPhotoResponse(
     val width: Int? = null,
     @field:Schema(description = "이미지 높이", example = "1440", nullable = true)
     val height: Int? = null,
+    @field:Schema(description = "메모", example = "친구들이랑 함께", nullable = true)
+    val memo: String? = null,
     @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
     val createdAt: LocalDateTime,
 )
