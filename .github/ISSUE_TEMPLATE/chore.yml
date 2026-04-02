@@ -1,0 +1,19 @@
+name: Chore
+description: 리팩토링, 설정 변경 등 기술적 작업을 요청합니다.
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: 작업 내용을 설명해주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: 작업 항목을 체크리스트로 작성해주세요.
+      value: |
+        - [ ]
+    validations:
+      required: false
