@@ -3,6 +3,7 @@ package com.neki.notification.infra.discord
 import com.neki.notification.properties.DiscordProperties
 import com.neki.user.event.UserWithdrawnEvent
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.core.env.Environment
 import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.Async
@@ -11,6 +12,7 @@ import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 import org.springframework.web.client.RestClient
 
+@Profile("!test")
 @Component
 class UserWithdrawnDiscordListener(
     private val discordProperties: DiscordProperties,
