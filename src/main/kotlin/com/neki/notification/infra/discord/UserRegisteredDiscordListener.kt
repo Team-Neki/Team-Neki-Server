@@ -19,7 +19,7 @@ class UserRegisteredDiscordListener(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Async
+    @Async("discordNotificationExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     fun onUserRegistered(event: UserRegisteredEvent) {
         if (discordProperties.webhookUrl.isBlank()) return
