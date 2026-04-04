@@ -6,7 +6,9 @@ import com.neki.media.domain.entity.Media
 import com.neki.media.domain.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.photo.domain.entity.PhotoImage
+import com.neki.photo.domain.entity.PhotoImageFolder
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
+import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,8 +31,12 @@ abstract class FolderE2ETestBase : E2ETestBase() {
     @Autowired
     protected lateinit var mediaRepository: JpaMediaRepository
 
+    @Autowired
+    protected lateinit var photoImageFolderRepository: JpaPhotoImageFolderRepository
+
     @AfterEach
     override fun tearDown() {
+        photoImageFolderRepository.deleteAllInBatch()
         photoImageRepository.deleteAllInBatch()
         folderRepository.deleteAllInBatch()
         mediaRepository.deleteAllInBatch()
@@ -47,12 +53,16 @@ abstract class FolderE2ETestBase : E2ETestBase() {
         ),
     )
 
-    protected fun createPhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage =
-        photoImageRepository.save(
+    protected fun createPhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage {
+        val photo: PhotoImage = photoImageRepository.save(
             PhotoImage(
                 userId = userId,
                 mediaId = mediaId,
-                folderId = folderId,
             ),
         )
+        if (folderId != null) {
+            photoImageFolderRepository.save(PhotoImageFolder(photoImageId = photo.id!!, folderId = folderId))
+        }
+        return photo
+    }
 }

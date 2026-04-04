@@ -134,10 +134,10 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     }
 
     private fun getPhotoIdsInFolder(folderId: Long?): List<Long> {
-        // API의 folderId 필터링 버그로 인해 직접 DB 조회 사용
-        val photos = photoImageRepository.findByUserIdAndFolderId(testUser.id!!, folderId)
+        if (folderId == null) return emptyList()
+        val relations = photoImageFolderRepository.findAllByFolderIdIn(listOf(folderId))
         // ID 역순 정렬 (가장 최근 업로드된 사진이 먼저)
-        return photos.sortedByDescending { it.id }.map { it.id!! }
+        return relations.map { it.photoImageId }.sortedDescending()
     }
 
     data class FolderInfoDto(val folderId: Long, val name: String, val latestImageUrl: String?, val totalCount: Long)

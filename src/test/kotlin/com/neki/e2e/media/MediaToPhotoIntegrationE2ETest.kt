@@ -186,10 +186,13 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         assertThat(savedPhotos).hasSize(2)
 
         savedPhotos.forEach { photo ->
-            assertThat(photo.folderId).isEqualTo(folder.id)
             assertThat(photo.memo).isEqualTo("테스트 메모")
             assertThat(photo.userId).isEqualTo(testUser.id)
         }
+
+        // 중간 테이블에서 폴더 연관 확인
+        val folderRelations = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder.id!!))
+        assertThat(folderRelations).hasSize(2)
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.neki.media.domain.entity.Media
 import com.neki.media.domain.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
+import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,8 +28,12 @@ abstract class MediaE2ETestBase : E2ETestBase() {
     @Autowired
     protected lateinit var folderRepository: JpaFolderRepository
 
+    @Autowired
+    protected lateinit var photoImageFolderRepository: JpaPhotoImageFolderRepository
+
     @AfterEach
     override fun tearDown() {
+        photoImageFolderRepository.deleteAllInBatch()
         photoImageRepository.deleteAllInBatch()
         folderRepository.deleteAllInBatch()
         mediaRepository.deleteAllInBatch()
