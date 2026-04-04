@@ -8,6 +8,7 @@ import com.neki.photo.application.command.DeleteFoldersCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
+import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.domain.entity.PhotoImage
 
@@ -21,6 +22,7 @@ import com.neki.photo.domain.entity.PhotoImage
 class DeleteFoldersUseCase(
     private val folderRepository: FolderRepositoryPort,
     private val photoImageRepository: PhotoImageRepositoryPort,
+    private val photoImageFolderRepository: PhotoImageFolderRepositoryPort,
     private val favoriteImageRepository: FavoriteImageRepositoryPort,
     private val mediaClient: MediaClientPort,
     private val transactionRunner: TransactionRunner,
@@ -46,6 +48,9 @@ class DeleteFoldersUseCase(
                 // 사진 삭제를 하지 않는 경우 사진에서 folderId만 없앰
                 photoImageRepository.updatePhotosFolderIdToNull(command.userId, command.folderIds)
             }
+
+            // 중간 테이블에서 폴더 연관 삭제 (dual-write)
+            photoImageFolderRepository.deleteByFolderIds(command.folderIds)
 
             // 폴더 삭제
             val deletedCount: Int = folderRepository.deleteOwnedFolders(

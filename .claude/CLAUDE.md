@@ -64,6 +64,7 @@ command):
 | Logging/Metrics     | `/observability`      |
 | S3 uploads/Media    | `/presigned-url-flow` |
 | PR 리뷰 반영        | `/resolve-review`     |
+| Committing changes  | `/commit`             |
 
 ---
 
@@ -71,11 +72,11 @@ command):
 
 ### ❌ NEVER DO
 
-| Constraint                            | Reason                                             |
-|---------------------------------------|----------------------------------------------------|
-| Import from other domains             | Breaks module isolation                            |
+| Constraint                            | Reason                                        |
+|---------------------------------------|-----------------------------------------------|
+| Import from other domains             | Breaks module isolation                       |
 | Bypass ports to access infra directly | Violates Clean Architecture (exception: user) |
-| Remove observability code             | Critical for production debugging                  |
+| Remove observability code             | Critical for production debugging             |
 
 ### ✅ ALWAYS DO
 
@@ -116,6 +117,7 @@ Skills are auto-loaded when relevant tasks are detected, or can be invoked manua
 |----------------------|-----------------------|---------------------------------------------------|
 | `api-patterns`       | `/api-patterns`       | API endpoint development, request/response design |
 | `architecture`       | `/architecture`       | New domain/module design, Clean Architecture      |
+| `commit`             | `/commit`             | 코드 작업 완료 후 커밋 생성                                  |
 | `configuration`      | `/configuration`      | Environment settings, profiles, secrets           |
 | `observability`      | `/observability`      | Logging, metrics, monitoring                      |
 | `presigned-url-flow` | `/presigned-url-flow` | S3 upload, media/image handling                   |
