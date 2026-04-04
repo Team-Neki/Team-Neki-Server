@@ -123,14 +123,15 @@ class CreateTermAgreementsUseCaseTest : FunSpec({
         verify(exactly = 0) { userTermAgreementRepository.saveAll(any()) }
     }
 
-    test("존재하지 않는 termId 포함 - agreedTermIds에 활성 약관에 없는 ID는 findAllByIds에서 제외되어 무시된다") {
+    test("비활성 termId 포함 - 활성 약관 외 ID는 UseCase에서 필터링 후 저장에서 제외된다") {
         // Given
         val userId = 1L
         val requiredTerm = aTerm(id = 1L, isRequired = true, version = "1.0.0")
         val savedSlot = slot<List<UserTermAgreement>>()
 
         every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm)
-        every { termRepository.findAllByIds(listOf(1L, 999L)) } returns listOf(requiredTerm)
+        // 활성 약관 ID(1L)만 필터링된 후 findAllByIds에 전달됨; 비활성 ID(999L)는 제외됨
+        every { termRepository.findAllByIds(listOf(1L)) } returns listOf(requiredTerm)
         every { userTermAgreementRepository.saveAll(capture(savedSlot)) } returns emptyList()
 
         val command = CreateTermAgreementsCommand(
@@ -148,5 +149,7 @@ class CreateTermAgreementsUseCaseTest : FunSpec({
         verify(exactly = 1) { userTermAgreementRepository.saveAll(any()) }
         savedSlot.captured.size shouldBe 1
         savedSlot.captured[0].id.termId shouldBe 1L
+        // 비활성 ID(999L)는 findAllByIds에 전달되지 않음을 검증
+        verify(exactly = 0) { termRepository.findAllByIds(match { it.contains(999L) }) }
     }
 })

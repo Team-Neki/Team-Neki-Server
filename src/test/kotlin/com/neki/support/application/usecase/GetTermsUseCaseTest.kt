@@ -30,13 +30,20 @@ class GetTermsUseCaseTest : FunSpec({
 
         // Then
         result.terms.size shouldBe 2
-        result.terms[0].id shouldBe 1L
-        result.terms[0].termType shouldBe TermType.SERVICE
-        result.terms[0].title shouldBe "서비스 이용약관"
-        result.terms[0].url shouldBe "https://example.com/service"
-        result.terms[0].isRequired shouldBe true
-        result.terms[1].id shouldBe 2L
-        result.terms[1].termType shouldBe TermType.PRIVACY
+        with(result.terms[0]) {
+            id shouldBe 1L
+            termType shouldBe TermType.SERVICE
+            title shouldBe "서비스 이용약관"
+            url shouldBe "https://example.com/service"
+            isRequired shouldBe true
+        }
+        with(result.terms[1]) {
+            id shouldBe 2L
+            termType shouldBe TermType.PRIVACY
+            title shouldBe "개인정보 처리방침"
+            url shouldBe "https://example.com/privacy"
+            isRequired shouldBe true
+        }
     }
 
     test("빈 목록 - port가 빈 리스트 반환 시 빈 결과를 반환한다") {
