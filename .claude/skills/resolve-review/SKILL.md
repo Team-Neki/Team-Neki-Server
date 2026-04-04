@@ -42,7 +42,7 @@ gh pr view <PR번호> --comments --json comments,reviews \
   --jq '.reviews[] | "[\(.author.login)] state: \(.state)\n\(.body)"'
 
 # 인라인 리뷰 코멘트 조회 (comment ID, 파일 경로, 내용)
-gh api repos/{owner}/{repo}/pulls/<PR번호>/comments \
+gh api repos/{owner}/{repo}/pulls/{pull_number}/comments \
   --jq '.[] | "\(.id)\t\(.path):\(.original_line)\t\(.body)"'
 ```
 
@@ -86,7 +86,7 @@ git push
 각 코멘트에 처리 결과를 답글로 남김:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/<PR번호>/comments -X POST \
+gh api repos/{owner}/{repo}/pulls/{pull_number}/comments -X POST \
   -f body="반영 완료했습니다. <변경 요약> (<commit-hash>)" \
   -F in_reply_to=<comment_id>
 ```
