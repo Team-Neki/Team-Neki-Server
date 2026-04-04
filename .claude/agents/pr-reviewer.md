@@ -49,7 +49,7 @@ git diff staging...HEAD
 | 항목        | 확인 내용                          |
 |-----------|--------------------------------|
 | MDC 유지    | MDC filter, 로깅 코드가 제거되지 않았는가   |
-| Logger 유지 | `@Slf4j`, logger 참조가 제거되지 않았는가 |
+| Logger 유지 | 로거 참조(예: KotlinLogging, LoggerFactory)가 제거되지 않았는가 |
 
 #### D. 스키마 변경
 

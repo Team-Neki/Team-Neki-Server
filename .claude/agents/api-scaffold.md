@@ -47,13 +47,13 @@ tools:
 
 | # | 파일                              | 위치                                           |
 |---|---------------------------------|----------------------------------------------|
-| 1 | `{Action}{Resource}Request.kt`  | `{domain}/api/dto/`                          |
-| 2 | `{Action}{Resource}Response.kt` | `{domain}/api/dto/`                          |
-| 3 | `{Action}{Resource}Command.kt`  | `{domain}/application/command/`              |
-| 4 | `{Action}{Resource}Result.kt`   | `{domain}/application/result/`               |
-| 5 | Converter 메서드                   | `{domain}/api/converter/` (기존 파일에 추가 또는 신규)  |
-| 6 | `{Action}{Resource}UseCase.kt`  | `{domain}/application/usecase/`              |
-| 7 | Controller 메서드                  | `{domain}/api/controller/` (기존 파일에 추가 또는 신규) |
+| 1 | `{Action}{Resource}Request.kt`  | `src/main/kotlin/com/neki/{domain}/api/dto/`                          |
+| 2 | `{Action}{Resource}Response.kt` | `src/main/kotlin/com/neki/{domain}/api/dto/`                          |
+| 3 | `{Action}{Resource}Command.kt`  | `src/main/kotlin/com/neki/{domain}/application/command/`              |
+| 4 | `{Action}{Resource}Result.kt`   | `src/main/kotlin/com/neki/{domain}/application/result/`               |
+| 5 | Converter 메서드                   | `src/main/kotlin/com/neki/{domain}/api/converter/` (기존 파일에 추가 또는 신규)  |
+| 6 | `{Action}{Resource}UseCase.kt`  | `src/main/kotlin/com/neki/{domain}/application/usecase/`              |
+| 7 | Controller 메서드                  | `src/main/kotlin/com/neki/{domain}/api/controller/` (기존 파일에 추가 또는 신규) |
 | 8 | `{Action}{Resource}E2ETest.kt`  | `src/test/kotlin/com/neki/e2e/{domain}/`     |
 
 ### 3. 필수 적용 사항
