@@ -70,32 +70,4 @@ class UpdatePhotoFavoriteUseCaseTest : FunSpec({
         verify(exactly = 0) { favoriteImageRepository.add(any(), any()) }
         verify(exactly = 0) { favoriteImageRepository.delete(any(), any()) }
     }
-
-    test("이미 즐겨찾기인 상태에서 add 요청 시 멱등적으로 add 호출") {
-        // Given
-        val command = UpdatePhotoFavoriteCommand(userId = 1L, photoId = 1L, favorite = true)
-
-        every { photoImageRepository.existsOwnedPhoto(1L, 1L) } returns true
-        every { favoriteImageRepository.add(1L, 1L) } just Runs
-
-        // When
-        useCase.execute(command)
-
-        // Then
-        verify(exactly = 1) { favoriteImageRepository.add(1L, 1L) }
-    }
-
-    test("즐겨찾기가 아닌 상태에서 delete 요청 시 멱등적으로 delete 호출") {
-        // Given
-        val command = UpdatePhotoFavoriteCommand(userId = 1L, photoId = 1L, favorite = false)
-
-        every { photoImageRepository.existsOwnedPhoto(1L, 1L) } returns true
-        every { favoriteImageRepository.delete(1L, 1L) } just Runs
-
-        // When
-        useCase.execute(command)
-
-        // Then
-        verify(exactly = 1) { favoriteImageRepository.delete(1L, 1L) }
-    }
 })

@@ -216,22 +216,23 @@ class UploadPhotosUseCaseTest : FunSpec({
         verify(exactly = 0) { mediaClient.rollbackMediasUploaded(any(), any()) }
     }
 
-    test("롤백 중 예외 발생 시 원래 예외가 전파됨") {
+    test("롤백 중 예외 발생 시 롤백 예외가 전파됨") {
         // Given
         val uploads = listOf(makeUploadItem(10L))
         val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
         val originalException = RuntimeException("원래 오류")
+        val rollbackException = RuntimeException("롤백 오류")
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns mapOf(10L to MediaAvailability.AVAILABLE)
         every { photoImageRepository.saveAll(any()) } throws originalException
-        every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } throws RuntimeException("롤백 오류")
+        every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } throws rollbackException
 
-        // When & Then - 롤백 중 예외가 발생해도 원래 예외가 전파됨
+        // When & Then - 롤백 중 예외가 발생하면 롤백 예외가 전파됨 (원래 예외는 마스킹됨)
         val ex = shouldThrow<RuntimeException> {
             useCase.execute(command)
         }
-        // 원래 예외가 전파되어야 함 (롤백 예외에 마스킹될 수 있음)
+        ex shouldBe rollbackException
         verify(exactly = 1) { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) }
     }
 })

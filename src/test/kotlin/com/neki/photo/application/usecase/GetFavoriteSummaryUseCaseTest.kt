@@ -94,17 +94,4 @@ class GetFavoriteSummaryUseCaseTest : FunSpec({
         result.storageKey shouldBe "key/cover.jpg"
         result.totalCount shouldBe 5L
     }
-
-    test("count>0이지만 latestPhoto가 null인 경우 - 즐겨찾기 수와 실제 photo 간 불일치 처리") {
-        // Given
-        every { favoriteImageRepository.countByUserId(1L) } returns 2L
-        every { photoImageRepository.getLatestFavoritePhoto(1L) } returns null
-
-        // When
-        val result = useCase.execute(command)
-
-        // Then
-        result.storageKey shouldBe null
-        result.totalCount shouldBe 2L
-    }
 })

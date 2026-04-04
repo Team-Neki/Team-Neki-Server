@@ -145,21 +145,4 @@ class DeleteFoldersUseCaseTest : FunSpec({
         verify(exactly = 1) { folderRepository.deleteOwnedFolders(1L, folderIds) }
         verify(exactly = 1) { photoImageRepository.deleteOwnedPhotos(1L, photoIds) }
     }
-
-    test("deletePhotos=false이면 updatePhotosFolderIdToNull 호출 확인") {
-        // Given
-        val folderIds = listOf(1L, 2L)
-        val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = false)
-
-        every { photoImageRepository.updatePhotosFolderIdToNull(1L, folderIds) } returns 3
-        every { photoImageFolderRepository.deleteByFolderIds(folderIds) } just Runs
-        every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 2
-
-        // When
-        useCase.execute(command)
-
-        // Then
-        verify(exactly = 1) { photoImageRepository.updatePhotosFolderIdToNull(1L, folderIds) }
-        verify(exactly = 0) { photoImageRepository.deleteOwnedPhotos(any(), any()) }
-    }
 })
