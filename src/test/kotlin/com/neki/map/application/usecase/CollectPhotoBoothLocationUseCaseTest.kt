@@ -42,14 +42,14 @@ class CollectPhotoBoothLocationUseCaseTest : FunSpec({
         )
     }
 
-    // GeoPoint.of(latitude, longitude) 순서로 호출되므로 latitude는 -180..180, longitude은 -90..90 범위여야 함
+    // GeoPoint.of(latitude, longitude) 순서로 호출되므로 latitude는 -90..90, longitude은 -180..180 범위여야 함
     // 실제 사용 시: GeoPoint.of(place.latitude.toDouble(), place.longitude.toDouble())
     fun aPlace(
         id: String,
         placeName: String = "인생네컷 $id",
         roadAddressName: String = "서울특별시 강남구 테헤란로 $id",
-        latitude: String = "37.4979",   // longitude 파라미터로 전달됨 (-180..180 범위)
-        longitude: String = "37.0",     // latitude 파라미터로 전달됨 (-90..90 범위)
+        latitude: String = "37.4979",   // latitude 파라미터로 전달됨 (-90..90 범위)
+        longitude: String = "37.0",     // longitude 파라미터로 전달됨 (-180..180 범위)
     ) = LocalSearchResult.Place(
         id = id,
         placeName = placeName,

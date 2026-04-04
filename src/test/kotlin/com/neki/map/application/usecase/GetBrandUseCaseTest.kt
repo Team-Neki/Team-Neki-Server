@@ -100,7 +100,7 @@ class GetBrandUseCaseTest : FunSpec({
         val brands = (1L..5L).map { id ->
             aBrand(id = id, name = "브랜드$id", code = "brand$id", mediaId = id * 10L)
         }
-        val mediaIds = listOf(10L, 20L, 30L, 40L, 50L)
+        val mediaIds = brands.mapNotNull { it.mediaId }
 
         // 3개만 storageInfo 반환 (40L, 50L은 미존재)
         val availableStorageInfos = listOf(
