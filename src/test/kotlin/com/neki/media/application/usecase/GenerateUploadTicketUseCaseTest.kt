@@ -22,130 +22,133 @@ import java.time.Instant
  * fileName       : GenerateUploadTicketUseCaseTest
  * description    : GenerateUploadTicketUseCase 단위 테스트
  */
-class GenerateUploadTicketUseCaseTest : FunSpec({
+class GenerateUploadTicketUseCaseTest :
+    FunSpec({
 
-    lateinit var mediaStorage: MediaStoragePort
-    lateinit var mediaRepository: MediaRepositoryPort
-    lateinit var useCase: GenerateUploadTicketUseCase
+        lateinit var mediaStorage: MediaStoragePort
+        lateinit var mediaRepository: MediaRepositoryPort
+        lateinit var useCase: GenerateUploadTicketUseCase
 
-    val fixedExpiresAt: Instant = Instant.parse("2026-01-01T00:00:00Z")
+        val fixedExpiresAt: Instant = Instant.parse("2026-01-01T00:00:00Z")
 
-    beforeTest {
-        mediaStorage = mockk()
-        mediaRepository = mockk()
-        useCase = GenerateUploadTicketUseCase(
-            mediaStorage = mediaStorage,
-            mediaRepository = mediaRepository,
-            transactionRunner = FakeTransactionRunner(),
-        )
-    }
+        beforeTest {
+            mediaStorage = mockk()
+            mediaRepository = mockk()
+            useCase = GenerateUploadTicketUseCase(
+                mediaStorage = mediaStorage,
+                mediaRepository = mediaRepository,
+                transactionRunner = FakeTransactionRunner(),
+            )
+        }
 
-    test("정상 생성 - N개 아이템에 대해 N개 presigned URL 생성 + 미디어 저장") {
-        // Given
-        val ownerId = 1L
-        val items = listOf(
-            GenerateUploadTicketCommand.UploadTicketItem(
-                filename = "photo1.jpg",
+        test("정상 생성 - N개 아이템에 대해 N개 presigned URL 생성 + 미디어 저장") {
+            // Given
+            val ownerId = 1L
+            val items = listOf(
+                GenerateUploadTicketCommand.UploadTicketItem(
+                    filename = "photo1.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.POSE,
+                ),
+                GenerateUploadTicketCommand.UploadTicketItem(
+                    filename = "photo2.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.POSE,
+                ),
+            )
+
+            val savedMedia1 = aMedia(id = 1L, ownerId = ownerId)
+            val savedMedia2 = aMedia(id = 2L, ownerId = ownerId)
+
+            val ticket1 = UploadTicket(
+                url = "https://s3.example.com/presigned-1",
+                method = "PUT",
+                expiresAt = fixedExpiresAt,
                 contentType = "image/jpeg",
-                mediaType = MediaType.POSE,
-            ),
-            GenerateUploadTicketCommand.UploadTicketItem(
-                filename = "photo2.jpg",
+            )
+            val ticket2 = UploadTicket(
+                url = "https://s3.example.com/presigned-2",
+                method = "PUT",
+                expiresAt = fixedExpiresAt,
                 contentType = "image/jpeg",
-                mediaType = MediaType.POSE,
-            ),
-        )
+            )
 
-        val savedMedia1 = aMedia(id = 1L, ownerId = ownerId)
-        val savedMedia2 = aMedia(id = 2L, ownerId = ownerId)
+            every {
+                mediaRepository.save(match { it.ownerId == ownerId && it.mediaType == MediaType.POSE })
+            } returnsMany listOf(savedMedia1, savedMedia2)
+            every { mediaStorage.generateUploadTicket(any(), "image/jpeg") } returnsMany listOf(ticket1, ticket2)
 
-        val ticket1 = UploadTicket(
-            url = "https://s3.example.com/presigned-1",
-            method = "PUT",
-            expiresAt = fixedExpiresAt,
-            contentType = "image/jpeg",
-        )
-        val ticket2 = UploadTicket(
-            url = "https://s3.example.com/presigned-2",
-            method = "PUT",
-            expiresAt = fixedExpiresAt,
-            contentType = "image/jpeg",
-        )
+            // When
+            val command = GenerateUploadTicketCommand(ownerId = ownerId, items = items)
+            val result = useCase.execute(command)
 
-        every { mediaRepository.save(match { it.ownerId == ownerId && it.mediaType == MediaType.POSE }) } returnsMany listOf(savedMedia1, savedMedia2)
-        every { mediaStorage.generateUploadTicket(any(), "image/jpeg") } returnsMany listOf(ticket1, ticket2)
+            // Then
+            result.tickets.size shouldBe 2
+            result.tickets[0].mediaId shouldBe 1L
+            result.tickets[0].uploadUrl shouldBe "https://s3.example.com/presigned-1"
+            result.tickets[1].mediaId shouldBe 2L
+            result.tickets[1].uploadUrl shouldBe "https://s3.example.com/presigned-2"
+            verify(exactly = 2) { mediaRepository.save(any()) }
+            verify(exactly = 2) { mediaStorage.generateUploadTicket(any(), any()) }
+        }
 
-        // When
-        val command = GenerateUploadTicketCommand(ownerId = ownerId, items = items)
-        val result = useCase.execute(command)
+        test("method/expiresAt 추출 - 첫 번째 ticket에서 method와 expiresAt 추출 확인") {
+            // Given
+            val ownerId = 1L
+            val items = listOf(
+                GenerateUploadTicketCommand.UploadTicketItem(
+                    filename = "photo1.jpg",
+                    contentType = "image/jpeg",
+                    mediaType = MediaType.POSE,
+                ),
+                GenerateUploadTicketCommand.UploadTicketItem(
+                    filename = "photo2.png",
+                    contentType = "image/png",
+                    mediaType = MediaType.POSE,
+                ),
+            )
 
-        // Then
-        result.tickets.size shouldBe 2
-        result.tickets[0].mediaId shouldBe 1L
-        result.tickets[0].uploadUrl shouldBe "https://s3.example.com/presigned-1"
-        result.tickets[1].mediaId shouldBe 2L
-        result.tickets[1].uploadUrl shouldBe "https://s3.example.com/presigned-2"
-        verify(exactly = 2) { mediaRepository.save(any()) }
-        verify(exactly = 2) { mediaStorage.generateUploadTicket(any(), any()) }
-    }
+            val savedMedia1 = aMedia(id = 1L, ownerId = ownerId)
+            val savedMedia2 = aMedia(id = 2L, ownerId = ownerId)
 
-    test("method/expiresAt 추출 - 첫 번째 ticket에서 method와 expiresAt 추출 확인") {
-        // Given
-        val ownerId = 1L
-        val items = listOf(
-            GenerateUploadTicketCommand.UploadTicketItem(
-                filename = "photo1.jpg",
+            val firstTicketExpiresAt = Instant.parse("2026-01-01T12:00:00Z")
+            val secondTicketExpiresAt = Instant.parse("2026-01-02T12:00:00Z")
+
+            val ticket1 = UploadTicket(
+                url = "https://s3.example.com/presigned-1",
+                method = "PUT",
+                expiresAt = firstTicketExpiresAt,
                 contentType = "image/jpeg",
-                mediaType = MediaType.POSE,
-            ),
-            GenerateUploadTicketCommand.UploadTicketItem(
-                filename = "photo2.png",
+            )
+            val ticket2 = UploadTicket(
+                url = "https://s3.example.com/presigned-2",
+                method = "POST",
+                expiresAt = secondTicketExpiresAt,
                 contentType = "image/png",
-                mediaType = MediaType.POSE,
-            ),
-        )
+            )
 
-        val savedMedia1 = aMedia(id = 1L, ownerId = ownerId)
-        val savedMedia2 = aMedia(id = 2L, ownerId = ownerId)
+            every { mediaRepository.save(any()) } returnsMany listOf(savedMedia1, savedMedia2)
+            every { mediaStorage.generateUploadTicket(any(), "image/jpeg") } returns ticket1
+            every { mediaStorage.generateUploadTicket(any(), "image/png") } returns ticket2
 
-        val firstTicketExpiresAt = Instant.parse("2026-01-01T12:00:00Z")
-        val secondTicketExpiresAt = Instant.parse("2026-01-02T12:00:00Z")
+            // When
+            val command = GenerateUploadTicketCommand(ownerId = ownerId, items = items)
+            val result = useCase.execute(command)
 
-        val ticket1 = UploadTicket(
-            url = "https://s3.example.com/presigned-1",
-            method = "PUT",
-            expiresAt = firstTicketExpiresAt,
-            contentType = "image/jpeg",
-        )
-        val ticket2 = UploadTicket(
-            url = "https://s3.example.com/presigned-2",
-            method = "POST",
-            expiresAt = secondTicketExpiresAt,
-            contentType = "image/png",
-        )
+            // Then: 첫 번째 티켓 기준으로 method, expiresAt 추출
+            result.method shouldBe "PUT"
+            result.expiresAt shouldBe firstTicketExpiresAt
+            result.expiresAt shouldNotBe secondTicketExpiresAt
+        }
 
-        every { mediaRepository.save(any()) } returnsMany listOf(savedMedia1, savedMedia2)
-        every { mediaStorage.generateUploadTicket(any(), "image/jpeg") } returns ticket1
-        every { mediaStorage.generateUploadTicket(any(), "image/png") } returns ticket2
+        test("빈 items 목록은 BusinessException 발생") {
+            // Given
+            val ownerId = 1L
+            val command = GenerateUploadTicketCommand(ownerId = ownerId, items = emptyList())
 
-        // When
-        val command = GenerateUploadTicketCommand(ownerId = ownerId, items = items)
-        val result = useCase.execute(command)
-
-        // Then: 첫 번째 티켓 기준으로 method, expiresAt 추출
-        result.method shouldBe "PUT"
-        result.expiresAt shouldBe firstTicketExpiresAt
-        result.expiresAt shouldNotBe secondTicketExpiresAt
-    }
-
-    test("빈 items 목록은 BusinessException 발생") {
-        // Given
-        val ownerId = 1L
-        val command = GenerateUploadTicketCommand(ownerId = ownerId, items = emptyList())
-
-        // When & Then
-        shouldThrow<BusinessException> {
-            useCase.execute(command)
-        }.resultCode shouldBe ResultCode.INVALID_PARAMETER
-    }
-})
+            // When & Then
+            shouldThrow<BusinessException> {
+                useCase.execute(command)
+            }.resultCode shouldBe ResultCode.INVALID_PARAMETER
+        }
+    })
