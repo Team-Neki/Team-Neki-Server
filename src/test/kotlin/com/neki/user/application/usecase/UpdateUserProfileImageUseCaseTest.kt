@@ -134,23 +134,25 @@ class UpdateUserProfileImageUseCaseTest : FunSpec({
         verify(exactly = 0) { mediaClient.deleteMedia(any(), any()) }
     }
 
-    test("롤백 중 예외 발생 - 원래 예외가 마스킹되지 않고 전파됨") {
+    test("롤백 중 예외 발생 - 롤백 예외가 전파됨 (원래 예외가 아닌 롤백 예외)") {
         // Given
         val userId = 1L
         val newMediaId = 20L
         val originalException = RuntimeException("원래 오류")
+        val rollbackException = RuntimeException("롤백 오류")
 
         every { mediaClient.verifyMediaUploaded(ownerId = userId, mediaId = newMediaId) } returns MediaAvailability.AVAILABLE
         every { userRepository.findById(userId) } throws originalException
         every {
             mediaClient.rollbackMediasUploaded(ownerId = userId, mediaIds = listOf(newMediaId))
-        } throws RuntimeException("롤백 오류")
+        } throws rollbackException
 
         // When & Then
-        // rollback도 예외가 발생할 경우 rollback 예외가 전파됨 (try-catch 내에서 rollback 호출 시)
-        shouldThrow<RuntimeException> {
+        // catch 블록에서 rollbackMediasUploaded가 예외를 던지면, rollback 예외가 전파됨 (원래 예외는 마스킹됨)
+        val thrownException = shouldThrow<RuntimeException> {
             useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = newMediaId))
         }
+        thrownException.message shouldBe "롤백 오류"
         verify(exactly = 1) { mediaClient.rollbackMediasUploaded(ownerId = userId, mediaIds = listOf(newMediaId)) }
     }
 
