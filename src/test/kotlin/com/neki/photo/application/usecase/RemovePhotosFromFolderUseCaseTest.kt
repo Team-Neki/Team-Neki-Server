@@ -14,68 +14,69 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 
-class RemovePhotosFromFolderUseCaseTest : FunSpec({
+class RemovePhotosFromFolderUseCaseTest :
+    FunSpec({
 
-    lateinit var folderRepository: FolderRepositoryPort
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
-    lateinit var photoImageFolderRepository: PhotoImageFolderRepositoryPort
-    lateinit var useCase: RemovePhotosFromFolderUseCase
+        lateinit var folderRepository: FolderRepositoryPort
+        lateinit var photoImageRepository: PhotoImageRepositoryPort
+        lateinit var photoImageFolderRepository: PhotoImageFolderRepositoryPort
+        lateinit var useCase: RemovePhotosFromFolderUseCase
 
-    beforeTest {
-        folderRepository = mockk()
-        photoImageRepository = mockk()
-        photoImageFolderRepository = mockk()
-        useCase = RemovePhotosFromFolderUseCase(folderRepository, photoImageRepository, photoImageFolderRepository)
-    }
-
-    test("폴더 소유 확인 후 사진 folderId 제거 및 중간 테이블 삭제") {
-        // Given
-        val folder = aFolder(id = 1L, userId = 1L)
-        val photoIds = listOf(10L, 20L)
-        val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 1L, photoIds = photoIds)
-
-        every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
-        every { photoImageRepository.removePhotosFromFolder(1L, 1L, photoIds) } returns 2
-        every { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(photoIds, 1L) } returns Unit
-
-        // When
-        useCase.execute(command)
-
-        // Then
-        verify(exactly = 1) { photoImageRepository.removePhotosFromFolder(1L, 1L, photoIds) }
-        verify(exactly = 1) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(photoIds, 1L) }
-    }
-
-    test("폴더 소유권이 없는 경우 NOT_FOUND 예외 발생") {
-        // Given
-        val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 99L, photoIds = listOf(10L))
-
-        every { folderRepository.getOwnedFolder(1L, 99L) } returns null
-
-        // When & Then
-        val ex = shouldThrow<BusinessException> {
-            useCase.execute(command)
+        beforeTest {
+            folderRepository = mockk()
+            photoImageRepository = mockk()
+            photoImageFolderRepository = mockk()
+            useCase = RemovePhotosFromFolderUseCase(folderRepository, photoImageRepository, photoImageFolderRepository)
         }
-        ex.resultCode shouldBe ResultCode.NOT_FOUND
-        verify(exactly = 0) { photoImageRepository.removePhotosFromFolder(any(), any(), any()) }
-        verify(exactly = 0) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(any(), any()) }
-    }
 
-    test("빈 photoIds 리스트인 경우 멱등적으로 처리") {
-        // Given
-        val folder = aFolder(id = 1L, userId = 1L)
-        val emptyPhotoIds = emptyList<Long>()
-        val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 1L, photoIds = emptyPhotoIds)
+        test("폴더 소유 확인 후 사진 folderId 제거 및 중간 테이블 삭제") {
+            // Given
+            val folder = aFolder(id = 1L, userId = 1L)
+            val photoIds = listOf(10L, 20L)
+            val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 1L, photoIds = photoIds)
 
-        every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
-        every { photoImageRepository.removePhotosFromFolder(1L, 1L, emptyPhotoIds) } returns 0
-        every { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(emptyPhotoIds, 1L) } returns Unit
+            every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
+            every { photoImageRepository.removePhotosFromFolder(1L, 1L, photoIds) } returns 2
+            every { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(photoIds, 1L) } returns Unit
 
-        // When
-        useCase.execute(command)
+            // When
+            useCase.execute(command)
 
-        // Then
-        verify(exactly = 1) { photoImageRepository.removePhotosFromFolder(1L, 1L, emptyPhotoIds) }
-        verify(exactly = 1) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(emptyPhotoIds, 1L) }
-    }
-})
+            // Then
+            verify(exactly = 1) { photoImageRepository.removePhotosFromFolder(1L, 1L, photoIds) }
+            verify(exactly = 1) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(photoIds, 1L) }
+        }
+
+        test("폴더 소유권이 없는 경우 NOT_FOUND 예외 발생") {
+            // Given
+            val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 99L, photoIds = listOf(10L))
+
+            every { folderRepository.getOwnedFolder(1L, 99L) } returns null
+
+            // When & Then
+            val ex = shouldThrow<BusinessException> {
+                useCase.execute(command)
+            }
+            ex.resultCode shouldBe ResultCode.NOT_FOUND
+            verify(exactly = 0) { photoImageRepository.removePhotosFromFolder(any(), any(), any()) }
+            verify(exactly = 0) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(any(), any()) }
+        }
+
+        test("빈 photoIds 리스트인 경우 멱등적으로 처리") {
+            // Given
+            val folder = aFolder(id = 1L, userId = 1L)
+            val emptyPhotoIds = emptyList<Long>()
+            val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 1L, photoIds = emptyPhotoIds)
+
+            every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
+            every { photoImageRepository.removePhotosFromFolder(1L, 1L, emptyPhotoIds) } returns 0
+            every { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(emptyPhotoIds, 1L) } returns Unit
+
+            // When
+            useCase.execute(command)
+
+            // Then
+            verify(exactly = 1) { photoImageRepository.removePhotosFromFolder(1L, 1L, emptyPhotoIds) }
+            verify(exactly = 1) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(emptyPhotoIds, 1L) }
+        }
+    })

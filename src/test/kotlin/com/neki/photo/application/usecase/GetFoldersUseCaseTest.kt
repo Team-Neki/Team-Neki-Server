@@ -10,64 +10,65 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-class GetFoldersUseCaseTest : FunSpec({
+class GetFoldersUseCaseTest :
+    FunSpec({
 
-    lateinit var folderRepository: FolderRepositoryPort
-    lateinit var useCase: GetFoldersUseCase
+        lateinit var folderRepository: FolderRepositoryPort
+        lateinit var useCase: GetFoldersUseCase
 
-    beforeTest {
-        folderRepository = mockk()
-        useCase = GetFoldersUseCase(folderRepository)
-    }
+        beforeTest {
+            folderRepository = mockk()
+            useCase = GetFoldersUseCase(folderRepository)
+        }
 
-    test("폴더 목록 정상 조회 시 FolderInfo 목록 반환") {
-        // Given
-        val command = GetFoldersCommand(userId = 1L, limit = 10)
-        val foldersWithStats = listOf(
-            FolderWithStats(folderId = 1L, name = "폴더1", coverImageStorageKey = "key/image1.jpg", photoCount = 5L),
-            FolderWithStats(folderId = 2L, name = "폴더2", coverImageStorageKey = "key/image2.jpg", photoCount = 3L),
-        )
+        test("폴더 목록 정상 조회 시 FolderInfo 목록 반환") {
+            // Given
+            val command = GetFoldersCommand(userId = 1L, limit = 10)
+            val foldersWithStats = listOf(
+                FolderWithStats(folderId = 1L, name = "폴더1", coverImageStorageKey = "key/image1.jpg", photoCount = 5L),
+                FolderWithStats(folderId = 2L, name = "폴더2", coverImageStorageKey = "key/image2.jpg", photoCount = 3L),
+            )
 
-        every { folderRepository.listOwnedFoldersWithStats(1L, 10) } returns foldersWithStats
+            every { folderRepository.listOwnedFoldersWithStats(1L, 10) } returns foldersWithStats
 
-        // When
-        val result = useCase.execute(command)
+            // When
+            val result = useCase.execute(command)
 
-        // Then
-        result.items shouldHaveSize 2
-        result.items[0].folderId shouldBe 1L
-        result.items[0].name shouldBe "폴더1"
-        result.items[0].storageKey shouldBe "key/image1.jpg"
-        result.items[0].count shouldBe 5L
-    }
+            // Then
+            result.items shouldHaveSize 2
+            result.items[0].folderId shouldBe 1L
+            result.items[0].name shouldBe "폴더1"
+            result.items[0].storageKey shouldBe "key/image1.jpg"
+            result.items[0].count shouldBe 5L
+        }
 
-    test("폴더가 없는 경우 빈 목록 반환") {
-        // Given
-        val command = GetFoldersCommand(userId = 1L, limit = null)
+        test("폴더가 없는 경우 빈 목록 반환") {
+            // Given
+            val command = GetFoldersCommand(userId = 1L, limit = null)
 
-        every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns emptyList()
+            every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns emptyList()
 
-        // When
-        val result = useCase.execute(command)
+            // When
+            val result = useCase.execute(command)
 
-        // Then
-        result.items.shouldBeEmpty()
-    }
+            // Then
+            result.items.shouldBeEmpty()
+        }
 
-    test("coverImageStorageKey가 null인 폴더는 storageKey에 null 반환") {
-        // Given
-        val command = GetFoldersCommand(userId = 1L, limit = null)
-        val foldersWithStats = listOf(
-            FolderWithStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
-        )
+        test("coverImageStorageKey가 null인 폴더는 storageKey에 null 반환") {
+            // Given
+            val command = GetFoldersCommand(userId = 1L, limit = null)
+            val foldersWithStats = listOf(
+                FolderWithStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
+            )
 
-        every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns foldersWithStats
+            every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns foldersWithStats
 
-        // When
-        val result = useCase.execute(command)
+            // When
+            val result = useCase.execute(command)
 
-        // Then
-        result.items shouldHaveSize 1
-        result.items[0].storageKey shouldBe null
-    }
-})
+            // Then
+            result.items shouldHaveSize 1
+            result.items[0].storageKey shouldBe null
+        }
+    })

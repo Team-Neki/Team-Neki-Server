@@ -22,217 +22,223 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 
-class UploadPhotosUseCaseTest : FunSpec({
+class UploadPhotosUseCaseTest :
+    FunSpec({
 
-    lateinit var mediaClient: MediaClientPort
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
-    lateinit var photoImageFolderRepository: PhotoImageFolderRepositoryPort
-    lateinit var folderRepository: FolderRepositoryPort
-    lateinit var favoriteImageRepository: FavoriteImageRepositoryPort
-    lateinit var useCase: UploadPhotosUseCase
+        lateinit var mediaClient: MediaClientPort
+        lateinit var photoImageRepository: PhotoImageRepositoryPort
+        lateinit var photoImageFolderRepository: PhotoImageFolderRepositoryPort
+        lateinit var folderRepository: FolderRepositoryPort
+        lateinit var favoriteImageRepository: FavoriteImageRepositoryPort
+        lateinit var useCase: UploadPhotosUseCase
 
-    beforeTest {
-        mediaClient = mockk()
-        photoImageRepository = mockk()
-        photoImageFolderRepository = mockk()
-        folderRepository = mockk()
-        favoriteImageRepository = mockk()
-        useCase = UploadPhotosUseCase(
-            mediaClient,
-            photoImageRepository,
-            photoImageFolderRepository,
-            folderRepository,
-            favoriteImageRepository,
-            FakeTransactionRunner(),
-        )
-    }
+        beforeTest {
+            mediaClient = mockk()
+            photoImageRepository = mockk()
+            photoImageFolderRepository = mockk()
+            folderRepository = mockk()
+            favoriteImageRepository = mockk()
+            useCase = UploadPhotosUseCase(
+                mediaClient,
+                photoImageRepository,
+                photoImageFolderRepository,
+                folderRepository,
+                favoriteImageRepository,
+                FakeTransactionRunner(),
+            )
+        }
 
-    fun makeUploadItem(mediaId: Long, memo: String? = null) = UploadPhotoCommand.UploadItem(
-        mediaId = mediaId,
-        uploadMethod = UploadMethod.DIRECT_UPLOAD,
-        memo = memo,
-        capturedAt = null,
-    )
-
-    test("정상 업로드 - 미디어 확인 후 사진 저장, 폴더 연결, 즐겨찾기 추가") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = 1L, uploads = uploads, favorite = true)
-        val folder = aFolder(id = 1L, userId = 1L)
-        val savedPhotos = listOf(
-            aPhotoImage(id = 100L, userId = 1L, mediaId = 10L),
-            aPhotoImage(id = 200L, userId = 1L, mediaId = 20L),
+        fun makeUploadItem(mediaId: Long, memo: String? = null) = UploadPhotoCommand.UploadItem(
+            mediaId = mediaId,
+            uploadMethod = UploadMethod.DIRECT_UPLOAD,
+            memo = memo,
+            capturedAt = null,
         )
 
-        every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
-        every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns emptySet()
-        every { mediaClient.verifyMediasUploaded(1L, listOf(10L, 20L)) } returns mapOf(
-            10L to MediaAvailability.AVAILABLE,
-            20L to MediaAvailability.AVAILABLE,
-        )
-        every { photoImageRepository.saveAll(any()) } returns savedPhotos
-        every { photoImageFolderRepository.saveAll(listOf(100L, 200L), 1L) } just Runs
-        every { favoriteImageRepository.addAll(1L, listOf(100L, 200L)) } just Runs
+        test("정상 업로드 - 미디어 확인 후 사진 저장, 폴더 연결, 즐겨찾기 추가") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = 1L, uploads = uploads, favorite = true)
+            val folder = aFolder(id = 1L, userId = 1L)
+            val savedPhotos = listOf(
+                aPhotoImage(id = 100L, userId = 1L, mediaId = 10L),
+                aPhotoImage(id = 200L, userId = 1L, mediaId = 20L),
+            )
 
-        // When
-        useCase.execute(command)
+            every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
+            every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns emptySet()
+            every { mediaClient.verifyMediasUploaded(1L, listOf(10L, 20L)) } returns mapOf(
+                10L to MediaAvailability.AVAILABLE,
+                20L to MediaAvailability.AVAILABLE,
+            )
+            every { photoImageRepository.saveAll(any()) } returns savedPhotos
+            every { photoImageFolderRepository.saveAll(listOf(100L, 200L), 1L) } just Runs
+            every { favoriteImageRepository.addAll(1L, listOf(100L, 200L)) } just Runs
 
-        // Then
-        verify(exactly = 1) { photoImageRepository.saveAll(any()) }
-        verify(exactly = 1) { photoImageFolderRepository.saveAll(listOf(100L, 200L), 1L) }
-        verify(exactly = 1) { favoriteImageRepository.addAll(1L, listOf(100L, 200L)) }
-    }
-
-    test("중복 mediaId가 있는 경우 INVALID_PARAMETER 예외 발생") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L), makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
-
-        // When & Then
-        val ex = shouldThrow<BusinessException> {
+            // When
             useCase.execute(command)
+
+            // Then
+            verify(exactly = 1) { photoImageRepository.saveAll(any()) }
+            verify(exactly = 1) { photoImageFolderRepository.saveAll(listOf(100L, 200L), 1L) }
+            verify(exactly = 1) { favoriteImageRepository.addAll(1L, listOf(100L, 200L)) }
         }
-        ex.resultCode shouldBe ResultCode.INVALID_PARAMETER
-        verify(exactly = 0) { photoImageRepository.saveAll(any()) }
-    }
 
-    test("폴더를 소유하지 않은 경우 NOT_FOUND 예외 발생") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = 99L, uploads = uploads, favorite = false)
+        test("중복 mediaId가 있는 경우 INVALID_PARAMETER 예외 발생") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L), makeUploadItem(10L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
 
-        every { folderRepository.getOwnedFolder(1L, 99L) } returns null
+            // When & Then
+            val ex = shouldThrow<BusinessException> {
+                useCase.execute(command)
+            }
+            ex.resultCode shouldBe ResultCode.INVALID_PARAMETER
+            verify(exactly = 0) { photoImageRepository.saveAll(any()) }
+        }
 
-        // When & Then
-        val ex = shouldThrow<BusinessException> {
+        test("폴더를 소유하지 않은 경우 NOT_FOUND 예외 발생") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = 99L, uploads = uploads, favorite = false)
+
+            every { folderRepository.getOwnedFolder(1L, 99L) } returns null
+
+            // When & Then
+            val ex = shouldThrow<BusinessException> {
+                useCase.execute(command)
+            }
+            ex.resultCode shouldBe ResultCode.NOT_FOUND
+            verify(exactly = 0) { photoImageRepository.saveAll(any()) }
+        }
+
+        test("일부 미디어가 UNAVAILABLE인 경우 UPLOAD_FAILED 예외 발생 및 성공 미디어 롤백") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+
+            every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns emptySet()
+            every { mediaClient.verifyMediasUploaded(1L, listOf(10L, 20L)) } returns mapOf(
+                10L to MediaAvailability.AVAILABLE,
+                20L to MediaAvailability.UNAVAILABLE,
+            )
+            every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } just Runs
+
+            // When & Then
+            val ex = shouldThrow<BusinessException> {
+                useCase.execute(command)
+            }
+            ex.resultCode shouldBe ResultCode.UPLOAD_FAILED
+            verify(exactly = 1) { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) }
+        }
+
+        test("트랜잭션 실패 시 미디어 롤백 호출") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+
+            every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
+            every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
+                mapOf(10L to MediaAvailability.AVAILABLE)
+            every { photoImageRepository.saveAll(any()) } throws RuntimeException("DB 저장 실패")
+            every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } just Runs
+
+            // When & Then
+            shouldThrow<RuntimeException> {
+                useCase.execute(command)
+            }
+            verify(exactly = 1) { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) }
+        }
+
+        test("이미 등록된 mediaId는 필터링 후 나머지만 저장") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+            // mediaId=10L은 이미 등록됨
+            val savedPhotos = listOf(aPhotoImage(id = 200L, userId = 1L, mediaId = 20L))
+
+            every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns setOf(10L)
+            every { mediaClient.verifyMediasUploaded(1L, listOf(20L)) } returns
+                mapOf(20L to MediaAvailability.AVAILABLE)
+            every { photoImageRepository.saveAll(any()) } returns savedPhotos
+
+            // When
             useCase.execute(command)
+
+            // Then
+            verify(exactly = 1) { mediaClient.verifyMediasUploaded(1L, listOf(20L)) }
+            verify(exactly = 1) { photoImageRepository.saveAll(match { it.size == 1 && it[0].mediaId == 20L }) }
         }
-        ex.resultCode shouldBe ResultCode.NOT_FOUND
-        verify(exactly = 0) { photoImageRepository.saveAll(any()) }
-    }
 
-    test("일부 미디어가 UNAVAILABLE인 경우 UPLOAD_FAILED 예외 발생 및 성공 미디어 롤백") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        test("모든 mediaId가 이미 등록된 경우 early return - 저장 미호출") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
 
-        every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns emptySet()
-        every { mediaClient.verifyMediasUploaded(1L, listOf(10L, 20L)) } returns mapOf(
-            10L to MediaAvailability.AVAILABLE,
-            20L to MediaAvailability.UNAVAILABLE,
-        )
-        every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } just Runs
+            every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns setOf(10L, 20L)
 
-        // When & Then
-        val ex = shouldThrow<BusinessException> {
+            // When
             useCase.execute(command)
+
+            // Then
+            verify(exactly = 0) { mediaClient.verifyMediasUploaded(any(), any()) }
+            verify(exactly = 0) { photoImageRepository.saveAll(any()) }
         }
-        ex.resultCode shouldBe ResultCode.UPLOAD_FAILED
-        verify(exactly = 1) { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) }
-    }
 
-    test("트랜잭션 실패 시 미디어 롤백 호출") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        test("folderId가 null이면 폴더 연결 없이 사진만 저장") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+            val savedPhotos = listOf(aPhotoImage(id = 100L, userId = 1L, mediaId = 10L))
 
-        every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
-        every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns mapOf(10L to MediaAvailability.AVAILABLE)
-        every { photoImageRepository.saveAll(any()) } throws RuntimeException("DB 저장 실패")
-        every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } just Runs
+            every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
+            every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
+                mapOf(10L to MediaAvailability.AVAILABLE)
+            every { photoImageRepository.saveAll(any()) } returns savedPhotos
 
-        // When & Then
-        shouldThrow<RuntimeException> {
+            // When
             useCase.execute(command)
+
+            // Then
+            verify(exactly = 1) { photoImageRepository.saveAll(any()) }
+            verify(exactly = 0) { photoImageFolderRepository.saveAll(any(), any()) }
         }
-        verify(exactly = 1) { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) }
-    }
 
-    test("이미 등록된 mediaId는 필터링 후 나머지만 저장") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
-        // mediaId=10L은 이미 등록됨
-        val savedPhotos = listOf(aPhotoImage(id = 200L, userId = 1L, mediaId = 20L))
+        test("saveAll에서 ALREADY_REQUEST 예외 발생 시 롤백 없이 early return") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
 
-        every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns setOf(10L)
-        every { mediaClient.verifyMediasUploaded(1L, listOf(20L)) } returns mapOf(20L to MediaAvailability.AVAILABLE)
-        every { photoImageRepository.saveAll(any()) } returns savedPhotos
+            every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
+            every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
+                mapOf(10L to MediaAvailability.AVAILABLE)
+            every { photoImageRepository.saveAll(any()) } throws BusinessException(ResultCode.ALREADY_REQUEST)
 
-        // When
-        useCase.execute(command)
-
-        // Then
-        verify(exactly = 1) { mediaClient.verifyMediasUploaded(1L, listOf(20L)) }
-        verify(exactly = 1) { photoImageRepository.saveAll(match { it.size == 1 && it[0].mediaId == 20L }) }
-    }
-
-    test("모든 mediaId가 이미 등록된 경우 early return - 저장 미호출") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
-
-        every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns setOf(10L, 20L)
-
-        // When
-        useCase.execute(command)
-
-        // Then
-        verify(exactly = 0) { mediaClient.verifyMediasUploaded(any(), any()) }
-        verify(exactly = 0) { photoImageRepository.saveAll(any()) }
-    }
-
-    test("folderId가 null이면 폴더 연결 없이 사진만 저장") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
-        val savedPhotos = listOf(aPhotoImage(id = 100L, userId = 1L, mediaId = 10L))
-
-        every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
-        every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns mapOf(10L to MediaAvailability.AVAILABLE)
-        every { photoImageRepository.saveAll(any()) } returns savedPhotos
-
-        // When
-        useCase.execute(command)
-
-        // Then
-        verify(exactly = 1) { photoImageRepository.saveAll(any()) }
-        verify(exactly = 0) { photoImageFolderRepository.saveAll(any(), any()) }
-    }
-
-    test("saveAll에서 ALREADY_REQUEST 예외 발생 시 롤백 없이 early return") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
-
-        every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
-        every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns mapOf(10L to MediaAvailability.AVAILABLE)
-        every { photoImageRepository.saveAll(any()) } throws BusinessException(ResultCode.ALREADY_REQUEST)
-
-        // When - 예외 없이 정상 종료
-        useCase.execute(command)
-
-        // Then
-        verify(exactly = 0) { mediaClient.rollbackMediasUploaded(any(), any()) }
-    }
-
-    test("롤백 중 예외 발생 시 롤백 예외가 전파됨") {
-        // Given
-        val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
-        val originalException = RuntimeException("원래 오류")
-        val rollbackException = RuntimeException("롤백 오류")
-
-        every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
-        every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns mapOf(10L to MediaAvailability.AVAILABLE)
-        every { photoImageRepository.saveAll(any()) } throws originalException
-        every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } throws rollbackException
-
-        // When & Then - 롤백 중 예외가 발생하면 롤백 예외가 전파됨 (원래 예외는 마스킹됨)
-        val ex = shouldThrow<RuntimeException> {
+            // When - 예외 없이 정상 종료
             useCase.execute(command)
+
+            // Then
+            verify(exactly = 0) { mediaClient.rollbackMediasUploaded(any(), any()) }
         }
-        ex shouldBe rollbackException
-        verify(exactly = 1) { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) }
-    }
-})
+
+        test("롤백 중 예외 발생 시 롤백 예외가 전파됨") {
+            // Given
+            val uploads = listOf(makeUploadItem(10L))
+            val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+            val originalException = RuntimeException("원래 오류")
+            val rollbackException = RuntimeException("롤백 오류")
+
+            every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
+            every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
+                mapOf(10L to MediaAvailability.AVAILABLE)
+            every { photoImageRepository.saveAll(any()) } throws originalException
+            every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } throws rollbackException
+
+            // When & Then - 롤백 중 예외가 발생하면 롤백 예외가 전파됨 (원래 예외는 마스킹됨)
+            val ex = shouldThrow<RuntimeException> {
+                useCase.execute(command)
+            }
+            ex shouldBe rollbackException
+            verify(exactly = 1) { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) }
+        }
+    })
