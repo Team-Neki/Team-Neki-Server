@@ -247,6 +247,27 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
+    @DisplayName("다른 사용자의 사진을 복제하려고 하면 400 에러를 반환한다")
+    fun givenOtherUserPhoto_whenCopy_thenReturnsNotFound() {
+        // Given
+        val (otherUser, _) = createTestUserAndToken(email = "other@example.com")
+        val sourceFolder = folderRepository.save(Folder(userId = testUser.id!!, name = "소스 폴더"))
+        val targetFolder = folderRepository.save(Folder(userId = testUser.id!!, name = "타겟 폴더"))
+
+        val otherUserMedia = createMedia(ownerId = otherUser.id!!, status = MediaStatus.UPLOADED)
+        val otherUserPhoto = createPhotoImage(userId = otherUser.id!!, mediaId = otherUserMedia.id!!)
+
+        // When & Then
+        givenAuthenticated()
+            .body(CopyPhotosToFolderRequest(photoIds = listOf(otherUserPhoto.id!!), targetFolderId = targetFolder.id!!))
+            .`when`()
+            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
+    }
+
+    @Test
     @DisplayName("빈 photoIds 리스트로 요청 시 400 에러를 반환한다")
     fun givenEmptyPhotoIds_whenCopy_thenReturnsBadRequest() {
         // Given

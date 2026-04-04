@@ -6,12 +6,14 @@ import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.CopyPhotosToFolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
+import com.neki.photo.application.port.PhotoImageRepositoryPort
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
 class CopyPhotosToFolderUseCase(
     private val folderRepository: FolderRepositoryPort,
     private val photoImageFolderRepository: PhotoImageFolderRepositoryPort,
+    private val photoImageRepository: PhotoImageRepositoryPort,
 ) {
 
     @Transactional
@@ -24,6 +26,10 @@ class CopyPhotosToFolderUseCase(
             listOf(command.sourceFolderId, command.targetFolderId),
         )
         if (ownedFolders.size != 2) throw BusinessException(ResultCode.NOT_FOUND)
+
+        // 사진 소유권 확인
+        val ownedCount: Int = photoImageRepository.countOwnedPhotos(command.userId, command.photoIds)
+        if (ownedCount != command.photoIds.toSet().size) throw BusinessException(ResultCode.NOT_FOUND)
 
         // 멱등성 보장: target 폴더에서 기존 레코드 정리
         photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(command.photoIds, command.targetFolderId)
