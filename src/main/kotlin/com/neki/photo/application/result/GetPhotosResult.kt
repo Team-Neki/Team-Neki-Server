@@ -19,6 +19,7 @@ data class GetPhotosResult(val photos: List<PhotoInfo>, val hasNext: Boolean) {
         val uploadMethod: UploadMethod?,
         val width: Int? = null,
         val height: Int? = null,
+        val memo: String? = null,
         val createdAt: LocalDateTime,
         val capturedAt: LocalDateTime?,
     )
@@ -32,6 +33,7 @@ data class GetPhotoResult(
     val uploadMethod: UploadMethod?,
     val width: Int? = null,
     val height: Int? = null,
+    val memo: String? = null,
     val createdAt: LocalDateTime,
     val capturedAt: LocalDateTime?,
 )
