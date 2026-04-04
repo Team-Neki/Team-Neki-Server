@@ -6,6 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.MovePhotosToFolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
+import com.neki.photo.domain.entity.PhotoImageFolder
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
@@ -29,10 +30,13 @@ class MovePhotosToFolderUseCase(
         // source 폴더에서 연관 삭제
         photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(command.photoIds, command.sourceFolderId)
 
-        // 멱등성 보장: target 폴더에서 기존 레코드 정리
-        photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(command.photoIds, command.targetFolderId)
+        // 멱등성 보장: target 폴더에 이미 존재하는지 확인 후 추가
+        val existing: List<PhotoImageFolder> =
+            photoImageFolderRepository.findByPhotoImageIdsAndFolderId(command.photoIds, command.targetFolderId)
 
-        // target 폴더에 연관 추가
-        photoImageFolderRepository.saveAll(command.photoIds, command.targetFolderId)
+        if (existing.isEmpty()) {
+            // target 폴더에 연관 추가
+            photoImageFolderRepository.saveAll(command.photoIds, command.targetFolderId)
+        }
     }
 }
