@@ -1,5 +1,7 @@
 package com.neki.media.application.usecase
 
+import com.neki.common.api.dto.ResultCode
+import com.neki.common.exception.BusinessException
 import com.neki.media.application.command.GenerateUploadTicketCommand
 import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.port.MediaRepositoryPort
@@ -136,14 +138,14 @@ class GenerateUploadTicketUseCaseTest : FunSpec({
         result.expiresAt shouldNotBe secondTicketExpiresAt
     }
 
-    test("빈 items 목록으로 실행 - method!! / expiresAt!! NPE 발생") {
+    test("빈 items 목록은 BusinessException 발생") {
         // Given
         val ownerId = 1L
         val command = GenerateUploadTicketCommand(ownerId = ownerId, items = emptyList())
 
-        // When & Then: items가 비어 있으므로 method/expiresAt이 null인 채로 !! 호출 → NPE
-        shouldThrow<NullPointerException> {
+        // When & Then
+        shouldThrow<BusinessException> {
             useCase.execute(command)
-        }
+        }.resultCode shouldBe ResultCode.INVALID_PARAMETER
     }
 })

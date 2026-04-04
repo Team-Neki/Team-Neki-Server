@@ -71,6 +71,7 @@ class ConfirmMediaUploadedUseCaseTest : FunSpec({
 
         every { mediaRepository.getMediaForUploadConfirmation(ownerId, listOf(mediaId)) } returns listOf(initiatedMedia)
         every { mediaStorage.exists("pose/test.jpg") } returns true
+        every { mediaRepository.save(initiatedMedia) } returns initiatedMedia
 
         // When
         val command = ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = listOf(mediaId))
@@ -79,6 +80,7 @@ class ConfirmMediaUploadedUseCaseTest : FunSpec({
         // Then
         result.results[mediaId] shouldBe UploadConfirmStatus.CONFIRMED
         initiatedMedia.status shouldBe MediaStatus.UPLOADED
+        verify(exactly = 1) { mediaRepository.save(initiatedMedia) }
     }
 
     test("미업로드 + S3 미존재 - NOT_UPLOADED 반환") {
@@ -135,6 +137,7 @@ class ConfirmMediaUploadedUseCaseTest : FunSpec({
         val medias = mediaIds.map { aMedia(id = it, ownerId = ownerId, status = MediaStatus.UPLOADED) }
 
         every { mediaRepository.getMediaForUploadConfirmation(ownerId, mediaIds) } returns medias
+        medias.forEach { every { mediaRepository.save(it) } returns it }
 
         val command = ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = mediaIds)
 
@@ -145,5 +148,6 @@ class ConfirmMediaUploadedUseCaseTest : FunSpec({
         // Then
         medias.forEach { it.status shouldBe MediaStatus.INITIATED }
         verify(exactly = 2) { mediaRepository.getMediaForUploadConfirmation(ownerId, mediaIds) }
+        verify(exactly = 4) { mediaRepository.save(any()) }
     }
 })

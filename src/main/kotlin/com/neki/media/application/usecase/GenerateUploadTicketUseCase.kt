@@ -1,6 +1,8 @@
 package com.neki.media.application.usecase
 
 import com.neki.common.annotation.UseCase
+import com.neki.common.api.dto.ResultCode
+import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
 import com.neki.media.application.command.GenerateUploadTicketCommand
 import com.neki.media.application.contract.UploadTicket
@@ -26,6 +28,8 @@ class GenerateUploadTicketUseCase(
 
     @Transactional
     fun execute(command: GenerateUploadTicketCommand): GenerateUploadTicketResult {
+        if (command.items.isEmpty()) throw BusinessException(ResultCode.INVALID_PARAMETER)
+
         // 전체 벌크 작업을 단일 트랜잭션으로 처리
         var method: String? = null
         var expiresAt: java.time.Instant? = null
