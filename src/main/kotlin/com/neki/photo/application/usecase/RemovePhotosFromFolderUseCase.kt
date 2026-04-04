@@ -6,7 +6,6 @@ import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.RemovePhotosFromFolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
-import com.neki.photo.application.port.PhotoImageRepositoryPort
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional
 @UseCase
 class RemovePhotosFromFolderUseCase(
     private val folderRepository: FolderRepositoryPort,
-    private val photoImageRepository: PhotoImageRepositoryPort,
     private val photoImageFolderRepository: PhotoImageFolderRepositoryPort,
 ) {
 
@@ -28,14 +26,7 @@ class RemovePhotosFromFolderUseCase(
         folderRepository.getOwnedFolder(command.userId, command.folderId)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
-        // 사진들의 folderId를 NULL로 설정
-        photoImageRepository.removePhotosFromFolder(
-            command.userId,
-            command.folderId,
-            command.photoIds,
-        )
-
-        // 중간 테이블에서도 연관 삭제 (dual-write)
+        // 중간 테이블에서 연관 삭제
         photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(command.photoIds, command.folderId)
     }
 }

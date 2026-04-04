@@ -49,7 +49,6 @@ class UploadPhotosUseCase(
             PhotoImage(
                 userId = command.userId,
                 mediaId = upload.mediaId,
-                folderId = command.folderId,
                 memo = upload.memo,
                 uploadMethod = upload.uploadMethod,
                 capturedAt = upload.capturedAt,
