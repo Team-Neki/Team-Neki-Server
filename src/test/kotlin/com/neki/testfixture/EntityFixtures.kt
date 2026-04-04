@@ -29,8 +29,9 @@ import java.time.LocalDateTime
 // ── User ─────────────────────────────────────────────────────────────────────
 
 fun aUser(
-    id: Long = 1L,
+    id: Long? = 1L,
     email: String? = "test@example.com",
+    password: String = "NO_PASS",
     name: String? = "테스트유저",
     oid: String = "oauth-oid-$id",
     providerType: ProviderType = ProviderType.KAKAO,
@@ -39,7 +40,7 @@ fun aUser(
 ): User = User(
     id = id,
     email = email,
-    password = "NO_PASS",
+    password = password,
     oid = oid,
     name = name,
     providerType = providerType,
@@ -86,7 +87,7 @@ fun aTerm(
 fun aUserTermAgreement(
     userId: Long = 1L,
     termId: Long = 1L,
-    agreedAt: LocalDateTime = LocalDateTime.now(),
+    agreedAt: LocalDateTime = LocalDateTime.of(2025, 1, 1, 0, 0),
     termVersion: String = "1.0.0",
 ): UserTermAgreement = UserTermAgreement(
     userId = userId,
@@ -98,7 +99,7 @@ fun aUserTermAgreement(
 // ── Media ─────────────────────────────────────────────────────────────────────
 
 fun aMedia(
-    id: Long = 1L,
+    id: Long? = 1L,
     storageKey: String = "pose/test-image-$id.jpg",
     ownerId: Long = 1L,
     mediaType: MediaType = MediaType.POSE,
@@ -121,11 +122,7 @@ fun aMedia(
 
 // ── Folder ────────────────────────────────────────────────────────────────────
 
-fun aFolder(
-    id: Long = 1L,
-    userId: Long = 1L,
-    name: String = "테스트 폴더",
-): Folder = Folder(
+fun aFolder(id: Long = 1L, userId: Long = 1L, name: String = "테스트 폴더"): Folder = Folder(
     id = id,
     userId = userId,
     name = name,
@@ -155,21 +152,14 @@ fun aPhotoImage(
 
 // ── FavoritePhoto ─────────────────────────────────────────────────────────────
 
-fun aFavoritePhoto(
-    userId: Long = 1L,
-    photoId: Long = 1L,
-): FavoritePhoto = FavoritePhoto(
+fun aFavoritePhoto(userId: Long = 1L, photoId: Long = 1L): FavoritePhoto = FavoritePhoto(
     userId = userId,
     imageId = photoId,
 )
 
 // ── PhotoImageFolder ──────────────────────────────────────────────────────────
 
-fun aPhotoImageFolder(
-    id: Long = 1L,
-    photoImageId: Long = 1L,
-    folderId: Long = 1L,
-): PhotoImageFolder = PhotoImageFolder(
+fun aPhotoImageFolder(id: Long = 1L, photoImageId: Long = 1L, folderId: Long = 1L): PhotoImageFolder = PhotoImageFolder(
     id = id,
     photoImageId = photoImageId,
     folderId = folderId,
@@ -195,22 +185,14 @@ fun aPose(
 
 // ── ScrapPose ─────────────────────────────────────────────────────────────────
 
-fun aScrapPose(
-    userId: Long = 1L,
-    poseId: Long = 1L,
-): ScrapPose = ScrapPose(
+fun aScrapPose(userId: Long = 1L, poseId: Long = 1L): ScrapPose = ScrapPose(
     userId = userId,
     imageId = poseId,
 )
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
 
-fun aBrand(
-    id: Long = 1L,
-    name: String = "인생네컷",
-    code: String = "lifefour",
-    mediaId: Long? = null,
-): Brand = Brand(
+fun aBrand(id: Long = 1L, name: String = "인생네컷", code: String = "lifefour", mediaId: Long? = null): Brand = Brand(
     id = id,
     name = name,
     code = code,
