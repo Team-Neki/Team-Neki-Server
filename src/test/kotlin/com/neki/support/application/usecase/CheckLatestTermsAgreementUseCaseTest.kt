@@ -10,95 +10,96 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-class CheckLatestTermsAgreementUseCaseTest : FunSpec({
+class CheckLatestTermsAgreementUseCaseTest :
+    FunSpec({
 
-    lateinit var termRepository: TermRepositoryPort
-    lateinit var userTermAgreementRepository: UserTermAgreementRepositoryPort
-    lateinit var useCase: CheckLatestTermsAgreementUseCase
+        lateinit var termRepository: TermRepositoryPort
+        lateinit var userTermAgreementRepository: UserTermAgreementRepositoryPort
+        lateinit var useCase: CheckLatestTermsAgreementUseCase
 
-    beforeTest {
-        termRepository = mockk()
-        userTermAgreementRepository = mockk()
-        useCase = CheckLatestTermsAgreementUseCase(termRepository, userTermAgreementRepository)
-    }
+        beforeTest {
+            termRepository = mockk()
+            userTermAgreementRepository = mockk()
+            useCase = CheckLatestTermsAgreementUseCase(termRepository, userTermAgreementRepository)
+        }
 
-    test("모든 활성 약관에 동의한 경우 - true를 반환한다") {
-        // Given
-        val userId = 1L
-        val term1 = aTerm(id = 1L, version = "1.0.0")
-        val term2 = aTerm(id = 2L, version = "1.0.0")
-        val agreement1 = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
-        val agreement2 = aUserTermAgreement(userId = userId, termId = 2L, termVersion = "1.0.0")
+        test("모든 활성 약관에 동의한 경우 - true를 반환한다") {
+            // Given
+            val userId = 1L
+            val term1 = aTerm(id = 1L, version = "1.0.0")
+            val term2 = aTerm(id = 2L, version = "1.0.0")
+            val agreement1 = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
+            val agreement2 = aUserTermAgreement(userId = userId, termId = 2L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term1, term2)
-        every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1, agreement2)
+            every { termRepository.findAllActiveTerms() } returns listOf(term1, term2)
+            every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1, agreement2)
 
-        // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+            // When
+            val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
 
-        // Then
-        result.hasAgreedToLatestTerms shouldBe true
-    }
+            // Then
+            result.hasAgreedToLatestTerms shouldBe true
+        }
 
-    test("일부 약관에 미동의한 경우 - false를 반환한다") {
-        // Given
-        val userId = 1L
-        val term1 = aTerm(id = 1L, version = "1.0.0")
-        val term2 = aTerm(id = 2L, version = "1.0.0")
-        val agreement1 = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
+        test("일부 약관에 미동의한 경우 - false를 반환한다") {
+            // Given
+            val userId = 1L
+            val term1 = aTerm(id = 1L, version = "1.0.0")
+            val term2 = aTerm(id = 2L, version = "1.0.0")
+            val agreement1 = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term1, term2)
-        every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1)
+            every { termRepository.findAllActiveTerms() } returns listOf(term1, term2)
+            every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1)
 
-        // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+            // When
+            val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
 
-        // Then
-        result.hasAgreedToLatestTerms shouldBe false
-    }
+            // Then
+            result.hasAgreedToLatestTerms shouldBe false
+        }
 
-    test("활성 약관이 없는 경우 - true를 반환한다") {
-        // Given
-        val userId = 1L
+        test("활성 약관이 없는 경우 - true를 반환한다") {
+            // Given
+            val userId = 1L
 
-        every { termRepository.findAllActiveTerms() } returns emptyList()
-        every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
+            every { termRepository.findAllActiveTerms() } returns emptyList()
+            every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
-        // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+            // When
+            val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
 
-        // Then
-        result.hasAgreedToLatestTerms shouldBe true
-    }
+            // Then
+            result.hasAgreedToLatestTerms shouldBe true
+        }
 
-    test("약관 버전 불일치 - 동의한 약관의 version이 활성 약관과 다른 경우 false를 반환한다") {
-        // Given
-        val userId = 1L
-        val term = aTerm(id = 1L, version = "2.0.0")
-        val agreement = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
+        test("약관 버전 불일치 - 동의한 약관의 version이 활성 약관과 다른 경우 false를 반환한다") {
+            // Given
+            val userId = 1L
+            val term = aTerm(id = 1L, version = "2.0.0")
+            val agreement = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term)
-        every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement)
+            every { termRepository.findAllActiveTerms() } returns listOf(term)
+            every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement)
 
-        // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+            // When
+            val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
 
-        // Then
-        result.hasAgreedToLatestTerms shouldBe false
-    }
+            // Then
+            result.hasAgreedToLatestTerms shouldBe false
+        }
 
-    test("유저 동의 목록이 비어있고 활성 약관이 있는 경우 - false를 반환한다") {
-        // Given
-        val userId = 1L
-        val term = aTerm(id = 1L, version = "1.0.0")
+        test("유저 동의 목록이 비어있고 활성 약관이 있는 경우 - false를 반환한다") {
+            // Given
+            val userId = 1L
+            val term = aTerm(id = 1L, version = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term)
-        every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
+            every { termRepository.findAllActiveTerms() } returns listOf(term)
+            every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
-        // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+            // When
+            val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
 
-        // Then
-        result.hasAgreedToLatestTerms shouldBe false
-    }
-})
+            // Then
+            result.hasAgreedToLatestTerms shouldBe false
+        }
+    })
