@@ -63,6 +63,7 @@ command):
 | Configuration       | `/configuration`      |
 | Logging/Metrics     | `/observability`      |
 | S3 uploads/Media    | `/presigned-url-flow` |
+| PR 리뷰 반영        | `/resolve-review`     |
 | Committing changes  | `/commit`             |
 
 ---
@@ -120,6 +121,7 @@ Skills are auto-loaded when relevant tasks are detected, or can be invoked manua
 | `configuration`      | `/configuration`      | Environment settings, profiles, secrets           |
 | `observability`      | `/observability`      | Logging, metrics, monitoring                      |
 | `presigned-url-flow` | `/presigned-url-flow` | S3 upload, media/image handling                   |
+| `resolve-review`     | `/resolve-review`     | PR 코드 리뷰 피드백 반영 및 답글 작성 |
 | `testing`            | `/testing`            | Writing tests, test coverage                      |
 
 ### Quick File Reference
