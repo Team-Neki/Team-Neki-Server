@@ -1,7 +1,9 @@
 package com.neki.notification.infra.discord
 
 import com.neki.notification.properties.DiscordProperties
+import com.neki.user.event.UserEvent
 import com.neki.user.event.UserRegisteredEvent
+import com.neki.user.event.UserWithdrawnEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.context.event.EventListener
@@ -13,7 +15,7 @@ import org.springframework.web.client.RestClient
 
 @Profile("!test")
 @Component
-class UserRegisteredDiscordListener(
+class UserDiscordListener(
     private val discordProperties: DiscordProperties,
     private val restClient: RestClient,
     private val environment: Environment,
@@ -22,28 +24,39 @@ class UserRegisteredDiscordListener(
 
     @Async("discordNotificationExecutor")
     @EventListener
-    fun onUserRegistered(event: UserRegisteredEvent) {
+    fun handle(event: UserEvent) {
         if (discordProperties.webhookUrl.isBlank()) return
 
         val profile: String = environment.activeProfiles.firstOrNull() ?: "unknown"
 
+        val (title, color) = when (event) {
+            is UserRegisteredEvent -> "Neki 신규 사용자 가입 알림" to 5763719
+            is UserWithdrawnEvent -> "Neki 사용자 탈퇴 알림" to 15548997
+        }
+
+        val fields = mutableListOf(
+            field("환경", profile),
+            field("ID", event.userId),
+            field("닉네임", event.nickname),
+        )
+
+        if (event is UserRegisteredEvent) {
+            fields += field("로그인 유형", event.providerType)
+            fields += field("플랫폼", event.platform)
+        }
+
+        // 필드 순서로 인해 마지막에 추가
+        fields += field("누적 가입자 (탈퇴 제외)", event.activeUserCount)
+
+        sendEmbed(title, color, fields)
+    }
+
+    private fun field(name: String, value: Any): Map<String, Any> =
+        mapOf("name" to name, "value" to value.toString(), "inline" to false)
+
+    private fun sendEmbed(title: String, color: Int, fields: List<Map<String, Any>>) {
         runCatching {
-            val body: Map<String, Any> = mapOf(
-                "embeds" to listOf(
-                    mapOf(
-                        "title" to "Neki 신규 사용자 가입 알림",
-                        "color" to 5763719, // Discord green
-                        "fields" to listOf(
-                            mapOf("name" to "환경", "value" to profile, "inline" to false),
-                            mapOf("name" to "ID", "value" to event.userId.toString(), "inline" to false),
-                            mapOf("name" to "닉네임", "value" to event.nickname, "inline" to false),
-                            mapOf("name" to "로그인 유형", "value" to event.providerType, "inline" to false),
-                            mapOf("name" to "플랫폼", "value" to event.platform, "inline" to false),
-                            mapOf("name" to "누적 가입자 (탈퇴 제외)", "value" to event.activeUserCount, "inline" to false),
-                        ),
-                    ),
-                ),
-            )
+            val body = mapOf("embeds" to listOf(mapOf("title" to title, "color" to color, "fields" to fields)))
             restClient.post()
                 .uri(discordProperties.webhookUrl)
                 .contentType(MediaType.APPLICATION_JSON)
