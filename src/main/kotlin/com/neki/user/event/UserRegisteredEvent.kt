@@ -6,4 +6,4 @@ data class UserRegisteredEvent(
     val providerType: String,
     val platform: String,
     val activeUserCount: Long,
-)
+) : UserEvent
