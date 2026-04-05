@@ -15,105 +15,113 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 
-class GetUserInfoUseCaseTest : FunSpec({
+class GetUserInfoUseCaseTest :
+    FunSpec({
 
-    lateinit var userRepository: UserRepositoryPort
-    lateinit var mediaClient: MediaClientPort
-    lateinit var termClient: TermClientPort
-    lateinit var useCase: GetUserInfoUseCase
+        lateinit var userRepository: UserRepositoryPort
+        lateinit var mediaClient: MediaClientPort
+        lateinit var termClient: TermClientPort
+        lateinit var useCase: GetUserInfoUseCase
 
-    beforeTest {
-        userRepository = mockk()
-        mediaClient = mockk()
-        termClient = mockk()
-        useCase = GetUserInfoUseCase(
-            userRepository = userRepository,
-            mediaClient = mediaClient,
-            termClient = termClient,
-        )
-    }
-
-    test("정상 조회 - 프로필 이미지 있음: user, storageKey, terms 동의 여부 반환") {
-        // Given
-        val userId = 1L
-        val mediaId = 10L
-        val user = aUser(id = userId, name = "테스트유저", email = "test@example.com", profileImageId = mediaId, providerType = ProviderType.KAKAO)
-
-        every { userRepository.findById(userId) } returns user
-        every { mediaClient.getStorageKey(ownerId = userId, mediaId = mediaId) } returns "profile/image.jpg"
-        every { termClient.hasAgreedToLatestTerms(userId) } returns true
-
-        // When
-        val result = useCase.execute(GetUserCommand(userId = userId))
-
-        // Then
-        result.userId shouldBe userId
-        result.name shouldBe "테스트유저"
-        result.email shouldBe "test@example.com"
-        result.objectKey shouldBe "profile/image.jpg"
-        result.providerType shouldBe ProviderType.KAKAO
-        result.agreeTerms shouldBe true
-    }
-
-    test("프로필 이미지 없음 - storageKey null 반환") {
-        // Given
-        val userId = 1L
-        val user = aUser(id = userId, name = "테스트유저", profileImageId = null, providerType = ProviderType.KAKAO)
-
-        every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToLatestTerms(userId) } returns false
-
-        // When
-        val result = useCase.execute(GetUserCommand(userId = userId))
-
-        // Then
-        result.objectKey shouldBe null
-        verify(exactly = 0) { mediaClient.getStorageKey(any(), any()) }
-    }
-
-    test("유저 미존재 시 NOT_FOUND_USER BusinessException 발생") {
-        // Given
-        every { userRepository.findById(999L) } returns null
-
-        // When & Then
-        val exception = shouldThrow<BusinessException> {
-            useCase.execute(GetUserCommand(userId = 999L))
+        beforeTest {
+            userRepository = mockk()
+            mediaClient = mockk()
+            termClient = mockk()
+            useCase = GetUserInfoUseCase(
+                userRepository = userRepository,
+                mediaClient = mediaClient,
+                termClient = termClient,
+            )
         }
-        exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
-        verify(exactly = 0) { mediaClient.getStorageKey(any(), any()) }
-        verify(exactly = 0) { termClient.hasAgreedToLatestTerms(any()) }
-    }
 
-    test("mediaClient 예외 - 프로필 이미지 조회 실패 시 전체 요청 실패") {
-        // Given
-        val userId = 1L
-        val mediaId = 10L
-        val user = aUser(id = userId, profileImageId = mediaId)
+        test("정상 조회 - 프로필 이미지 있음: user, storageKey, terms 동의 여부 반환") {
+            // Given
+            val userId = 1L
+            val mediaId = 10L
+            val user =
+                aUser(
+                    id = userId,
+                    name = "테스트유저",
+                    email = "test@example.com",
+                    profileImageId = mediaId,
+                    providerType = ProviderType.KAKAO,
+                )
 
-        every { userRepository.findById(userId) } returns user
-        every {
-            mediaClient.getStorageKey(ownerId = userId, mediaId = mediaId)
-        } throws RuntimeException("미디어 조회 실패")
+            every { userRepository.findById(userId) } returns user
+            every { mediaClient.getStorageKey(ownerId = userId, mediaId = mediaId) } returns "profile/image.jpg"
+            every { termClient.hasAgreedToLatestTerms(userId) } returns true
 
-        // When & Then
-        shouldThrow<RuntimeException> {
-            useCase.execute(GetUserCommand(userId = userId))
+            // When
+            val result = useCase.execute(GetUserCommand(userId = userId))
+
+            // Then
+            result.userId shouldBe userId
+            result.name shouldBe "테스트유저"
+            result.email shouldBe "test@example.com"
+            result.objectKey shouldBe "profile/image.jpg"
+            result.providerType shouldBe ProviderType.KAKAO
+            result.agreeTerms shouldBe true
         }
-    }
 
-    test("termClient 예외 - 약관 동의 조회 실패 시 전체 요청 실패") {
-        // Given
-        val userId = 1L
-        val user = aUser(id = userId, profileImageId = null)
+        test("프로필 이미지 없음 - storageKey null 반환") {
+            // Given
+            val userId = 1L
+            val user = aUser(id = userId, name = "테스트유저", profileImageId = null, providerType = ProviderType.KAKAO)
 
-        every { userRepository.findById(userId) } returns user
-        every {
-            termClient.hasAgreedToLatestTerms(userId)
-        } throws RuntimeException("약관 서비스 오류")
+            every { userRepository.findById(userId) } returns user
+            every { termClient.hasAgreedToLatestTerms(userId) } returns false
 
-        // When & Then
-        shouldThrow<RuntimeException> {
-            useCase.execute(GetUserCommand(userId = userId))
+            // When
+            val result = useCase.execute(GetUserCommand(userId = userId))
+
+            // Then
+            result.objectKey shouldBe null
+            verify(exactly = 0) { mediaClient.getStorageKey(any(), any()) }
         }
-    }
-})
+
+        test("유저 미존재 시 NOT_FOUND_USER BusinessException 발생") {
+            // Given
+            every { userRepository.findById(999L) } returns null
+
+            // When & Then
+            val exception = shouldThrow<BusinessException> {
+                useCase.execute(GetUserCommand(userId = 999L))
+            }
+            exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
+            verify(exactly = 0) { mediaClient.getStorageKey(any(), any()) }
+            verify(exactly = 0) { termClient.hasAgreedToLatestTerms(any()) }
+        }
+
+        test("mediaClient 예외 - 프로필 이미지 조회 실패 시 전체 요청 실패") {
+            // Given
+            val userId = 1L
+            val mediaId = 10L
+            val user = aUser(id = userId, profileImageId = mediaId)
+
+            every { userRepository.findById(userId) } returns user
+            every {
+                mediaClient.getStorageKey(ownerId = userId, mediaId = mediaId)
+            } throws RuntimeException("미디어 조회 실패")
+
+            // When & Then
+            shouldThrow<RuntimeException> {
+                useCase.execute(GetUserCommand(userId = userId))
+            }
+        }
+
+        test("termClient 예외 - 약관 동의 조회 실패 시 전체 요청 실패") {
+            // Given
+            val userId = 1L
+            val user = aUser(id = userId, profileImageId = null)
+
+            every { userRepository.findById(userId) } returns user
+            every {
+                termClient.hasAgreedToLatestTerms(userId)
+            } throws RuntimeException("약관 서비스 오류")
+
+            // When & Then
+            shouldThrow<RuntimeException> {
+                useCase.execute(GetUserCommand(userId = userId))
+            }
+        }
+    })

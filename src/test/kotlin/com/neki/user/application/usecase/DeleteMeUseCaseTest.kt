@@ -12,38 +12,39 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 
-class DeleteMeUseCaseTest : FunSpec({
+class DeleteMeUseCaseTest :
+    FunSpec({
 
-    lateinit var userRepository: UserRepositoryPort
-    lateinit var useCase: DeleteMeUseCase
+        lateinit var userRepository: UserRepositoryPort
+        lateinit var useCase: DeleteMeUseCase
 
-    beforeTest {
-        userRepository = mockk()
-        useCase = DeleteMeUseCase(userRepository)
-    }
-
-    test("정상 탈퇴 - 유저 존재 시 withdraw 호출 확인") {
-        // Given
-        val user = aUser(id = 1L, email = "test@example.com", oid = "some-oid")
-        every { userRepository.findById(1L) } returns user
-
-        // When
-        useCase.execute(DeleteUserCommand(userId = 1L))
-
-        // Then
-        user.email shouldBe null
-        user.oid shouldBe null
-        verify(exactly = 1) { userRepository.findById(1L) }
-    }
-
-    test("미존재 유저 탈퇴 시 NOT_FOUND_USER BusinessException 발생") {
-        // Given
-        every { userRepository.findById(999L) } returns null
-
-        // When & Then
-        val exception = shouldThrow<BusinessException> {
-            useCase.execute(DeleteUserCommand(userId = 999L))
+        beforeTest {
+            userRepository = mockk()
+            useCase = DeleteMeUseCase(userRepository)
         }
-        exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
-    }
-})
+
+        test("정상 탈퇴 - 유저 존재 시 withdraw 호출 확인") {
+            // Given
+            val user = aUser(id = 1L, email = "test@example.com", oid = "some-oid")
+            every { userRepository.findById(1L) } returns user
+
+            // When
+            useCase.execute(DeleteUserCommand(userId = 1L))
+
+            // Then
+            user.email shouldBe null
+            user.oid shouldBe null
+            verify(exactly = 1) { userRepository.findById(1L) }
+        }
+
+        test("미존재 유저 탈퇴 시 NOT_FOUND_USER BusinessException 발생") {
+            // Given
+            every { userRepository.findById(999L) } returns null
+
+            // When & Then
+            val exception = shouldThrow<BusinessException> {
+                useCase.execute(DeleteUserCommand(userId = 999L))
+            }
+            exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
+        }
+    })
