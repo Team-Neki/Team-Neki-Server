@@ -4,12 +4,11 @@ import com.neki.notification.properties.DiscordProperties
 import com.neki.user.event.UserRegisteredEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
+import org.springframework.context.event.EventListener
 import org.springframework.core.env.Environment
 import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
-import org.springframework.transaction.event.TransactionPhase
-import org.springframework.transaction.event.TransactionalEventListener
 import org.springframework.web.client.RestClient
 
 @Profile("!test")
@@ -22,7 +21,7 @@ class UserRegisteredDiscordListener(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Async("discordNotificationExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    @EventListener
     fun onUserRegistered(event: UserRegisteredEvent) {
         if (discordProperties.webhookUrl.isBlank()) return
 
