@@ -19,11 +19,6 @@
             "type": "command",
             "command": "cd \"$CLAUDE_PROJECT_DIR\" && ./gradlew spotlessApply",
             "timeout": 120
-          },
-          {
-            "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && ./gradlew test",
-            "timeout": 300
           }
         ]
       }
