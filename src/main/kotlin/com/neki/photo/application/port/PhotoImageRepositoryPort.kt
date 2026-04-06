@@ -32,8 +32,6 @@ interface PhotoImageRepositoryPort {
 
     fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite?
 
-    fun getPhotoIdsByFolderIds(userId: Long, folderIds: List<Long>): List<Long>
-
     fun listOwnedPhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
 
     fun listOwnedPhotosWithFavorite(
@@ -50,11 +48,4 @@ interface PhotoImageRepositoryPort {
      * 삭제
      */
     fun deleteOwnedPhotos(userId: Long, photoIds: List<Long>): List<PhotoImage>
-
-    fun removePhotosFromFolder(userId: Long, folderId: Long, photoIds: List<Long>): Int
-
-    /**
-     * 갱신
-     */
-    fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int
 }
