@@ -5,11 +5,13 @@ import com.neki.e2e.photo.image.PhotoImageE2ETestBase
 import com.neki.media.domain.entity.MediaStatus
 import com.neki.photo.api.dto.DeleteFoldersRequest
 import com.neki.photo.domain.entity.Folder
+import com.neki.photo.domain.entity.PhotoImageFolder
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -238,10 +240,10 @@ class DeleteFoldersE2ETest : PhotoImageE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
-        // Then: 폴더는 삭제되고 사진은 유지 (folderId는 NULL)
+        // Then: 폴더는 삭제되고 사진은 유지 (중간 테이블 연관도 CASCADE로 삭제됨)
         assertThat(folderRepository.findById(folder.id!!)).isEmpty
         val remainingPhoto = photoImageRepository.findById(photo.id!!).orElseThrow()
-        assertThat(remainingPhoto.folderId).isNull()
+        assertThat(remainingPhoto.mediaId).isEqualTo(media.id!!)
     }
 
     @Test
@@ -320,5 +322,76 @@ class DeleteFoldersE2ETest : PhotoImageE2ETestBase() {
         assertThat(folderRepository.findById(folder.id!!)).isEmpty
         assertThat(photoImageRepository.findById(photo.id!!)).isEmpty
         assertThat(favoritePhotoRepository.countByIdUserId(testUser.id!!)).isEqualTo(0)
+    }
+
+    @Test
+    @DisplayName("deletePhotos=false로 폴더 삭제 후 사진이 전체 사진 목록(folderId 없이)에서 조회된다")
+    fun givenPhotosInFolder_whenDeleteFolderWithoutDeletePhotos_thenPhotosStillListedWithoutFolderFilter() {
+        // Given: 폴더와 사진 생성
+        val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "삭제할 폴더"))
+        val media1 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val media2 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        createPhotoImage(userId = testUser.id!!, mediaId = media1.id!!, folderId = folder.id)
+        createPhotoImage(userId = testUser.id!!, mediaId = media2.id!!, folderId = folder.id)
+
+        // When: deletePhotos=false(기본값)로 폴더 삭제
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(DeleteFoldersRequest(folderIds = listOf(folder.id!!)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        // Then: folderId 없이 전체 조회 시 사진 2장이 여전히 존재
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .get("/api/photos")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+            .body("data.items", hasSize<Int>(2))
+    }
+
+    @Test
+    @DisplayName("여러 폴더에 속한 사진의 폴더 하나를 삭제(deletePhotos=false)하면 다른 폴더에서는 여전히 조회된다")
+    fun givenPhotoInMultipleFolders_whenDeleteOneFolder_thenPhotoStillInOtherFolder() {
+        // Given: 폴더 A, B 생성 및 동일 사진을 두 폴더에 연결
+        val folderA = folderRepository.save(Folder(userId = testUser.id!!, name = "폴더 A"))
+        val folderB = folderRepository.save(Folder(userId = testUser.id!!, name = "폴더 B"))
+        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folderA.id)
+        photoImageFolderRepository.save(PhotoImageFolder(photoImageId = photo.id!!, folderId = folderB.id!!))
+
+        // When: 폴더 A 삭제 (deletePhotos=false)
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(DeleteFoldersRequest(folderIds = listOf(folderA.id!!)))
+            .`when`()
+            .delete("/api/folders")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        // Then: 폴더 B에서 사진이 여전히 조회됨
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .queryParam("folderId", folderB.id)
+            .`when`()
+            .get("/api/photos")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("data.items", hasSize<Int>(1))
+
+        // 사진 자체도 존재
+        assertThat(photoImageRepository.findById(photo.id!!)).isPresent
+
+        // 폴더 B의 중간 테이블 연관도 유지
+        val folderBLinks = photoImageFolderRepository.findAllByFolderIdIn(listOf(folderB.id!!))
+        assertThat(folderBLinks).hasSize(1)
     }
 }
