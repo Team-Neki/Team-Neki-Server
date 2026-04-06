@@ -15,4 +15,6 @@ interface UserRepository : JpaRepository<User, Long> {
     fun existsByName(name: String): Boolean
 
     fun findByOidAndProviderType(oid: String, providerType: ProviderType): User?
+
+    fun countByOidIsNotNull(): Long
 }
