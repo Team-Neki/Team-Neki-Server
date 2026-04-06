@@ -16,7 +16,4 @@ interface JpaPhotoImageRepository : JpaRepository<PhotoImage, Long> {
     fun findAllByUserIdAndIdIn(userId: Long, ids: List<Long>): List<PhotoImage>
 
     fun existsByUserIdAndId(userId: Long, photoId: Long): Boolean
-
-    /** test **/
-    fun findByUserIdAndFolderId(userId: Long, folderId: Long?): List<PhotoImage>
 }

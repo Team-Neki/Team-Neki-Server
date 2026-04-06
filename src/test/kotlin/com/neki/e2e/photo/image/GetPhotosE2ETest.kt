@@ -2,10 +2,12 @@ package com.neki.e2e.photo.image
 
 import com.neki.common.api.dto.ResultCode
 import com.neki.media.domain.entity.MediaStatus
+import com.neki.photo.domain.entity.PhotoImageFolder
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.hasSize
 import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.BeforeEach
@@ -375,6 +377,133 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
                 .body("data.items[0].photoId", equalTo(photos[0].id!!.toInt()))
                 .body("data.items[1].photoId", equalTo(photos[1].id!!.toInt()))
                 .body("data.items[2].photoId", equalTo(photos[2].id!!.toInt()))
+        }
+    }
+
+    // =====================
+    // 폴더 필터 테스트
+    // =====================
+
+    @Nested
+    @DisplayName("폴더 필터 테스트")
+    inner class FolderFilterTests {
+
+        @Test
+        @DisplayName("folderId 필터로 조회 시 해당 폴더의 사진만 반환된다")
+        fun givenPhotosInFolder_whenListWithFolderId_thenOnlyFolderPhotosReturned() {
+            // given: 폴더에 사진 2장, 폴더 밖에 사진 1장
+            val folder = createFolder(testUser.id!!, "테스트 폴더")
+            val media1 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            val media2 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            val media3 = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+
+            val folderPhoto1 = createPhotoImage(userId = testUser.id!!, mediaId = media1.id!!, folderId = folder.id)
+            val folderPhoto2 = createPhotoImage(userId = testUser.id!!, mediaId = media2.id!!, folderId = folder.id)
+            createPhotoImage(userId = testUser.id!!, mediaId = media3.id!!) // 폴더 밖 사진
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("folderId", folder.id)
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(2))
+                .body("data.items.photoId", hasItem(folderPhoto1.id!!.toInt()))
+                .body("data.items.photoId", hasItem(folderPhoto2.id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("빈 폴더를 folderId로 조회 시 빈 결과를 반환한다")
+        fun givenEmptyFolder_whenListWithFolderId_thenEmptyResult() {
+            // given: 빈 폴더
+            val folder = createFolder(testUser.id!!, "빈 폴더")
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("folderId", folder.id)
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", empty<Any>())
+        }
+
+        @Test
+        @DisplayName("folderId 필터와 페이징이 함께 동작한다")
+        fun givenPhotosInFolder_whenListWithFolderIdAndPagination_thenPaginatedCorrectly() {
+            // given: 폴더에 사진 3장
+            val folder = createFolder(testUser.id!!, "페이징 폴더")
+            repeat(3) {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folder.id)
+            }
+
+            // when & then: page=0, size=2
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("folderId", folder.id)
+                .queryParam("page", 0)
+                .queryParam("size", 2)
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(2))
+                .body("data.hasNext", equalTo(true))
+
+            // page=1, size=2: 나머지 1장
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("folderId", folder.id)
+                .queryParam("page", 1)
+                .queryParam("size", 2)
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(1))
+                .body("data.hasNext", equalTo(false))
+        }
+
+        @Test
+        @DisplayName("같은 사진이 여러 폴더에 속한 경우 각 폴더 조회 시 해당 사진이 반환된다")
+        fun givenPhotoInMultipleFolders_whenListByFolder_thenPhotoAppearsInEach() {
+            // given: 사진 1장을 폴더 A, B에 모두 연결
+            val folderA = createFolder(testUser.id!!, "폴더 A")
+            val folderB = createFolder(testUser.id!!, "폴더 B")
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folderA.id)
+            // 폴더 B에도 연결
+            photoImageFolderRepository.save(PhotoImageFolder(photoImageId = photo.id!!, folderId = folderB.id!!))
+
+            // when & then: 폴더 A 조회
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("folderId", folderA.id)
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", hasSize<Int>(1))
+                .body("data.items[0].photoId", equalTo(photo.id!!.toInt()))
+
+            // when & then: 폴더 B 조회
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("folderId", folderB.id)
+                .`when`()
+                .get("/api/photos")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", hasSize<Int>(1))
+                .body("data.items[0].photoId", equalTo(photo.id!!.toInt()))
         }
     }
 }

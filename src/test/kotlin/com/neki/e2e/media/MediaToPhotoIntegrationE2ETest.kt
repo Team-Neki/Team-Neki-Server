@@ -185,8 +185,11 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         val savedPhotos = photoImageRepository.findAll().filter { it.userId == testUser.id }
         assertThat(savedPhotos).hasSize(2)
 
+        val folderPhotoIds: Set<Long> = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder.id!!))
+            .map { it.photoImageId }.toSet()
+
         savedPhotos.forEach { photo ->
-            assertThat(photo.folderId).isEqualTo(folder.id)
+            assertThat(folderPhotoIds).contains(photo.id)
             assertThat(photo.memo).isEqualTo("테스트 메모")
             assertThat(photo.userId).isEqualTo(testUser.id)
         }

@@ -80,13 +80,4 @@ class PhotoImageRepositoryAdapter(
         jpaRepository.existsByUserIdAndId(userId, photoId)
 
     override fun getLatestFavoritePhoto(userId: Long): PhotoImage? = queryRepository.findLatestFavoritePhoto(userId)
-
-    override fun updatePhotosFolderIdToNull(userId: Long, folderIds: List<Long>): Int =
-        queryRepository.updatePhotosFolderIdToNull(userId, folderIds)
-
-    override fun getPhotoIdsByFolderIds(userId: Long, folderIds: List<Long>): List<Long> =
-        queryRepository.getPhotoIdsByFolderIds(userId, folderIds)
-
-    override fun removePhotosFromFolder(userId: Long, folderId: Long, photoIds: List<Long>): Int =
-        queryRepository.removePhotosFromFolder(userId, folderId, photoIds)
 }
