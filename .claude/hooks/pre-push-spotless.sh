@@ -5,7 +5,7 @@
 INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
 
-if ! echo "$COMMAND" | grep -q "git push"; then
+if [[ ! "$COMMAND" =~ ^git[[:space:]]+push ]]; then
     exit 0
 fi
 
