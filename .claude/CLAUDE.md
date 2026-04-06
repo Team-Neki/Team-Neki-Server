@@ -65,6 +65,7 @@ command):
 | S3 uploads/Media    | `/presigned-url-flow` |
 | PR 리뷰 반영        | `/resolve-review`     |
 | Committing changes  | `/commit`             |
+| Committing + PR     | `/commit-push-pr`     |
 
 ---
 
@@ -118,6 +119,7 @@ Skills are auto-loaded when relevant tasks are detected, or can be invoked manua
 | `api-patterns`       | `/api-patterns`       | API endpoint development, request/response design |
 | `architecture`       | `/architecture`       | New domain/module design, Clean Architecture      |
 | `commit`             | `/commit`             | 코드 작업 완료 후 커밋 생성                                  |
+| `commit-push-pr`     | `/commit-push-pr`     | 커밋 + push + PR 생성 (PR 생성 시 반드시 사용)              |
 | `configuration`      | `/configuration`      | Environment settings, profiles, secrets           |
 | `observability`      | `/observability`      | Logging, metrics, monitoring                      |
 | `presigned-url-flow` | `/presigned-url-flow` | S3 upload, media/image handling                   |
