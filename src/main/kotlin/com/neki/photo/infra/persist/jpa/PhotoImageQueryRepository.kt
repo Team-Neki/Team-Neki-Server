@@ -41,40 +41,44 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-    ): List<PhotoWithFavorite> = queryFactory
-        .select(
-            Projections.constructor(
-                PhotoWithFavorite::class.java,
-                photoImage,
-                CaseBuilder()
-                    .`when`(favoritePhoto.id.photoId.isNotNull).then(true)
-                    .otherwise(false),
-            ),
-        )
-        .from(photoImage)
-        .leftJoin(favoritePhoto)
-        .on(
-            favoritePhoto.id.userId.eq(photoImage.userId),
-            favoritePhoto.id.photoId.eq(photoImage.id),
-        )
-        .apply {
-            if (folderId != null) {
-                innerJoin(photoImageFolder)
-                    .on(photoImageFolder.photoImageId.eq(photoImage.id), photoImageFolder.folderId.eq(folderId))
-            }
+    ): List<PhotoWithFavorite> {
+        val query = queryFactory
+            .select(
+                Projections.constructor(
+                    PhotoWithFavorite::class.java,
+                    photoImage,
+                    CaseBuilder()
+                        .`when`(favoritePhoto.id.photoId.isNotNull).then(true)
+                        .otherwise(false),
+                ),
+            )
+            .from(photoImage)
+            .leftJoin(favoritePhoto)
+            .on(
+                favoritePhoto.id.userId.eq(photoImage.userId),
+                favoritePhoto.id.photoId.eq(photoImage.id),
+            )
+
+        if (folderId != null) {
+            query.innerJoin(photoImageFolder)
+                .on(
+                    photoImageFolder.photoImageId.eq(photoImage.id),
+                    photoImageFolder.folderId.eq(folderId),
+                )
         }
-        .where(
-            photoImage.userId.eq(userId),
-        )
-        .orderBy(
-            when (sortOrder) {
-                SortOrder.ASC -> photoImage.createdAt.asc()
-                SortOrder.DESC -> photoImage.createdAt.desc()
-            },
-        )
-        .offset(offset.toLong())
-        .limit(limit.toLong())
-        .fetch()
+
+        return query
+            .where(photoImage.userId.eq(userId))
+            .orderBy(
+                when (sortOrder) {
+                    SortOrder.ASC -> photoImage.createdAt.asc()
+                    SortOrder.DESC -> photoImage.createdAt.desc()
+                },
+            )
+            .offset(offset.toLong())
+            .limit(limit.toLong())
+            .fetch()
+    }
 
     fun findOwnedFavoritePhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage> =
         queryFactory.selectFrom(photoImage)
@@ -130,6 +134,21 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
             photoImage.id.eq(photoId),
         )
         .fetchOne()
+
+    fun getPhotoIdsByFolderIds(userId: Long, folderIds: List<Long>): List<Long> {
+        if (folderIds.isEmpty()) return emptyList()
+
+        return queryFactory
+            .select(photoImage.id)
+            .from(photoImage)
+            .innerJoin(photoImageFolder)
+            .on(photoImageFolder.photoImageId.eq(photoImage.id))
+            .where(
+                photoImage.userId.eq(userId),
+                photoImageFolder.folderId.`in`(folderIds),
+            )
+            .fetch()
+    }
 
     fun getRegisteredMediaIds(mediaIds: List<Long>): Set<Long> {
         if (mediaIds.isEmpty()) return emptySet()

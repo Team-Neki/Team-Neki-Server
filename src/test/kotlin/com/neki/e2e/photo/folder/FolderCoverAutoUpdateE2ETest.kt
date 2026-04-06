@@ -5,7 +5,9 @@ import com.neki.e2e.photo.image.PhotoImageE2ETestBase
 import com.neki.media.api.dto.UploadTicketRequest
 import com.neki.media.domain.MediaType
 import com.neki.photo.api.dto.DeletePhotosRequest
+import com.neki.photo.api.dto.RemovePhotosFromFolderRequest
 import com.neki.photo.api.dto.UploadPhotoRequest
+import com.neki.photo.domain.entity.PhotoImageFolder
 import com.neki.photo.domain.enums.UploadMethod
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -135,9 +137,9 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
 
     private fun getPhotoIdsInFolder(folderId: Long?): List<Long> {
         if (folderId == null) return emptyList()
-        val relations = photoImageFolderRepository.findAllByFolderIdIn(listOf(folderId))
-        // ID 역순 정렬 (가장 최근 업로드된 사진이 먼저)
-        return relations.map { it.photoImageId }.sortedDescending()
+        val photoImageIds: List<Long> = photoImageFolderRepository.findAllByFolderIdIn(listOf(folderId))
+            .map { it.photoImageId }
+        return photoImageIds.sortedDescending()
     }
 
     data class FolderInfoDto(val folderId: Long, val name: String, val latestImageUrl: String?, val totalCount: Long)
@@ -347,5 +349,47 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
         val updatedFolderInfo = getFolderInfo(folder.id!!)
         assertThat(updatedFolderInfo.latestImageUrl).isEqualTo(initialCoverUrl)
         assertThat(updatedFolderInfo.totalCount).isEqualTo(2)
+    }
+
+    @Test
+    @DisplayName("여러 폴더에 속한 사진을 한 폴더에서 제외해도 다른 폴더의 stats는 영향받지 않는다")
+    fun givenPhotoInMultipleFolders_whenDeleteFromOneFolder_thenOtherFolderStatsCorrect() {
+        // Given: 폴더 A, B 생성
+        val folderA = createFolder(testUser.id!!, "폴더 A")
+        val folderB = createFolder(testUser.id!!, "폴더 B")
+
+        // 폴더 A에 사진 2장 업로드
+        val mediaIdsA = createMediaIds(2)
+        uploadPhotosViaApi(folderA.id, mediaIdsA)
+
+        // 폴더 A의 사진 중 1장을 폴더 B에도 연결
+        val photoIdsInA = getPhotoIdsInFolder(folderA.id)
+        val sharedPhotoId = photoIdsInA[0]
+        photoImageFolderRepository.save(PhotoImageFolder(photoImageId = sharedPhotoId, folderId = folderB.id!!))
+
+        // 폴더 B의 초기 stats 확인
+        val initialInfoB = getFolderInfo(folderB.id!!)
+        assertThat(initialInfoB.totalCount).isEqualTo(1)
+        assertThat(initialInfoB.latestImageUrl).isNotNull()
+
+        // When: 폴더 A에서 공유 사진 제외
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(RemovePhotosFromFolderRequest(photoIds = listOf(sharedPhotoId)))
+            .`when`()
+            .delete("/api/folders/${folderA.id}/photos")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        // Then: 폴더 A의 count가 1로 감소
+        val updatedInfoA = getFolderInfo(folderA.id!!)
+        assertThat(updatedInfoA.totalCount).isEqualTo(1)
+
+        // 폴더 B의 stats는 변경되지 않음
+        val updatedInfoB = getFolderInfo(folderB.id!!)
+        assertThat(updatedInfoB.totalCount).isEqualTo(1)
+        assertThat(updatedInfoB.latestImageUrl).isNotNull()
     }
 }

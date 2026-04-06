@@ -91,6 +91,51 @@ gh api repos/{owner}/{repo}/pulls/{pull_number}/comments -X POST \
   -F in_reply_to=<comment_id>
 ```
 
+### Step 7: AI Agent 코멘트 Resolve
+
+AI Agent(봇)가 남긴 코멘트를 반영한 경우, 해당 코멘트 스레드를 resolve 처리:
+
+- **대상**: `user.type`이 `"Bot"`인 코멘트만 resolve (예: `gemini-code-assist[bot]`, `github-actions[bot]` 등)
+- **사람이 남긴 코멘트는 절대 resolve하지 않음** — 사람의 코멘트는 본인이 직접 resolve해야 함
+
+```bash
+# 코멘트의 GraphQL node_id를 사용하여 resolve
+gh api graphql -f query='
+  mutation {
+    resolveReviewThread(input: {threadId: "<thread_node_id>"}) {
+      thread { isResolved }
+    }
+  }
+'
+```
+
+**thread_node_id 조회 방법**: 리뷰 코멘트 조회 시 `node_id` 필드 대신, PR의 review threads에서 GraphQL로 조회:
+
+```bash
+gh api graphql -f query='
+  query {
+    repository(owner: "{owner}", name: "{repo}") {
+      pullRequest(number: {pull_number}) {
+        reviewThreads(first: 100) {
+          nodes {
+            id
+            isResolved
+            comments(first: 1) {
+              nodes {
+                databaseId
+                author { login }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+'
+```
+
+`comments(first: 1)`의 `databaseId`가 원본 코멘트 ID와 일치하는 thread의 `id`를 사용하여 resolve
+
 ---
 
 ## 규칙
@@ -100,6 +145,7 @@ gh api repos/{owner}/{repo}/pulls/{pull_number}/comments -X POST \
 - **판단이 필요한 경우**: 코멘트의 제안이 프로젝트 컨벤션과 충돌하거나 부적절하다고 판단되면, 사용자에게 확인을 요청
 - **답글 형식**: 간결하게 무엇을 변경했는지 + 커밋 해시 포함
 - **답글이 이미 있는 코멘트**: 이미 답글이 달린 코멘트는 건너뜀
+- **AI Agent 코멘트 자동 resolve**: `user.type == "Bot"`인 코멘트는 반영 후 자동으로 resolve 처리. 사람이 남긴 코멘트는 절대 resolve하지 않음
 
 ## GitHub API 참고
 

@@ -42,3 +42,17 @@ data class RemovePhotosFromFolderRequest(
     @field:NotEmpty(message = "제외할 사진 ID 목록은 비어있을 수 없습니다.")
     val photoIds: List<Long>,
 )
+
+data class MovePhotosToFolderRequest(
+    @field:Schema(
+        description = "이동할 사진 ID 목록",
+        example = "[1, 2, 3]",
+    )
+    @field:NotEmpty(message = "이동할 사진 ID 목록은 비어있을 수 없습니다.")
+    val photoIds: List<Long>,
+    @field:Schema(
+        description = "이동 대상 폴더 ID",
+        example = "5",
+    )
+    val targetFolderId: Long,
+)

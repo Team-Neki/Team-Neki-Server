@@ -63,10 +63,11 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
-        // Then: 사진은 유지되고 중간 테이블에서 연관이 삭제됨
+        // Then: 사진은 유지되고 중간 테이블에서 연관만 삭제
         val remainingPhoto = photoImageRepository.findById(photo.id!!).orElseThrow()
         assertThat(remainingPhoto.mediaId).isEqualTo(media.id!!)
-        assertThat(photoImageFolderRepository.findAllByFolderIdIn(listOf(folder.id!!))).isEmpty()
+        val folderLinks = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder.id!!))
+        assertThat(folderLinks).isEmpty()
     }
 
     @Test
@@ -93,7 +94,8 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
         // Then: 중간 테이블에서 모든 연관이 삭제됨
-        assertThat(photoImageFolderRepository.findAllByFolderIdIn(listOf(folder.id!!))).isEmpty()
+        val folderLinks = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder.id!!))
+        assertThat(folderLinks).isEmpty()
     }
 
     @Test
@@ -195,10 +197,10 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
-        // Then: 사진은 여전히 folder2에 속함 (중간 테이블에서 확인)
-        val folder2Relations = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder2.id!!))
-        assertThat(folder2Relations).hasSize(1)
-        assertThat(folder2Relations[0].photoImageId).isEqualTo(photoInFolder2.id!!)
+        // Then: 사진은 여전히 folder2에 속함
+        val folder2Links = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder2.id!!))
+        assertThat(folder2Links).hasSize(1)
+        assertThat(folder2Links[0].photoImageId).isEqualTo(photoInFolder2.id!!)
     }
 
     @Test

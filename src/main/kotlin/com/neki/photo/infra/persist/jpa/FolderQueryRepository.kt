@@ -5,6 +5,7 @@ import com.neki.photo.application.contract.FolderWithStats
 import com.neki.photo.domain.entity.QFolder.folder
 import com.neki.photo.domain.entity.QPhotoImage
 import com.neki.photo.domain.entity.QPhotoImage.photoImage
+import com.neki.photo.domain.entity.QPhotoImageFolder
 import com.neki.photo.domain.entity.QPhotoImageFolder.photoImageFolder
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -54,30 +55,30 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
         val coverMap = if (folderIdsWithPhotos.isNotEmpty()) {
             val latestPhoto = QPhotoImage("latestPhoto")
             val maxIdSubquery = QPhotoImage("maxIdSubquery")
-            val pif = com.neki.photo.domain.entity.QPhotoImageFolder("pif")
-            val pifSub = com.neki.photo.domain.entity.QPhotoImageFolder("pifSub")
+            val latestPhotoFolder = QPhotoImageFolder("latestPhotoFolder")
+            val maxIdPhotoFolder = QPhotoImageFolder("maxIdPhotoFolder")
 
             queryFactory
-                .select(pif.folderId, media.storageKey)
+                .select(latestPhotoFolder.folderId, media.storageKey)
                 .from(latestPhoto)
-                .join(pif).on(pif.photoImageId.eq(latestPhoto.id))
+                .join(latestPhotoFolder).on(latestPhotoFolder.photoImageId.eq(latestPhoto.id))
                 .join(media).on(media.id.eq(latestPhoto.mediaId))
                 .where(
                     latestPhoto.userId.eq(userId),
-                    pif.folderId.`in`(folderIdsWithPhotos),
+                    latestPhotoFolder.folderId.`in`(folderIdsWithPhotos),
                     latestPhoto.id.eq(
                         JPAExpressions
                             .select(maxIdSubquery.id.max())
                             .from(maxIdSubquery)
-                            .join(pifSub).on(pifSub.photoImageId.eq(maxIdSubquery.id))
+                            .join(maxIdPhotoFolder).on(maxIdPhotoFolder.photoImageId.eq(maxIdSubquery.id))
                             .where(
-                                pifSub.folderId.eq(pif.folderId),
+                                maxIdPhotoFolder.folderId.eq(latestPhotoFolder.folderId),
                                 maxIdSubquery.userId.eq(userId),
                             ),
                     ),
                 )
                 .fetch()
-                .associate { it.get(pif.folderId)!! to it.get(media.storageKey)!! }
+                .associate { it.get(latestPhotoFolder.folderId)!! to it.get(media.storageKey)!! }
         } else {
             emptyMap()
         }

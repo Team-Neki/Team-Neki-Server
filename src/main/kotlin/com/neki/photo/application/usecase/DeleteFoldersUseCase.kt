@@ -29,7 +29,7 @@ class DeleteFoldersUseCase(
 ) {
 
     fun execute(command: DeleteFoldersCommand) {
-        // 삭제할 사진 ID 조회
+        // 삭제할 사진 ID 조회 (중간 테이블 기준)
         val photoIdsToDelete: List<Long> = if (command.deletePhotos) {
             transactionRunner.readOnly {
                 photoImageFolderRepository.getPhotoImageIdsByFolderIds(command.folderIds)
@@ -46,10 +46,7 @@ class DeleteFoldersUseCase(
                 }
             }
 
-            // 폴더-사진 연관 삭제
-            photoImageFolderRepository.deleteByFolderIds(command.folderIds)
-
-            // 폴더 삭제
+            // 폴더 삭제 (ON DELETE CASCADE로 중간 테이블 자동 정리)
             val deletedCount: Int = folderRepository.deleteOwnedFolders(
                 command.userId,
                 command.folderIds,
