@@ -72,7 +72,7 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
     )
 
     protected fun createPhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage {
-        val photo = photoImageRepository.save(
+        val photo: PhotoImage = photoImageRepository.save(
             PhotoImage(
                 userId = userId,
                 mediaId = mediaId,
