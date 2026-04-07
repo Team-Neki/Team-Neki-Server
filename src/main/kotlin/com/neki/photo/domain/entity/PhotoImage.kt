@@ -35,9 +35,6 @@ class PhotoImage(
     @Column(name = "media_id", nullable = false)
     val mediaId: Long,
 
-    @Column(name = "folder_id", nullable = true)
-    var folderId: Long? = null,
-
     @Column(name = "memo", nullable = true)
     var memo: String? = null,
 
@@ -54,7 +51,6 @@ class PhotoImage(
 ) : BaseTimeEntity() {
 
     fun softDelete() {
-        folderId = null
         deletedAt = LocalDateTime.now()
     }
 
