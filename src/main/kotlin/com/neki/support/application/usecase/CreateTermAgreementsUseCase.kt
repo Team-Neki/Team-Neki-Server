@@ -23,15 +23,18 @@ class CreateTermAgreementsUseCase(
             .filter { it.agreed }
             .map { it.termId }
 
-        val requiredTerms: List<Term> = termRepository.findAllActiveTerms()
-            .filter { it.isRequired }
+        val activeTerms: List<Term> = termRepository.findAllActiveTerms()
+        val activeTermIds: Set<Long> = activeTerms.mapNotNull { it.id }.toSet()
+
+        val requiredTerms: List<Term> = activeTerms.filter { it.isRequired }
 
         val missingRequired: List<Term> = requiredTerms.filter { it.id !in agreedTermIds }
         if (missingRequired.isNotEmpty()) {
             throw BusinessException(ResultCode.REQUIRED_TERMS_NOT_AGREED)
         }
 
-        val termsToAgree: List<Term> = termRepository.findAllByIds(agreedTermIds)
+        val validAgreedTermIds: List<Long> = agreedTermIds.filter { it in activeTermIds }
+        val termsToAgree: List<Term> = termRepository.findAllByIds(validAgreedTermIds)
         val now = LocalDateTime.now()
 
         val agreements: List<UserTermAgreement> = termsToAgree.map { term ->
