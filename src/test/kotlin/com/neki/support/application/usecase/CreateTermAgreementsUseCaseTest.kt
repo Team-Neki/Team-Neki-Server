@@ -9,148 +9,160 @@ import com.neki.support.application.port.UserTermAgreementRepositoryPort
 import com.neki.support.domain.entity.UserTermAgreement
 import com.neki.testfixture.aTerm
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 
-class CreateTermAgreementsUseCaseTest :
-    FunSpec({
+class CreateTermAgreementsUseCaseTest {
 
-        lateinit var termRepository: TermRepositoryPort
-        lateinit var userTermAgreementRepository: UserTermAgreementRepositoryPort
-        lateinit var useCase: CreateTermAgreementsUseCase
+    private lateinit var termRepository: TermRepositoryPort
+    private lateinit var userTermAgreementRepository: UserTermAgreementRepositoryPort
+    private lateinit var useCase: CreateTermAgreementsUseCase
 
-        beforeTest {
-            termRepository = mockk()
-            userTermAgreementRepository = mockk()
-            useCase = CreateTermAgreementsUseCase(termRepository, userTermAgreementRepository)
-        }
+    @BeforeEach
+    fun setUp() {
+        termRepository = mockk()
+        userTermAgreementRepository = mockk()
+        useCase = CreateTermAgreementsUseCase(termRepository, userTermAgreementRepository)
+    }
 
-        test("정상 동의 - 필수 약관 모두 포함 시 저장에 성공한다") {
-            // Given
-            val userId = 1L
-            val requiredTerm = aTerm(id = 1L, isRequired = true, version = "1.0.0")
-            val optionalTerm = aTerm(id = 2L, isRequired = false, version = "1.0.0")
-            val savedSlot = slot<List<UserTermAgreement>>()
+    @Test
+    @DisplayName("정상 동의 - 필수 약관 모두 포함 시 저장에 성공한다")
+    fun `정상 동의 - 필수 약관 모두 포함 시 저장에 성공한다`() {
+        // Given
+        val userId = 1L
+        val requiredTerm = aTerm(id = 1L, isRequired = true, version = "1.0.0")
+        val optionalTerm = aTerm(id = 2L, isRequired = false, version = "1.0.0")
+        val savedSlot = slot<List<UserTermAgreement>>()
 
-            every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm, optionalTerm)
-            every { termRepository.findAllByIds(listOf(1L, 2L)) } returns listOf(requiredTerm, optionalTerm)
-            every { userTermAgreementRepository.saveAll(capture(savedSlot)) } returns emptyList()
+        every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm, optionalTerm)
+        every { termRepository.findAllByIds(listOf(1L, 2L)) } returns listOf(requiredTerm, optionalTerm)
+        every { userTermAgreementRepository.saveAll(capture(savedSlot)) } returns emptyList()
 
-            val command = CreateTermAgreementsCommand(
-                userId = userId,
-                agreements = listOf(
-                    TermAgreementItem(termId = 1L, agreed = true),
-                    TermAgreementItem(termId = 2L, agreed = true),
-                ),
-            )
+        val command = CreateTermAgreementsCommand(
+            userId = userId,
+            agreements = listOf(
+                TermAgreementItem(termId = 1L, agreed = true),
+                TermAgreementItem(termId = 2L, agreed = true),
+            ),
+        )
 
-            // When
+        // When
+        useCase.execute(command)
+
+        // Then
+        verify(exactly = 1) { userTermAgreementRepository.saveAll(any()) }
+        savedSlot.captured.size shouldBe 2
+    }
+
+    @Test
+    @DisplayName("필수 약관 누락 - BusinessException(REQUIRED_TERMS_NOT_AGREED)을 던진다")
+    fun `필수 약관 누락 - BusinessException(REQUIRED_TERMS_NOT_AGREED)을 던진다`() {
+        // Given
+        val userId = 1L
+        val requiredTerm = aTerm(id = 1L, isRequired = true)
+        val optionalTerm = aTerm(id = 2L, isRequired = false)
+
+        every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm, optionalTerm)
+
+        val command = CreateTermAgreementsCommand(
+            userId = userId,
+            agreements = listOf(
+                TermAgreementItem(termId = 2L, agreed = true),
+            ),
+        )
+
+        // When & Then
+        val exception = shouldThrow<BusinessException> {
             useCase.execute(command)
-
-            // Then
-            verify(exactly = 1) { userTermAgreementRepository.saveAll(any()) }
-            savedSlot.captured.size shouldBe 2
         }
+        exception.resultCode shouldBe ResultCode.REQUIRED_TERMS_NOT_AGREED
+        verify(exactly = 0) { userTermAgreementRepository.saveAll(any()) }
+    }
 
-        test("필수 약관 누락 - BusinessException(REQUIRED_TERMS_NOT_AGREED)을 던진다") {
-            // Given
-            val userId = 1L
-            val requiredTerm = aTerm(id = 1L, isRequired = true)
-            val optionalTerm = aTerm(id = 2L, isRequired = false)
+    @Test
+    @DisplayName("선택 약관만 미동의 - 필수 약관이 모두 포함된 경우 정상 처리된다")
+    fun `선택 약관만 미동의 - 필수 약관이 모두 포함된 경우 정상 처리된다`() {
+        // Given
+        val userId = 1L
+        val requiredTerm = aTerm(id = 1L, isRequired = true, version = "1.0.0")
+        val optionalTerm = aTerm(id = 2L, isRequired = false, version = "1.0.0")
 
-            every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm, optionalTerm)
+        every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm, optionalTerm)
+        every { termRepository.findAllByIds(listOf(1L)) } returns listOf(requiredTerm)
+        every { userTermAgreementRepository.saveAll(any()) } returns emptyList()
 
-            val command = CreateTermAgreementsCommand(
-                userId = userId,
-                agreements = listOf(
-                    TermAgreementItem(termId = 2L, agreed = true),
-                ),
-            )
+        val command = CreateTermAgreementsCommand(
+            userId = userId,
+            agreements = listOf(
+                TermAgreementItem(termId = 1L, agreed = true),
+                TermAgreementItem(termId = 2L, agreed = false),
+            ),
+        )
 
-            // When & Then
-            val exception = shouldThrow<BusinessException> {
-                useCase.execute(command)
-            }
-            exception.resultCode shouldBe ResultCode.REQUIRED_TERMS_NOT_AGREED
-            verify(exactly = 0) { userTermAgreementRepository.saveAll(any()) }
-        }
+        // When
+        useCase.execute(command)
 
-        test("선택 약관만 미동의 - 필수 약관이 모두 포함된 경우 정상 처리된다") {
-            // Given
-            val userId = 1L
-            val requiredTerm = aTerm(id = 1L, isRequired = true, version = "1.0.0")
-            val optionalTerm = aTerm(id = 2L, isRequired = false, version = "1.0.0")
+        // Then
+        verify(exactly = 1) { userTermAgreementRepository.saveAll(any()) }
+    }
 
-            every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm, optionalTerm)
-            every { termRepository.findAllByIds(listOf(1L)) } returns listOf(requiredTerm)
-            every { userTermAgreementRepository.saveAll(any()) } returns emptyList()
+    @Test
+    @DisplayName("빈 agreements 목록 - 필수 약관이 존재할 때 BusinessException(REQUIRED_TERMS_NOT_AGREED)을 던진다")
+    fun `빈 agreements 목록 - 필수 약관이 존재할 때 BusinessException(REQUIRED_TERMS_NOT_AGREED)을 던진다`() {
+        // Given
+        val userId = 1L
+        val requiredTerm = aTerm(id = 1L, isRequired = true)
 
-            val command = CreateTermAgreementsCommand(
-                userId = userId,
-                agreements = listOf(
-                    TermAgreementItem(termId = 1L, agreed = true),
-                    TermAgreementItem(termId = 2L, agreed = false),
-                ),
-            )
+        every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm)
 
-            // When
+        val command = CreateTermAgreementsCommand(
+            userId = userId,
+            agreements = emptyList(),
+        )
+
+        // When & Then
+        val exception = shouldThrow<BusinessException> {
             useCase.execute(command)
-
-            // Then
-            verify(exactly = 1) { userTermAgreementRepository.saveAll(any()) }
         }
+        exception.resultCode shouldBe ResultCode.REQUIRED_TERMS_NOT_AGREED
+        verify(exactly = 0) { userTermAgreementRepository.saveAll(any()) }
+    }
 
-        test("빈 agreements 목록 - 필수 약관이 존재할 때 BusinessException(REQUIRED_TERMS_NOT_AGREED)을 던진다") {
-            // Given
-            val userId = 1L
-            val requiredTerm = aTerm(id = 1L, isRequired = true)
+    @Test
+    @DisplayName("비활성 termId 포함 - 활성 약관 외 ID는 UseCase에서 필터링 후 저장에서 제외된다")
+    fun `비활성 termId 포함 - 활성 약관 외 ID는 UseCase에서 필터링 후 저장에서 제외된다`() {
+        // Given
+        val userId = 1L
+        val requiredTerm = aTerm(id = 1L, isRequired = true, version = "1.0.0")
+        val savedSlot = slot<List<UserTermAgreement>>()
 
-            every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm)
+        every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm)
+        // 활성 약관 ID(1L)만 필터링된 후 findAllByIds에 전달됨; 비활성 ID(999L)는 제외됨
+        every { termRepository.findAllByIds(listOf(1L)) } returns listOf(requiredTerm)
+        every { userTermAgreementRepository.saveAll(capture(savedSlot)) } returns emptyList()
 
-            val command = CreateTermAgreementsCommand(
-                userId = userId,
-                agreements = emptyList(),
-            )
+        val command = CreateTermAgreementsCommand(
+            userId = userId,
+            agreements = listOf(
+                TermAgreementItem(termId = 1L, agreed = true),
+                TermAgreementItem(termId = 999L, agreed = true),
+            ),
+        )
 
-            // When & Then
-            val exception = shouldThrow<BusinessException> {
-                useCase.execute(command)
-            }
-            exception.resultCode shouldBe ResultCode.REQUIRED_TERMS_NOT_AGREED
-            verify(exactly = 0) { userTermAgreementRepository.saveAll(any()) }
-        }
+        // When
+        useCase.execute(command)
 
-        test("비활성 termId 포함 - 활성 약관 외 ID는 UseCase에서 필터링 후 저장에서 제외된다") {
-            // Given
-            val userId = 1L
-            val requiredTerm = aTerm(id = 1L, isRequired = true, version = "1.0.0")
-            val savedSlot = slot<List<UserTermAgreement>>()
-
-            every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm)
-            // 활성 약관 ID(1L)만 필터링된 후 findAllByIds에 전달됨; 비활성 ID(999L)는 제외됨
-            every { termRepository.findAllByIds(listOf(1L)) } returns listOf(requiredTerm)
-            every { userTermAgreementRepository.saveAll(capture(savedSlot)) } returns emptyList()
-
-            val command = CreateTermAgreementsCommand(
-                userId = userId,
-                agreements = listOf(
-                    TermAgreementItem(termId = 1L, agreed = true),
-                    TermAgreementItem(termId = 999L, agreed = true),
-                ),
-            )
-
-            // When
-            useCase.execute(command)
-
-            // Then
-            verify(exactly = 1) { userTermAgreementRepository.saveAll(any()) }
-            savedSlot.captured.size shouldBe 1
-            savedSlot.captured[0].id.termId shouldBe 1L
-            // 비활성 ID(999L)는 findAllByIds에 전달되지 않음을 검증
-            verify(exactly = 0) { termRepository.findAllByIds(match { it.contains(999L) }) }
-        }
-    })
+        // Then
+        verify(exactly = 1) { userTermAgreementRepository.saveAll(any()) }
+        savedSlot.captured.size shouldBe 1
+        savedSlot.captured[0].id.termId shouldBe 1L
+        // 비활성 ID(999L)는 findAllByIds에 전달되지 않음을 검증
+        verify(exactly = 0) { termRepository.findAllByIds(match { it.contains(999L) }) }
+    }
+}
