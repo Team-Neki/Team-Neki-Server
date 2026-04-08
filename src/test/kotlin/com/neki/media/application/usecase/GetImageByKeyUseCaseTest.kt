@@ -43,7 +43,7 @@ class GetImageByKeyUseCaseTest {
 
     @Test
     @DisplayName("캐싱 비대상 타입 - S3 직접 조회 (lock/cache 미호출)")
-    fun `캐싱 비대상 타입 - S3 직접 조회 (lock/cache 미호출)`() {
+    fun `캐싱 비대상 타입 - S3 직접 조회 (lock_cache 미호출)`() {
         // Given: photo-booth는 cacheTtl=null 이므로 isCacheable=false
         val objectKey = "photo-booth/image.jpg"
 
@@ -153,7 +153,7 @@ class GetImageByKeyUseCaseTest {
 
     @Test
     @DisplayName("Content-Type 매핑 - jpg는 image/jpeg, unknown 확장자는 application/octet-stream")
-    fun `Content-Type 매핑 - jpg는 image/jpeg, unknown 확장자는 application/octet-stream`() {
+    fun `Content-Type 매핑 - jpg는 image_jpeg, unknown 확장자는 application_octet-stream`() {
         // Given
         val jpgKey = "pose/photo.jpg"
         val unknownKey = "pose/photo.xyz"
@@ -199,7 +199,7 @@ class GetImageByKeyUseCaseTest {
 
     @Test
     @DisplayName("확장자 없는 objectKey - DEFAULT_CONTENT_TYPE(application/octet-stream) 반환")
-    fun `확장자 없는 objectKey - DEFAULT_CONTENT_TYPE(application/octet-stream) 반환`() {
+    fun `확장자 없는 objectKey - DEFAULT_CONTENT_TYPE(application_octet-stream) 반환`() {
         // Given: 접두사는 pose(cacheable), 파일명은 확장자 없음
         val objectKey = "pose/image"
 

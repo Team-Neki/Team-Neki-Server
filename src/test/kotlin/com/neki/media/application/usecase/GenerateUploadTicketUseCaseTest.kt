@@ -98,7 +98,7 @@ class GenerateUploadTicketUseCaseTest {
 
     @Test
     @DisplayName("method/expiresAt 추출 - 첫 번째 ticket에서 method와 expiresAt 추출 확인")
-    fun `method/expiresAt 추출 - 첫 번째 ticket에서 method와 expiresAt 추출 확인`() {
+    fun `method_expiresAt 추출 - 첫 번째 ticket에서 method와 expiresAt 추출 확인`() {
         // Given
         val ownerId = 1L
         val items = listOf(
