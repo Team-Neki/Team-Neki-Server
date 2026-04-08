@@ -140,7 +140,7 @@ class ConfirmMediaUploadedUseCaseTest {
 
     @Test
     @DisplayName("S3 exists 체크 예외 - mediaStorage.exists 예외 발생 시 전파")
-    fun `S3 exists 체크 예외 - mediaStorage.exists 예외 발생 시 전파`() {
+    fun `S3 exists 체크 예외 - mediaStorage exists 예외 발생 시 전파`() {
         // Given
         val ownerId = 1L
         val mediaId = 4L
