@@ -38,7 +38,7 @@ class GetUserInfoUseCaseTest {
 
     @Test
     @DisplayName("정상 조회 - 프로필 이미지 있음: user, storageKey, terms 동의 여부 반환")
-    fun `정상 조회 - 프로필 이미지 있음: user, storageKey, terms 동의 여부 반환`() {
+    fun `정상 조회 - 프로필 이미지 있음 user, storageKey, terms 동의 여부 반환`() {
         // Given
         val userId = 1L
         val mediaId = 10L
