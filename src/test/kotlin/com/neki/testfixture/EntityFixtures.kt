@@ -33,7 +33,7 @@ fun aUser(
     email: String? = "test@example.com",
     password: String = "NO_PASS",
     name: String? = "테스트유저",
-    oid: String = "oauth-oid-$id",
+    oid: String = id?.let { "oauth-oid-$it" } ?: "oauth-oid-${java.util.UUID.randomUUID()}",
     providerType: ProviderType = ProviderType.KAKAO,
     profileImageId: Long? = null,
     roles: String = RoleType.USER.role,
@@ -100,7 +100,7 @@ fun aUserTermAgreement(
 
 fun aMedia(
     id: Long? = 1L,
-    storageKey: String = "pose/test-image-$id.jpg",
+    storageKey: String = "pose/test-image-${id ?: java.util.UUID.randomUUID()}.jpg",
     ownerId: Long = 1L,
     mediaType: MediaType = MediaType.POSE,
     status: MediaStatus = MediaStatus.UPLOADED,

@@ -10,4 +10,8 @@ interface JpaPhotoImageFolderRepository : JpaRepository<PhotoImageFolder, Long> 
     fun deleteAllByFolderIdIn(folderIds: List<Long>)
 
     fun deleteAllByPhotoImageIdInAndFolderId(photoImageIds: List<Long>, folderId: Long)
+
+    fun findAllByPhotoImageIdInAndFolderId(photoImageIds: List<Long>, folderId: Long): List<PhotoImageFolder>
+
+    fun findAllByFolderIdIn(folderIds: List<Long>): List<PhotoImageFolder>
 }

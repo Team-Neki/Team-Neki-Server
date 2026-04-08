@@ -4,8 +4,10 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.application.command.DeleteUserCommand
+import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.domain.entity.User
+import com.neki.user.event.UserWithdrawnEvent
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -16,7 +18,10 @@ import org.springframework.transaction.annotation.Transactional
  * - 회원 탈퇴 시, 사용자 정보는 삭제하지 않고 상태만 '탈퇴'로 변경
  */
 @UseCase
-class DeleteMeUseCase(private val userRepository: UserRepositoryPort) {
+class DeleteMeUseCase(
+    private val userRepository: UserRepositoryPort,
+    private val userEventPublisher: UserEventPublisherPort,
+) {
 
     @Transactional
     fun execute(command: DeleteUserCommand) {
@@ -24,5 +29,11 @@ class DeleteMeUseCase(private val userRepository: UserRepositoryPort) {
             ?: throw BusinessException(ResultCode.NOT_FOUND_USER)
 
         user.withdraw()
+
+        val activeUserCount: Long = userRepository.countByOidIsNotNull()
+
+        userEventPublisher.publish(
+            UserWithdrawnEvent(userId = user.id!!, nickname = user.name!!, activeUserCount = activeUserCount),
+        )
     }
 }

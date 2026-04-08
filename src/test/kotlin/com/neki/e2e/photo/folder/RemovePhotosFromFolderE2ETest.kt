@@ -45,8 +45,8 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("폴더에서 사진 제외 성공 시 사진의 folderId가 NULL이 된다")
-    fun givenPhotosInFolder_whenRemovePhotosFromFolder_thenPhotosFolderIdBecomesNull() {
+    @DisplayName("폴더에서 사진 제외 성공 시 중간 테이블에서 연관이 삭제된다")
+    fun givenPhotosInFolder_whenRemovePhotosFromFolder_thenJunctionRecordDeleted() {
         // Given: 폴더와 사진 생성
         val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "테스트 폴더"))
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -63,10 +63,11 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
-        // Then: 사진은 유지되고 folderId만 NULL로 변경
+        // Then: 사진은 유지되고 중간 테이블에서 연관만 삭제
         val remainingPhoto = photoImageRepository.findById(photo.id!!).orElseThrow()
-        assertThat(remainingPhoto.folderId).isNull()
         assertThat(remainingPhoto.mediaId).isEqualTo(media.id!!)
+        val folderLinks = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder.id!!))
+        assertThat(folderLinks).isEmpty()
     }
 
     @Test
@@ -92,10 +93,9 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
-        // Then: 모든 사진의 folderId가 NULL로 변경
-        assertThat(photoImageRepository.findById(photo1.id!!).get().folderId).isNull()
-        assertThat(photoImageRepository.findById(photo2.id!!).get().folderId).isNull()
-        assertThat(photoImageRepository.findById(photo3.id!!).get().folderId).isNull()
+        // Then: 중간 테이블에서 모든 연관이 삭제됨
+        val folderLinks = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder.id!!))
+        assertThat(folderLinks).isEmpty()
     }
 
     @Test
@@ -198,8 +198,9 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
         // Then: 사진은 여전히 folder2에 속함
-        val photo = photoImageRepository.findById(photoInFolder2.id!!).orElseThrow()
-        assertThat(photo.folderId).isEqualTo(folder2.id)
+        val folder2Links = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder2.id!!))
+        assertThat(folder2Links).hasSize(1)
+        assertThat(folder2Links[0].photoImageId).isEqualTo(photoInFolder2.id!!)
     }
 
     @Test
