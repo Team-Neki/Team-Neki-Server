@@ -7,12 +7,14 @@ import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPhotoImage
-import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 private fun favoritePhotoWithCreatedAt(id: Long, userId: Long = 1L, mediaId: Long) =
@@ -20,112 +22,122 @@ private fun favoritePhotoWithCreatedAt(id: Long, userId: Long = 1L, mediaId: Lon
         it.createdAt = LocalDateTime.of(2026, 1, 1, 12, 0)
     }
 
-class GetFavoritePhotosUseCaseTest :
-    FunSpec({
+class GetFavoritePhotosUseCaseTest {
 
-        lateinit var photoImageRepository: PhotoImageRepositoryPort
-        lateinit var mediaClient: MediaClientPort
-        lateinit var useCase: GetFavoritePhotosUseCase
+    lateinit var photoImageRepository: PhotoImageRepositoryPort
+    lateinit var mediaClient: MediaClientPort
+    lateinit var useCase: GetFavoritePhotosUseCase
 
-        beforeTest {
-            photoImageRepository = mockk()
-            mediaClient = mockk()
-            useCase = GetFavoritePhotosUseCase(photoImageRepository, mediaClient, FakeTransactionRunner())
-        }
+    @BeforeEach
+    fun setUp() {
+        photoImageRepository = mockk()
+        mediaClient = mockk()
+        useCase = GetFavoritePhotosUseCase(photoImageRepository, mediaClient, FakeTransactionRunner())
+    }
 
-        fun makeCommand(page: Int = 0, size: Int = 10) =
-            GetFavoritePhotosCommand(userId = 1L, page = page, size = size, sortOrder = SortOrder.DESC)
+    private fun makeCommand(page: Int = 0, size: Int = 10) =
+        GetFavoritePhotosCommand(userId = 1L, page = page, size = size, sortOrder = SortOrder.DESC)
 
-        fun makeMediaInfo(mediaId: Long) = MediaStorageInfo(
-            mediaId = mediaId,
-            storageKey = "key/$mediaId.jpg",
-            contentType = "image/jpeg",
-            width = 800,
-            height = 600,
-        )
+    private fun makeMediaInfo(mediaId: Long) = MediaStorageInfo(
+        mediaId = mediaId,
+        storageKey = "key/$mediaId.jpg",
+        contentType = "image/jpeg",
+        width = 800,
+        height = 600,
+    )
 
-        test("즐겨찾기 사진 정상 조회 시 목록 반환") {
-            // Given
-            val command = makeCommand(size = 10)
-            val photo1 = favoritePhotoWithCreatedAt(id = 1L, mediaId = 10L)
-            val photo2 = favoritePhotoWithCreatedAt(id = 2L, mediaId = 20L)
+    @Test
+    @DisplayName("즐겨찾기 사진 정상 조회 시 목록 반환")
+    fun `즐겨찾기 사진 정상 조회 시 목록 반환`() {
+        // Given
+        val command = makeCommand(size = 10)
+        val photo1 = favoritePhotoWithCreatedAt(id = 1L, mediaId = 10L)
+        val photo2 = favoritePhotoWithCreatedAt(id = 2L, mediaId = 20L)
 
-            every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns
-                listOf(photo1, photo2)
-            every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
-                listOf(makeMediaInfo(10L), makeMediaInfo(20L))
+        every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns
+            listOf(photo1, photo2)
+        every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
+            listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
-            // When
-            val result = useCase.execute(command)
+        // When
+        val result = useCase.execute(command)
 
-            // Then
-            result.photos shouldHaveSize 2
-            result.hasNext shouldBe false
-            result.photos[0].favorite shouldBe true
-            result.photos[1].favorite shouldBe true
-        }
+        // Then
+        result.photos shouldHaveSize 2
+        result.hasNext shouldBe false
+        result.photos[0].favorite shouldBe true
+        result.photos[1].favorite shouldBe true
+    }
 
-        test("size+1개 조회 시 hasNext=true 반환") {
-            // Given
-            val command = makeCommand(size = 2)
-            val photos = (1L..3L).map { favoritePhotoWithCreatedAt(id = it, mediaId = it * 10) }
+    @Test
+    @DisplayName("size+1개 조회 시 hasNext=true 반환")
+    fun `size+1개 조회 시 hasNext=true 반환`() {
+        // Given
+        val command = makeCommand(size = 2)
+        val photos = (1L..3L).map { favoritePhotoWithCreatedAt(id = it, mediaId = it * 10) }
 
-            every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
-            every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
-                listOf(makeMediaInfo(10L), makeMediaInfo(20L))
+        every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
+        every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
+            listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
-            // When
-            val result = useCase.execute(command)
+        // When
+        val result = useCase.execute(command)
 
-            // Then
-            result.hasNext shouldBe true
-            result.photos shouldHaveSize 2
-        }
+        // Then
+        result.hasNext shouldBe true
+        result.photos shouldHaveSize 2
+    }
 
-        test("정확히 size개 조회 시 hasNext=false 반환") {
-            // Given
-            val command = makeCommand(size = 2)
-            val photos = (1L..2L).map { favoritePhotoWithCreatedAt(id = it, mediaId = it * 10) }
+    @Test
+    @DisplayName("정확히 size개 조회 시 hasNext=false 반환")
+    fun `정확히 size개 조회 시 hasNext=false 반환`() {
+        // Given
+        val command = makeCommand(size = 2)
+        val photos = (1L..2L).map { favoritePhotoWithCreatedAt(id = it, mediaId = it * 10) }
 
-            every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
-            every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
-                listOf(makeMediaInfo(10L), makeMediaInfo(20L))
+        every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
+        every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
+            listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
-            // When
-            val result = useCase.execute(command)
+        // When
+        val result = useCase.execute(command)
 
-            // Then
-            result.hasNext shouldBe false
-            result.photos shouldHaveSize 2
-        }
+        // Then
+        result.hasNext shouldBe false
+        result.photos shouldHaveSize 2
+    }
 
-        test("즐겨찾기 사진이 없는 경우 빈 결과와 hasNext=false 반환") {
-            // Given
-            val command = makeCommand()
+    @Test
+    @DisplayName("즐겨찾기 사진이 없는 경우 빈 결과와 hasNext=false 반환")
+    fun `즐겨찾기 사진이 없는 경우 빈 결과와 hasNext=false 반환`() {
+        // Given
+        val command = makeCommand()
 
-            every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns emptyList()
+        every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns emptyList()
 
-            // When
-            val result = useCase.execute(command)
+        // When
+        val result = useCase.execute(command)
 
-            // Then
-            result.photos.shouldBeEmpty()
-            result.hasNext shouldBe false
-        }
+        // Then
+        result.photos.shouldBeEmpty()
+        result.hasNext shouldBe false
+    }
 
-        test("모든 사진의 미디어가 없는 경우 빈 결과 반환") {
-            // Given
-            val command = makeCommand(size = 10)
-            val photo1 = favoritePhotoWithCreatedAt(id = 1L, mediaId = 10L)
+    @Test
+    @DisplayName("모든 사진의 미디어가 없는 경우 빈 결과 반환")
+    fun `모든 사진의 미디어가 없는 경우 빈 결과 반환`() {
+        // Given
+        val command = makeCommand(size = 10)
+        val photo1 = favoritePhotoWithCreatedAt(id = 1L, mediaId = 10L)
 
-            every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns listOf(photo1)
-            every { mediaClient.getMediaStorageInfos(1L, listOf(10L)) } returns emptyList()
+        every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns listOf(photo1)
+        every { mediaClient.getMediaStorageInfos(1L, listOf(10L)) } returns emptyList()
 
-            // When
-            val result = useCase.execute(command)
+        // When
+        val result = useCase.execute(command)
 
-            // Then
-            result.photos.shouldBeEmpty()
-            result.hasNext shouldBe false
-        }
-    })
+        // Then
+        result.photos.shouldBeEmpty()
+        result.hasNext shouldBe false
+    }
+}
