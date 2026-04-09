@@ -46,6 +46,7 @@ class ConfirmMediaUploadedUseCase(
                     media.isUploaded() -> UploadConfirmStatus.CONFIRMED
                     s3ExistsMap[mediaId] == true -> {
                         media.markAsUploaded()
+                        mediaRepository.save(media)
                         UploadConfirmStatus.CONFIRMED
                     }
                     else -> UploadConfirmStatus.NOT_UPLOADED
@@ -64,7 +65,10 @@ class ConfirmMediaUploadedUseCase(
 
         transactionRunner.runNew {
             val medias: List<Media> = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
-            medias.forEach { it.markAsInitiated() }
+            medias.forEach {
+                it.markAsInitiated()
+                mediaRepository.save(it)
+            }
         }
     }
 }
