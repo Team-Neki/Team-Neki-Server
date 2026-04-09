@@ -59,9 +59,8 @@ class DeleteFoldersUseCaseTest {
             aPhotoImage(id = 20L, userId = 1L, mediaId = 200L),
         )
 
-        every { photoImageRepository.getPhotoIdsByFolderIds(1L, folderIds) } returns photoIds
+        every { photoImageFolderRepository.getPhotoImageIdsByFolderIds(folderIds) } returns photoIds
         every { favoriteImageRepository.deleteAll(1L, photoIds) } just Runs
-        every { photoImageFolderRepository.deleteByFolderIds(folderIds) } just Runs
         every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 1
         every { photoImageRepository.deleteOwnedPhotos(1L, photoIds) } returns deletedPhotos
         every { mediaClient.deleteMedias(1L, listOf(100L, 200L)) } just Runs
@@ -76,24 +75,22 @@ class DeleteFoldersUseCaseTest {
     }
 
     @Test
-    @DisplayName("deletePhotos=false이면 사진 folderId를 null로 업데이트하고 폴더 삭제, media 미호출")
-    fun `deletePhotos=false이면 사진 folderId를 null로 업데이트하고 폴더 삭제, media 미호출`() {
+    @DisplayName("deletePhotos=false이면 폴더만 삭제하고 media 미호출")
+    fun `deletePhotos=false이면 폴더만 삭제하고 media 미호출`() {
         // Given
         val folderIds = listOf(1L)
         val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = false)
 
-        every { photoImageRepository.updatePhotosFolderIdToNull(1L, folderIds) } returns 5
-        every { photoImageFolderRepository.deleteByFolderIds(folderIds) } just Runs
         every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 1
 
         // When
         useCase.execute(command)
 
         // Then
-        verify(exactly = 1) { photoImageRepository.updatePhotosFolderIdToNull(1L, folderIds) }
         verify(exactly = 1) { folderRepository.deleteOwnedFolders(1L, folderIds) }
         verify(exactly = 0) { mediaClient.deleteMedias(any(), any()) }
         verify(exactly = 0) { favoriteImageRepository.deleteAll(any(), any()) }
+        verify(exactly = 0) { photoImageRepository.deleteOwnedPhotos(any(), any()) }
     }
 
     @Test
@@ -103,8 +100,6 @@ class DeleteFoldersUseCaseTest {
         val folderIds = listOf(1L, 2L)
         val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = false)
 
-        every { photoImageRepository.updatePhotosFolderIdToNull(1L, folderIds) } returns 0
-        every { photoImageFolderRepository.deleteByFolderIds(folderIds) } just Runs
         // 2개를 요청했는데 1개만 삭제됨
         every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 1
 
@@ -122,8 +117,7 @@ class DeleteFoldersUseCaseTest {
         val folderIds = listOf(1L)
         val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = true)
 
-        every { photoImageRepository.getPhotoIdsByFolderIds(1L, folderIds) } returns emptyList()
-        every { photoImageFolderRepository.deleteByFolderIds(folderIds) } just Runs
+        every { photoImageFolderRepository.getPhotoImageIdsByFolderIds(folderIds) } returns emptyList()
         every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 1
 
         // When
@@ -144,9 +138,8 @@ class DeleteFoldersUseCaseTest {
         val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = true)
         val deletedPhotos = listOf(aPhotoImage(id = 10L, userId = 1L, mediaId = 100L))
 
-        every { photoImageRepository.getPhotoIdsByFolderIds(1L, folderIds) } returns photoIds
+        every { photoImageFolderRepository.getPhotoImageIdsByFolderIds(folderIds) } returns photoIds
         every { favoriteImageRepository.deleteAll(1L, photoIds) } just Runs
-        every { photoImageFolderRepository.deleteByFolderIds(folderIds) } just Runs
         every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 1
         every { photoImageRepository.deleteOwnedPhotos(1L, photoIds) } returns deletedPhotos
         every { mediaClient.deleteMedias(1L, listOf(100L)) } throws RuntimeException("미디어 삭제 실패")

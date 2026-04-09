@@ -4,6 +4,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
 import com.neki.user.application.command.DeleteUserCommand
+import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -17,12 +18,14 @@ import org.junit.jupiter.api.Test
 class DeleteMeUseCaseTest {
 
     lateinit var userRepository: UserRepositoryPort
+    lateinit var userEventPublisher: UserEventPublisherPort
     lateinit var useCase: DeleteMeUseCase
 
     @BeforeEach
     fun setUp() {
         userRepository = mockk()
-        useCase = DeleteMeUseCase(userRepository)
+        userEventPublisher = mockk()
+        useCase = DeleteMeUseCase(userRepository, userEventPublisher)
     }
 
     @Test
@@ -31,6 +34,8 @@ class DeleteMeUseCaseTest {
         // Given
         val user = aUser(id = 1L, email = "test@example.com", oid = "some-oid")
         every { userRepository.findById(1L) } returns user
+        every { userRepository.countByOidIsNotNull() } returns 1L
+        every { userEventPublisher.publish(any()) } returns Unit
 
         // When
         useCase.execute(DeleteUserCommand(userId = 1L))

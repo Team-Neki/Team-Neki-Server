@@ -5,7 +5,6 @@ import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.RemovePhotosFromFolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
-import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.testfixture.aFolder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -19,35 +18,31 @@ import org.junit.jupiter.api.Test
 class RemovePhotosFromFolderUseCaseTest {
 
     lateinit var folderRepository: FolderRepositoryPort
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
     lateinit var photoImageFolderRepository: PhotoImageFolderRepositoryPort
     lateinit var useCase: RemovePhotosFromFolderUseCase
 
     @BeforeEach
     fun setUp() {
         folderRepository = mockk()
-        photoImageRepository = mockk()
         photoImageFolderRepository = mockk()
-        useCase = RemovePhotosFromFolderUseCase(folderRepository, photoImageRepository, photoImageFolderRepository)
+        useCase = RemovePhotosFromFolderUseCase(folderRepository, photoImageFolderRepository)
     }
 
     @Test
-    @DisplayName("폴더 소유 확인 후 사진 folderId 제거 및 중간 테이블 삭제")
-    fun `폴더 소유 확인 후 사진 folderId 제거 및 중간 테이블 삭제`() {
+    @DisplayName("폴더 소유 확인 후 중간 테이블에서 연관 관계 삭제")
+    fun `폴더 소유 확인 후 중간 테이블에서 연관 관계 삭제`() {
         // Given
         val folder = aFolder(id = 1L, userId = 1L)
         val photoIds = listOf(10L, 20L)
         val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 1L, photoIds = photoIds)
 
         every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
-        every { photoImageRepository.removePhotosFromFolder(1L, 1L, photoIds) } returns 2
         every { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(photoIds, 1L) } returns Unit
 
         // When
         useCase.execute(command)
 
         // Then
-        verify(exactly = 1) { photoImageRepository.removePhotosFromFolder(1L, 1L, photoIds) }
         verify(exactly = 1) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(photoIds, 1L) }
     }
 
@@ -64,7 +59,6 @@ class RemovePhotosFromFolderUseCaseTest {
             useCase.execute(command)
         }
         ex.resultCode shouldBe ResultCode.NOT_FOUND
-        verify(exactly = 0) { photoImageRepository.removePhotosFromFolder(any(), any(), any()) }
         verify(exactly = 0) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(any(), any()) }
     }
 
@@ -77,14 +71,12 @@ class RemovePhotosFromFolderUseCaseTest {
         val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 1L, photoIds = emptyPhotoIds)
 
         every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
-        every { photoImageRepository.removePhotosFromFolder(1L, 1L, emptyPhotoIds) } returns 0
         every { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(emptyPhotoIds, 1L) } returns Unit
 
         // When
         useCase.execute(command)
 
         // Then
-        verify(exactly = 1) { photoImageRepository.removePhotosFromFolder(1L, 1L, emptyPhotoIds) }
         verify(exactly = 1) { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(emptyPhotoIds, 1L) }
     }
 }

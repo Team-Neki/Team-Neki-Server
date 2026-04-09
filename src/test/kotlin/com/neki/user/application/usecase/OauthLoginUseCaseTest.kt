@@ -8,6 +8,7 @@ import com.neki.user.application.contract.OauthInfoPayload
 import com.neki.user.application.port.AuthTokenProviderPort
 import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
+import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.domain.entity.User
 import com.neki.user.domain.enums.Platform
@@ -32,6 +33,7 @@ class OauthLoginUseCaseTest {
     lateinit var tokenProviderPort: AuthTokenProviderPort
     lateinit var userRepositoryPort: UserRepositoryPort
     lateinit var nicknameGenerator: NicknameGeneratorPort
+    lateinit var userEventPublisher: UserEventPublisherPort
     lateinit var transactionRunner: FakeTransactionRunner
     lateinit var useCase: OauthLoginUseCase
 
@@ -43,6 +45,7 @@ class OauthLoginUseCaseTest {
         tokenProviderPort = mockk()
         userRepositoryPort = mockk()
         nicknameGenerator = mockk()
+        userEventPublisher = mockk()
         transactionRunner = FakeTransactionRunner()
 
         useCase = OauthLoginUseCase(
@@ -52,6 +55,7 @@ class OauthLoginUseCaseTest {
             tokenProviderPort = tokenProviderPort,
             userRepositoryPort = userRepositoryPort,
             nicknameGenerator = nicknameGenerator,
+            userEventPublisher = userEventPublisher,
             transactionRunner = transactionRunner,
         )
     }
@@ -137,6 +141,8 @@ class OauthLoginUseCaseTest {
         } returns null
         every { nicknameGenerator.generateUniqueNickname() } returns "랜덤닉네임"
         every { userRepositoryPort.save(any<User>()) } returns savedUser
+        every { userRepositoryPort.countByOidIsNotNull() } returns 1L
+        every { userEventPublisher.publish(any()) } returns Unit
         every {
             tokenProviderPort.createAccessToken(
                 id = "2",
@@ -214,6 +220,8 @@ class OauthLoginUseCaseTest {
         } returns null
         every { nicknameGenerator.generateUniqueNickname() } returns "닉네임"
         every { userRepositoryPort.save(any<User>()) } returns savedUser
+        every { userRepositoryPort.countByOidIsNotNull() } returns 1L
+        every { userEventPublisher.publish(any()) } returns Unit
         every {
             tokenProviderPort.createAccessToken(
                 id = "3",
