@@ -158,15 +158,13 @@ class FolderController(
         summary = "사진 복제 API",
         description = "사진을 source 폴더에서 target 폴더로 복제합니다. source 폴더의 사진은 유지됩니다.",
     )
-    @PostMapping("/{sourceFolderId}/photos/copy")
+    @PostMapping("/photos/copy")
     fun copyPhotosToFolder(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @PathVariable sourceFolderId: Long,
         @Valid @RequestBody request: CopyPhotosToFolderRequest,
     ): BaseResponse<Any> {
         val command: CopyPhotosToFolderCommand = commandConverter.toCopyPhotosToFolderCommand(
             request,
-            sourceFolderId,
             userId,
         )
 
