@@ -8,7 +8,6 @@ import com.neki.photo.domain.entity.Folder
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
-import io.restassured.specification.RequestSpecification
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.jupiter.api.BeforeEach
@@ -49,10 +48,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = sourceFolder.id)
 
         // When
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -80,15 +87,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo3 = createPhotoImage(userId = testUser.id!!, mediaId = media3.id!!, folderId = sourceFolder.id)
 
         // When
-        givenAuthenticated()
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
             .body(
                 MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!),
-                    targetFolderId = targetFolder.id!!,
+                    targetFolderIds = listOf(targetFolder.id!!),
                 ),
             )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -110,10 +120,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = folder.id)
 
         // When
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = folder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = folder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(folder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${folder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -133,21 +151,29 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = sourceFolder.id)
 
-        val request = MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!)
+        val request = MovePhotosToFolderRequest(
+            sourceFolderId = sourceFolder.id,
+            photoIds = listOf(photo.id!!),
+            targetFolderIds = listOf(targetFolder.id!!),
+        )
 
         // When: 첫 번째 호출
-        givenAuthenticated()
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
 
         // When: 두 번째 호출 (멱등성 확인)
-        givenAuthenticated()
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
             .body(request)
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -167,10 +193,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
 
         // When & Then
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = 99999L,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/99999/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -185,10 +219,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = sourceFolder.id)
 
         // When & Then
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = 99999L))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(99999L),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -205,10 +247,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
 
         // When & Then
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = otherFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${otherFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -225,10 +275,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = sourceFolder.id)
 
         // When & Then
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = otherFolder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(otherFolder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -242,10 +300,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val targetFolder = folderRepository.save(Folder(userId = testUser.id!!, name = "타겟 폴더"))
 
         // When & Then
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = emptyList(), targetFolderId = targetFolder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = emptyList(),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
@@ -261,12 +327,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photoNotInSource = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = null)
 
         // When
-        givenAuthenticated()
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(photoIds = listOf(photoNotInSource.id!!), targetFolderId = targetFolder.id!!),
+                MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photoNotInSource.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
             )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -291,15 +363,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo3 = createPhotoImage(userId = testUser.id!!, mediaId = media3.id!!, folderId = sourceFolder.id)
 
         // When: photo1, photo2만 이동
-        givenAuthenticated()
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
             .body(
                 MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!),
-                    targetFolderId = targetFolder.id!!,
+                    targetFolderIds = listOf(targetFolder.id!!),
                 ),
             )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -326,10 +401,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val movingPhoto = createPhotoImage(userId = testUser.id!!, mediaId = media2.id!!, folderId = sourceFolder.id)
 
         // When
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(movingPhoto.id!!), targetFolderId = targetFolder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(movingPhoto.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -354,10 +437,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         assertThat(initialCoverUrl).isNotNull()
 
         // When
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
 
@@ -380,10 +471,18 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         assertThat(initialTargetCoverUrl).isNull()
 
         // When
-        givenAuthenticated()
-            .body(MovePhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(
+                MovePhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .patch("/api/folders/${sourceFolder.id}/photos/move")
+            .patch("/api/folders/photos/move")
             .then()
             .statusCode(HttpStatus.OK.value())
 
@@ -396,12 +495,10 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
     // Helper Methods
     // ===================
 
-    private fun givenAuthenticated(): RequestSpecification = RestAssured.given()
-        .contentType(ContentType.JSON)
-        .header("Authorization", "Bearer $accessToken")
-
     private fun getFolderLatestImageUrl(folderId: Long): String? {
-        val response = givenAuthenticated()
+        val response = RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
             .`when`()
             .get("/api/folders")
             .then()

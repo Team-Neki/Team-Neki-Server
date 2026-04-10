@@ -15,6 +15,14 @@ class PhotoImageFolderRepositoryAdapter(private val jpaRepository: JpaPhotoImage
         jpaRepository.saveAll(entities)
     }
 
+    override fun saveAll(mappings: List<Pair<Long, Long>>) {
+        if (mappings.isEmpty()) return
+        val entities: List<PhotoImageFolder> = mappings.map { (photoImageId, folderId) ->
+            PhotoImageFolder(photoImageId = photoImageId, folderId = folderId)
+        }
+        jpaRepository.saveAll(entities)
+    }
+
     override fun deleteByPhotoImageIds(photoImageIds: List<Long>) {
         if (photoImageIds.isEmpty()) return
         jpaRepository.deleteAllByPhotoImageIdIn(photoImageIds)
@@ -28,6 +36,14 @@ class PhotoImageFolderRepositoryAdapter(private val jpaRepository: JpaPhotoImage
     override fun deleteByPhotoImageIdsAndFolderId(photoImageIds: List<Long>, folderId: Long) {
         if (photoImageIds.isEmpty()) return
         jpaRepository.deleteAllByPhotoImageIdInAndFolderId(photoImageIds, folderId)
+    }
+
+    override fun findByPhotoImageIdsAndFolderIds(
+        photoImageIds: List<Long>,
+        folderIds: List<Long>,
+    ): List<PhotoImageFolder> {
+        if (photoImageIds.isEmpty()) return emptyList()
+        return jpaRepository.findAllByPhotoImageIdInAndFolderIdIn(photoImageIds, folderIds)
     }
 
     override fun getPhotoImageIdsByFolderIds(folderIds: List<Long>): List<Long> {

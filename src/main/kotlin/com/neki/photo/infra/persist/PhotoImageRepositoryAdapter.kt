@@ -67,7 +67,7 @@ class PhotoImageRepositoryAdapter(
         jpaRepository.saveAll(photos)
         jpaRepository.flush()
 
-        // 중간 테이블에서도 연관 삭제 (dual-write)
+        // 중간 테이블에서 연관 삭제
         photoImageFolderRepository.deleteByPhotoImageIds(photoIds)
 
         return photos
@@ -76,11 +76,11 @@ class PhotoImageRepositoryAdapter(
     override fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage? =
         jpaRepository.findByUserIdAndId(userId, photoId)
 
+    override fun getOwnedPhotos(userId: Long, photoIds: List<Long>): List<PhotoImage> =
+        jpaRepository.findAllByUserIdAndIdIn(userId, photoIds)
+
     override fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean =
         jpaRepository.existsByUserIdAndId(userId, photoId)
-
-    override fun countOwnedPhotos(userId: Long, photoIds: List<Long>): Int =
-        jpaRepository.findAllByUserIdAndIdIn(userId, photoIds).size
 
     override fun getLatestFavoritePhoto(userId: Long): PhotoImage? = queryRepository.findLatestFavoritePhoto(userId)
 }

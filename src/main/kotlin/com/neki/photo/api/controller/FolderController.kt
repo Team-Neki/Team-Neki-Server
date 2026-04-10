@@ -139,15 +139,13 @@ class FolderController(
         summary = "사진 이동 API",
         description = "사진을 source 폴더에서 target 폴더로 이동합니다.",
     )
-    @PatchMapping("/{sourceFolderId}/photos/move")
+    @PatchMapping("/photos/move")
     fun movePhotosToFolder(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @PathVariable sourceFolderId: Long,
         @Valid @RequestBody request: MovePhotosToFolderRequest,
     ): BaseResponse<Any> {
         val command: MovePhotosToFolderCommand = commandConverter.toMovePhotosToFolderCommand(
             request,
-            sourceFolderId,
             userId,
         )
 

@@ -35,6 +35,7 @@ class GetPhotoUseCase(
             uploadMethod = photo.uploadMethod,
             width = mediaInfo.width,
             height = mediaInfo.height,
+            memo = photo.memo,
             createdAt = photo.createdAt!!,
             capturedAt = photo.capturedAt,
         )

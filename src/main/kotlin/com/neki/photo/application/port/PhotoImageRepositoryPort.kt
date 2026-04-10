@@ -26,9 +26,9 @@ interface PhotoImageRepositoryPort {
      */
     fun existsOwnedPhoto(userId: Long, photoId: Long): Boolean
 
-    fun countOwnedPhotos(userId: Long, photoIds: List<Long>): Int
-
     fun getOwnedPhoto(userId: Long, photoId: Long): PhotoImage?
+
+    fun getOwnedPhotos(userId: Long, photoIds: List<Long>): List<PhotoImage>
 
     fun getLatestFavoritePhoto(userId: Long): PhotoImage?
 
