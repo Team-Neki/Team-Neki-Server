@@ -3,6 +3,7 @@ package com.neki.photo.api.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 
 /**
@@ -61,5 +62,28 @@ data class MovePhotosToFolderRequest(
         description = "이동 대상 폴더 ID 목록",
         example = "[1, 2, 3]",
     )
+    val targetFolderIds: List<Long>,
+)
+
+data class CopyPhotosToFolderRequest(
+    @field:Schema(
+        description = "복제하기 전 폴더 ID",
+        example = "1",
+    )
+    @field:NotNull(message = "복제전 폴더 ID는 비어있을 수 없습니다.")
+    val sourceFolderId: Long?,
+
+    @field:Schema(
+        description = "복제할 사진 ID 목록",
+        example = "[1, 2, 3]",
+    )
+    @field:NotEmpty(message = "복제할 사진 ID 목록은 비어있을 수 없습니다.")
+    val photoIds: List<Long>,
+
+    @field:Schema(
+        description = "이동 대상 폴더 ID 목록",
+        example = "[1, 2, 3]",
+    )
+    @field:NotEmpty(message = "복제할 폴더 ID 목록은 비어있을 수 없습니다.")
     val targetFolderIds: List<Long>,
 )

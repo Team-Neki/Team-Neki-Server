@@ -1,10 +1,12 @@
 package com.neki.photo.api.converter
 
+import com.neki.photo.api.dto.CopyPhotosToFolderRequest
 import com.neki.photo.api.dto.CreateFolderRequest
 import com.neki.photo.api.dto.DeleteFoldersRequest
 import com.neki.photo.api.dto.MovePhotosToFolderRequest
 import com.neki.photo.api.dto.RemovePhotosFromFolderRequest
 import com.neki.photo.api.dto.UpdateFolderRequest
+import com.neki.photo.application.command.CopyPhotosToFolderCommand
 import com.neki.photo.application.command.CreateFolderCommand
 import com.neki.photo.application.command.DeleteFoldersCommand
 import com.neki.photo.application.command.GetFoldersCommand
@@ -38,4 +40,7 @@ class FolderCommandConverter {
 
     fun toMovePhotosToFolderCommand(request: MovePhotosToFolderRequest, userId: Long) =
         MovePhotosToFolderCommand(userId, request.sourceFolderId, request.photoIds, request.targetFolderIds)
+
+    fun toCopyPhotosToFolderCommand(request: CopyPhotosToFolderRequest, userId: Long) =
+        CopyPhotosToFolderCommand(userId, request.sourceFolderId!!, request.photoIds, request.targetFolderIds)
 }
