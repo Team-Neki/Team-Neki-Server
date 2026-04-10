@@ -54,9 +54,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -88,12 +94,13 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!),
-                    targetFolderId = targetFolder.id!!,
+                    targetFolderIds = listOf(targetFolder.id!!),
                 ),
             )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -116,9 +123,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = folder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = folder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(folder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${folder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -138,13 +151,17 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = sourceFolder.id)
 
-        val request = CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!)
+        val request = CopyPhotosToFolderRequest(
+            sourceFolderId = sourceFolder.id,
+            photoIds = listOf(photo.id!!),
+            targetFolderIds = listOf(targetFolder.id!!),
+        )
 
         // When: 첫 번째 호출
         givenAuthenticated()
             .body(request)
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
 
@@ -152,7 +169,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(request)
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -180,9 +197,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When & Then
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = 99999L,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/99999/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -198,9 +221,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When & Then
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = 99999L))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(99999L),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -218,9 +247,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When & Then
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = otherFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${otherFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -238,9 +273,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When & Then
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = otherFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(otherFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -259,9 +300,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When & Then
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(otherUserPhoto.id!!), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(otherUserPhoto.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
@@ -276,9 +323,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When & Then
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = emptyList(), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = emptyList(),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
@@ -300,10 +353,14 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(photoIds = listOf(photoNotInSource.id!!), targetFolderId = targetFolder.id!!),
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photoNotInSource.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
             )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -331,12 +388,13 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!),
-                    targetFolderId = targetFolder.id!!,
+                    targetFolderIds = listOf(targetFolder.id!!),
                 ),
             )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -364,9 +422,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(copyingPhoto.id!!), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(copyingPhoto.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -392,9 +456,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
 
@@ -418,9 +488,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // When
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo.id!!), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
 
@@ -448,9 +524,15 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
 
         // photo1을 target에도 미리 추가 (partial overlap 상태)
         givenAuthenticated()
-            .body(CopyPhotosToFolderRequest(photoIds = listOf(photo1.id!!), targetFolderId = targetFolder.id!!))
+            .body(
+                CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
+                    photoIds = listOf(photo1.id!!),
+                    targetFolderIds = listOf(targetFolder.id!!),
+                ),
+            )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
 
@@ -458,12 +540,13 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
+                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!),
-                    targetFolderId = targetFolder.id!!,
+                    targetFolderIds = listOf(targetFolder.id!!),
                 ),
             )
             .`when`()
-            .post("/api/folders/${sourceFolder.id}/photos/copy")
+            .post("/api/folders/photos/copy")
             .then()
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
