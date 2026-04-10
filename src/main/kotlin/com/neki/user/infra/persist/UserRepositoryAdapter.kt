@@ -22,4 +22,6 @@ class UserRepositoryAdapter(private val jpaRepository: UserRepository) : UserRep
         jpaRepository.findByOidAndProviderType(oid, providerType)
 
     override fun findById(id: Long): User? = jpaRepository.findByIdOrNull(id)
+
+    override fun countByOidIsNotNull(): Long = jpaRepository.countByOidIsNotNull()
 }

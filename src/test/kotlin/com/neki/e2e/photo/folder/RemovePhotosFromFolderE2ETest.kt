@@ -45,8 +45,8 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
     }
 
     @Test
-    @DisplayName("폴더에서 사진 제외 성공 시 사진의 folderId가 NULL이 된다")
-    fun givenPhotosInFolder_whenRemovePhotosFromFolder_thenPhotosFolderIdBecomesNull() {
+    @DisplayName("폴더에서 사진 제외 성공 시 중간 테이블에서 연관이 삭제된다")
+    fun givenPhotosInFolder_whenRemovePhotosFromFolder_thenJunctionRecordDeleted() {
         // Given: 폴더와 사진 생성
         val folder = folderRepository.save(Folder(userId = testUser.id!!, name = "테스트 폴더"))
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -200,7 +200,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         // Then: 사진은 여전히 folder2에 속함
         val folder2Links = photoImageFolderRepository.findAllByFolderIdIn(listOf(folder2.id!!))
         assertThat(folder2Links).hasSize(1)
-        assertThat(folder2Links[0].photoImageId).isEqualTo(photoInFolder2.id)
+        assertThat(folder2Links[0].photoImageId).isEqualTo(photoInFolder2.id!!)
     }
 
     @Test

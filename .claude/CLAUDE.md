@@ -63,6 +63,9 @@ command):
 | Configuration       | `/configuration`      |
 | Logging/Metrics     | `/observability`      |
 | S3 uploads/Media    | `/presigned-url-flow` |
+| PR 리뷰 반영        | `/resolve-review`     |
+| Committing changes  | `/commit`             |
+| Committing + PR     | `/commit-push-pr`     |
 
 ---
 
@@ -70,11 +73,11 @@ command):
 
 ### ❌ NEVER DO
 
-| Constraint                            | Reason                                             |
-|---------------------------------------|----------------------------------------------------|
-| Import from other domains             | Breaks module isolation                            |
+| Constraint                            | Reason                                        |
+|---------------------------------------|-----------------------------------------------|
+| Import from other domains             | Breaks module isolation                       |
 | Bypass ports to access infra directly | Violates Clean Architecture (exception: user) |
-| Remove observability code             | Critical for production debugging                  |
+| Remove observability code             | Critical for production debugging             |
 
 ### ✅ ALWAYS DO
 
@@ -115,10 +118,39 @@ Skills are auto-loaded when relevant tasks are detected, or can be invoked manua
 |----------------------|-----------------------|---------------------------------------------------|
 | `api-patterns`       | `/api-patterns`       | API endpoint development, request/response design |
 | `architecture`       | `/architecture`       | New domain/module design, Clean Architecture      |
+| `commit`             | `/commit`             | 코드 작업 완료 후 커밋 생성                                  |
+| `commit-push-pr`     | `/commit-push-pr`     | 커밋 + push + PR 생성 (PR 생성 시 반드시 사용)              |
 | `configuration`      | `/configuration`      | Environment settings, profiles, secrets           |
 | `observability`      | `/observability`      | Logging, metrics, monitoring                      |
-| `testing`            | `/testing`            | Writing tests, test coverage                      |
 | `presigned-url-flow` | `/presigned-url-flow` | S3 upload, media/image handling                   |
+| `resolve-review`     | `/resolve-review`     | PR 코드 리뷰 피드백 반영 및 답글 작성 |
+| `testing`            | `/testing`            | Writing tests, test coverage                      |
+
+---
+
+## Agents
+
+특정 작업에 특화된 agent. `Agent` 툴 또는 슬래시 커맨드로 호출한다:
+
+| Agent               | 역할                                      | src/main/ 수정 |
+|---------------------|-------------------------------------------|---------------|
+| `unit-test-writer`  | UseCase 단위 테스트 작성 (JUnit5 + MockK)  | ❌ 금지        |
+| `e2e-test-writer`   | API E2E 테스트 작성                        | ❌ 금지        |
+| `test-validator`    | 테스트 실패 원인 진단 리포트 (수정 없음)     | ❌ 불가        |
+| `api-scaffold`      | API 엔드포인트 전체 스캐폴딩                | ✅ 가능        |
+| `db-migration`      | Flyway 마이그레이션 SQL 생성               | ✅ 가능        |
+| `pr-reviewer`       | PR 컨벤션 정적 리뷰 (수정 없음)             | ❌ 불가        |
+
+**테스트 워크플로우:**
+```
+unit-test-writer / e2e-test-writer  →  테스트 작성
+        ↓ 실패 시
+test-validator  →  원인 진단 (TEST_ERROR / LOGIC_BUG / SPEC_MISMATCH)
+        ↓
+TEST_ERROR   → test-writer agent에 재위임
+LOGIC_BUG    → 개발자가 Claude Code로 직접 수정
+SPEC_MISMATCH → 요구사항 재확인
+```
 
 ### Quick File Reference
 
