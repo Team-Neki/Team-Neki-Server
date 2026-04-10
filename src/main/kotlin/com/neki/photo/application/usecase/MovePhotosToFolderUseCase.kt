@@ -7,7 +7,8 @@ import com.neki.photo.application.command.MovePhotosToFolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.domain.entity.PhotoImageFolder
+import com.neki.photo.domain.entity.Folder
+import com.neki.photo.domain.entity.PhotoImage
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
@@ -19,34 +20,45 @@ class MovePhotosToFolderUseCase(
 
     @Transactional
     fun execute(command: MovePhotosToFolderCommand) {
-        if (command.sourceFolderId == command.targetFolderId) return
-
         // source 폴더 소유권 확인
-        folderRepository.getOwnedFolder(command.userId, command.sourceFolderId)
-            ?: throw BusinessException(ResultCode.NOT_FOUND)
+        command.sourceFolderId?.let {
+            folderRepository.getOwnedFolder(command.userId, it)
+                ?: throw BusinessException(ResultCode.NOT_FOUND)
+        }
 
         // target 폴더 소유권 확인
-        folderRepository.getOwnedFolder(command.userId, command.targetFolderId)
-            ?: throw BusinessException(ResultCode.NOT_FOUND)
+        val ownedFolders: List<Folder> = folderRepository.getOwnedFolders(command.userId, command.targetFolderIds)
+
+        if (command.targetFolderIds.size != ownedFolders.size) {
+            throw BusinessException(ResultCode.NOT_FOUND)
+        }
 
         // 사진 소유권 확인
-        command.photoIds.forEach { photoId ->
-            if (!photoImageRepository.existsOwnedPhoto(command.userId, photoId)) {
-                throw BusinessException(ResultCode.NOT_FOUND)
-            }
+        val ownedPhotos: List<PhotoImage> = photoImageRepository.getOwnedPhotos(command.userId, command.photoIds)
+
+        if (command.photoIds.size != ownedPhotos.size) {
+            throw BusinessException(ResultCode.NOT_FOUND)
         }
 
         // source 폴더에서 연관 삭제
-        photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(command.photoIds, command.sourceFolderId)
+        command.sourceFolderId?.let {
+            photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(command.photoIds, it)
+        }
 
-        // 멱등성 보장: target 폴더에 이미 존재하는 사진 ID 제외 후 추가
-        val existing: List<PhotoImageFolder> =
-            photoImageFolderRepository.findByPhotoImageIdsAndFolderId(command.photoIds, command.targetFolderId)
-        val existingPhotoIds: Set<Long> = existing.map { it.photoImageId }.toSet()
-        val newPhotoIds: List<Long> = command.photoIds.filter { it !in existingPhotoIds }
+        // 멱등성 보장: target 폴더들에 이미 존재하는 (사진, 폴더) 매핑을 한번에 조회
+        val existingPairs: Set<Pair<Long, Long>> =
+            photoImageFolderRepository.findByPhotoImageIdsAndFolderIds(command.photoIds, command.targetFolderIds)
+                .map { it.photoImageId to it.folderId }
+                .toSet()
 
-        if (newPhotoIds.isNotEmpty()) {
-            photoImageFolderRepository.saveAll(newPhotoIds, command.targetFolderId)
+        val newMappings: List<Pair<Long, Long>> = command.targetFolderIds.flatMap { folderId ->
+            command.photoIds
+                .filter { photoId -> (photoId to folderId) !in existingPairs }
+                .map { photoId -> photoId to folderId }
+        }
+
+        if (newMappings.isNotEmpty()) {
+            photoImageFolderRepository.saveAll(newMappings)
         }
     }
 }
