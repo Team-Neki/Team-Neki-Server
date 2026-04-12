@@ -175,6 +175,7 @@ class UploadPhotosUseCaseTest {
         every { mediaClient.verifyMediasUploaded(1L, listOf(20L)) } returns
             mapOf(20L to MediaAvailability.AVAILABLE)
         every { photoImageRepository.saveAll(any()) } returns savedPhotos
+        every { photoImageFolderRepository.saveAll(listOf(200L), null) } just Runs
 
         // When
         useCase.execute(command)
@@ -182,6 +183,7 @@ class UploadPhotosUseCaseTest {
         // Then
         verify(exactly = 1) { mediaClient.verifyMediasUploaded(1L, listOf(20L)) }
         verify(exactly = 1) { photoImageRepository.saveAll(match { it.size == 1 && it[0].mediaId == 20L }) }
+        verify(exactly = 1) { photoImageFolderRepository.saveAll(listOf(200L), null) }
     }
 
     @Test
@@ -202,8 +204,8 @@ class UploadPhotosUseCaseTest {
     }
 
     @Test
-    @DisplayName("folderId가 null이면 폴더 연결 없이 사진만 저장")
-    fun `folderId가 null이면 폴더 연결 없이 사진만 저장`() {
+    @DisplayName("folderId가 null이면 폴더 없이 photo_image_folder에 저장")
+    fun `folderId가 null이면 폴더 없이 photo_image_folder에 저장`() {
         // Given
         val uploads = listOf(makeUploadItem(10L))
         val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
@@ -213,13 +215,14 @@ class UploadPhotosUseCaseTest {
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
             mapOf(10L to MediaAvailability.AVAILABLE)
         every { photoImageRepository.saveAll(any()) } returns savedPhotos
+        every { photoImageFolderRepository.saveAll(listOf(100L), null) } just Runs
 
         // When
         useCase.execute(command)
 
         // Then
         verify(exactly = 1) { photoImageRepository.saveAll(any()) }
-        verify(exactly = 0) { photoImageFolderRepository.saveAll(any(), any()) }
+        verify(exactly = 1) { photoImageFolderRepository.saveAll(listOf(100L), null) }
     }
 
     @Test

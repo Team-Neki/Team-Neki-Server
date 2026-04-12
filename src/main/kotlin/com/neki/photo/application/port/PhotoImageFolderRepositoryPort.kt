@@ -4,9 +4,9 @@ import com.neki.photo.domain.entity.PhotoImageFolder
 
 interface PhotoImageFolderRepositoryPort {
 
-    fun saveAll(photoImageIds: List<Long>, folderId: Long)
+    fun saveAll(photoImageIds: List<Long>, folderId: Long?)
 
-    fun saveAll(mappings: List<Pair<Long, Long>>)
+    fun saveAll(mappings: List<Pair<Long, Long?>>)
 
     fun deleteByPhotoImageIds(photoImageIds: List<Long>)
 

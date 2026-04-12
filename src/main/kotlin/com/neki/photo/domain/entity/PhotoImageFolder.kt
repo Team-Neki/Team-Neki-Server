@@ -18,6 +18,6 @@ class PhotoImageFolder(
     @Column(name = "photo_image_id", nullable = false)
     val photoImageId: Long,
 
-    @Column(name = "folder_id", nullable = false)
-    val folderId: Long,
+    @Column(name = "folder_id", nullable = true)
+    val folderId: Long?,
 ) : BaseTimeEntity()

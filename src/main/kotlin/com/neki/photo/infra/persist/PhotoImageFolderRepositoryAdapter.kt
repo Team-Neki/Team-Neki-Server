@@ -9,13 +9,13 @@ import org.springframework.stereotype.Repository
 class PhotoImageFolderRepositoryAdapter(private val jpaRepository: JpaPhotoImageFolderRepository) :
     PhotoImageFolderRepositoryPort {
 
-    override fun saveAll(photoImageIds: List<Long>, folderId: Long) {
+    override fun saveAll(photoImageIds: List<Long>, folderId: Long?) {
         if (photoImageIds.isEmpty()) return
         val entities = photoImageIds.map { PhotoImageFolder(photoImageId = it, folderId = folderId) }
         jpaRepository.saveAll(entities)
     }
 
-    override fun saveAll(mappings: List<Pair<Long, Long>>) {
+    override fun saveAll(mappings: List<Pair<Long, Long?>>) {
         if (mappings.isEmpty()) return
         val entities: List<PhotoImageFolder> = mappings.map { (photoImageId, folderId) ->
             PhotoImageFolder(photoImageId = photoImageId, folderId = folderId)

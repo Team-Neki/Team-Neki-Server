@@ -59,9 +59,7 @@ class UploadPhotosUseCase(
             transactionRunner.run {
                 val savedPhotos: List<PhotoImage> = photoImageRepository.saveAll(photos)
                 val savedPhotoIds: List<Long> = savedPhotos.map { it.id!! }
-                if (command.folderId != null) {
-                    photoImageFolderRepository.saveAll(savedPhotoIds, command.folderId)
-                }
+                photoImageFolderRepository.saveAll(savedPhotoIds, command.folderId)
                 if (command.favorite) {
                     favoriteImageRepository.addAll(command.userId, savedPhotoIds)
                 }
