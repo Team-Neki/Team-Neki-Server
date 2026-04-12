@@ -39,12 +39,12 @@ class CopyPhotosToFolderUseCase(
         }
 
         // 멱등성 보장: target 폴더들에 이미 존재하는 (사진, 폴더) 매핑을 한번에 조회
-        val existingPairs: Set<Pair<Long, Long>> =
+        val existingPairs: Set<Pair<Long, Long?>> =
             photoImageFolderRepository.findByPhotoImageIdsAndFolderIds(command.photoIds, command.targetFolderIds)
                 .map { it.photoImageId to it.folderId }
                 .toSet()
 
-        val newMappings: List<Pair<Long, Long>> = command.targetFolderIds.flatMap { folderId ->
+        val newMappings: List<Pair<Long, Long?>> = command.targetFolderIds.flatMap { folderId ->
             command.photoIds
                 .filter { photoId -> (photoId to folderId) !in existingPairs }
                 .map { photoId -> photoId to folderId }
