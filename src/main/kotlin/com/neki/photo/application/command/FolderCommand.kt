@@ -23,8 +23,4 @@ data class MovePhotosToFolderCommand(
     val targetFolderIds: List<Long>,
 )
 
-data class CopyPhotosToFolderCommand(
-    val userId: Long,
-    val photoIds: List<Long>,
-    val targetFolderIds: List<Long>,
-)
+data class CopyPhotosToFolderCommand(val userId: Long, val photoIds: List<Long>, val targetFolderIds: List<Long>)

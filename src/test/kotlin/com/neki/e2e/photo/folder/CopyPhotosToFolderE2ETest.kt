@@ -56,7 +56,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -94,7 +93,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -125,7 +123,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = folder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(folder.id!!),
                 ),
@@ -152,7 +149,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = sourceFolder.id)
 
         val request = CopyPhotosToFolderRequest(
-            sourceFolderId = sourceFolder.id,
             photoIds = listOf(photo.id!!),
             targetFolderIds = listOf(targetFolder.id!!),
         )
@@ -188,30 +184,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
     // ===================
 
     @Test
-    @DisplayName("존재하지 않는 source 폴더로 요청 시 400 에러를 반환한다")
-    fun givenNonExistentSourceFolder_whenCopy_thenReturnsNotFound() {
-        // Given
-        val targetFolder = folderRepository.save(Folder(userId = testUser.id!!, name = "타겟 폴더"))
-        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
-        val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
-
-        // When & Then
-        givenAuthenticated()
-            .body(
-                CopyPhotosToFolderRequest(
-                    sourceFolderId = 99999L,
-                    photoIds = listOf(photo.id!!),
-                    targetFolderIds = listOf(targetFolder.id!!),
-                ),
-            )
-            .`when`()
-            .post("/api/folders/photos/copy")
-            .then()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
-    }
-
-    @Test
     @DisplayName("존재하지 않는 target 폴더로 요청 시 400 에러를 반환한다")
     fun givenNonExistentTargetFolder_whenCopy_thenReturnsNotFound() {
         // Given
@@ -223,35 +195,8 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(99999L),
-                ),
-            )
-            .`when`()
-            .post("/api/folders/photos/copy")
-            .then()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
-    }
-
-    @Test
-    @DisplayName("다른 사용자의 source 폴더로 요청 시 400 에러를 반환한다")
-    fun givenOtherUserSourceFolder_whenCopy_thenReturnsNotFound() {
-        // Given
-        val (otherUser, _) = createTestUserAndToken(email = "other@example.com")
-        val otherFolder = folderRepository.save(Folder(userId = otherUser.id!!, name = "다른 사용자 폴더"))
-        val targetFolder = folderRepository.save(Folder(userId = testUser.id!!, name = "타겟 폴더"))
-        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
-        val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
-
-        // When & Then
-        givenAuthenticated()
-            .body(
-                CopyPhotosToFolderRequest(
-                    sourceFolderId = otherFolder.id,
-                    photoIds = listOf(photo.id!!),
-                    targetFolderIds = listOf(targetFolder.id!!),
                 ),
             )
             .`when`()
@@ -275,7 +220,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(otherFolder.id!!),
                 ),
@@ -302,7 +246,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(otherUserPhoto.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -325,7 +268,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = emptyList(),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -354,7 +296,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photoNotInSource.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -388,7 +329,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -424,7 +364,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(copyingPhoto.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -458,7 +397,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -490,7 +428,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -526,7 +463,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -540,7 +476,6 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         givenAuthenticated()
             .body(
                 CopyPhotosToFolderRequest(
-                    sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
