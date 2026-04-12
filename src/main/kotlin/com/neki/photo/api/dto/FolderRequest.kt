@@ -46,10 +46,10 @@ data class RemovePhotosFromFolderRequest(
 
 data class MovePhotosToFolderRequest(
     @field:Schema(
-        description = "이동하기 전 폴더 ID 없으면 null",
+        description = "이동전 폴더 ID",
         example = "1",
     )
-    @field:NotNull(message = "이동전 사진 ID 목록은 비어있을 수 없습니다.")
+    @field:NotNull(message = "이동전 폴더 ID는 필수입니다.")
     val sourceFolderId: Long?,
 
     @field:Schema(
