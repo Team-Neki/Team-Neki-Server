@@ -49,6 +49,7 @@ data class MovePhotosToFolderRequest(
         description = "이동하기 전 폴더 ID 없으면 null",
         example = "1",
     )
+    @field:NotNull(message = "이동전 사진 ID 목록은 비어있을 수 없습니다.")
     val sourceFolderId: Long?,
 
     @field:Schema(
@@ -66,13 +67,6 @@ data class MovePhotosToFolderRequest(
 )
 
 data class CopyPhotosToFolderRequest(
-    @field:Schema(
-        description = "복제하기 전 폴더 ID",
-        example = "1",
-    )
-    @field:NotNull(message = "복제전 폴더 ID는 비어있을 수 없습니다.")
-    val sourceFolderId: Long?,
-
     @field:Schema(
         description = "복제할 사진 ID 목록",
         example = "[1, 2, 3]",
