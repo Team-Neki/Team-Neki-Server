@@ -39,8 +39,8 @@ class FolderCommandConverter {
         RemovePhotosFromFolderCommand(userId, folderId, request.photoIds)
 
     fun toMovePhotosToFolderCommand(request: MovePhotosToFolderRequest, userId: Long) =
-        MovePhotosToFolderCommand(userId, request.sourceFolderId, request.photoIds, request.targetFolderIds)
+        MovePhotosToFolderCommand(userId, request.sourceFolderId!!, request.photoIds, request.targetFolderIds)
 
     fun toCopyPhotosToFolderCommand(request: CopyPhotosToFolderRequest, userId: Long) =
-        CopyPhotosToFolderCommand(userId, request.sourceFolderId!!, request.photoIds, request.targetFolderIds)
+        CopyPhotosToFolderCommand(userId, request.photoIds, request.targetFolderIds)
 }

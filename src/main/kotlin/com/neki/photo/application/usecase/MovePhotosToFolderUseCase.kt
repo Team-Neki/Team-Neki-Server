@@ -21,10 +21,8 @@ class MovePhotosToFolderUseCase(
     @Transactional
     fun execute(command: MovePhotosToFolderCommand) {
         // source 폴더 소유권 확인
-        command.sourceFolderId?.let {
-            folderRepository.getOwnedFolder(command.userId, it)
-                ?: throw BusinessException(ResultCode.NOT_FOUND)
-        }
+        folderRepository.getOwnedFolder(command.userId, command.sourceFolderId)
+            ?: throw BusinessException(ResultCode.NOT_FOUND)
 
         // target 폴더 소유권 확인
         val ownedFolders: List<Folder> = folderRepository.getOwnedFolders(command.userId, command.targetFolderIds)
