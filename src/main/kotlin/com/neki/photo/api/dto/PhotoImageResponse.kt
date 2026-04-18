@@ -10,6 +10,8 @@ import java.time.LocalDateTime
  * description    : Photo image domain 응답
  */
 data class GetPhotosResponse(
+    @field:Schema(description = "전체 갯수")
+    val totalCount: Long,
     @field:Schema(description = "사진 목록")
     val items: List<PhotoInfo>,
     @field:Schema(description = "다음 페이지 존재 여부", example = "true")

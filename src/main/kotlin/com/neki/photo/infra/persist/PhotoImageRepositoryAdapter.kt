@@ -83,4 +83,9 @@ class PhotoImageRepositoryAdapter(
         jpaRepository.existsByUserIdAndId(userId, photoId)
 
     override fun getLatestFavoritePhoto(userId: Long): PhotoImage? = queryRepository.findLatestFavoritePhoto(userId)
+
+    override fun countOwnedPhotos(userId: Long, folderId: Long?): Long =
+        queryRepository.countOwnedPhotos(userId, folderId)
+
+    override fun countOwnedFavoritePhotos(userId: Long): Long = queryRepository.countOwnedFavoritePhotos(userId)
 }
