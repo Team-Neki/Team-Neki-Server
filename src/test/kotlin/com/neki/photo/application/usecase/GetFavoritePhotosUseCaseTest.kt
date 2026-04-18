@@ -56,6 +56,7 @@ class GetFavoritePhotosUseCaseTest {
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns
             listOf(photo1, photo2)
+        every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 2L
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
@@ -65,6 +66,7 @@ class GetFavoritePhotosUseCaseTest {
         // Then
         result.photos shouldHaveSize 2
         result.hasNext shouldBe false
+        result.totalCount shouldBe 2L
         result.photos[0].favorite shouldBe true
         result.photos[1].favorite shouldBe true
     }
@@ -77,6 +79,7 @@ class GetFavoritePhotosUseCaseTest {
         val photos = (1L..3L).map { favoritePhotoWithCreatedAt(id = it, mediaId = it * 10) }
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
+        every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 3L
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
@@ -86,6 +89,7 @@ class GetFavoritePhotosUseCaseTest {
         // Then
         result.hasNext shouldBe true
         result.photos shouldHaveSize 2
+        result.totalCount shouldBe 3L
     }
 
     @Test
@@ -96,6 +100,7 @@ class GetFavoritePhotosUseCaseTest {
         val photos = (1L..2L).map { favoritePhotoWithCreatedAt(id = it, mediaId = it * 10) }
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
+        every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 2L
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
@@ -105,6 +110,7 @@ class GetFavoritePhotosUseCaseTest {
         // Then
         result.hasNext shouldBe false
         result.photos shouldHaveSize 2
+        result.totalCount shouldBe 2L
     }
 
     @Test
@@ -114,6 +120,7 @@ class GetFavoritePhotosUseCaseTest {
         val command = makeCommand()
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns emptyList()
+        every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 0L
 
         // When
         val result = useCase.execute(command)
@@ -121,6 +128,7 @@ class GetFavoritePhotosUseCaseTest {
         // Then
         result.photos.shouldBeEmpty()
         result.hasNext shouldBe false
+        result.totalCount shouldBe 0L
     }
 
     @Test
@@ -131,6 +139,7 @@ class GetFavoritePhotosUseCaseTest {
         val photo1 = favoritePhotoWithCreatedAt(id = 1L, mediaId = 10L)
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns listOf(photo1)
+        every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 1L
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L)) } returns emptyList()
 
         // When
@@ -139,5 +148,6 @@ class GetFavoritePhotosUseCaseTest {
         // Then
         result.photos.shouldBeEmpty()
         result.hasNext shouldBe false
+        result.totalCount shouldBe 1L
     }
 }

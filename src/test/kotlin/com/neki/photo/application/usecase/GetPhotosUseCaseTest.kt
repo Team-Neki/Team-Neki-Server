@@ -60,6 +60,7 @@ class GetPhotosUseCaseTest {
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 11, SortOrder.DESC) } returns
             photosWithFavorite
+        every { photoImageRepository.countOwnedPhotos(1L, null) } returns 2L
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns listOf(
             makeMediaInfo(10L),
             makeMediaInfo(20L),
@@ -71,6 +72,7 @@ class GetPhotosUseCaseTest {
         // Then
         result.photos shouldHaveSize 2
         result.hasNext shouldBe false
+        result.totalCount shouldBe 2L
         result.photos[0].photoId shouldBe 1L
         result.photos[0].storageKey shouldBe "key/10.jpg"
         result.photos[0].favorite shouldBe false
@@ -86,6 +88,7 @@ class GetPhotosUseCaseTest {
         val photos = (1L..3L).map { PhotoWithFavorite(photoWithCreatedAt(id = it, mediaId = it * 10), false) }
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 3, SortOrder.DESC) } returns photos
+        every { photoImageRepository.countOwnedPhotos(1L, null) } returns 3L
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns listOf(
             makeMediaInfo(10L),
             makeMediaInfo(20L),
@@ -97,6 +100,7 @@ class GetPhotosUseCaseTest {
         // Then
         result.hasNext shouldBe true
         result.photos shouldHaveSize 2
+        result.totalCount shouldBe 3L
     }
 
     @Test
@@ -107,6 +111,7 @@ class GetPhotosUseCaseTest {
         val photos = (1L..2L).map { PhotoWithFavorite(photoWithCreatedAt(id = it, mediaId = it * 10), false) }
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 3, SortOrder.DESC) } returns photos
+        every { photoImageRepository.countOwnedPhotos(1L, null) } returns 2L
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns listOf(
             makeMediaInfo(10L),
             makeMediaInfo(20L),
@@ -118,6 +123,7 @@ class GetPhotosUseCaseTest {
         // Then
         result.hasNext shouldBe false
         result.photos shouldHaveSize 2
+        result.totalCount shouldBe 2L
     }
 
     @Test
@@ -128,6 +134,7 @@ class GetPhotosUseCaseTest {
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 11, SortOrder.DESC) } returns
             emptyList()
+        every { photoImageRepository.countOwnedPhotos(1L, null) } returns 0L
 
         // When
         val result = useCase.execute(command)
@@ -135,6 +142,7 @@ class GetPhotosUseCaseTest {
         // Then
         result.photos.shouldBeEmpty()
         result.hasNext shouldBe false
+        result.totalCount shouldBe 0L
     }
 
     @Test
@@ -151,6 +159,7 @@ class GetPhotosUseCaseTest {
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 11, SortOrder.DESC) } returns
             photosWithFavorite
+        every { photoImageRepository.countOwnedPhotos(1L, null) } returns 2L
         // mediaId=20L은 미존재
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns listOf(makeMediaInfo(10L))
 
@@ -160,6 +169,7 @@ class GetPhotosUseCaseTest {
         // Then
         result.photos shouldHaveSize 1
         result.photos[0].photoId shouldBe 1L
+        result.totalCount shouldBe 2L
     }
 
     @Test
@@ -172,6 +182,7 @@ class GetPhotosUseCaseTest {
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 11, SortOrder.DESC) } returns
             photosWithFavorite
+        every { photoImageRepository.countOwnedPhotos(1L, null) } returns 1L
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L)) } returns emptyList()
 
         // When
@@ -180,5 +191,6 @@ class GetPhotosUseCaseTest {
         // Then
         result.photos.shouldBeEmpty()
         result.hasNext shouldBe false
+        result.totalCount shouldBe 1L
     }
 }

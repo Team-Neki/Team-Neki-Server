@@ -160,4 +160,33 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
             .fetch()
             .toSet()
     }
+
+    fun countOwnedPhotos(userId: Long, folderId: Long?): Long {
+        val query = queryFactory
+            .select(photoImage.count())
+            .from(photoImage)
+
+        if (folderId != null) {
+            query.innerJoin(photoImageFolder)
+                .on(
+                    photoImageFolder.photoImageId.eq(photoImage.id),
+                    photoImageFolder.folderId.eq(folderId),
+                )
+        }
+
+        return query
+            .where(photoImage.userId.eq(userId))
+            .fetchOne() ?: 0L
+    }
+
+    fun countOwnedFavoritePhotos(userId: Long): Long = queryFactory
+        .select(photoImage.count())
+        .from(photoImage)
+        .innerJoin(favoritePhoto)
+        .on(
+            favoritePhoto.id.userId.eq(photoImage.userId),
+            favoritePhoto.id.photoId.eq(photoImage.id),
+        )
+        .where(photoImage.userId.eq(userId))
+        .fetchOne() ?: 0L
 }

@@ -39,8 +39,13 @@ class GetPhotosUseCase(
             sortOrder = command.sortOrder,
         )
 
+        val totalCount: Long = photoImageRepository.countOwnedPhotos(
+            userId = command.userId,
+            folderId = command.folderId,
+        )
+
         if (photosWithFavorite.isEmpty()) {
-            return GetPhotosResult(emptyList(), hasNext = false)
+            return GetPhotosResult(emptyList(), hasNext = false, totalCount = totalCount)
         }
 
         // hasNext 판단: size + 1개 조회했는데 실제로 그만큼 있으면 다음 페이지 존재
@@ -90,6 +95,6 @@ class GetPhotosUseCase(
             )
         }
 
-        return GetPhotosResult(result, hasNext)
+        return GetPhotosResult(result, hasNext, totalCount)
     }
 }
