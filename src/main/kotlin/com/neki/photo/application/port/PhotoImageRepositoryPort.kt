@@ -46,6 +46,10 @@ interface PhotoImageRepositoryPort {
 
     fun listOwnedFavoritePhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
 
+    fun countOwnedPhotos(userId: Long, folderId: Long?): Long
+
+    fun countOwnedFavoritePhotos(userId: Long): Long
+
     /**
      * 삭제
      */

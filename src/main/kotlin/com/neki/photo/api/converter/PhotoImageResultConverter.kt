@@ -22,6 +22,7 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
     }
 
     fun toGetPhotosResponse(result: GetPhotosResult): GetPhotosResponse = GetPhotosResponse(
+        totalCount = result.totalCount,
         items = result.photos.map {
             GetPhotosResponse.PhotoInfo(
                 photoId = it.photoId,
