@@ -6,16 +6,20 @@ import com.neki.support.api.converter.TermCommandConverter
 import com.neki.support.api.converter.TermResultConverter
 import com.neki.support.api.dto.CreateTermAgreementsRequest
 import com.neki.support.api.dto.GetTermsResponse
+import com.neki.support.api.dto.UpdateOptionalTermAgreementRequest
 import com.neki.support.application.command.CreateTermAgreementsCommand
+import com.neki.support.application.command.UpdateOptionalTermAgreementCommand
 import com.neki.support.application.result.GetTermsResult
 import com.neki.support.application.usecase.CreateTermAgreementsUseCase
 import com.neki.support.application.usecase.GetTermsUseCase
+import com.neki.support.application.usecase.UpdateOptionalTermAgreementUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -26,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController
 class TermController(
     private val getTermsUseCase: GetTermsUseCase,
     private val createTermAgreementsUseCase: CreateTermAgreementsUseCase,
+    private val updateOptionalTermAgreementUseCase: UpdateOptionalTermAgreementUseCase,
     private val commandConverter: TermCommandConverter,
     private val resultConverter: TermResultConverter,
 ) {
@@ -53,6 +58,24 @@ class TermController(
     ): BaseResponse<Any> {
         val command: CreateTermAgreementsCommand = commandConverter.toCreateTermAgreementsCommand(userId, request)
         createTermAgreementsUseCase.execute(command)
+        return BaseResponse()
+    }
+
+    @RequiresSecurity
+    @Operation(
+        summary = "선택 약관 동의/철회",
+        description = "선택 약관에 동의하거나 철회합니다. 필수 약관에는 사용할 수 없습니다.",
+    )
+    @PutMapping("/agreements")
+    fun updateOptionalTermAgreement(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @RequestBody request: UpdateOptionalTermAgreementRequest,
+    ): BaseResponse<Any> {
+        val command: UpdateOptionalTermAgreementCommand = commandConverter.toUpdateOptionalTermAgreementCommand(
+            userId,
+            request,
+        )
+        updateOptionalTermAgreementUseCase.execute(command)
         return BaseResponse()
     }
 }

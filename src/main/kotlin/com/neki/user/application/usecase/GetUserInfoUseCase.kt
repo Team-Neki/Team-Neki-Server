@@ -33,6 +33,8 @@ class GetUserInfoUseCase(
 
         val hasAgreedToLatestTerms: Boolean = termClient.hasAgreedToLatestTerms(user.id!!)
 
+        val hasMarketingAgreedToTerms = termClient.hasAgreedToMarketing(user.id!!)
+
         return GetUserResult(
             userId = user.id!!,
             name = user.name!!,
@@ -40,6 +42,7 @@ class GetUserInfoUseCase(
             objectKey = storageKey,
             providerType = user.providerType,
             agreeTerms = hasAgreedToLatestTerms,
+            mktTerm = hasMarketingAgreedToTerms,
         )
     }
 }

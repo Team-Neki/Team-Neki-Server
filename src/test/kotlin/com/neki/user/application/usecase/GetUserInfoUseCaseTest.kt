@@ -54,6 +54,7 @@ class GetUserInfoUseCaseTest {
         every { userRepository.findById(userId) } returns user
         every { mediaClient.getStorageKey(ownerId = userId, mediaId = mediaId) } returns "profile/image.jpg"
         every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every { termClient.hasAgreedToMarketing(userId) } returns false
 
         // When
         val result = useCase.execute(GetUserCommand(userId = userId))
@@ -65,6 +66,7 @@ class GetUserInfoUseCaseTest {
         result.objectKey shouldBe "profile/image.jpg"
         result.providerType shouldBe ProviderType.KAKAO
         result.agreeTerms shouldBe true
+        result.mktTerm shouldBe false
     }
 
     @Test
@@ -76,6 +78,7 @@ class GetUserInfoUseCaseTest {
 
         every { userRepository.findById(userId) } returns user
         every { termClient.hasAgreedToLatestTerms(userId) } returns false
+        every { termClient.hasAgreedToMarketing(userId) } returns false
 
         // When
         val result = useCase.execute(GetUserCommand(userId = userId))
@@ -98,6 +101,7 @@ class GetUserInfoUseCaseTest {
         exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
         verify(exactly = 0) { mediaClient.getStorageKey(any(), any()) }
         verify(exactly = 0) { termClient.hasAgreedToLatestTerms(any()) }
+        verify(exactly = 0) { termClient.hasAgreedToMarketing(any()) }
     }
 
     @Test
@@ -130,6 +134,61 @@ class GetUserInfoUseCaseTest {
         every {
             termClient.hasAgreedToLatestTerms(userId)
         } throws RuntimeException("약관 서비스 오류")
+
+        // When & Then
+        shouldThrow<RuntimeException> {
+            useCase.execute(GetUserCommand(userId = userId))
+        }
+    }
+
+    @Test
+    @DisplayName("마케팅 동의 - mktTerm true 반환")
+    fun `마케팅 동의 - mktTerm true 반환`() {
+        // Given
+        val userId = 1L
+        val user = aUser(id = userId, profileImageId = null)
+
+        every { userRepository.findById(userId) } returns user
+        every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every { termClient.hasAgreedToMarketing(userId) } returns true
+
+        // When
+        val result = useCase.execute(GetUserCommand(userId = userId))
+
+        // Then
+        result.mktTerm shouldBe true
+    }
+
+    @Test
+    @DisplayName("마케팅 미동의 - mktTerm false 반환")
+    fun `마케팅 미동의 - mktTerm false 반환`() {
+        // Given
+        val userId = 1L
+        val user = aUser(id = userId, profileImageId = null)
+
+        every { userRepository.findById(userId) } returns user
+        every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every { termClient.hasAgreedToMarketing(userId) } returns false
+
+        // When
+        val result = useCase.execute(GetUserCommand(userId = userId))
+
+        // Then
+        result.mktTerm shouldBe false
+    }
+
+    @Test
+    @DisplayName("마케팅 termClient 예외 - 마케팅 동의 조회 실패 시 전체 요청 실패")
+    fun `마케팅 termClient 예외 - 마케팅 동의 조회 실패 시 전체 요청 실패`() {
+        // Given
+        val userId = 1L
+        val user = aUser(id = userId, profileImageId = null)
+
+        every { userRepository.findById(userId) } returns user
+        every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every {
+            termClient.hasAgreedToMarketing(userId)
+        } throws RuntimeException("마케팅 약관 서비스 오류")
 
         // When & Then
         shouldThrow<RuntimeException> {

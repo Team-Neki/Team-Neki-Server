@@ -16,10 +16,13 @@ class UserTermAgreement(
     val id: UserTermAgreementId,
 
     @Column(name = "agreed_at", nullable = false)
-    val agreedAt: LocalDateTime,
+    var agreedAt: LocalDateTime,
 
     @Column(name = "term_version", nullable = false, length = 20)
-    val termVersion: String,
+    var termVersion: String,
+
+    @Column(name = "withdrawn_at")
+    var withdrawnAt: LocalDateTime? = null,
 ) : BaseTimeEntity() {
     protected constructor() : this(
         UserTermAgreementId(0L, 0L),

@@ -35,7 +35,7 @@ class CheckLatestTermsAgreementUseCaseTest {
         val agreement1 = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
         val agreement2 = aUserTermAgreement(userId = userId, termId = 2L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term1, term2)
+        every { termRepository.findAllActiveRequiredTerms() } returns listOf(term1, term2)
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1, agreement2)
 
         // When
@@ -54,7 +54,7 @@ class CheckLatestTermsAgreementUseCaseTest {
         val term2 = aTerm(id = 2L, version = "1.0.0")
         val agreement1 = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term1, term2)
+        every { termRepository.findAllActiveRequiredTerms() } returns listOf(term1, term2)
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1)
 
         // When
@@ -70,7 +70,7 @@ class CheckLatestTermsAgreementUseCaseTest {
         // Given
         val userId = 1L
 
-        every { termRepository.findAllActiveTerms() } returns emptyList()
+        every { termRepository.findAllActiveRequiredTerms() } returns emptyList()
         every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
         // When
@@ -88,7 +88,7 @@ class CheckLatestTermsAgreementUseCaseTest {
         val term = aTerm(id = 1L, version = "2.0.0")
         val agreement = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term)
+        every { termRepository.findAllActiveRequiredTerms() } returns listOf(term)
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement)
 
         // When
@@ -105,7 +105,7 @@ class CheckLatestTermsAgreementUseCaseTest {
         val userId = 1L
         val term = aTerm(id = 1L, version = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term)
+        every { termRepository.findAllActiveRequiredTerms() } returns listOf(term)
         every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
         // When
