@@ -2,8 +2,8 @@ name: Deploy to Staging (K3s + GitOps)
 
 on:
   push:
-    branches:
-      - staging
+    branches-ignore:
+      - main
   workflow_dispatch:  # 수동 실행 가능
 
 env:
