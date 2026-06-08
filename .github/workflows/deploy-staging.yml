@@ -2,13 +2,13 @@ name: Deploy to Staging (K3s + GitOps)
 
 on:
   push:
-    branches:
-      - staging
+    branches-ignore:
+      - main
   workflow_dispatch:  # 수동 실행 가능
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/yapp-dev
-  GITOPS_REPO: YAPP-Github/27th-App-Team-2-BE-gitops
+  GITOPS_REPO: Team-Neki/Team-Neki-GitOps
   GITOPS_PATH: overlays/staging/deployment.yaml
 
 jobs:
@@ -171,7 +171,7 @@ jobs:
                      },
                      {
                        "name": "GitOps 레포",
-                       "value": "[27th-App-Team-2-BE-gitops](https://github.com/${{ env.GITOPS_REPO }})",
+                       "value": "[Team-Neki-GitOps](https://github.com/${{ env.GITOPS_REPO }})",
                        "inline": false
                      }
                    ],
