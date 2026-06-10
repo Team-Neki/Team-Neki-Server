@@ -18,11 +18,3 @@ data class TermAgreementItemRequest(
     @field:Schema(description = "동의 여부", example = "true")
     val agreed: Boolean,
 )
-
-data class UpdateOptionalTermAgreementRequest(
-    @field:Schema(description = "약관 ID", example = "4")
-    val termId: Long,
-
-    @field:Schema(description = "동의 여부", example = "true")
-    val agreed: Boolean,
-)

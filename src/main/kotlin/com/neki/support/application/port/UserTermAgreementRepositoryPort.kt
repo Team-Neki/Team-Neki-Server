@@ -10,4 +10,6 @@ interface UserTermAgreementRepositoryPort {
     fun saveAll(agreements: List<UserTermAgreement>): List<UserTermAgreement>
 
     fun save(agreement: UserTermAgreement): UserTermAgreement
+
+    fun deleteAllByUserIdAndTermIds(userId: Long, termIds: List<Long>)
 }

@@ -9,4 +9,6 @@ interface JpaUserTermAgreementRepository : JpaRepository<UserTermAgreement, User
     fun findAllByIdUserId(userId: Long): List<UserTermAgreement>
 
     fun findByIdUserIdAndIdTermId(userId: Long, termId: Long): UserTermAgreement?
+
+    fun deleteAllByIdUserIdAndIdTermIdIn(userId: Long, termIds: List<Long>)
 }

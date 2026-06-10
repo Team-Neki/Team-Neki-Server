@@ -18,4 +18,9 @@ class UserTermAgreementRepositoryAdapter(private val jpaRepository: JpaUserTermA
         jpaRepository.saveAll(agreements)
 
     override fun save(agreement: UserTermAgreement): UserTermAgreement = jpaRepository.save(agreement)
+
+    override fun deleteAllByUserIdAndTermIds(userId: Long, termIds: List<Long>) {
+        if (termIds.isEmpty()) return
+        jpaRepository.deleteAllByIdUserIdAndIdTermIdIn(userId, termIds)
+    }
 }
