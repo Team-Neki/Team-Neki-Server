@@ -21,8 +21,6 @@ class UserTermAgreement(
     @Column(name = "term_version", nullable = false, length = 20)
     var termVersion: String,
 
-    @Column(name = "withdrawn_at")
-    var withdrawnAt: LocalDateTime? = null,
 ) : BaseTimeEntity() {
     protected constructor() : this(
         UserTermAgreementId(0L, 0L),

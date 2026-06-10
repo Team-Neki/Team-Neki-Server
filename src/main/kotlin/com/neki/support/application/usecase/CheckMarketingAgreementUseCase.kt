@@ -14,6 +14,6 @@ class CheckMarketingAgreementUseCase(
     fun execute(userId: Long): Boolean {
         val marketingTerm = termRepository.findActiveByTermType(TermType.MARKETING) ?: return false
         val agreement = userTermAgreementRepository.findByUserIdAndTermId(userId, marketingTerm.id!!)
-        return agreement != null && agreement.withdrawnAt == null
+        return agreement != null
     }
 }

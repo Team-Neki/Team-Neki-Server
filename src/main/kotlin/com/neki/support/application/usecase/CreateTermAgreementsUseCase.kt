@@ -6,9 +6,12 @@ import com.neki.common.exception.BusinessException
 import com.neki.support.application.command.CreateTermAgreementsCommand
 import com.neki.support.application.command.TermAgreementItem
 import com.neki.support.application.port.TermRepositoryPort
+import com.neki.support.application.port.UserTermAgreementHistRepositoryPort
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
 import com.neki.support.domain.entity.Term
 import com.neki.support.domain.entity.UserTermAgreement
+import com.neki.support.domain.entity.UserTermAgreementHist
+import com.neki.support.domain.enums.TermAgreementAction
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
@@ -16,6 +19,7 @@ import java.time.LocalDateTime
 class CreateTermAgreementsUseCase(
     private val termRepository: TermRepositoryPort,
     private val userTermAgreementRepository: UserTermAgreementRepositoryPort,
+    private val userTermAgreementHistRepository: UserTermAgreementHistRepositoryPort,
 ) {
 
     @Transactional
@@ -79,12 +83,6 @@ class CreateTermAgreementsUseCase(
         userTermAgreementRepository.saveAll(termsToAgree.toAgreements(command.userId, now))
     }
 
-    /**
-     * 선택 약관 동의/미동의를 처리한다.
-     *
-     * - 동의: 약관 동의를 저장한다.
-     * - 미동의: 기존 동의 내역을 삭제한다(철회가 아닌 hard delete).
-     */
     private fun processOptionalTerms(
         command: CreateTermAgreementsCommand,
         activeTermsById: Map<Long, Term>,
@@ -94,11 +92,30 @@ class CreateTermAgreementsUseCase(
             .filterNot { activeTermsById.getValue(it.termId).isRequired }
         val (agreedItems, disagreedItems) = optionalItems.partition { it.agreed }
 
+        val existingAgreedTermIds: Set<Long> = userTermAgreementRepository.findByUserId(command.userId)
+            .map { it.id.termId }
+            .toSet()
+
         val termsToDisagree: List<Long> = disagreedItems.map { it.termId }
         userTermAgreementRepository.deleteAllByUserIdAndTermIds(command.userId, termsToDisagree)
 
-        val termsToAgree: List<Term> = agreedItems.map { activeTermsById.getValue(it.termId) }
+        val termsToAgree: List<Term> = agreedItems
+            .filter { it.termId !in existingAgreedTermIds }
+            .map { activeTermsById.getValue(it.termId) }
         userTermAgreementRepository.saveAll(termsToAgree.toAgreements(command.userId, now))
+
+        val hists: List<UserTermAgreementHist> =
+            agreedItems.filter { it.termId !in existingAgreedTermIds }.map {
+                UserTermAgreementHist(userId = command.userId, termId = it.termId, action = TermAgreementAction.AGREED)
+            } +
+                disagreedItems.filter { it.termId in existingAgreedTermIds }.map {
+                    UserTermAgreementHist(
+                        userId = command.userId,
+                        termId = it.termId,
+                        action = TermAgreementAction.WITHDRAWN,
+                    )
+                }
+        userTermAgreementHistRepository.saveAll(hists)
     }
 
     private fun List<Term>.toAgreements(userId: Long, agreedAt: LocalDateTime): List<UserTermAgreement> = map { term ->
