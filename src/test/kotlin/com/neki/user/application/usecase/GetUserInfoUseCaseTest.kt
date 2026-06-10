@@ -66,7 +66,7 @@ class GetUserInfoUseCaseTest {
         result.objectKey shouldBe "profile/image.jpg"
         result.providerType shouldBe ProviderType.KAKAO
         result.agreeTerms shouldBe true
-        result.mktTerm shouldBe false
+        result.marketingTerm shouldBe false
     }
 
     @Test
@@ -142,8 +142,8 @@ class GetUserInfoUseCaseTest {
     }
 
     @Test
-    @DisplayName("마케팅 동의 - mktTerm true 반환")
-    fun `마케팅 동의 - mktTerm true 반환`() {
+    @DisplayName("마케팅 동의 - marketingTerm true 반환")
+    fun `마케팅 동의 - marketingTerm true 반환`() {
         // Given
         val userId = 1L
         val user = aUser(id = userId, profileImageId = null)
@@ -156,12 +156,12 @@ class GetUserInfoUseCaseTest {
         val result = useCase.execute(GetUserCommand(userId = userId))
 
         // Then
-        result.mktTerm shouldBe true
+        result.marketingTerm shouldBe true
     }
 
     @Test
-    @DisplayName("마케팅 미동의 - mktTerm false 반환")
-    fun `마케팅 미동의 - mktTerm false 반환`() {
+    @DisplayName("마케팅 미동의 - marketingTerm false 반환")
+    fun `마케팅 미동의 - marketingTerm false 반환`() {
         // Given
         val userId = 1L
         val user = aUser(id = userId, profileImageId = null)
@@ -174,7 +174,7 @@ class GetUserInfoUseCaseTest {
         val result = useCase.execute(GetUserCommand(userId = userId))
 
         // Then
-        result.mktTerm shouldBe false
+        result.marketingTerm shouldBe false
     }
 
     @Test

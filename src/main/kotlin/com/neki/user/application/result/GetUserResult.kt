@@ -15,5 +15,5 @@ data class GetUserResult(
     val objectKey: String?,
     val providerType: ProviderType,
     val agreeTerms: Boolean,
-    val mktTerm: Boolean,
+    val marketingTerm: Boolean,
 )

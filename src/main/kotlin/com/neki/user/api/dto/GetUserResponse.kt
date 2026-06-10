@@ -31,5 +31,5 @@ data class GetUserResponse(
     val agreeTerms: Boolean,
 
     @field:Schema(description = "마케팅 약관 동의 여부", example = "true")
-    val mktTerm: Boolean,
+    val marketingTerm: Boolean,
 )

@@ -42,7 +42,7 @@ class GetUserInfoUseCase(
             objectKey = storageKey,
             providerType = user.providerType,
             agreeTerms = hasAgreedToLatestTerms,
-            mktTerm = hasMarketingAgreedToTerms,
+            marketingTerm = hasMarketingAgreedToTerms,
         )
     }
 }
