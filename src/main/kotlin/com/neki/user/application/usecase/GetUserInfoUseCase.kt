@@ -31,9 +31,9 @@ class GetUserInfoUseCase(
             mediaClient.getStorageKey(ownerId = user.id!!, mediaId = it)
         }
 
-        val hasAgreedToLatestTerms: Boolean = termClient.hasAgreedToLatestTerms(user.id!!)
+        val hasAgreedToAllRequired: Boolean = termClient.hasAgreedToAllRequired(user.id!!)
 
-        val hasMarketingAgreedToTerms = termClient.hasAgreedToMarketing(user.id!!)
+        val hasAgreedToMarketing = termClient.hasAgreedToMarketing(user.id!!)
 
         return GetUserResult(
             userId = user.id!!,
@@ -41,8 +41,8 @@ class GetUserInfoUseCase(
             email = user.email,
             objectKey = storageKey,
             providerType = user.providerType,
-            agreeTerms = hasAgreedToLatestTerms,
-            marketingTerm = hasMarketingAgreedToTerms,
+            agreeTerms = hasAgreedToAllRequired,
+            marketingTerm = hasAgreedToMarketing,
         )
     }
 }

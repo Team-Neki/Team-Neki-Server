@@ -53,7 +53,7 @@ class GetUserInfoUseCaseTest {
 
         every { userRepository.findById(userId) } returns user
         every { mediaClient.getStorageKey(ownerId = userId, mediaId = mediaId) } returns "profile/image.jpg"
-        every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every { termClient.hasAgreedToAllRequired(userId) } returns true
         every { termClient.hasAgreedToMarketing(userId) } returns false
 
         // When
@@ -77,7 +77,7 @@ class GetUserInfoUseCaseTest {
         val user = aUser(id = userId, name = "테스트유저", profileImageId = null, providerType = ProviderType.KAKAO)
 
         every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToLatestTerms(userId) } returns false
+        every { termClient.hasAgreedToAllRequired(userId) } returns false
         every { termClient.hasAgreedToMarketing(userId) } returns false
 
         // When
@@ -100,7 +100,7 @@ class GetUserInfoUseCaseTest {
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
         verify(exactly = 0) { mediaClient.getStorageKey(any(), any()) }
-        verify(exactly = 0) { termClient.hasAgreedToLatestTerms(any()) }
+        verify(exactly = 0) { termClient.hasAgreedToAllRequired(any()) }
         verify(exactly = 0) { termClient.hasAgreedToMarketing(any()) }
     }
 
@@ -132,7 +132,7 @@ class GetUserInfoUseCaseTest {
 
         every { userRepository.findById(userId) } returns user
         every {
-            termClient.hasAgreedToLatestTerms(userId)
+            termClient.hasAgreedToAllRequired(userId)
         } throws RuntimeException("약관 서비스 오류")
 
         // When & Then
@@ -149,7 +149,7 @@ class GetUserInfoUseCaseTest {
         val user = aUser(id = userId, profileImageId = null)
 
         every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every { termClient.hasAgreedToAllRequired(userId) } returns true
         every { termClient.hasAgreedToMarketing(userId) } returns true
 
         // When
@@ -167,7 +167,7 @@ class GetUserInfoUseCaseTest {
         val user = aUser(id = userId, profileImageId = null)
 
         every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every { termClient.hasAgreedToAllRequired(userId) } returns true
         every { termClient.hasAgreedToMarketing(userId) } returns false
 
         // When
@@ -185,7 +185,7 @@ class GetUserInfoUseCaseTest {
         val user = aUser(id = userId, profileImageId = null)
 
         every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every { termClient.hasAgreedToAllRequired(userId) } returns true
         every {
             termClient.hasAgreedToMarketing(userId)
         } throws RuntimeException("마케팅 약관 서비스 오류")
