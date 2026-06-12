@@ -29,6 +29,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0  # mirror push를 위해 전체 히스토리 필요
+          persist-credentials: false  # 기본 GITHUB_TOKEN 헤더 주입 방지 (PAT가 우선 적용되도록)
 
       - name: Configure git
         run: |
