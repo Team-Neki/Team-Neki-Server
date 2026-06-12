@@ -1,0 +1,45 @@
+name: Sync main to Fork
+
+# main 브랜치에 merge(push)될 때마다 fork 레포지토리로 자동 동기화한다.
+# 우리 레포의 main이 source of truth이며, fork의 main을 동일하게 맞춘다.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # 수동 실행 가능
+
+env:
+  FORK_REPO: YAPP-Github/27th-App-Team-2-BE
+  FORK_BRANCH: main
+
+# 동시에 여러 sync가 실행되어 push가 충돌하는 것을 방지
+concurrency:
+  group: sync-fork
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync main branch to fork
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main (full history)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0  # mirror push를 위해 전체 히스토리 필요
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Push main to fork repository
+        run: |
+          FORK_URL="https://x-access-token:${{ secrets.FORK_SYNC_PAT }}@github.com/${{ env.FORK_REPO }}.git"
+          git remote add fork "$FORK_URL"
+
+          echo "🔄 Syncing main -> ${{ env.FORK_REPO }}@${{ env.FORK_BRANCH }}"
+          # 우리 레포의 main을 source of truth로 fork의 main에 강제 동기화
+          git push fork "main:${{ env.FORK_BRANCH }}" --force
