@@ -5,6 +5,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
 import com.neki.user.application.command.GetUserCommand
 import com.neki.user.application.port.MediaClientPort
+import com.neki.user.application.port.NotificationClientPort
 import com.neki.user.application.port.TermClientPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.domain.enums.ProviderType
@@ -22,6 +23,7 @@ class GetUserInfoUseCaseTest {
     lateinit var userRepository: UserRepositoryPort
     lateinit var mediaClient: MediaClientPort
     lateinit var termClient: TermClientPort
+    lateinit var notificationClient: NotificationClientPort
     lateinit var useCase: GetUserInfoUseCase
 
     @BeforeEach
@@ -29,10 +31,12 @@ class GetUserInfoUseCaseTest {
         userRepository = mockk()
         mediaClient = mockk()
         termClient = mockk()
+        notificationClient = mockk()
         useCase = GetUserInfoUseCase(
             userRepository = userRepository,
             mediaClient = mediaClient,
             termClient = termClient,
+            notificationClient = notificationClient,
         )
     }
 
@@ -54,6 +58,7 @@ class GetUserInfoUseCaseTest {
         every { userRepository.findById(userId) } returns user
         every { mediaClient.getStorageKey(ownerId = userId, mediaId = mediaId) } returns "profile/image.jpg"
         every { termClient.hasAgreedToLatestTerms(userId) } returns true
+        every { notificationClient.isPushAgreed(userId) } returns true
 
         // When
         val result = useCase.execute(GetUserCommand(userId = userId))
@@ -65,6 +70,7 @@ class GetUserInfoUseCaseTest {
         result.objectKey shouldBe "profile/image.jpg"
         result.providerType shouldBe ProviderType.KAKAO
         result.agreeTerms shouldBe true
+        result.pushAgreed shouldBe true
     }
 
     @Test
@@ -76,6 +82,7 @@ class GetUserInfoUseCaseTest {
 
         every { userRepository.findById(userId) } returns user
         every { termClient.hasAgreedToLatestTerms(userId) } returns false
+        every { notificationClient.isPushAgreed(userId) } returns false
 
         // When
         val result = useCase.execute(GetUserCommand(userId = userId))
