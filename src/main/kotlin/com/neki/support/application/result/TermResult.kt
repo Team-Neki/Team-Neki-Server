@@ -6,4 +6,4 @@ data class GetTermsResult(val terms: List<TermInfo>)
 
 data class TermInfo(val id: Long, val termType: TermType, val title: String, val url: String, val isRequired: Boolean)
 
-data class CheckLatestTermsAgreementResult(val hasAgreedToLatestTerms: Boolean)
+data class TermAgreementResult(val agreed: Boolean)

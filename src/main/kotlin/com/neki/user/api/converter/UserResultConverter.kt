@@ -26,6 +26,7 @@ class UserResultConverter(private val appProperties: AppProperties) {
         profileImageUrl = toImageUrl(result.objectKey),
         providerType = result.providerType,
         agreeTerms = result.agreeTerms,
+        marketingTerm = result.marketingTerm,
         pushAgreed = result.pushAgreed,
     )
 

@@ -29,7 +29,7 @@ Examples:
 
 1. 현재 branch의 upstream tracking branch를 확인한다: `git rev-parse --abbrev-ref @{upstream}`
 2. Tracking branch의 remote prefix(`origin/`)를 제거한 이름을 base branch로 사용한다.
-3. Tracking branch가 없으면 `staging`을 base로 사용한다.
+3. Tracking branch가 없으면 `main`을 base로 사용한다.
 
 ### Issue 연결
 

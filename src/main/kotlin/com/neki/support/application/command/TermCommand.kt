@@ -4,4 +4,4 @@ data class CreateTermAgreementsCommand(val userId: Long, val agreements: List<Te
 
 data class TermAgreementItem(val termId: Long, val agreed: Boolean)
 
-data class CheckLatestTermsAgreementCommand(val userId: Long)
+data class CheckRequiredTermsAgreementCommand(val userId: Long)
