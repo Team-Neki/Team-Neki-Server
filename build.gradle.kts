@@ -29,6 +29,7 @@ val kotestExtensionsVersion = "1.3.0"
 val mockkVersion = "1.13.10"
 val ktlintVersion = "1.5.0"
 val archunitVersion = "1.3.0"
+val firebaseAdminVersion = "9.4.3"
 
 group = "com.neki"
 version = "1.0.0"
@@ -103,6 +104,9 @@ dependencies {
 
     // Redis Cache
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // Firebase Admin SDK (FCM 푸시 발송)
+    implementation("com.google.firebase:firebase-admin:$firebaseAdminVersion")
 
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")

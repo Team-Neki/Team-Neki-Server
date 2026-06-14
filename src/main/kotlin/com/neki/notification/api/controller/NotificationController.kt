@@ -4,15 +4,20 @@ import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.notification.api.converter.NotificationCommandConverter
 import com.neki.notification.api.dto.UpdateNotificationRequest
+import com.neki.notification.application.command.SendPushCommand
 import com.neki.notification.application.command.UpdateNotificationCommand
+import com.neki.notification.application.result.SendPushResult
+import com.neki.notification.application.usecase.SendPushUseCase
 import com.neki.notification.application.usecase.UpdateNotificationUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -27,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/notifications")
 class NotificationController(
     private val updateNotificationUseCase: UpdateNotificationUseCase,
+    private val sendPushUseCase: SendPushUseCase,
     private val commandConverter: NotificationCommandConverter,
 ) {
 
@@ -45,5 +51,23 @@ class NotificationController(
         updateNotificationUseCase.execute(command)
 
         return BaseResponse()
+    }
+
+    @Operation(
+        summary = "FCM 푸시 발송 API",
+        description = "전달받은 디바이스 토큰으로 푸시 알림을 발송합니다. " +
+            "link 를 지정하면 알림 탭 시 앱이 해당 딥링크로 이동합니다. (예: neki://archive/123)",
+    )
+    @PostMapping("/push")
+    fun sendPush(
+        @RequestParam token: String,
+        @RequestParam(required = false, defaultValue = "알림") title: String,
+        @RequestParam(required = false, defaultValue = "FCM 푸시 발송입니다.") body: String,
+        @RequestParam(required = false) link: String?,
+    ): BaseResponse<SendPushResult> {
+        val result: SendPushResult =
+            sendPushUseCase.execute(SendPushCommand(token, title, body, link))
+
+        return BaseResponse(data = result)
     }
 }

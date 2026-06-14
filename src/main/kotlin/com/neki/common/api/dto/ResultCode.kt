@@ -20,6 +20,8 @@ enum class ResultCode(val code: String, val message: String) {
     REQUIRED_TERMS_NOT_AGREED("D-07", "필수 약관에 동의해주세요."),
     NO_MORE_RANDOM_POSE("D-08", "더 이상 추천할 포즈가 없습니다."),
     CANNOT_UPDATE_REQUIRED_TERM("D-09", "필수 약관은 변경할 수 없습니다."),
+    PUSH_NOT_CONFIGURED("D-10", "푸시 알림이 설정되지 않았습니다."),
+    PUSH_SEND_FAILED("D-11", "푸시 알림 발송에 실패했습니다."),
 
     CONFLICT_FOLDER("D-06", message = "해당하는 폴더가 존재합니다."),
 

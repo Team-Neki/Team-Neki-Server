@@ -66,3 +66,6 @@ kakao:
 
 discord:
   webhook-url: ENC(mSwyFIgMuIjIeLtDi/afbDJWR84HMkhmJptdiyc0rWqJx6v+pbi89rAiOJTQUpNA2p/DOiGEpLhDkXmOuwc40mBKgWq2YOQh/8eXIirHIUNPVwIiahFDyzOIImC5MvkGbXyGsg3IovRdA7JcqKj7dWJ8GUJTyDnhewcRVPOLW1jiFNoUK946lQDGJXVyYjYEc/B01O5vcptlXU5Wn5hyPA==)
+
+firebase:
+  credentials-location: file:/etc/firebase/firebase-service-account.json
