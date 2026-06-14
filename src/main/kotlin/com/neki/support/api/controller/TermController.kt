@@ -44,7 +44,7 @@ class TermController(
     @RequiresSecurity
     @Operation(
         summary = "약관 동의",
-        description = "약관에 동의합니다. 필수 약관에 모두 동의해야 합니다.",
+        description = "약관 동의를 처리합니다. 최초 가입 시 필수 약관에 모두 동의해야 하며, 선택 약관은 동의/미동의를 변경할 수 있습니다.",
     )
     @PostMapping("/agreements")
     fun createTermAgreements(

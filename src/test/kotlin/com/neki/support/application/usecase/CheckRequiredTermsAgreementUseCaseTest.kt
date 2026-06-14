@@ -1,6 +1,6 @@
 package com.neki.support.application.usecase
 
-import com.neki.support.application.command.CheckLatestTermsAgreementCommand
+import com.neki.support.application.command.CheckRequiredTermsAgreementCommand
 import com.neki.support.application.port.TermRepositoryPort
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
 import com.neki.testfixture.aTerm
@@ -12,17 +12,17 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
-class CheckLatestTermsAgreementUseCaseTest {
+class CheckRequiredTermsAgreementUseCaseTest {
 
     private lateinit var termRepository: TermRepositoryPort
     private lateinit var userTermAgreementRepository: UserTermAgreementRepositoryPort
-    private lateinit var useCase: CheckLatestTermsAgreementUseCase
+    private lateinit var useCase: CheckRequiredTermsAgreementUseCase
 
     @BeforeEach
     fun setUp() {
         termRepository = mockk()
         userTermAgreementRepository = mockk()
-        useCase = CheckLatestTermsAgreementUseCase(termRepository, userTermAgreementRepository)
+        useCase = CheckRequiredTermsAgreementUseCase(termRepository, userTermAgreementRepository)
     }
 
     @Test
@@ -35,14 +35,14 @@ class CheckLatestTermsAgreementUseCaseTest {
         val agreement1 = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
         val agreement2 = aUserTermAgreement(userId = userId, termId = 2L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term1, term2)
+        every { termRepository.findAllActiveRequiredTerms() } returns listOf(term1, term2)
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1, agreement2)
 
         // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
 
         // Then
-        result.hasAgreedToLatestTerms shouldBe true
+        result.agreed shouldBe true
     }
 
     @Test
@@ -54,14 +54,14 @@ class CheckLatestTermsAgreementUseCaseTest {
         val term2 = aTerm(id = 2L, version = "1.0.0")
         val agreement1 = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term1, term2)
+        every { termRepository.findAllActiveRequiredTerms() } returns listOf(term1, term2)
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1)
 
         // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
 
         // Then
-        result.hasAgreedToLatestTerms shouldBe false
+        result.agreed shouldBe false
     }
 
     @Test
@@ -70,14 +70,14 @@ class CheckLatestTermsAgreementUseCaseTest {
         // Given
         val userId = 1L
 
-        every { termRepository.findAllActiveTerms() } returns emptyList()
+        every { termRepository.findAllActiveRequiredTerms() } returns emptyList()
         every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
         // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
 
         // Then
-        result.hasAgreedToLatestTerms shouldBe true
+        result.agreed shouldBe true
     }
 
     @Test
@@ -88,14 +88,14 @@ class CheckLatestTermsAgreementUseCaseTest {
         val term = aTerm(id = 1L, version = "2.0.0")
         val agreement = aUserTermAgreement(userId = userId, termId = 1L, termVersion = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term)
+        every { termRepository.findAllActiveRequiredTerms() } returns listOf(term)
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement)
 
         // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
 
         // Then
-        result.hasAgreedToLatestTerms shouldBe false
+        result.agreed shouldBe false
     }
 
     @Test
@@ -105,13 +105,13 @@ class CheckLatestTermsAgreementUseCaseTest {
         val userId = 1L
         val term = aTerm(id = 1L, version = "1.0.0")
 
-        every { termRepository.findAllActiveTerms() } returns listOf(term)
+        every { termRepository.findAllActiveRequiredTerms() } returns listOf(term)
         every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
         // When
-        val result = useCase.execute(CheckLatestTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
 
         // Then
-        result.hasAgreedToLatestTerms shouldBe false
+        result.agreed shouldBe false
     }
 }
