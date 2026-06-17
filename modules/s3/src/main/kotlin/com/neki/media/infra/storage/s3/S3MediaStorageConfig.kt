@@ -1,6 +1,5 @@
 package com.neki.media.infra.storage.s3
 
-import com.neki.media.application.port.MediaStoragePort
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -65,11 +64,4 @@ class S3MediaStorageConfig(private val s3Props: S3Properties) {
 
         return builder.build()
     }
-
-    @Bean
-    fun mediaStorage(s3Client: S3Client, s3Presigner: S3Presigner): MediaStoragePort = S3MediaStorageAdapter(
-        s3Client = s3Client,
-        s3Presigner = s3Presigner,
-        props = s3Props,
-    )
 }

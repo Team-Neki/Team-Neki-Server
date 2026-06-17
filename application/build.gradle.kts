@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
     implementation(project(":modules:discord"))
+    implementation(project(":modules:s3"))
 
     implementation("org.locationtech.jts:jts-core:$jtsVersion")
 
