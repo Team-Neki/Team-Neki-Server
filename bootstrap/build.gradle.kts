@@ -15,7 +15,6 @@ dependencies {
     implementation(project(":modules:redis"))
     implementation(project(":modules:s3"))
     implementation(project(":modules:kakao"))
-    implementation(project(":modules:apple"))
     implementation(project(":modules:discord"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
