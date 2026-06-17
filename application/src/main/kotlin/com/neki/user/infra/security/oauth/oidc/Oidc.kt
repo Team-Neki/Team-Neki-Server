@@ -1,6 +1,7 @@
 package com.neki.user.infra.security.oauth.oidc
 
 import com.neki.user.application.contract.OIDCPublicKeysPayload
+import com.neki.user.domain.enums.ProviderType
 
 /**
  * fileName       : Oidc
@@ -9,6 +10,11 @@ import com.neki.user.application.contract.OIDCPublicKeysPayload
  * description    : OAuth 외부 연동을 위한 Port
  */
 interface Oidc {
+    /**
+     * 구현체가 담당하는 OAuth Provider 유형
+     */
+    val providerType: ProviderType
+
     /**
      * 카카오 OIDC 공개키 조회
      */

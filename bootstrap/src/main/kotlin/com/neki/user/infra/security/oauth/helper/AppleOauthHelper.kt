@@ -43,6 +43,8 @@ import kotlin.collections.get
 class AppleOauthHelper(private val oauthProperties: OauthProperties, private val objectMapper: ObjectMapper) :
     OauthHelper {
 
+    override val providerType: ProviderType = ProviderType.APPLE
+
     companion object {
         private const val HEADER_KID = "kid"
         private const val CLAIM_EMAIL = "email"

@@ -16,6 +16,7 @@ val logstashEncoderVersion = "8.0"
 dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
+    implementation(project(":application"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")

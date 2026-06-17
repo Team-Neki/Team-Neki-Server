@@ -3,8 +3,6 @@ package com.neki.user.infra.security.oauth.registry
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.domain.enums.ProviderType
-import com.neki.user.infra.security.oauth.oidc.AppleOidc
-import com.neki.user.infra.security.oauth.oidc.KakaoOidc
 import com.neki.user.infra.security.oauth.oidc.Oidc
 import org.springframework.stereotype.Component
 
@@ -15,11 +13,8 @@ import org.springframework.stereotype.Component
  * description    : ProviderType별 Oidc 구현체를 관리하는 Registry
  */
 @Component
-class OidcRegistry(private val kakaoOidcAdapter: KakaoOidc, private val appleOidc: AppleOidc) {
-    private val adapters: Map<ProviderType, Oidc> = mapOf(
-        ProviderType.KAKAO to kakaoOidcAdapter,
-        ProviderType.APPLE to appleOidc,
-    )
+class OidcRegistry(oidcAdapters: List<Oidc>) {
+    private val adapters: Map<ProviderType, Oidc> = oidcAdapters.associateBy { it.providerType }
 
     fun getAdapter(providerType: ProviderType): Oidc = adapters[providerType]
         ?: throw BusinessException(ResultCode.INVALID_PARAMETER)

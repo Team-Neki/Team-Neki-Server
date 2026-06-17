@@ -42,6 +42,8 @@ import kotlin.collections.get
 @Component
 class KakaoOauthHelper(private val oauthProperties: OauthProperties, private val objectMapper: ObjectMapper) :
     OauthHelper {
+    override val providerType: ProviderType = ProviderType.KAKAO
+
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     companion object {
