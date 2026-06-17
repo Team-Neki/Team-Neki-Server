@@ -6,17 +6,18 @@ plugins {
 val jwtVersion = "0.12.5"
 val springDocVersion = "2.6.0"
 val jtsVersion = "1.19.0"
-val jasyptVersion = "3.0.5"
 val logstashEncoderVersion = "8.0"
 
 dependencies {
     implementation(project(":neki-core"))
     implementation(project(":neki-domain"))
-    implementation(project(":modules:neki-discord"))
-    implementation(project(":modules:neki-s3"))
-    implementation(project(":modules:neki-redis"))
-    implementation(project(":modules:neki-kakao"))
-    implementation(project(":modules:neki-postgres"))
+    implementation(project(":modules:discord"))
+    implementation(project(":modules:s3"))
+    implementation(project(":modules:redis"))
+    implementation(project(":modules:kakao"))
+    implementation(project(":modules:postgres"))
+    implementation(project(":modules:jasypt"))
+    implementation(project(":modules:apple"))
 
     implementation("org.locationtech.jts:jts-core:$jtsVersion")
 
@@ -31,7 +32,6 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
     implementation("org.springframework:spring-web")
-    implementation("com.github.ulisesbocchio:jasypt-spring-boot-starter:$jasyptVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
     implementation("io.micrometer:micrometer-registry-prometheus")
 
