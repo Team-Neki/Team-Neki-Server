@@ -3,7 +3,6 @@ plugins {
 }
 
 val jwtVersion = "0.12.5"
-val nimbusVersion = "9.37.3"
 val springDocVersion = "2.6.0"
 val jtsVersion = "1.19.0"
 
@@ -19,7 +18,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
-    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
     implementation("org.springframework:spring-web")
 }
