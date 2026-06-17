@@ -9,6 +9,7 @@ val jtsVersion = "1.19.0"
 dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
+    implementation(project(":modules:discord"))
 
     implementation("org.locationtech.jts:jts-core:$jtsVersion")
 
