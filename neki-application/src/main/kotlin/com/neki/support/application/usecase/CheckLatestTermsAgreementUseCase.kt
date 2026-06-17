@@ -5,8 +5,8 @@ import com.neki.support.application.command.CheckLatestTermsAgreementCommand
 import com.neki.support.application.port.TermRepositoryPort
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
 import com.neki.support.application.result.CheckLatestTermsAgreementResult
-import com.neki.support.domain.entity.Term
-import com.neki.support.domain.entity.UserTermAgreement
+import com.neki.support.entity.Term
+import com.neki.support.entity.UserTermAgreement
 
 @UseCase
 class CheckLatestTermsAgreementUseCase(

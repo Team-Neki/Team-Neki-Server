@@ -4,7 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.media.application.command.GetMediaStorageInfosCommand
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.result.GetMediaStorageInfosResult
-import com.neki.media.domain.entity.Media
+import com.neki.media.entity.Media
 
 /**
  * fileName       : GetMediaStorageInfosUseCase

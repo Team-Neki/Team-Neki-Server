@@ -1,7 +1,7 @@
 package com.neki.media.infra.cache.redis
 
+import com.neki.media.MediaType
 import com.neki.media.application.port.MediaBinaryCachePort
-import com.neki.media.domain.MediaType
 import com.neki.media.infra.cache.MediaRedisCacheKey
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

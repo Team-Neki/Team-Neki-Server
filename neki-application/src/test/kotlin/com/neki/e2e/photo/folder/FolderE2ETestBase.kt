@@ -1,12 +1,12 @@
 package com.neki.e2e.photo.folder
 
 import com.neki.e2e.E2ETestBase
-import com.neki.media.domain.MediaType
-import com.neki.media.domain.entity.Media
-import com.neki.media.domain.entity.MediaStatus
+import com.neki.media.MediaType
+import com.neki.media.entity.Media
+import com.neki.media.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
-import com.neki.photo.domain.entity.PhotoImage
-import com.neki.photo.domain.entity.PhotoImageFolder
+import com.neki.photo.entity.PhotoImage
+import com.neki.photo.entity.PhotoImageFolder
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository

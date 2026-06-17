@@ -3,7 +3,7 @@ package com.neki.support.api.converter
 import com.neki.support.api.dto.UpdateAppVersionRequest
 import com.neki.support.application.command.GetAppVersionCommand
 import com.neki.support.application.command.UpdateAppVersionCommand
-import com.neki.support.domain.enums.Platform
+import com.neki.support.enums.Platform
 import org.springframework.stereotype.Component
 
 /**

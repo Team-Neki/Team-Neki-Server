@@ -1,7 +1,7 @@
 package com.neki.pose.application.command
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.domain.HeadCount
+import com.neki.pose.HeadCount
 
 /**
  * fileName       : PoseCommand

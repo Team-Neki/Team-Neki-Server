@@ -4,13 +4,13 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
+import com.neki.media.MediaKey
 import com.neki.media.application.command.GenerateUploadTicketCommand
 import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.GenerateUploadTicketResult
-import com.neki.media.domain.MediaKey
-import com.neki.media.domain.entity.Media
+import com.neki.media.entity.Media
 import org.springframework.transaction.annotation.Transactional
 
 /**

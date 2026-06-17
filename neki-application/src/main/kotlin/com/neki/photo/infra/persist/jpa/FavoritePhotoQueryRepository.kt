@@ -1,6 +1,6 @@
 package com.neki.photo.infra.persist.jpa
 
-import com.neki.photo.domain.entity.QFavoritePhoto.favoritePhoto
+import com.neki.photo.entity.QFavoritePhoto.favoritePhoto
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
 

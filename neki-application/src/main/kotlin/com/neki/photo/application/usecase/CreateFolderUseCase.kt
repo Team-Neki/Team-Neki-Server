@@ -6,7 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.CreateFolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.result.CreateFolderResult
-import com.neki.photo.domain.entity.Folder
+import com.neki.photo.entity.Folder
 import org.springframework.transaction.annotation.Transactional
 
 /**

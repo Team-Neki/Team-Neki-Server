@@ -1,6 +1,6 @@
 package com.neki.user.application.port
 
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 import org.springframework.security.core.Authentication
 
 interface AuthTokenProviderPort {

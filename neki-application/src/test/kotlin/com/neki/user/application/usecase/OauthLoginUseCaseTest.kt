@@ -10,10 +10,10 @@ import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.domain.entity.User
-import com.neki.user.domain.enums.Platform
-import com.neki.user.domain.enums.ProviderType
-import com.neki.user.domain.enums.RoleType
+import com.neki.user.entity.User
+import com.neki.user.enums.Platform
+import com.neki.user.enums.ProviderType
+import com.neki.user.enums.RoleType
 import com.neki.user.infra.security.config.OauthProperties
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

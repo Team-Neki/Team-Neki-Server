@@ -1,6 +1,6 @@
 package com.neki.media.application.dto
 
-import com.neki.media.domain.MediaType
+import com.neki.media.MediaType
 
 /**
  * fileName       : MediaRef

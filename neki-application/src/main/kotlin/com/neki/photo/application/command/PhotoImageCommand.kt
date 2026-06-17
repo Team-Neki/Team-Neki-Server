@@ -1,7 +1,7 @@
 package com.neki.photo.application.command
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.domain.enums.UploadMethod
+import com.neki.photo.enums.UploadMethod
 import java.time.LocalDateTime
 
 /**

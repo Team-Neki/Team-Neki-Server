@@ -1,7 +1,7 @@
 package com.neki.user.infra.persist.jpa
 
-import com.neki.user.domain.entity.User
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.entity.User
+import com.neki.user.enums.ProviderType
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

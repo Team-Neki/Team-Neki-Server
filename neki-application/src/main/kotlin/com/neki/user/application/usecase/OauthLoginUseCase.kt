@@ -14,8 +14,8 @@ import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.application.result.GetAuthResult
-import com.neki.user.domain.entity.User
-import com.neki.user.domain.enums.RoleType
+import com.neki.user.entity.User
+import com.neki.user.enums.RoleType
 import com.neki.user.event.UserRegisteredEvent
 import com.neki.user.infra.security.config.OauthProperties
 import org.slf4j.Logger

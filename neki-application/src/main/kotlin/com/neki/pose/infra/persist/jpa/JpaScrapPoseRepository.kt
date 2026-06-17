@@ -1,7 +1,7 @@
 package com.neki.pose.infra.persist.jpa
 
-import com.neki.pose.domain.entity.ScrapPose
-import com.neki.pose.domain.entity.ScrapPoseId
+import com.neki.pose.entity.ScrapPose
+import com.neki.pose.entity.ScrapPoseId
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

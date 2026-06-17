@@ -2,11 +2,11 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
+import com.neki.pose.HeadCount
 import com.neki.pose.application.command.UploadPosesCommand
 import com.neki.pose.application.contract.MediaAvailability
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.domain.HeadCount
 import com.neki.testfixture.FakeTransactionRunner
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

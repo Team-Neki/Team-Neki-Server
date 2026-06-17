@@ -2,7 +2,7 @@ package com.neki.map.application.port
 
 import com.neki.map.application.contract.PhotoBoothLocationDto
 import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
-import com.neki.map.domain.entity.PhotoBoothLocation
+import com.neki.map.entity.PhotoBoothLocation
 import org.locationtech.jts.geom.Coordinate
 
 /**

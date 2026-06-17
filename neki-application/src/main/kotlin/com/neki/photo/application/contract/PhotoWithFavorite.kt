@@ -1,6 +1,6 @@
 package com.neki.photo.application.contract
 
-import com.neki.photo.domain.entity.PhotoImage
+import com.neki.photo.entity.PhotoImage
 
 /**
  * fileName       : PhotoWithFavorite

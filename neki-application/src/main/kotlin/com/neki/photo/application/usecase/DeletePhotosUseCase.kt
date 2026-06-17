@@ -6,7 +6,7 @@ import com.neki.photo.application.command.DeletePhotosCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.domain.entity.PhotoImage
+import com.neki.photo.entity.PhotoImage
 
 /**
  * fileName       : DeletePhotoUseCase

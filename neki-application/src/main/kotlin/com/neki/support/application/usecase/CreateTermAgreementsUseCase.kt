@@ -6,8 +6,8 @@ import com.neki.common.exception.BusinessException
 import com.neki.support.application.command.CreateTermAgreementsCommand
 import com.neki.support.application.port.TermRepositoryPort
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
-import com.neki.support.domain.entity.Term
-import com.neki.support.domain.entity.UserTermAgreement
+import com.neki.support.entity.Term
+import com.neki.support.entity.UserTermAgreement
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 

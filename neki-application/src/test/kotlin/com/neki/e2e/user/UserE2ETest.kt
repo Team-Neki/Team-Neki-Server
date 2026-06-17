@@ -2,7 +2,7 @@ package com.neki.e2e.user
 
 import com.neki.common.api.dto.ResultCode
 import com.neki.e2e.E2ETestBase
-import com.neki.user.domain.entity.User
+import com.neki.user.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.hamcrest.CoreMatchers.equalTo

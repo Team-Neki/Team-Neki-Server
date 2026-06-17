@@ -6,9 +6,9 @@ import com.neki.e2e.E2ETestBase
 import com.neki.photo.api.dto.CreateFolderRequest
 import com.neki.photo.api.dto.CreateFolderResponse
 import com.neki.photo.api.dto.UpdateFolderRequest
-import com.neki.photo.domain.entity.Folder
+import com.neki.photo.entity.Folder
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
-import com.neki.user.domain.entity.User
+import com.neki.user.entity.User
 import io.restassured.RestAssured
 import io.restassured.common.mapper.TypeRef
 import io.restassured.http.ContentType

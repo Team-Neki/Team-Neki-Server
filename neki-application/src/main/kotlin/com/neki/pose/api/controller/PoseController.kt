@@ -3,6 +3,7 @@ package com.neki.pose.api.controller
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.domain.vo.SortOrder
+import com.neki.pose.HeadCount
 import com.neki.pose.api.converter.PoseCommandConverter
 import com.neki.pose.api.converter.PoseResultConverter
 import com.neki.pose.api.dto.GetPoseResponse
@@ -18,7 +19,6 @@ import com.neki.pose.application.usecase.GetPoseUseCase
 import com.neki.pose.application.usecase.GetPosesUseCase
 import com.neki.pose.application.usecase.RandomPoseUseCase
 import com.neki.pose.application.usecase.UploadPosesUseCase
-import com.neki.pose.domain.HeadCount
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

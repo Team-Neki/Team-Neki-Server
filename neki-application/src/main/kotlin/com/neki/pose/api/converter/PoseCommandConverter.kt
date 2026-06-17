@@ -1,12 +1,12 @@
 package com.neki.pose.api.converter
 
 import com.neki.common.domain.vo.SortOrder
+import com.neki.pose.HeadCount
 import com.neki.pose.api.dto.UploadPoseRequest
 import com.neki.pose.application.command.GetPoseCommand
 import com.neki.pose.application.command.GetPosesCommand
 import com.neki.pose.application.command.GetRandomPoseCommand
 import com.neki.pose.application.command.UploadPosesCommand
-import com.neki.pose.domain.HeadCount
 import org.springframework.stereotype.Component
 
 /**

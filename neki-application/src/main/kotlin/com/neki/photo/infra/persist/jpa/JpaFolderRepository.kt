@@ -1,6 +1,6 @@
 package com.neki.photo.infra.persist.jpa
 
-import com.neki.photo.domain.entity.Folder
+import com.neki.photo.entity.Folder
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

@@ -1,7 +1,7 @@
 package com.neki.support.infra.persist
 
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
-import com.neki.support.domain.entity.UserTermAgreement
+import com.neki.support.entity.UserTermAgreement
 import com.neki.support.infra.persist.jpa.JpaUserTermAgreementRepository
 import org.springframework.stereotype.Repository
 

@@ -6,8 +6,8 @@ import com.neki.user.application.contract.OIDCPublicKeysPayload
 import com.neki.user.application.contract.OauthInfoPayload
 import com.neki.user.application.port.AuthCachePort
 import com.neki.user.application.port.OidcTokenValidatorPort
-import com.neki.user.domain.enums.Platform
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.Platform
+import com.neki.user.enums.ProviderType
 import com.neki.user.infra.security.oauth.helper.OauthHelper
 import com.neki.user.infra.security.oauth.oidc.Oidc
 import com.neki.user.infra.security.oauth.registry.OauthHelperRegistry

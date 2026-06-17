@@ -7,8 +7,8 @@ import com.neki.photo.application.command.MovePhotosToFolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.domain.entity.Folder
-import com.neki.photo.domain.entity.PhotoImage
+import com.neki.photo.entity.Folder
+import com.neki.photo.entity.PhotoImage
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase

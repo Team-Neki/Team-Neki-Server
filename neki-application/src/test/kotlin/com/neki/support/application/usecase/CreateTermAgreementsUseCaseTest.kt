@@ -6,7 +6,7 @@ import com.neki.support.application.command.CreateTermAgreementsCommand
 import com.neki.support.application.command.TermAgreementItem
 import com.neki.support.application.port.TermRepositoryPort
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
-import com.neki.support.domain.entity.UserTermAgreement
+import com.neki.support.entity.UserTermAgreement
 import com.neki.testfixture.aTerm
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

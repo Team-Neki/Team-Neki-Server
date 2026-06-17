@@ -1,8 +1,8 @@
 package com.neki.user.infra.persist
 
 import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.domain.entity.User
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.entity.User
+import com.neki.user.enums.ProviderType
 import com.neki.user.infra.persist.jpa.UserRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository

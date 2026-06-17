@@ -2,10 +2,10 @@ package com.neki.photo.infra.persist.jpa
 
 import com.neki.common.domain.vo.SortOrder
 import com.neki.photo.application.contract.PhotoWithFavorite
-import com.neki.photo.domain.entity.PhotoImage
-import com.neki.photo.domain.entity.QFavoritePhoto.favoritePhoto
-import com.neki.photo.domain.entity.QPhotoImage.photoImage
-import com.neki.photo.domain.entity.QPhotoImageFolder.photoImageFolder
+import com.neki.photo.entity.PhotoImage
+import com.neki.photo.entity.QFavoritePhoto.favoritePhoto
+import com.neki.photo.entity.QPhotoImage.photoImage
+import com.neki.photo.entity.QPhotoImageFolder.photoImageFolder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory

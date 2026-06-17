@@ -1,11 +1,11 @@
 package com.neki.pose.infra.persist.jpa
 
 import com.neki.common.domain.vo.SortOrder
+import com.neki.pose.HeadCount
 import com.neki.pose.application.contract.PoseWithScrap
-import com.neki.pose.domain.HeadCount
-import com.neki.pose.domain.entity.Pose
-import com.neki.pose.domain.entity.QPose.pose
-import com.neki.pose.domain.entity.QScrapPose.scrapPose
+import com.neki.pose.entity.Pose
+import com.neki.pose.entity.QPose.pose
+import com.neki.pose.entity.QScrapPose.scrapPose
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory

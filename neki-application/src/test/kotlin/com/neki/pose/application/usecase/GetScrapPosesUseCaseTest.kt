@@ -5,7 +5,7 @@ import com.neki.pose.application.command.GetScrapPosesCommand
 import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.domain.entity.Pose
+import com.neki.pose.entity.Pose
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose
 import io.kotest.matchers.shouldBe

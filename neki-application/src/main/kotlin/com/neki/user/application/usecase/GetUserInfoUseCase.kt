@@ -8,7 +8,7 @@ import com.neki.user.application.port.MediaClientPort
 import com.neki.user.application.port.TermClientPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.application.result.GetUserResult
-import com.neki.user.domain.entity.User
+import com.neki.user.entity.User
 
 /**
  * fileName       : GetMyInfoUseCase

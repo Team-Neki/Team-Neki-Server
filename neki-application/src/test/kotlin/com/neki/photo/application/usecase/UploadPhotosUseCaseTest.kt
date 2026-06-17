@@ -9,7 +9,7 @@ import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.domain.enums.UploadMethod
+import com.neki.photo.enums.UploadMethod
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aFolder
 import com.neki.testfixture.aPhotoImage

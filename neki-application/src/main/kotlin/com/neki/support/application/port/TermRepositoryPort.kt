@@ -1,6 +1,6 @@
 package com.neki.support.application.port
 
-import com.neki.support.domain.entity.Term
+import com.neki.support.entity.Term
 
 interface TermRepositoryPort {
     fun findAllActiveTerms(): List<Term>

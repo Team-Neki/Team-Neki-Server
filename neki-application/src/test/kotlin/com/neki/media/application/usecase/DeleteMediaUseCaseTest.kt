@@ -6,7 +6,7 @@ import com.neki.media.application.command.DeleteMediaCommand
 import com.neki.media.application.command.DeleteMediasCommand
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.domain.entity.MediaStatus
+import com.neki.media.entity.MediaStatus
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aMedia
 import io.kotest.assertions.throwables.shouldThrow

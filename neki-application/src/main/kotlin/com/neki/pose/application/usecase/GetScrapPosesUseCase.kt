@@ -7,7 +7,7 @@ import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.result.GetPosesResult
-import com.neki.pose.domain.entity.Pose
+import com.neki.pose.entity.Pose
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

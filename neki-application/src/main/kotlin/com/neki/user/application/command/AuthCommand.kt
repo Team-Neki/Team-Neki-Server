@@ -1,7 +1,7 @@
 package com.neki.user.application.command
 
-import com.neki.user.domain.enums.Platform
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.Platform
+import com.neki.user.enums.ProviderType
 
 /**
  * fileName       : AuthCommand

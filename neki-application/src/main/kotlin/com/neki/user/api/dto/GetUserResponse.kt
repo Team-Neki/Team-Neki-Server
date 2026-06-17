@@ -1,6 +1,6 @@
 package com.neki.user.api.dto
 
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 import io.swagger.v3.oas.annotations.media.Schema
 
 /**

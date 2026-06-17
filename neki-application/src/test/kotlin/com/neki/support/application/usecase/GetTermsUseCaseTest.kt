@@ -1,7 +1,7 @@
 package com.neki.support.application.usecase
 
 import com.neki.support.application.port.TermRepositoryPort
-import com.neki.support.domain.enums.TermType
+import com.neki.support.enums.TermType
 import com.neki.testfixture.aTerm
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe

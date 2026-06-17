@@ -6,7 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.user.application.command.DeleteUserCommand
 import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.domain.entity.User
+import com.neki.user.entity.User
 import com.neki.user.event.UserWithdrawnEvent
 import org.springframework.transaction.annotation.Transactional
 

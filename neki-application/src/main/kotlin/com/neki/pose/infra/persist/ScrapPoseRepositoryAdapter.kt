@@ -1,8 +1,8 @@
 package com.neki.pose.infra.persist
 
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
-import com.neki.pose.domain.entity.ScrapPose
-import com.neki.pose.domain.entity.ScrapPoseId
+import com.neki.pose.entity.ScrapPose
+import com.neki.pose.entity.ScrapPoseId
 import com.neki.pose.infra.persist.jpa.JpaScrapPoseRepository
 import org.springframework.stereotype.Repository
 

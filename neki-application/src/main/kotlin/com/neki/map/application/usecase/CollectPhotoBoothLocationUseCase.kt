@@ -10,8 +10,8 @@ import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.application.result.CollectPhotoBoothResult
-import com.neki.map.domain.entity.PhotoBoothLocation
-import com.neki.map.domain.vo.GeoPoint
+import com.neki.map.entity.PhotoBoothLocation
+import com.neki.map.vo.GeoPoint
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

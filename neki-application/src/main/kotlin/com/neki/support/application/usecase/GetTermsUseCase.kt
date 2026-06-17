@@ -4,7 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.support.application.port.TermRepositoryPort
 import com.neki.support.application.result.GetTermsResult
 import com.neki.support.application.result.TermInfo
-import com.neki.support.domain.entity.Term
+import com.neki.support.entity.Term
 
 @UseCase
 class GetTermsUseCase(private val termRepository: TermRepositoryPort) {

@@ -8,7 +8,7 @@ import com.neki.media.application.command.DeleteMediaCommand
 import com.neki.media.application.command.DeleteMediasCommand
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.domain.entity.Media
+import com.neki.media.entity.Media
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

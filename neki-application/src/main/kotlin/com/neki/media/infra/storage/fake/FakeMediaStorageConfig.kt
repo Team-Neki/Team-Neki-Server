@@ -1,9 +1,9 @@
 package com.neki.media.infra.storage.fake
 
+import com.neki.media.MediaType
 import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.dto.MediaRef
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.domain.MediaType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile

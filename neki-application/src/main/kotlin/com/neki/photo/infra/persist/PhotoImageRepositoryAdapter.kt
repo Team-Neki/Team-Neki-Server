@@ -6,7 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.photo.application.contract.PhotoWithFavorite
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.domain.entity.PhotoImage
+import com.neki.photo.entity.PhotoImage
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
 import com.neki.photo.infra.persist.jpa.PhotoImageQueryRepository
 import org.springframework.dao.DataIntegrityViolationException

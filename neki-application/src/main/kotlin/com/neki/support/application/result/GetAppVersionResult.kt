@@ -1,6 +1,6 @@
 package com.neki.support.application.result
 
-import com.neki.support.domain.enums.Platform
+import com.neki.support.enums.Platform
 
 /**
  * fileName       : VersionResult

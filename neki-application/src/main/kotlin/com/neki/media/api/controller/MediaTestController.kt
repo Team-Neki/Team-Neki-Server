@@ -1,10 +1,10 @@
 package com.neki.media.api.controller
 
+import com.neki.media.MediaKey
+import com.neki.media.MediaType
 import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.dto.MediaRef
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.domain.MediaKey
-import com.neki.media.domain.MediaType
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity

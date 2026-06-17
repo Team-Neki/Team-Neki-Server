@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.filter
 
 import com.neki.common.filter.RequestMdcFilter
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 import com.neki.user.infra.security.token.UserPrincipal
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest

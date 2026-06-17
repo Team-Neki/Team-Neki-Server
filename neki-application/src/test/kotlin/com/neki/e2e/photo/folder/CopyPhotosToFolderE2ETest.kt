@@ -2,10 +2,10 @@ package com.neki.e2e.photo.folder
 
 import com.neki.common.api.dto.ResultCode
 import com.neki.e2e.photo.image.PhotoImageE2ETestBase
-import com.neki.media.domain.entity.MediaStatus
+import com.neki.media.entity.MediaStatus
 import com.neki.photo.api.dto.CopyPhotosToFolderRequest
-import com.neki.photo.domain.entity.Folder
-import com.neki.user.domain.entity.User
+import com.neki.photo.entity.Folder
+import com.neki.user.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.restassured.specification.RequestSpecification

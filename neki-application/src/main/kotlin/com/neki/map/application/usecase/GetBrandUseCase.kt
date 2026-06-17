@@ -4,7 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MediaClientPort
 import com.neki.map.application.result.GetBrandResult
-import com.neki.map.domain.entity.Brand
+import com.neki.map.entity.Brand
 import com.neki.photo.application.contract.MediaStorageInfo
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

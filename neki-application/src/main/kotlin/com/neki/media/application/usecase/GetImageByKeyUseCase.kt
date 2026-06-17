@@ -3,12 +3,12 @@ package com.neki.media.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
+import com.neki.media.MediaType
 import com.neki.media.application.command.GetImageByKeyCommand
 import com.neki.media.application.port.DistributedLockPort
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.GetImageByKeyResult
-import com.neki.media.domain.MediaType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration

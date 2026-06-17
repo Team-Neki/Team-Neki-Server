@@ -1,8 +1,8 @@
 package com.neki.e2e.map
 
 import com.neki.e2e.E2ETestBase
-import com.neki.map.domain.entity.Brand
-import com.neki.map.domain.entity.PhotoBoothLocation
+import com.neki.map.entity.Brand
+import com.neki.map.entity.PhotoBoothLocation
 import com.neki.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import org.junit.jupiter.api.AfterEach

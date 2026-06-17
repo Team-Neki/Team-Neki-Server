@@ -5,7 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.application.command.UpdateUserInfoCommand
 import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.domain.entity.User
+import com.neki.user.entity.User
 import org.springframework.transaction.annotation.Transactional
 
 /**

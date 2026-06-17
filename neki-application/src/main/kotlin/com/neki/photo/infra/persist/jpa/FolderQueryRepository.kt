@@ -1,12 +1,12 @@
 package com.neki.photo.infra.persist.jpa
 
-import com.neki.media.domain.entity.QMedia.media
+import com.neki.media.entity.QMedia.media
 import com.neki.photo.application.contract.FolderWithStats
-import com.neki.photo.domain.entity.QFolder.folder
-import com.neki.photo.domain.entity.QPhotoImage
-import com.neki.photo.domain.entity.QPhotoImage.photoImage
-import com.neki.photo.domain.entity.QPhotoImageFolder
-import com.neki.photo.domain.entity.QPhotoImageFolder.photoImageFolder
+import com.neki.photo.entity.QFolder.folder
+import com.neki.photo.entity.QPhotoImage
+import com.neki.photo.entity.QPhotoImage.photoImage
+import com.neki.photo.entity.QPhotoImageFolder
+import com.neki.photo.entity.QPhotoImageFolder.photoImageFolder
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository

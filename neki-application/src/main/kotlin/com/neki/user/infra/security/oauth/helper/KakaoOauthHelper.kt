@@ -7,8 +7,8 @@ import com.neki.user.application.contract.OIDCDecodePayload
 import com.neki.user.application.contract.OIDCPublicKeyDto
 import com.neki.user.application.contract.OIDCPublicKeysPayload
 import com.neki.user.application.contract.OauthInfoPayload
-import com.neki.user.domain.enums.Platform
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.Platform
+import com.neki.user.enums.ProviderType
 import com.neki.user.infra.security.config.OauthProperties
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException

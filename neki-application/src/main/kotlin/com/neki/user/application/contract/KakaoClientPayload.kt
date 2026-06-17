@@ -1,6 +1,6 @@
 package com.neki.user.application.contract
 
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 
 /**
  * 카카오 사용자정보 추출 DTO

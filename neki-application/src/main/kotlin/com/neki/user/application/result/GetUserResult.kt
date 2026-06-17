@@ -1,6 +1,6 @@
 package com.neki.user.application.result
 
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 
 /**
  * fileName       : GetUserInfoResult

@@ -1,6 +1,6 @@
 package com.neki.media.application.port
 
-import com.neki.media.domain.entity.Media
+import com.neki.media.entity.Media
 
 /**
  * fileName       : MediaRepositoryPort

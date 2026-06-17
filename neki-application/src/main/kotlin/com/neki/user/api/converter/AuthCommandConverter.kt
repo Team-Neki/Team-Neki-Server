@@ -4,8 +4,8 @@ import com.neki.user.api.dto.CreateAuthRequest
 import com.neki.user.api.dto.RefreshTokenRequest
 import com.neki.user.application.command.RefreshTokenCommand
 import com.neki.user.application.command.RegisterOauthUserCommand
-import com.neki.user.domain.enums.Platform
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.Platform
+import com.neki.user.enums.ProviderType
 import org.springframework.stereotype.Component
 
 @Component

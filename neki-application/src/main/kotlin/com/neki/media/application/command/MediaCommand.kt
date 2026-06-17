@@ -1,6 +1,6 @@
 package com.neki.media.application.command
 
-import com.neki.media.domain.MediaType
+import com.neki.media.MediaType
 
 /**
  * fileName       : MediaCommand

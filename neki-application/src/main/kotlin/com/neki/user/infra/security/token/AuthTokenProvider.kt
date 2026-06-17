@@ -2,7 +2,7 @@ package com.neki.user.infra.security.token
 
 import com.neki.common.properties.AppProperties
 import com.neki.user.application.port.AuthTokenProviderPort
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys

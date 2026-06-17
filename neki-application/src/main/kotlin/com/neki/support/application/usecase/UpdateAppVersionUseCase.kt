@@ -5,7 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.support.application.command.UpdateAppVersionCommand
 import com.neki.support.application.port.AppVersionRepositoryPort
-import com.neki.support.domain.entity.AppVersion
+import com.neki.support.entity.AppVersion
 import org.springframework.transaction.annotation.Transactional
 
 /**

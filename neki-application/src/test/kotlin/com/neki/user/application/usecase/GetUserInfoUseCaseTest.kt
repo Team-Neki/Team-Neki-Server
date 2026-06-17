@@ -7,7 +7,7 @@ import com.neki.user.application.command.GetUserCommand
 import com.neki.user.application.port.MediaClientPort
 import com.neki.user.application.port.TermClientPort
 import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every

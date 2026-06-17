@@ -2,7 +2,7 @@ package com.neki.photo.infra.persist
 
 import com.neki.photo.application.contract.FolderWithStats
 import com.neki.photo.application.port.FolderRepositoryPort
-import com.neki.photo.domain.entity.Folder
+import com.neki.photo.entity.Folder
 import com.neki.photo.infra.persist.jpa.FolderQueryRepository
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
 import org.springframework.stereotype.Repository

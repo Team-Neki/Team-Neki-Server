@@ -7,7 +7,7 @@ import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.application.result.GetPhotosResult
-import com.neki.photo.domain.entity.PhotoImage
+import com.neki.photo.entity.PhotoImage
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

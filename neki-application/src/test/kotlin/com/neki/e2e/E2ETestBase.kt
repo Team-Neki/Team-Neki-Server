@@ -1,8 +1,8 @@
 package com.neki.e2e
 
-import com.neki.user.domain.entity.User
-import com.neki.user.domain.enums.ProviderType
-import com.neki.user.domain.enums.RoleType
+import com.neki.user.entity.User
+import com.neki.user.enums.ProviderType
+import com.neki.user.enums.RoleType
 import com.neki.user.infra.persist.jpa.UserRepository
 import com.neki.user.infra.security.token.AuthTokenProvider
 import org.junit.jupiter.api.AfterEach

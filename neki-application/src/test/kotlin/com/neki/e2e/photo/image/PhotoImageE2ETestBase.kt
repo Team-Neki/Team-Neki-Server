@@ -1,13 +1,13 @@
 package com.neki.e2e.photo.image
 
 import com.neki.e2e.E2ETestBase
-import com.neki.media.domain.MediaType
-import com.neki.media.domain.entity.Media
-import com.neki.media.domain.entity.MediaStatus
+import com.neki.media.MediaType
+import com.neki.media.entity.Media
+import com.neki.media.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
-import com.neki.photo.domain.entity.Folder
-import com.neki.photo.domain.entity.PhotoImage
-import com.neki.photo.domain.entity.PhotoImageFolder
+import com.neki.photo.entity.Folder
+import com.neki.photo.entity.PhotoImage
+import com.neki.photo.entity.PhotoImageFolder
 import com.neki.photo.infra.persist.jpa.JpaFavoriteImageRepository
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
@@ -87,7 +87,7 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
     protected fun createFavoritePhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage {
         val photo = createPhotoImage(userId, mediaId, folderId)
         favoritePhotoRepository.save(
-            com.neki.photo.domain.entity.FavoritePhoto(
+            com.neki.photo.entity.FavoritePhoto(
                 userId = userId,
                 imageId = photo.id!!,
             ),

@@ -10,7 +10,7 @@ import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.RandomGeneratorPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
 import com.neki.pose.application.result.GetPoseResult
-import com.neki.pose.domain.entity.Pose
+import com.neki.pose.entity.Pose
 
 @UseCase
 class RandomPoseUseCase(

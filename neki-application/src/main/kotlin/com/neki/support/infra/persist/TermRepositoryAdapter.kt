@@ -1,7 +1,7 @@
 package com.neki.support.infra.persist
 
 import com.neki.support.application.port.TermRepositoryPort
-import com.neki.support.domain.entity.Term
+import com.neki.support.entity.Term
 import com.neki.support.infra.persist.jpa.JpaTermRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository

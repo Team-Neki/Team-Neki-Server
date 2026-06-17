@@ -1,6 +1,6 @@
 package com.neki.photo.application.port
 
-import com.neki.photo.domain.entity.PhotoImageFolder
+import com.neki.photo.entity.PhotoImageFolder
 
 interface PhotoImageFolderRepositoryPort {
 

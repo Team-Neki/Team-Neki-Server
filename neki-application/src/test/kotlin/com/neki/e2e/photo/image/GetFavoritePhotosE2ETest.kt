@@ -1,8 +1,8 @@
 package com.neki.e2e.photo.image
 
 import com.neki.common.api.dto.ResultCode
-import com.neki.media.domain.entity.MediaStatus
-import com.neki.user.domain.entity.User
+import com.neki.media.entity.MediaStatus
+import com.neki.user.entity.User
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasSize

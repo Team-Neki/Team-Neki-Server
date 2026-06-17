@@ -8,7 +8,7 @@ import com.neki.pose.application.command.UploadPosesCommand
 import com.neki.pose.application.contract.MediaAvailability
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.domain.entity.Pose
+import com.neki.pose.entity.Pose
 
 /**
  * fileName       : UploadPosesUseCase

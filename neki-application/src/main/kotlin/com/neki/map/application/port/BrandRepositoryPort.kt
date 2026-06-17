@@ -1,6 +1,6 @@
 package com.neki.map.application.port
 
-import com.neki.map.domain.entity.Brand
+import com.neki.map.entity.Brand
 
 /**
  * fileName       : BrandRepositoryPort

@@ -5,7 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.PutPhotoCommand
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.domain.entity.PhotoImage
+import com.neki.photo.entity.PhotoImage
 import org.springframework.transaction.annotation.Transactional
 
 /**

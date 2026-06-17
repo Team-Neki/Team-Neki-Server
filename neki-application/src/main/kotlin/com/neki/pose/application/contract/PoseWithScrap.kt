@@ -1,6 +1,6 @@
 package com.neki.pose.application.contract
 
-import com.neki.pose.domain.entity.Pose
+import com.neki.pose.entity.Pose
 
 /**
  * fileName       : PoseWithScrap

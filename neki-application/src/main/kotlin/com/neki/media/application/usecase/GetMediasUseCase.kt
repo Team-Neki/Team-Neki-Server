@@ -6,7 +6,7 @@ import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.GetMediasResult
-import com.neki.media.domain.entity.Media
+import com.neki.media.entity.Media
 
 /**
  * fileName       : GetMediasUseCase

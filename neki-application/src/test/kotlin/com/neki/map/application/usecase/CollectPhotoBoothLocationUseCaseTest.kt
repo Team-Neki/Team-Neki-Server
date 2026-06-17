@@ -7,7 +7,7 @@ import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
-import com.neki.map.domain.entity.PhotoBoothLocation
+import com.neki.map.entity.PhotoBoothLocation
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aBrand
 import com.neki.testfixture.aPhotoBoothLocation

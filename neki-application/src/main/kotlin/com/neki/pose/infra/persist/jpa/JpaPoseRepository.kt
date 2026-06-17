@@ -1,6 +1,6 @@
 package com.neki.pose.infra.persist.jpa
 
-import com.neki.pose.domain.entity.Pose
+import com.neki.pose.entity.Pose
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

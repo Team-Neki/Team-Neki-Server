@@ -4,7 +4,7 @@ import com.neki.media.application.command.ConfirmMediasUploadedCommand
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
 import com.neki.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
-import com.neki.media.domain.entity.MediaStatus
+import com.neki.media.entity.MediaStatus
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aMedia
 import io.kotest.assertions.throwables.shouldThrow

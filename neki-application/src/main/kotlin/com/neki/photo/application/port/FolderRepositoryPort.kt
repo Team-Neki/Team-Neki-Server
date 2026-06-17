@@ -1,7 +1,7 @@
 package com.neki.photo.application.port
 
 import com.neki.photo.application.contract.FolderWithStats
-import com.neki.photo.domain.entity.Folder
+import com.neki.photo.entity.Folder
 
 /**
  * fileName       : FolderRepositoryPort

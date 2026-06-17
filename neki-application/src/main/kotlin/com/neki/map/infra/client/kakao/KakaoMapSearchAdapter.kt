@@ -3,7 +3,7 @@ package com.neki.map.infra.client.kakao
 import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.port.MapApiClientPort
 import com.neki.map.application.port.MapSearchPort
-import com.neki.map.domain.vo.GeographicKoreaBounds
+import com.neki.map.vo.GeographicKoreaBounds
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

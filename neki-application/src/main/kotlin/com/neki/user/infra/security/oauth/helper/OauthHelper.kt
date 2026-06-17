@@ -2,8 +2,8 @@ package com.neki.user.infra.security.oauth.helper
 
 import com.neki.user.application.contract.OIDCPublicKeysPayload
 import com.neki.user.application.contract.OauthInfoPayload
-import com.neki.user.domain.enums.Platform
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.Platform
+import com.neki.user.enums.ProviderType
 
 /**
  * fileName       : OauthHelperPort

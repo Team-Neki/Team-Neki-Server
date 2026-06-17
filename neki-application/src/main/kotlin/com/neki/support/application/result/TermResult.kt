@@ -1,6 +1,6 @@
 package com.neki.support.application.result
 
-import com.neki.support.domain.enums.TermType
+import com.neki.support.enums.TermType
 
 data class GetTermsResult(val terms: List<TermInfo>)
 

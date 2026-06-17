@@ -2,11 +2,11 @@ package com.neki.media.application.usecase
 
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
+import com.neki.media.MediaType
 import com.neki.media.application.command.GenerateUploadTicketCommand
 import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.domain.MediaType
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aMedia
 import io.kotest.assertions.throwables.shouldThrow

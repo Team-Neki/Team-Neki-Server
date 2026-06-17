@@ -8,7 +8,7 @@ import com.neki.user.application.command.UpdateUserProfileImageCommand
 import com.neki.user.application.contract.MediaAvailability
 import com.neki.user.application.port.MediaClientPort
 import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.domain.entity.User
+import com.neki.user.entity.User
 
 /**
  * fileName       : UpdateUserProfileUseCase

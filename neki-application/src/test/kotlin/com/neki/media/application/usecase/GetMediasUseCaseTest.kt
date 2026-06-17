@@ -1,10 +1,10 @@
 package com.neki.media.application.usecase
 
+import com.neki.media.MediaType
 import com.neki.media.application.command.GetMediasCommand
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.domain.MediaType
 import com.neki.testfixture.aMedia
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe

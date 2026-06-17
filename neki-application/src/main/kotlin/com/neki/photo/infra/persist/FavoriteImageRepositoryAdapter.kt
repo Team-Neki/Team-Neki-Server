@@ -1,8 +1,8 @@
 package com.neki.photo.infra.persist
 
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
-import com.neki.photo.domain.entity.FavoritePhoto
-import com.neki.photo.domain.entity.FavoritePhotoId
+import com.neki.photo.entity.FavoritePhoto
+import com.neki.photo.entity.FavoritePhotoId
 import com.neki.photo.infra.persist.jpa.FavoritePhotoQueryRepository
 import com.neki.photo.infra.persist.jpa.JpaFavoriteImageRepository
 import org.springframework.stereotype.Repository

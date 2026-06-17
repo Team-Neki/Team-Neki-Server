@@ -6,7 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.media.application.command.GetMediaStorageInfoCommand
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.result.GetMediaStorageInfoResult
-import com.neki.media.domain.entity.Media
+import com.neki.media.entity.Media
 
 /**
  * fileName       : GetMediaStorageInfoUseCase

@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.oauth.oidc
 
 import com.neki.user.application.contract.OIDCPublicKeysPayload
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 
 /**
  * fileName       : Oidc

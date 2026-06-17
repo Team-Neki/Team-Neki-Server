@@ -3,8 +3,8 @@ package com.neki.e2e.map
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.api.dto.ResultCode
 import com.neki.map.api.dto.GetPointLocationRequest
-import com.neki.map.domain.entity.Brand
-import com.neki.user.domain.entity.User
+import com.neki.map.entity.Brand
+import com.neki.user.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat

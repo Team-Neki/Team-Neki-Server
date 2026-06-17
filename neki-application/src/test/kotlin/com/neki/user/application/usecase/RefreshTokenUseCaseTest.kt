@@ -4,7 +4,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.application.command.RefreshTokenCommand
 import com.neki.user.application.port.AuthTokenProviderPort
-import com.neki.user.domain.enums.ProviderType
+import com.neki.user.enums.ProviderType
 import com.neki.user.infra.security.token.UserPrincipal
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
