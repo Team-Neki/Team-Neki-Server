@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":application"))
     implementation(project(":modules:postgres"))
+    implementation(project(":modules:redis"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
