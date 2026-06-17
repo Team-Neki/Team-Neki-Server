@@ -21,12 +21,10 @@ spring:
     open-in-view: false
   flyway:
     enabled: false
-    locations: classpath:db/migration
     baseline-on-migrate: true
   data:
     redis:
       host: localhost
-      port: 6379
 
 logging:
   level:
@@ -50,19 +48,14 @@ oauth:
     androidClientId: 4db94315d17162e99b36029f6f9775c6 #local 환경은 REST_KEY, 배포시에는 APP_ID
     iosClientId: 4db94315d17162e99b36029f6f9775c6 #local 환경은 REST_KEY, 배포시에는 APP_ID
     clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
-    jwksUri: https://kauth.kakao.com/.well-known/jwks.json
-    issuer: https://kauth.kakao.com
 
   apple:
     clientId: swainyun.SignInWithAppleTestApp
-    jwksUri: https://appleid.apple.com/auth/keys
-    issuer: https://appleid.apple.com
 
 aws:
   s3:
     access-key: test
     secret-key: test
-    region: ap-northeast-2
     bucket: yapp-local
     endpoint: http://localhost:4566
     base-url: http://localhost:4566/yapp-local

@@ -1,0 +1,4 @@
+aws:
+  s3:
+    region: ap-northeast-2
+    presigned-url-expiration: 10m

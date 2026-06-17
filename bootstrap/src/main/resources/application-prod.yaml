@@ -13,14 +13,12 @@ spring:
       leak-detection-threshold: 60000
   flyway:
     enabled: true
-    locations: classpath:db/migration
     baseline-on-migrate: true
     validate-on-migrate: true
     out-of-order: false
   data:
     redis:
       host: ENC(V8Y989Q4aueyOQE7wSEut8EaGlN4NVjvesp85WmlCj2A9ufFvs0eGko5jR2hKMsX)
-      port: 6379
       password: ENC(tQSsJvwUHmc4JBWyc+UaAgxSGle02LPVDPp45BApz5LLwTNuDlguI2zLLIFXW+ot)
 
 
@@ -46,18 +44,13 @@ oauth:
     androidClientId: ENC(CxmbXHAS35D0ZAsj/UHZ6uVn9esjjauf0k9FNqQ6FnyRo3HNd3P9cSOVGU1u3i/ikdzU+ufcCbxGqibd+5ULmWbWVGLDXX0X9FjXuQCe0Xs=)
     iosClientId: ENC(AMcYSI/XjGnthawUtuDNr5LEwG6QfAbCRdEBCifrI16kqZDQh2bupmgCbGj5ilRJXjWLp1e7Sh3hFC//glGv+I1hNhXh+o0qo8U2V7q84ac=)
     clientSecret: ENC(1Sqtyp6KkZnm2tO2fa8b+okZh+Yp5GRJOeAyqai9p2MEM6voQExn2OjR8PeMLPqtUL8PM6nuiwNyX9rtkp9TjQvH2RfaEfPkilNR0JWEUCE=)
-    jwksUri: https://kauth.kakao.com/.well-known/jwks.json
-    issuer: https://kauth.kakao.com
   apple:
     clientId: ENC(VjmTvogS4S0aLry3SX8NWTS2N4j8ffvotHTnQ1+1MfSevuRuBEUgRiXOci/X1Du+5cjkDCDVolL4Zgz32JmpIg==)
-    jwksUri: https://appleid.apple.com/auth/keys
-    issuer: https://appleid.apple.com
 
 aws:
   s3:
     access-key: ENC(NHdLpPxjsMR1ll/eVnBJYcqrGPn+laUmxU5bCKT2R/EvPLfm0rpq/Y7pd/Kyoh7l9BT6xOm5MuOsLt3K+pdPJA==)
     secret-key: ENC(fForFnB09QU6M/KucKAYQxA/3uTF6SdbFx0xsXKBu6xIkd4PZczva1cndzOE3tOEY/+7eExzRE8p85q2FYJUTsgtFVo6sHqQ9Tauf8rjI7g=)
-    region: ap-northeast-2
     bucket: yapp-neki-ap-northeast-2
 
 kakao:

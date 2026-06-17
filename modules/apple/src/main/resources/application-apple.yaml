@@ -1,0 +1,4 @@
+oauth:
+  apple:
+    jwksUri: https://appleid.apple.com/auth/keys
+    issuer: https://appleid.apple.com

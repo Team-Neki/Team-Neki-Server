@@ -1,0 +1,4 @@
+oauth:
+  kakao:
+    jwksUri: https://kauth.kakao.com/.well-known/jwks.json
+    issuer: https://kauth.kakao.com
