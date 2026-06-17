@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":neki-core"))
     implementation(project(":neki-domain"))
     implementation(project(":modules:discord"))
-    implementation(project(":modules:s3"))
+    implementation(project(":modules:aws"))
     implementation(project(":modules:redis"))
     implementation(project(":modules:kakao"))
     implementation(project(":modules:postgres"))

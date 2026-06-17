@@ -6,7 +6,7 @@ include(
     ":neki-application",
     ":modules:postgres",
     ":modules:redis",
-    ":modules:s3",
+    ":modules:aws",
     ":modules:kakao",
     ":modules:discord",
     ":modules:jasypt",
