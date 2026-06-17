@@ -30,8 +30,6 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     testRuntimeOnly("com.h2database:h2")
-    // 임시: media/pose Redis 어댑터 테스트가 bootstrap에 남아있는 동안만 필요 (Task 13에서 테스트 이전 시 제거)
-    testImplementation("org.springframework.boot:spring-boot-starter-data-redis")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")

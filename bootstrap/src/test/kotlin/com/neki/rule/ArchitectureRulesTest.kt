@@ -223,6 +223,56 @@ class ArchitectureRulesTest {
     }
 
     @Nested
+    @DisplayName("모듈 의존 방향 규칙")
+    inner class ModuleDependencyRules {
+
+        /**
+         * :core 공유 커널(:core 전용 패키지)은 바깥 레이어(api/infra/application)를 의존할 수 없다.
+         * - annotation: UseCase (com.neki.common.annotation)
+         * - domain: BaseTimeEntity, vo.SortOrder (com.neki.common.domain..)
+         * - transaction: TransactionRunner (com.neki.common.transaction)
+         * - api.dto: ResultCode, BaseResponse (com.neki.common.api.dto, :core 전용)
+         * - exception: BusinessException (com.neki.common.exception, exact — exception.handler는 :application 소속)
+         *
+         * 주의: com.neki.common.api.config/document, com.neki.common.exception.handler,
+         *       com.neki.common.filter/properties 는 :application 소속이므로 커널에 포함하지 않는다.
+         *
+         * 바깥 레이어는 :core 기준 ..infra.. (modules:*) 와 ..application.. 이다.
+         * (..api.. 는 커널 자신의 api.dto 를 포함하므로 금지 대상에서 제외)
+         */
+        @Test
+        fun `core 공유 커널은 바깥 레이어를 의존할 수 없다`() {
+            noClasses()
+                .that().resideInAnyPackage(
+                    "com.neki.common.annotation..",
+                    "com.neki.common.domain..",
+                    "com.neki.common.transaction..",
+                    "com.neki.common.api.dto..",
+                    "com.neki.common.exception",
+                ).should().dependOnClassesThat().resideInAnyPackage(
+                    "..infra..",
+                    "..application..",
+                ).because("core shared kernel must not depend on outer layers (infra/application)")
+                .check(importedClasses)
+        }
+
+        /**
+         * :application 레이어는 :modules:* 의 infra 어댑터(..infra..)를 의존할 수 없다.
+         * application은 port 만 알아야 한다. (user 도메인은 알려진 예외)
+         * 기존 LayerDependencies 규칙을 모듈 관점에서 재확인한다.
+         */
+        @Test
+        fun `application 레이어는 infra 어댑터를 의존할 수 없다 (user 도메인 제외)`() {
+            noClasses()
+                .that().resideInAnyPackage("..application..")
+                .and().resideOutsideOfPackage("com.neki.user.application..")
+                .should().dependOnClassesThat().resideInAnyPackage("..infra..")
+                .because("application layer must know ports only, not module infra adapters (user domain excluded)")
+                .check(importedClasses)
+        }
+    }
+
+    @Nested
     @DisplayName("포트/어댑터 패턴 규칙")
     inner class PortAdapterPattern {
 
