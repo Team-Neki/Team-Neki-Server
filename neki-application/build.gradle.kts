@@ -10,13 +10,13 @@ val jasyptVersion = "3.0.5"
 val logstashEncoderVersion = "8.0"
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":domain"))
-    implementation(project(":modules:discord"))
-    implementation(project(":modules:s3"))
-    implementation(project(":modules:redis"))
-    implementation(project(":modules:kakao"))
-    implementation(project(":modules:postgres"))
+    implementation(project(":neki-core"))
+    implementation(project(":neki-domain"))
+    implementation(project(":modules:neki-discord"))
+    implementation(project(":modules:neki-s3"))
+    implementation(project(":modules:neki-redis"))
+    implementation(project(":modules:neki-kakao"))
+    implementation(project(":modules:neki-postgres"))
 
     implementation("org.locationtech.jts:jts-core:$jtsVersion")
 
