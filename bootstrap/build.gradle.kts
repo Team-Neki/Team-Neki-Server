@@ -3,8 +3,6 @@ plugins {
 }
 
 val jwtVersion = "0.12.5"
-val nimbusVersion = "9.37.3"
-val bouncyCastleVersion = "1.78"
 val springDocVersion = "2.6.0"
 val jasyptVersion = "3.0.5"
 val logstashEncoderVersion = "8.0"
@@ -17,17 +15,14 @@ dependencies {
     implementation(project(":modules:redis"))
     implementation(project(":modules:s3"))
     implementation(project(":modules:kakao"))
+    implementation(project(":modules:apple"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:$jwtVersion")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
-    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
-    implementation("org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion")
-    implementation("org.bouncycastle:bcpkix-jdk18on:$bouncyCastleVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
     implementation("com.github.ulisesbocchio:jasypt-spring-boot-starter:$jasyptVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
