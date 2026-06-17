@@ -151,7 +151,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         val myPhoto = createPhotoImage(userId = testUser.id!!, mediaId = myMedia.id!!)
 
         val otherMedia = createMedia(ownerId = otherUser.id!!, status = MediaStatus.UPLOADED)
-        val otherPhoto = createPhotoImage(userId = otherUser.id, mediaId = otherMedia.id!!)
+        val otherPhoto = createPhotoImage(userId = otherUser.id!!, mediaId = otherMedia.id!!)
 
         // when & then
         RestAssured.given()
@@ -212,7 +212,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         // given
         val (otherUser, _) = createTestUserAndToken(email = "other2@example.com")
         val media = createMedia(ownerId = otherUser.id!!, status = MediaStatus.UPLOADED)
-        val otherUserPhoto = createPhotoImage(userId = otherUser.id, mediaId = media.id!!)
+        val otherUserPhoto = createPhotoImage(userId = otherUser.id!!, mediaId = media.id!!)
 
         // when & then
         RestAssured.given()

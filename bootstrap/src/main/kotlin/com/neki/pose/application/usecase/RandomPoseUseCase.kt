@@ -36,7 +36,7 @@ class RandomPoseUseCase(
         val mediaInfo: MediaStorageInfo = mediaClient.getMediaStorageInfo(pose.mediaId)
 
         return GetPoseResult(
-            poseId = pose.id,
+            poseId = pose.id!!,
             headCount = pose.headCount,
             storageKey = mediaInfo.storageKey,
             scrap = isScraped,

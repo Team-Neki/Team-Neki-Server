@@ -116,7 +116,7 @@ class GetPhotosE2ETest : PhotoImageE2ETestBase() {
         // given
         val (otherUser, _) = createTestUserAndToken(email = "other@example.com")
         val media = createMedia(ownerId = otherUser.id!!, status = MediaStatus.UPLOADED)
-        createPhotoImage(userId = otherUser.id, mediaId = media.id!!)
+        createPhotoImage(userId = otherUser.id!!, mediaId = media.id!!)
 
         // when & then
         RestAssured.given()
