@@ -4,7 +4,6 @@ include(
     ":core",
     ":domain",
     ":application",
-    ":bootstrap",
     ":modules:postgres",
     ":modules:redis",
     ":modules:s3",
