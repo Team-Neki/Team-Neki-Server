@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":modules:s3"))
     implementation(project(":modules:redis"))
     implementation(project(":modules:kakao"))
+    implementation(project(":modules:postgres"))
 
     implementation("org.locationtech.jts:jts-core:$jtsVersion")
 
