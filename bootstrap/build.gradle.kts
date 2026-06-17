@@ -1,8 +1,5 @@
 plugins {
     id("org.springframework.boot")
-    kotlin("plugin.jpa")
-    kotlin("kapt")
-    idea
 }
 
 val jwtVersion = "0.12.5"
@@ -17,6 +14,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
     implementation(project(":application"))
+    implementation(project(":modules:postgres"))
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -34,26 +32,13 @@ dependencies {
     implementation("com.github.ulisesbocchio:jasypt-spring-boot-starter:$jasyptVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
     implementation("io.micrometer:micrometer-registry-prometheus")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    runtimeOnly("org.postgresql:postgresql")
-    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
-    kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
-    implementation("org.hibernate.orm:hibernate-spatial")
-    implementation("org.locationtech.jts:jts-core:1.19.0")
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     testRuntimeOnly("com.h2database:h2")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
-}
-
-idea {
-    module {
-        sourceDirs.add(file("build/generated/source/kapt/main"))
-        generatedSourceDirs.add(file("build/generated/source/kapt/main"))
-    }
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    testImplementation("org.locationtech.jts:jts-core:1.19.0")
 }
 
 tasks.processResources {
