@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":modules:discord"))
     implementation(project(":modules:s3"))
     implementation(project(":modules:redis"))
+    implementation(project(":modules:kakao"))
 
     implementation("org.locationtech.jts:jts-core:$jtsVersion")
 
