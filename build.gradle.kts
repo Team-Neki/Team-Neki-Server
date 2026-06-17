@@ -1,125 +1,57 @@
-import org.jetbrains.kotlin.builtins.StandardNames.FqNames.target
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     val kotlinVersion = "2.0.10"
     val spotlessVersion = "6.25.0"
 
-    id("org.springframework.boot") version "3.5.8"
-    id("io.spring.dependency-management") version "1.1.6"
-
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.spring") version kotlinVersion
-    kotlin("plugin.jpa") version kotlinVersion
-    kotlin("kapt") version kotlinVersion
-    id("com.diffplug.spotless") version spotlessVersion
-    idea
+    id("org.springframework.boot") version "3.5.8" apply false
+    id("io.spring.dependency-management") version "1.1.6" apply false
+    kotlin("jvm") version kotlinVersion apply false
+    kotlin("plugin.spring") version kotlinVersion apply false
+    kotlin("plugin.jpa") version kotlinVersion apply false
+    kotlin("kapt") version kotlinVersion apply false
+    id("com.diffplug.spotless") version spotlessVersion apply false
 }
 
-// Version Management
-val jwtVersion = "0.12.5"
-val nimbusVersion = "9.37.3"
-val bouncyCastleVersion = "1.78"
-val awsSdkVersion = "2.27.0"
-val springDocVersion = "2.6.0"
-val jasyptVersion = "3.0.5"
-val logstashEncoderVersion = "8.0"
-val kotestVersion = "5.9.1"
-val kotestExtensionsVersion = "1.3.0"
-val mockkVersion = "1.13.10"
-val ktlintVersion = "1.5.0"
-val archunitVersion = "1.3.0"
+allprojects {
+    group = "com.neki"
+    version = "1.0.0"
+    repositories { mavenCentral() }
+}
 
-group = "com.neki"
-version = "1.0.0"
+subprojects {
+    apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "org.jetbrains.kotlin.plugin.spring")
+    apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "com.diffplug.spotless")
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+    val ktlintVersion = "1.5.0"
+
+    extensions.configure<JavaPluginExtension> {
+        toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
     }
-}
 
-repositories {
-    mavenCentral()
-}
+    the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
+        imports {
+            mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
+        }
+    }
 
-dependencies {
-    // Spring Boot
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    dependencies {
+        "implementation"("com.fasterxml.jackson.module:jackson-module-kotlin")
+        "implementation"("org.jetbrains.kotlin:kotlin-reflect")
 
-    // Kotlin
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
+        "testImplementation"("org.springframework.boot:spring-boot-starter-test")
+        "testImplementation"("io.kotest:kotest-runner-junit5:5.9.1")
+        "testImplementation"("io.kotest:kotest-assertions-core:5.9.1")
+        "testImplementation"("io.kotest.extensions:kotest-extensions-spring:1.3.0")
+        "testImplementation"("io.mockk:mockk:1.13.10")
+    }
 
-    // Spring Security
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-
-    // JWT
-    implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
-
-    // Apple JWT (nimbus-jose-jwt)
-    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusVersion")
-
-    // BouncyCastle
-    implementation("org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion")
-    implementation("org.bouncycastle:bcpkix-jdk18on:$bouncyCastleVersion")
-
-    // AWS SDK V2 (V1은 deprecated)
-    implementation("software.amazon.awssdk:aws-core:$awsSdkVersion")
-    implementation("software.amazon.awssdk:s3:$awsSdkVersion")
-
-    // OpenAPI/Swagger (SpringFox는 deprecated, SpringDoc만 사용)
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
-
-    // Jasypt (암호화)
-    implementation("com.github.ulisesbocchio:jasypt-spring-boot-starter:$jasyptVersion")
-
-    // Logback JSON Encoder (구조화된 로그 출력)
-    implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
-
-    // Prometheus metrics (for Grafana monitoring)
-    implementation("io.micrometer:micrometer-registry-prometheus")
-
-    // JPA
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    runtimeOnly("org.postgresql:postgresql")
-
-    // querydsl
-    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
-    kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
-
-    // Hibernate Spatial & JTS (for PostGIS support)
-    implementation("org.hibernate.orm:hibernate-spatial")
-    implementation("org.locationtech.jts:jts-core:1.19.0")
-
-    // flyway (DB schema migration)
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.flywaydb:flyway-database-postgresql")
-
-    // Redis Cache
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-
-    // Test dependencies
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-    testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestExtensionsVersion")
-    testImplementation("io.mockk:mockk:$mockkVersion")
-    testRuntimeOnly("com.h2database:h2")
-    testImplementation("io.rest-assured:rest-assured")
-    testImplementation("com.tngtech.archunit:archunit-junit5:$archunitVersion")
-}
-
-spotless {
-    kotlin {
-        target("src/**/*.kt")
-        ktlint(ktlintVersion)
-            .editorConfigOverride(
+    extensions.configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            target("src/**/*.kt")
+            ktlint(ktlintVersion).editorConfigOverride(
                 mapOf(
                     "max_line_length" to "120",
                     "indent_size" to "4",
@@ -127,49 +59,21 @@ spotless {
                     "ktlint_standard_no-wildcard-imports" to "disabled",
                 ),
             )
-        trimTrailingWhitespace()
-        endWithNewline()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+        kotlinGradle {
+            target("*.gradle.kts")
+            ktlint(ktlintVersion)
+        }
     }
-    kotlinGradle {
-        target("*.gradle.kts")
-        ktlint(ktlintVersion)
+
+    tasks.withType<KotlinCompile> {
+        compilerOptions {
+            freeCompilerArgs.addAll(listOf("-Xjsr305=strict"))
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
     }
-}
 
-tasks.withType<KotlinCompile> {
-    compilerOptions {
-        freeCompilerArgs.addAll(listOf("-Xjsr305=strict"))
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
-    }
-}
-
-// kapt가 생성한 QueryDSL Q클래스를 IDE가 인식하도록 설정
-idea {
-    module {
-        sourceDirs.addAll(files("build/generated/source/kapt/main"))
-        generatedSourceDirs.addAll(files("build/generated/source/kapt/main"))
-    }
-}
-
-tasks.processResources {
-    filesMatching("application.yaml") {
-        filter<org.apache.tools.ant.filters.ReplaceTokens>(
-            "tokens" to mapOf("version" to project.version.toString()),
-        )
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-tasks.jar {
-    enabled = false
-}
-
-tasks.bootJar {
-    // Spring Boot Layered JAR 활성화 (Docker 캐싱 최적화)
-    layered {
-        enabled = true
-    }
+    tasks.withType<Test> { useJUnitPlatform() }
 }
