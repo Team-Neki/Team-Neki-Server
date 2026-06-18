@@ -4,6 +4,7 @@ import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.domain.entity.Media
 import com.neki.media.domain.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository
 
 /**
@@ -32,6 +33,9 @@ class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : Me
             ids,
             listOf(MediaStatus.INITIATED, MediaStatus.UPLOADED),
         )
+
+    override fun findMediaForDimensionBackfill(lastId: Long, limit: Int): List<Media> =
+        jpaRepository.findForDimensionBackfill(MediaStatus.UPLOADED, lastId, PageRequest.of(0, limit))
 
     override fun save(media: Media): Media = jpaRepository.save(media)
 

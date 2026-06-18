@@ -59,6 +59,11 @@ data class GetMediaStorageInfoResult(
     val height: Int? = null,
 )
 
+/**
+ * 미디어 width/height/size 백필 결과
+ */
+data class BackfillMediaDimensionsResult(val processed: Int, val updated: Int, val failed: Int)
+
 data class GetMediaStorageInfosResult(val storageInfos: List<StorageInfo>) {
     data class StorageInfo(
         val mediaId: Long,

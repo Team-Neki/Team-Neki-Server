@@ -42,14 +42,23 @@ class Media(
     val contentType: String,
 
     @Column(name = "width", nullable = true)
-    val width: Int? = null,
+    var width: Int? = null,
 
     @Column(name = "height", nullable = true)
-    val height: Int? = null,
+    var height: Int? = null,
 
     @Column(name = "size", nullable = true)
-    val size: Long? = null,
+    var size: Long? = null,
 ) : BaseTimeEntity() {
+
+    /**
+     * width/height/size 백필용. 이미 값이 있는 필드는 덮어쓰지 않고 null 인 필드만 채운다.
+     */
+    fun backfillDimensions(width: Int?, height: Int?, size: Long?) {
+        if (this.width == null) this.width = width
+        if (this.height == null) this.height = height
+        if (this.size == null) this.size = size
+    }
 
     fun markAsUploaded() {
         this.status = MediaStatus.UPLOADED
