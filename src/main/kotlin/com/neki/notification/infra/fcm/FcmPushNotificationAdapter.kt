@@ -5,6 +5,7 @@ import com.google.firebase.messaging.AndroidNotification
 import com.google.firebase.messaging.ApnsConfig
 import com.google.firebase.messaging.Aps
 import com.google.firebase.messaging.ApsAlert
+import com.google.firebase.messaging.FcmOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
@@ -28,6 +29,11 @@ class FcmPushNotificationAdapter(private val firebaseMessagingProvider: ObjectPr
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    private companion object {
+        /** 콘솔 Delivery 리포트에서 서버 발송분을 식별하기 위한 분석 라벨 */
+        const val ANALYTICS_LABEL = "server_push"
+    }
+
     override fun send(token: String, title: String, body: String, link: String?): String {
         val firebaseMessaging: FirebaseMessaging = firebaseMessagingProvider.ifAvailable
             ?: throw BusinessException(ResultCode.PUSH_NOT_CONFIGURED)
@@ -39,6 +45,7 @@ class FcmPushNotificationAdapter(private val firebaseMessagingProvider: ObjectPr
             .apply { link?.let { putData("link", it) } }
             .setAndroidConfig(androidConfig(title, body))
             .setApnsConfig(apnsConfig(title, body))
+            .setFcmOptions(FcmOptions.builder().setAnalyticsLabel(ANALYTICS_LABEL).build())
             .build()
 
         return try {
