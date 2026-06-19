@@ -24,8 +24,6 @@ enum class ResultCode(val code: String, val message: String) {
     PUSH_NOT_CONFIGURED("D-11", "푸시 알림이 설정되지 않았습니다."),
     PUSH_SEND_FAILED("D-12", "푸시 알림 발송에 실패했습니다."),
 
-
-
     ACCESS_DENIED_ERROR("D-995", "토큰 권한이 없습니다."),
     MISSING_TOKEN_ERROR("D-996", "토큰이 존재하지 않습니다."),
     EXPIRED_TOKEN_ERROR("D-997", "토큰이 만료되었습니다."),
