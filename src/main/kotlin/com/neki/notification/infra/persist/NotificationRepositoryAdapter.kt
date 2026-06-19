@@ -12,4 +12,6 @@ class NotificationRepositoryAdapter(private val jpaRepository: JpaNotificationRe
     override fun findByUserId(userId: Long): Notification? = jpaRepository.findByUserId(userId)
 
     override fun save(notification: Notification): Notification = jpaRepository.save(notification)
+
+    override fun deleteByUserId(userId: Long) = jpaRepository.deleteByUserId(userId)
 }
