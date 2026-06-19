@@ -1,10 +1,11 @@
 package com.neki.notification.application.usecase
 
 import com.neki.common.annotation.UseCase
+import com.neki.common.transaction.TransactionRunner
 import com.neki.notification.application.command.UpdateNotificationCommand
 import com.neki.notification.application.port.NotificationRepositoryPort
 import com.neki.notification.domain.entity.Notification
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.dao.DataIntegrityViolationException
 
 /**
  * fileName       : UpdateNotificationUseCase
@@ -13,10 +14,22 @@ import org.springframework.transaction.annotation.Transactional
  * description    : 알림 토큰 및 푸시 동의 여부 등록/수정 (upsert)
  */
 @UseCase
-class UpdateNotificationUseCase(private val notificationRepository: NotificationRepositoryPort) {
+class UpdateNotificationUseCase(
+    private val notificationRepository: NotificationRepositoryPort,
+    private val transactionRunner: TransactionRunner,
+) {
 
-    @Transactional
     fun execute(command: UpdateNotificationCommand) {
+        try {
+            transactionRunner.runNew { saveOrUpdate(command) }
+        } catch (_: DataIntegrityViolationException) {
+            // 동시 요청으로 다른 트랜잭션이 먼저 insert 한 경우(user_id UNIQUE 충돌).
+            // 별도 트랜잭션에서 이미 커밋된 행을 다시 조회해 update 로 재시도한다.
+            transactionRunner.runNew { saveOrUpdate(command) }
+        }
+    }
+
+    private fun saveOrUpdate(command: UpdateNotificationCommand) {
         val existing: Notification? = notificationRepository.findByUserId(command.userId)
 
         val notification: Notification = existing?.apply {
