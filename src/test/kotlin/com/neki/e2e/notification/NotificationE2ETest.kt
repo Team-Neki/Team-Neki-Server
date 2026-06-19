@@ -81,10 +81,11 @@ class NotificationE2ETest : E2ETestBase() {
         updateNotification("old-token", false)
         updateNotification("new-token", true)
 
-        val all: List<Notification> = jpaNotificationRepository.findAll()
-        assertEquals(1, all.size)
+        val userRows: List<Notification> =
+            jpaNotificationRepository.findAll().filter { it.userId == testUser.id }
+        assertEquals(1, userRows.size)
 
-        val saved: Notification = all.first()
+        val saved: Notification = userRows.first()
         assertEquals("new-token", saved.deviceToken)
         assertEquals(true, saved.pushAgreed)
     }
