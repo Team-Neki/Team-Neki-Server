@@ -6,6 +6,7 @@ import com.neki.map.application.command.GetPointLocationCommand
 import com.neki.map.application.command.GetPolygonLocationCommand
 import com.neki.map.application.contract.PhotoBoothLocationDto
 import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.application.port.FavoriteMapRepositoryPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.application.result.GetPointLocationResult
 import com.neki.map.application.result.GetPolygonLocationResult
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory
 @UseCase
 class GetPhotoBoothLocationUseCase(
     private val photoBoothLocationRepository: PhotoBoothLocationRepositoryPort,
+    private val favoriteMapRepository: FavoriteMapRepositoryPort,
     private val transactionRunner: TransactionRunner,
 ) {
 
@@ -38,10 +40,14 @@ class GetPhotoBoothLocationUseCase(
         }
 
         if (locations.isEmpty()) {
-            return GetPolygonLocationResult(emptyList())
+            return GetPolygonLocationResult(emptyList(), emptySet())
         }
 
-        return GetPolygonLocationResult(locations)
+        val favoriteLocationIds: Set<Long> = transactionRunner.readOnly {
+            favoriteMapRepository.findLocationIdsByUserId(command.userId)
+        }
+
+        return GetPolygonLocationResult(locations, favoriteLocationIds)
     }
 
     /**
@@ -56,6 +62,14 @@ class GetPhotoBoothLocationUseCase(
             )
         }
 
-        return GetPointLocationResult(locations)
+        if (locations.isEmpty()) {
+            return GetPointLocationResult(emptyList(), emptySet())
+        }
+
+        val favoriteLocationIds: Set<Long> = transactionRunner.readOnly {
+            favoriteMapRepository.findLocationIdsByUserId(command.userId)
+        }
+
+        return GetPointLocationResult(locations, favoriteLocationIds)
     }
 }

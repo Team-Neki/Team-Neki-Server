@@ -10,10 +10,15 @@ import org.locationtech.jts.geom.Coordinate
  */
 data class CollectPhotoBoothCommand(val keyword: String, val brandCode: String)
 
-data class GetPolygonLocationCommand(val coordinates: List<Coordinate>, val brandIds: List<Long>?)
+data class GetPolygonLocationCommand(val userId: Long, val coordinates: List<Coordinate>, val brandIds: List<Long>?)
 
 data class GetPointLocationCommand(
+    val userId: Long,
     val coordinate: Coordinate,
     val radiusInMeters: Int = 1000,
     val brandIds: List<Long>?,
 )
+
+data class UpdateMapFavoriteCommand(val userId: Long, val locationId: Long, val favorite: Boolean)
+
+data class GetFavoriteMapsCommand(val userId: Long)

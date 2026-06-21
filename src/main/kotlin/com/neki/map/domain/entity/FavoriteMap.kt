@@ -1,0 +1,42 @@
+package com.neki.map.domain.entity
+
+import com.neki.common.domain.BaseTimeEntity
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import jakarta.persistence.EmbeddedId
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
+import java.io.Serializable
+
+/**
+ * fileName       : FavoriteMap
+ * author         : darren
+ * date           : 2026. 6. 21.
+ * description    : 지도(포토부스 위치) 즐겨찾기 엔티티
+ */
+@Entity
+@Table(name = "TB_FAVORITE_MAP")
+class FavoriteMap(
+
+    @EmbeddedId
+    val id: FavoriteMapId,
+) : BaseTimeEntity() {
+    protected constructor() : this(
+        FavoriteMapId(0L, 0L),
+    )
+
+    constructor(userId: Long, locationId: Long) : this(
+        FavoriteMapId(userId, locationId),
+    )
+}
+
+@Embeddable
+data class FavoriteMapId(
+
+    @Column(name = "user_id")
+    val userId: Long,
+
+    @Column(name = "location_id")
+    val locationId: Long,
+
+) : Serializable

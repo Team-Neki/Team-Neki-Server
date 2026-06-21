@@ -74,3 +74,9 @@ data class GetPointLocationRequest(
     @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드) ", example = "[1, 2, 3]")
     val brandIds: List<Long>? = null,
 )
+
+data class UpdateMapFavoriteRequest(
+    @field:Schema(description = "변경하고자 하는 즐겨찾기 상태", example = "true")
+    @field:NotNull(message = "favorite은 필수값입니다.")
+    val favorite: Boolean?,
+)

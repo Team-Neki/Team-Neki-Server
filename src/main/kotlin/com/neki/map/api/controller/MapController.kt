@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -96,9 +97,10 @@ class MapController(
     )
     @PostMapping("/polygon")
     fun getPhotoBoothsByPolygon(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: GetPolygonLocationRequest,
     ): BaseResponse<GetPolygonLocationResponse> {
-        val command: GetPolygonLocationCommand = commandConverter.toGetPolygonLocationCommand(request)
+        val command: GetPolygonLocationCommand = commandConverter.toGetPolygonLocationCommand(userId, request)
 
         val result: GetPolygonLocationResult = getPhotoBoothLocationUseCase.execute(command)
 
@@ -118,9 +120,10 @@ class MapController(
     )
     @PostMapping("/point")
     fun getPhotoBoothsByPoint(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: GetPointLocationRequest,
     ): BaseResponse<GetPointLocationResponse> {
-        val command: GetPointLocationCommand = commandConverter.toGetPointLocationCommand(request)
+        val command: GetPointLocationCommand = commandConverter.toGetPointLocationCommand(userId, request)
 
         val result: GetPointLocationResult = getPhotoBoothLocationUseCase.execute(command)
 
