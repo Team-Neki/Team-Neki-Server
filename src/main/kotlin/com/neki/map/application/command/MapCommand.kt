@@ -22,3 +22,5 @@ data class GetPointLocationCommand(
 data class UpdateMapFavoriteCommand(val userId: Long, val locationId: Long, val favorite: Boolean)
 
 data class GetFavoriteMapsCommand(val userId: Long)
+
+data class UpdateBrandOrderCommand(val userId: Long, val brandIds: List<Long>)

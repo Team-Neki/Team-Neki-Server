@@ -7,6 +7,7 @@ import com.neki.map.domain.entity.PhotoBoothLocation
 import com.neki.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.map.infra.persist.jpa.JpaFavoriteMapRepository
 import com.neki.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
+import com.neki.map.infra.persist.jpa.JpaUserBrandOrderRepository
 import org.junit.jupiter.api.AfterEach
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
@@ -30,10 +31,14 @@ abstract class MapE2ETestBase : E2ETestBase() {
     @Autowired
     protected lateinit var favoriteMapRepository: JpaFavoriteMapRepository
 
+    @Autowired
+    protected lateinit var userBrandOrderRepository: JpaUserBrandOrderRepository
+
     protected val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
 
     @AfterEach
     override fun tearDown() {
+        userBrandOrderRepository.deleteAllInBatch()
         favoriteMapRepository.deleteAllInBatch()
         photoBoothLocationRepository.deleteAllInBatch()
         brandRepository.deleteAllInBatch()

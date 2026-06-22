@@ -3,9 +3,11 @@ package com.neki.map.api.converter
 import com.neki.map.api.dto.CollectPhotoBoothRequest
 import com.neki.map.api.dto.GetPointLocationRequest
 import com.neki.map.api.dto.GetPolygonLocationRequest
+import com.neki.map.api.dto.UpdateBrandOrderRequest
 import com.neki.map.application.command.CollectPhotoBoothCommand
 import com.neki.map.application.command.GetPointLocationCommand
 import com.neki.map.application.command.GetPolygonLocationCommand
+import com.neki.map.application.command.UpdateBrandOrderCommand
 import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Component
 
@@ -40,6 +42,12 @@ class MapCommandConverter {
             userId = userId,
             coordinate = Coordinate(request.longitude ?: GANGNAM_LONGITUDE, request.latitude ?: GANGNAM_LATITUDE),
             radiusInMeters = request.radiusInMeters,
+            brandIds = request.brandIds,
+        )
+
+    fun toUpdateBrandOrderCommand(userId: Long, request: UpdateBrandOrderRequest): UpdateBrandOrderCommand =
+        UpdateBrandOrderCommand(
+            userId = userId,
             brandIds = request.brandIds,
         )
 }

@@ -80,3 +80,12 @@ data class UpdateMapFavoriteRequest(
     @field:NotNull(message = "favorite은 필수값입니다.")
     val favorite: Boolean?,
 )
+
+data class UpdateBrandOrderRequest(
+    @field:Schema(
+        description = "정렬할 브랜드 ID 리스트. 보여주고자 하는 순서대로 전달합니다.",
+        example = "[3, 1, 2]",
+    )
+    @field:NotEmpty(message = "brandIds는 필수값입니다.")
+    val brandIds: List<Long>,
+)
