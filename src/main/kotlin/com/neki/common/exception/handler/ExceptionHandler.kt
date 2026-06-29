@@ -32,7 +32,7 @@ class ExceptionHandler {
 
     @ExceptionHandler(BusinessException::class)
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {
-        log.error("[BUSINESS_ERROR] code={} | message={}", ex.resultCode.code, ex.resultCode.message)
+        log.warn("[BUSINESS_ERROR] code={} | message={}", ex.resultCode.code, ex.resultCode.message)
 
         if (ex.resultCode == ResultCode.INVALID_TOKEN_ERROR) {
             return ResponseEntity(

@@ -4,6 +4,7 @@ import com.neki.user.api.dto.UpdateUserProfileImageRequest
 import com.neki.user.api.dto.UpdateUserRequest
 import com.neki.user.application.command.DeleteUserCommand
 import com.neki.user.application.command.GetUserCommand
+import com.neki.user.application.command.LogoutCommand
 import com.neki.user.application.command.UpdateUserInfoCommand
 import com.neki.user.application.command.UpdateUserProfileImageCommand
 import org.springframework.stereotype.Component
@@ -25,4 +26,6 @@ class UserCommandConverter {
         UpdateUserProfileImageCommand(userId, request.mediaId)
 
     fun toDeleteUserCommand(userId: Long) = DeleteUserCommand(userId)
+
+    fun toLogoutCommand(userId: Long) = LogoutCommand(userId)
 }

@@ -9,11 +9,13 @@ import com.neki.user.api.dto.UpdateUserProfileImageRequest
 import com.neki.user.api.dto.UpdateUserRequest
 import com.neki.user.application.command.DeleteUserCommand
 import com.neki.user.application.command.GetUserCommand
+import com.neki.user.application.command.LogoutCommand
 import com.neki.user.application.command.UpdateUserInfoCommand
 import com.neki.user.application.command.UpdateUserProfileImageCommand
 import com.neki.user.application.result.GetUserResult
 import com.neki.user.application.usecase.DeleteMeUseCase
 import com.neki.user.application.usecase.GetUserInfoUseCase
+import com.neki.user.application.usecase.LogoutUseCase
 import com.neki.user.application.usecase.UpdateMeUseCase
 import com.neki.user.application.usecase.UpdateUserProfileImageUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -22,6 +24,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -40,6 +43,7 @@ class UserController(
     private val updateProfileUseCase: UpdateUserProfileImageUseCase,
     private val getUserInfoUseCase: GetUserInfoUseCase,
     private val deleteMeUseCase: DeleteMeUseCase,
+    private val logoutUseCase: LogoutUseCase,
 
     private val commandConverter: UserCommandConverter,
     private val resultConverter: UserResultConverter,
@@ -114,6 +118,19 @@ class UserController(
         val command: DeleteUserCommand = commandConverter.toDeleteUserCommand(userId)
 
         deleteMeUseCase.execute(command)
+
+        return BaseResponse()
+    }
+
+    @Operation(
+        summary = "로그아웃",
+        description = "로그아웃을 진행합니다. 사용자의 FCM 토큰을 삭제하여 더 이상 푸시 알림이 전송되지 않도록 합니다.",
+    )
+    @PostMapping("/logout")
+    fun logout(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<Any> {
+        val command: LogoutCommand = commandConverter.toLogoutCommand(userId)
+
+        logoutUseCase.execute(command)
 
         return BaseResponse()
     }

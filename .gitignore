@@ -45,3 +45,8 @@ localstack_data/
 ### Terraform ###
 infra/terraform/aws/staging/.terraform
 *.tfstate*
+
+### Firebase (FCM service account) ###
+src/main/resources/firebase-service-account.json
+**/firebase-service-account.json
+**/*-firebase-adminsdk-*.json

@@ -5,6 +5,7 @@ import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.application.command.GetUserCommand
 import com.neki.user.application.port.MediaClientPort
+import com.neki.user.application.port.NotificationClientPort
 import com.neki.user.application.port.TermClientPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.application.result.GetUserResult
@@ -21,6 +22,7 @@ class GetUserInfoUseCase(
     private val userRepository: UserRepositoryPort,
     private val mediaClient: MediaClientPort,
     private val termClient: TermClientPort,
+    private val notificationClient: NotificationClientPort,
 ) {
 
     fun execute(command: GetUserCommand): GetUserResult {
@@ -35,6 +37,8 @@ class GetUserInfoUseCase(
 
         val hasAgreedToMarketing = termClient.hasAgreedToMarketing(user.id!!)
 
+        val pushAgreed: Boolean = notificationClient.isPushAgreed(user.id!!)
+
         return GetUserResult(
             userId = user.id!!,
             name = user.name!!,
@@ -43,6 +47,7 @@ class GetUserInfoUseCase(
             providerType = user.providerType,
             agreeTerms = hasAgreedToAllRequired,
             marketingTerm = hasAgreedToMarketing,
+            pushAgreed = pushAgreed,
         )
     }
 }

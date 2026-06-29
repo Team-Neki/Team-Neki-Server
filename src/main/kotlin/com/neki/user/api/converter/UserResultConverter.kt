@@ -27,6 +27,7 @@ class UserResultConverter(private val appProperties: AppProperties) {
         providerType = result.providerType,
         agreeTerms = result.agreeTerms,
         marketingTerm = result.marketingTerm,
+        pushAgreed = result.pushAgreed,
     )
 
     private fun toImageUrl(storageKey: String?): String =

@@ -4,6 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.api.dto.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.application.command.DeleteUserCommand
+import com.neki.user.application.port.NotificationClientPort
 import com.neki.user.application.port.TermClientPort
 import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
@@ -23,6 +24,7 @@ class DeleteMeUseCase(
     private val userRepository: UserRepositoryPort,
     private val userEventPublisher: UserEventPublisherPort,
     private val termClient: TermClientPort,
+    private val notificationClient: NotificationClientPort,
 ) {
 
     @Transactional
@@ -32,6 +34,7 @@ class DeleteMeUseCase(
 
         user.withdraw()
         termClient.revokeOptionalTerms(command.userId)
+        notificationClient.deleteFcmToken(command.userId)
 
         val activeUserCount: Long = userRepository.countByOidIsNotNull()
 
