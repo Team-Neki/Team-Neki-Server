@@ -130,8 +130,8 @@ class GetFavoriteMapsE2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @DisplayName("즐겨찾기한 순서(오래된 순)대로 반환한다")
-    fun givenFavoritesInOrder_whenGetFavoriteMaps_thenReturnsInFavoritedOrder() {
+    @DisplayName("최근 즐겨찾기한 순서대로 반환한다")
+    fun givenFavoritesInOrder_whenGetFavoriteMaps_thenReturnsInRecentFavoritedOrder() {
         // given: location A, B, C 생성 후 B → A → C 순으로 즐겨찾기
         val locationA = createLocation("A점", 127.027456, 37.497946)
         val locationB = createLocation("B점", 127.028123, 37.499123)
@@ -143,7 +143,7 @@ class GetFavoriteMapsE2ETest : MapE2ETestBase() {
         Thread.sleep(10)
         favoriteMap(userId = testUser.id!!, locationId = locationC.id!!)
 
-        // when & then: 즐겨찾기한 순서(B, A, C)대로 반환
+        // when & then: 최근 즐겨찾기한 순서(C, A, B)대로 반환
         RestAssured.given()
             .header("Authorization", "Bearer $accessToken")
             .`when`()
@@ -152,8 +152,8 @@ class GetFavoriteMapsE2ETest : MapE2ETestBase() {
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
             .body("data.items", hasSize<Int>(3))
-            .body("data.items[0].id", equalTo(locationB.id!!.toInt()))
+            .body("data.items[0].id", equalTo(locationC.id!!.toInt()))
             .body("data.items[1].id", equalTo(locationA.id!!.toInt()))
-            .body("data.items[2].id", equalTo(locationC.id!!.toInt()))
+            .body("data.items[2].id", equalTo(locationB.id!!.toInt()))
     }
 }
