@@ -20,17 +20,13 @@ class FavoriteMapRepositoryAdapter(
     private val queryRepository: FavoriteMapQueryRepository,
 ) : FavoriteMapRepositoryPort {
 
-    override fun add(userId: Long, locationId: Long) {
-        val id = FavoriteMapId(userId, locationId)
-
-        if (!jpaRepository.existsById(id)) {
-            jpaRepository.save(FavoriteMap(id))
+    override fun add(favoriteMap: FavoriteMap) {
+        if (!jpaRepository.existsById(favoriteMap.id)) {
+            jpaRepository.save(favoriteMap)
         }
     }
 
-    override fun delete(userId: Long, locationId: Long) = jpaRepository.deleteById(
-        FavoriteMapId(userId, locationId),
-    )
+    override fun delete(favoriteMap: FavoriteMap) = jpaRepository.deleteById(favoriteMap.id)
 
     override fun exists(userId: Long, locationId: Long): Boolean = jpaRepository.existsById(
         FavoriteMapId(userId, locationId),

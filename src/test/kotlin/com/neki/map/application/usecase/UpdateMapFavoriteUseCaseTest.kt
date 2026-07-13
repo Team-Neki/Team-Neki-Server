@@ -5,12 +5,14 @@ import com.neki.common.exception.BusinessException
 import com.neki.map.application.command.UpdateMapFavoriteCommand
 import com.neki.map.application.port.FavoriteMapRepositoryPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
+import com.neki.map.domain.entity.FavoriteMap
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -39,15 +41,18 @@ class UpdateMapFavoriteUseCaseTest {
         // Given
         val command = UpdateMapFavoriteCommand(userId = 1L, locationId = 1L, favorite = true)
 
+        val favoriteMapSlot = slot<FavoriteMap>()
         every { photoBoothLocationRepository.existsById(1L) } returns true
-        every { favoriteMapRepository.add(1L, 1L) } just Runs
+        every { favoriteMapRepository.add(capture(favoriteMapSlot)) } just Runs
 
         // When
         useCase.execute(command)
 
         // Then
-        verify(exactly = 1) { favoriteMapRepository.add(1L, 1L) }
-        verify(exactly = 0) { favoriteMapRepository.delete(any(), any()) }
+        verify(exactly = 1) { favoriteMapRepository.add(any()) }
+        verify(exactly = 0) { favoriteMapRepository.delete(any()) }
+        favoriteMapSlot.captured.id.userId shouldBe 1L
+        favoriteMapSlot.captured.id.locationId shouldBe 1L
     }
 
     @Test
@@ -56,15 +61,18 @@ class UpdateMapFavoriteUseCaseTest {
         // Given
         val command = UpdateMapFavoriteCommand(userId = 1L, locationId = 1L, favorite = false)
 
+        val favoriteMapSlot = slot<FavoriteMap>()
         every { photoBoothLocationRepository.existsById(1L) } returns true
-        every { favoriteMapRepository.delete(1L, 1L) } just Runs
+        every { favoriteMapRepository.delete(capture(favoriteMapSlot)) } just Runs
 
         // When
         useCase.execute(command)
 
         // Then
-        verify(exactly = 1) { favoriteMapRepository.delete(1L, 1L) }
-        verify(exactly = 0) { favoriteMapRepository.add(any(), any()) }
+        verify(exactly = 1) { favoriteMapRepository.delete(any()) }
+        verify(exactly = 0) { favoriteMapRepository.add(any()) }
+        favoriteMapSlot.captured.id.userId shouldBe 1L
+        favoriteMapSlot.captured.id.locationId shouldBe 1L
     }
 
     @Test
@@ -80,7 +88,7 @@ class UpdateMapFavoriteUseCaseTest {
             useCase.execute(command)
         }
         ex.resultCode shouldBe ResultCode.NOT_FOUND
-        verify(exactly = 0) { favoriteMapRepository.add(any(), any()) }
-        verify(exactly = 0) { favoriteMapRepository.delete(any(), any()) }
+        verify(exactly = 0) { favoriteMapRepository.add(any()) }
+        verify(exactly = 0) { favoriteMapRepository.delete(any()) }
     }
 }

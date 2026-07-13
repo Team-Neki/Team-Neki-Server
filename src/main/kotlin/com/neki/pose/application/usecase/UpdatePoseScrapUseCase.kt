@@ -6,6 +6,7 @@ import com.neki.common.exception.BusinessException
 import com.neki.pose.application.command.UpdatePoseScrapCommand
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
+import com.neki.pose.domain.entity.ScrapPose
 import org.springframework.transaction.annotation.Transactional
 
 @UseCase
@@ -21,10 +22,11 @@ class UpdatePoseScrapUseCase(
 
         if (!poseExists) throw BusinessException(ResultCode.NOT_FOUND)
 
+        val scrapPose = ScrapPose(command.userId, command.poseId)
         if (command.scrap) {
-            scrapPoseRepository.add(command.userId, command.poseId)
+            scrapPoseRepository.add(scrapPose)
         } else {
-            scrapPoseRepository.delete(command.userId, command.poseId)
+            scrapPoseRepository.delete(scrapPose)
         }
     }
 }
