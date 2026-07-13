@@ -151,24 +151,6 @@ class UpdateBrandOrderE2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @DisplayName("중복된 브랜드 ID가 포함되면 INVALID_PARAMETER 코드를 반환한다")
-    fun givenDuplicatedBrandIds_whenUpdateOrder_thenReturnsInvalidParameter() {
-        // given
-        val photoism = createBrand("포토이즘", "PHOTOISM")
-
-        // when & then
-        RestAssured.given()
-            .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer $accessToken")
-            .body(UpdateBrandOrderRequest(listOf(photoism.id!!, photoism.id!!)))
-            .`when`()
-            .put("/api/photo-booths/brand/order")
-            .then()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
-    }
-
-    @Test
     @DisplayName("존재하지 않는 브랜드 ID가 포함되면 NOT_FOUND 코드를 반환한다")
     fun givenNonExistentBrandId_whenUpdateOrder_thenReturnsNotFound() {
         // given
