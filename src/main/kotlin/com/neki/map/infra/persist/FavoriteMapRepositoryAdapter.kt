@@ -35,6 +35,6 @@ class FavoriteMapRepositoryAdapter(
     override fun findFavoriteLocationsByUserId(userId: Long): List<PhotoBoothLocationDto> =
         queryRepository.findFavoriteLocationsByUserId(userId)
 
-    override fun findLocationIdsByUserId(userId: Long): Set<Long> =
-        queryRepository.findLocationIdsByUserId(userId).toSet()
+    override fun findFavoritedLocationIds(userId: Long, locationIds: List<Long>): Set<Long> =
+        queryRepository.findFavoritedLocationIds(userId, locationIds).toSet()
 }

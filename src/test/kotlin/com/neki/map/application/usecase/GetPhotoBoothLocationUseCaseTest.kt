@@ -82,7 +82,7 @@ class GetPhotoBoothLocationUseCaseTest :
                 )
             } returns locationDtos
             // 1번 부스만 즐겨찾기한 상태
-            every { favoriteMapRepository.findLocationIdsByUserId(userId) } returns setOf(1L)
+            every { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L, 2L)) } returns setOf(1L)
 
             // When
             val result = useCase.execute(command)
@@ -99,7 +99,7 @@ class GetPhotoBoothLocationUseCaseTest :
                     brandIds = null,
                 )
             }
-            verify(exactly = 1) { favoriteMapRepository.findLocationIdsByUserId(userId) }
+            verify(exactly = 1) { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L, 2L)) }
         }
 
         test("Polygon 검색 - 결과가 없으면 빈 리스트를 반환하고 즐겨찾기를 조회하지 않는다") {
@@ -127,7 +127,7 @@ class GetPhotoBoothLocationUseCaseTest :
             // Then
             result.locations.shouldBeEmpty()
             result.favoriteLocationIds.shouldBeEmpty()
-            verify(exactly = 0) { favoriteMapRepository.findLocationIdsByUserId(any()) }
+            verify(exactly = 0) { favoriteMapRepository.findFavoritedLocationIds(any(), any()) }
         }
 
         // ── Point 검색 ────────────────────────────────────────────────────────────
@@ -161,7 +161,7 @@ class GetPhotoBoothLocationUseCaseTest :
                     brandIds = null,
                 )
             } returns locationDtos
-            every { favoriteMapRepository.findLocationIdsByUserId(userId) } returns setOf(1L)
+            every { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L)) } returns setOf(1L)
 
             // When
             val result = useCase.execute(command)
@@ -179,7 +179,7 @@ class GetPhotoBoothLocationUseCaseTest :
                     brandIds = null,
                 )
             }
-            verify(exactly = 1) { favoriteMapRepository.findLocationIdsByUserId(userId) }
+            verify(exactly = 1) { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L)) }
         }
 
         test("Point 검색 - 결과가 없으면 빈 리스트를 반환하고 즐겨찾기를 조회하지 않는다") {
@@ -206,6 +206,6 @@ class GetPhotoBoothLocationUseCaseTest :
             // Then
             result.locations.shouldBeEmpty()
             result.favoriteLocationIds.shouldBeEmpty()
-            verify(exactly = 0) { favoriteMapRepository.findLocationIdsByUserId(any()) }
+            verify(exactly = 0) { favoriteMapRepository.findFavoritedLocationIds(any(), any()) }
         }
     })

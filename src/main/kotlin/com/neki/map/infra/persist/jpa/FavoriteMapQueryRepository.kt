@@ -40,12 +40,20 @@ class FavoriteMapQueryRepository(private val queryFactory: JPAQueryFactory) {
         .fetch()
 
     /**
-     * 사용자가 즐겨찾기한 포토부스 위치 ID 목록 조회
+     * 주어진 위치 ID 중 사용자가 즐겨찾기한 위치 ID 목록 조회
      * @param userId 사용자 ID
+     * @param locationIds 조회 범위로 제한할 위치 ID 목록
      */
-    fun findLocationIdsByUserId(userId: Long): List<Long> = queryFactory
-        .select(favoriteMap.id.locationId)
-        .from(favoriteMap)
-        .where(favoriteMap.id.userId.eq(userId))
-        .fetch()
+    fun findFavoritedLocationIds(userId: Long, locationIds: List<Long>): List<Long> {
+        if (locationIds.isEmpty()) return emptyList()
+
+        return queryFactory
+            .select(favoriteMap.id.locationId)
+            .from(favoriteMap)
+            .where(
+                favoriteMap.id.userId.eq(userId),
+                favoriteMap.id.locationId.`in`(locationIds),
+            )
+            .fetch()
+    }
 }

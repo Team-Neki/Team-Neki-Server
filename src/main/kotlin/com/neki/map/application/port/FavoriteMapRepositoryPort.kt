@@ -19,5 +19,5 @@ interface FavoriteMapRepositoryPort {
 
     fun findFavoriteLocationsByUserId(userId: Long): List<PhotoBoothLocationDto>
 
-    fun findLocationIdsByUserId(userId: Long): Set<Long>
+    fun findFavoritedLocationIds(userId: Long, locationIds: List<Long>): Set<Long>
 }
