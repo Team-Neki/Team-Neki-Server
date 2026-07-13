@@ -36,9 +36,7 @@ class FavoriteImageRepositoryAdapter(
         queryRepository.deleteAllByUserIdAndPhotoIds(userId, photoIds)
     }
 
-    override fun exists(userId: Long, photoId: Long): Boolean = jpaRepository.existsById(
-        FavoritePhotoId(userId, photoId),
-    )
+    override fun exists(favoritePhoto: FavoritePhoto): Boolean = jpaRepository.existsById(favoritePhoto.id)
 
     override fun findPhotoIdsByUserId(userId: Long): Set<Long> = jpaRepository.findAllByIdUserId(userId)
         .map { it.id.photoId }

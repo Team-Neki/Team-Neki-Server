@@ -2,7 +2,6 @@ package com.neki.pose.infra.persist
 
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
 import com.neki.pose.domain.entity.ScrapPose
-import com.neki.pose.domain.entity.ScrapPoseId
 import com.neki.pose.infra.persist.jpa.JpaScrapPoseRepository
 import org.springframework.stereotype.Repository
 
@@ -23,6 +22,5 @@ class ScrapPoseRepositoryAdapter(private val jpaRepository: JpaScrapPoseReposito
         jpaRepository.deleteById(scrapPose.id)
     }
 
-    override fun existsOwnedPoseScrap(userId: Long, poseId: Long): Boolean =
-        jpaRepository.existsById(ScrapPoseId(userId, poseId))
+    override fun existsOwnedPoseScrap(scrapPose: ScrapPose): Boolean = jpaRepository.existsById(scrapPose.id)
 }

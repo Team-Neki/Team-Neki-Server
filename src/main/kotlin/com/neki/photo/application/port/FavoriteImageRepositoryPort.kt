@@ -18,7 +18,7 @@ interface FavoriteImageRepositoryPort {
 
     fun deleteAll(userId: Long, photoIds: List<Long>)
 
-    fun exists(userId: Long, photoId: Long): Boolean
+    fun exists(favoritePhoto: FavoritePhoto): Boolean
 
     fun findPhotoIdsByUserId(userId: Long): Set<Long>
 

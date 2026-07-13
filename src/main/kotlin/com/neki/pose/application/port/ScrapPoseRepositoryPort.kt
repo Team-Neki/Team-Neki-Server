@@ -7,5 +7,5 @@ interface ScrapPoseRepositoryPort {
 
     fun delete(scrapPose: ScrapPose)
 
-    fun existsOwnedPoseScrap(userId: Long, poseId: Long): Boolean
+    fun existsOwnedPoseScrap(scrapPose: ScrapPose): Boolean
 }

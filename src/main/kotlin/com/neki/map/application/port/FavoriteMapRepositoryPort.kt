@@ -15,7 +15,7 @@ interface FavoriteMapRepositoryPort {
 
     fun delete(favoriteMap: FavoriteMap)
 
-    fun exists(userId: Long, locationId: Long): Boolean
+    fun exists(favoriteMap: FavoriteMap): Boolean
 
     fun findFavoriteLocationsByUserId(userId: Long): List<PhotoBoothLocationDto>
 
