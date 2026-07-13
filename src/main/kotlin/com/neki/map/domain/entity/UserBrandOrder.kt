@@ -41,10 +41,18 @@ class UserBrandOrder(
 @Embeddable
 data class UserBrandOrderId(
 
-    @Column(name = "user_id")
+    @Column(
+        name = "user_id",
+        nullable = false,
+        updatable = false,
+    )
     val userId: Long,
 
-    @Column(name = "brand_id")
+    @Column(
+        name = "brand_id",
+        nullable = false,
+        updatable = false,
+    )
     val brandId: Long,
 
 ) : Serializable

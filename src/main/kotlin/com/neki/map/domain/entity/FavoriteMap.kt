@@ -33,10 +33,18 @@ class FavoriteMap(
 @Embeddable
 data class FavoriteMapId(
 
-    @Column(name = "user_id")
+    @Column(
+        name = "user_id",
+        nullable = false,
+        updatable = false,
+    )
     val userId: Long,
 
-    @Column(name = "location_id")
+    @Column(
+        name = "location_id",
+        nullable = false,
+        updatable = false,
+    )
     val locationId: Long,
 
 ) : Serializable
