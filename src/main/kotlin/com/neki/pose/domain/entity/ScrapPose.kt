@@ -1,12 +1,15 @@
 package com.neki.pose.domain.entity
 
-import com.neki.common.domain.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
 import jakarta.persistence.Table
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
+import java.time.LocalDateTime
 
 /**
  * fileName       : ScrapPose
@@ -16,10 +19,19 @@ import java.io.Serializable
  */
 @Entity
 @Table(name = "TB_SCRAP_POSE")
+@EntityListeners(AuditingEntityListener::class)
 class ScrapPose(
     @EmbeddedId
     val id: ScrapPoseId,
-) : BaseTimeEntity() {
+
+    @CreatedDate
+    @Column(
+        name = "created_at",
+        nullable = false,
+        updatable = false,
+    )
+    var createdAt: LocalDateTime? = null,
+) {
 
     constructor(userId: Long, imageId: Long) : this(
         id = ScrapPoseId(

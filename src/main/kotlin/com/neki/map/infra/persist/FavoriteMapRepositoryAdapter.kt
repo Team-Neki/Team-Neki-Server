@@ -21,9 +21,7 @@ class FavoriteMapRepositoryAdapter(
 ) : FavoriteMapRepositoryPort {
 
     override fun add(favoriteMap: FavoriteMap) {
-        if (!jpaRepository.existsById(favoriteMap.id)) {
-            jpaRepository.save(favoriteMap)
-        }
+        jpaRepository.save(favoriteMap)
     }
 
     override fun delete(favoriteMap: FavoriteMap) = jpaRepository.deleteById(favoriteMap.id)

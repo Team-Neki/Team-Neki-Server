@@ -20,9 +20,7 @@ class FavoriteImageRepositoryAdapter(
 ) : FavoriteImageRepositoryPort {
 
     override fun add(favoritePhoto: FavoritePhoto) {
-        if (!jpaRepository.existsById(favoritePhoto.id)) {
-            jpaRepository.save(favoritePhoto)
-        }
+        jpaRepository.save(favoritePhoto)
     }
 
     override fun addAll(userId: Long, photoIds: List<Long>) {

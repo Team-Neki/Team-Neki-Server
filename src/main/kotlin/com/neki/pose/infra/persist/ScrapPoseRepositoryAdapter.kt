@@ -16,9 +16,7 @@ import org.springframework.stereotype.Repository
 class ScrapPoseRepositoryAdapter(private val jpaRepository: JpaScrapPoseRepository) : ScrapPoseRepositoryPort {
 
     override fun add(scrapPose: ScrapPose) {
-        if (!jpaRepository.existsById(scrapPose.id)) {
-            jpaRepository.save(scrapPose)
-        }
+        jpaRepository.save(scrapPose)
     }
 
     override fun delete(scrapPose: ScrapPose) {
