@@ -1,6 +1,6 @@
 package com.neki.e2e.user
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.e2e.E2ETestBase
 import com.neki.notification.domain.entity.Notification
 import com.neki.notification.infra.persist.jpa.JpaNotificationRepository

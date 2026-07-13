@@ -1,7 +1,7 @@
 package com.neki.map.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.map.application.command.UpdateBrandOrderCommand
 import com.neki.map.application.port.BrandRepositoryPort

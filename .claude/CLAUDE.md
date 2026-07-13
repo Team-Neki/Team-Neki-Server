@@ -158,6 +158,6 @@ SPEC_MISMATCH → 요구사항 재확인
 |--------------------|------------------------------------------------------------------|
 | UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt`          |
 | Base response      | `src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`        |
-| Result codes       | `src/main/kotlin/com/neki/common/api/dto/ResultCode.kt`          |
+| Result codes       | `src/main/kotlin/com/neki/common/code/ResultCode.kt`             |
 | Business exception | `src/main/kotlin/com/neki/common/exception/BusinessException.kt` |
 | E2E test base      | `src/test/kotlin/com/neki/e2e/E2ETestBase.kt`                    |

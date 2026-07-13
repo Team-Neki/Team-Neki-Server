@@ -1,4 +1,4 @@
-package com.neki.common.api.dto
+package com.neki.common.code
 
 /**
  * fileName       : ResultCode
