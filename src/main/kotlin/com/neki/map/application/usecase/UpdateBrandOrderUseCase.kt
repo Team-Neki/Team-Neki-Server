@@ -7,6 +7,7 @@ import com.neki.map.application.command.UpdateBrandOrderCommand
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.UserBrandOrderRepositoryPort
 import com.neki.map.domain.entity.Brand
+import com.neki.map.domain.entity.UserBrandOrder
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -30,6 +31,7 @@ class UpdateBrandOrderUseCase(
             throw BusinessException(ResultCode.NOT_FOUND)
         }
 
-        userBrandOrderRepository.replaceOrder(command.userId, brandIds)
+        val orders: List<UserBrandOrder> = UserBrandOrder.ofOrderedBrandIds(command.userId, brandIds)
+        userBrandOrderRepository.replaceOrder(command.userId, orders)
     }
 }

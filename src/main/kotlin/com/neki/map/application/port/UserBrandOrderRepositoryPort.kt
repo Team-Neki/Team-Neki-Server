@@ -1,5 +1,7 @@
 package com.neki.map.application.port
 
+import com.neki.map.domain.entity.UserBrandOrder
+
 /**
  * fileName       : UserBrandOrderRepositoryPort
  * author         : darren
@@ -10,5 +12,5 @@ interface UserBrandOrderRepositoryPort {
 
     fun findSortOrderMapByUserId(userId: Long): Map<Long, Int>
 
-    fun replaceOrder(userId: Long, brandIds: List<Long>)
+    fun replaceOrder(userId: Long, orders: List<UserBrandOrder>)
 }

@@ -36,6 +36,17 @@ class UserBrandOrder(
         ),
         sortOrder = sortOrder,
     )
+
+    companion object {
+        /**
+         * 사용자가 지정한 브랜드 순서를 정렬 엔티티 목록으로 변환한다.
+         * 리스트의 위치(index)가 곧 정렬 순서(sortOrder)가 된다.
+         */
+        fun ofOrderedBrandIds(userId: Long, brandIds: List<Long>): List<UserBrandOrder> =
+            brandIds.mapIndexed { index, brandId ->
+                UserBrandOrder(userId = userId, brandId = brandId, sortOrder = index)
+            }
+    }
 }
 
 @Embeddable
