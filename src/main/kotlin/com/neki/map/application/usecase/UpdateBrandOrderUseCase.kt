@@ -25,10 +25,6 @@ class UpdateBrandOrderUseCase(
     fun execute(command: UpdateBrandOrderCommand) {
         val brandIds: List<Long> = command.brandIds
 
-        if (brandIds.size != brandIds.toSet().size) {
-            throw BusinessException(ResultCode.INVALID_PARAMETER)
-        }
-
         val existingBrandIds: Set<Long> = brandRepository.findAll().mapNotNull(Brand::id).toSet()
         if (!existingBrandIds.containsAll(brandIds)) {
             throw BusinessException(ResultCode.NOT_FOUND)
