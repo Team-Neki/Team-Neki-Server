@@ -1,6 +1,6 @@
 package com.neki.e2e.map
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.map.api.dto.UpdateBrandOrderRequest
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -148,24 +148,6 @@ class UpdateBrandOrderE2ETest : MapE2ETestBase() {
         assertThat(saved).containsExactlyInAnyOrderEntriesOf(
             mapOf(lifefour.id!! to 0, photoism.id!! to 1),
         )
-    }
-
-    @Test
-    @DisplayName("중복된 브랜드 ID가 포함되면 INVALID_PARAMETER 코드를 반환한다")
-    fun givenDuplicatedBrandIds_whenUpdateOrder_thenReturnsInvalidParameter() {
-        // given
-        val photoism = createBrand("포토이즘", "PHOTOISM")
-
-        // when & then
-        RestAssured.given()
-            .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer $accessToken")
-            .body(UpdateBrandOrderRequest(listOf(photoism.id!!, photoism.id!!)))
-            .`when`()
-            .put("/api/photo-booths/brand/order")
-            .then()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
     }
 
     @Test

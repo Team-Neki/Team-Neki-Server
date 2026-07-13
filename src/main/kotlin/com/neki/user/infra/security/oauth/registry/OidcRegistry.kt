@@ -1,6 +1,6 @@
 package com.neki.user.infra.security.oauth.registry
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.domain.enums.ProviderType
 import com.neki.user.infra.security.oauth.oidc.AppleOidc

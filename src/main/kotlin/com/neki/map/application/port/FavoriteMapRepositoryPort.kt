@@ -1,6 +1,7 @@
 package com.neki.map.application.port
 
 import com.neki.map.application.contract.PhotoBoothLocationDto
+import com.neki.map.domain.entity.FavoriteMap
 
 /**
  * fileName       : FavoriteMapRepositoryPort
@@ -10,13 +11,13 @@ import com.neki.map.application.contract.PhotoBoothLocationDto
  */
 interface FavoriteMapRepositoryPort {
 
-    fun add(userId: Long, locationId: Long)
+    fun add(favoriteMap: FavoriteMap)
 
-    fun delete(userId: Long, locationId: Long)
+    fun delete(favoriteMap: FavoriteMap)
 
-    fun exists(userId: Long, locationId: Long): Boolean
+    fun exists(favoriteMap: FavoriteMap): Boolean
 
     fun findFavoriteLocationsByUserId(userId: Long): List<PhotoBoothLocationDto>
 
-    fun findLocationIdsByUserId(userId: Long): Set<Long>
+    fun findFavoritedLocationIds(userId: Long, locationIds: List<Long>): Set<Long>
 }

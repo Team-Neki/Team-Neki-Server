@@ -1,7 +1,7 @@
 package com.neki.e2e.photo.folder
 
 import com.neki.common.api.dto.BaseResponse
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.e2e.E2ETestBase
 import com.neki.photo.api.dto.CreateFolderRequest
 import com.neki.photo.api.dto.CreateFolderResponse

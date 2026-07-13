@@ -1,5 +1,6 @@
 package com.neki.common.api.dto
 
+import com.neki.common.code.ResultCode
 import io.swagger.v3.oas.annotations.media.Schema
 
 /**

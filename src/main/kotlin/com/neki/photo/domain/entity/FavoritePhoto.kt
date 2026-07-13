@@ -1,12 +1,15 @@
 package com.neki.photo.domain.entity
 
-import com.neki.common.domain.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
 import jakarta.persistence.Table
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
+import java.time.LocalDateTime
 
 /**
  * fileName       : FavoriteImage
@@ -16,17 +19,26 @@ import java.io.Serializable
  */
 @Entity
 @Table(name = "TB_FAVORITE_IMAGE")
+@EntityListeners(AuditingEntityListener::class)
 class FavoritePhoto(
 
     @EmbeddedId
     val id: FavoritePhotoId,
-) : BaseTimeEntity() {
-    protected constructor() : this(
-        FavoritePhotoId(0L, 0L),
+
+    @CreatedDate
+    @Column(
+        name = "created_at",
+        nullable = false,
+        updatable = false,
     )
+    var createdAt: LocalDateTime? = null,
+) {
 
     constructor(userId: Long, imageId: Long) : this(
-        FavoritePhotoId(userId, imageId),
+        id = FavoritePhotoId(
+            userId = userId,
+            photoId = imageId,
+        ),
     )
 }
 

@@ -1,16 +1,18 @@
 package com.neki.pose.application.usecase
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.pose.application.command.UpdatePoseScrapCommand
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
+import com.neki.pose.domain.entity.ScrapPose
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -34,15 +36,18 @@ class UpdatePoseScrapUseCaseTest {
     fun `스크랩 추가 (scrap=true) - add() 호출 확인`() {
         // Given
         val command = UpdatePoseScrapCommand(userId = 1L, poseId = 10L, scrap = true)
+        val scrapPoseSlot = slot<ScrapPose>()
         every { poseRepository.existsPose(10L) } returns true
-        every { scrapPoseRepository.add(1L, 10L) } just Runs
+        every { scrapPoseRepository.add(capture(scrapPoseSlot)) } just Runs
 
         // When
         useCase.execute(command)
 
         // Then
-        verify(exactly = 1) { scrapPoseRepository.add(1L, 10L) }
-        verify(exactly = 0) { scrapPoseRepository.delete(any(), any()) }
+        verify(exactly = 1) { scrapPoseRepository.add(any()) }
+        verify(exactly = 0) { scrapPoseRepository.delete(any()) }
+        scrapPoseSlot.captured.id.userId shouldBe 1L
+        scrapPoseSlot.captured.id.poseId shouldBe 10L
     }
 
     @Test
@@ -50,15 +55,18 @@ class UpdatePoseScrapUseCaseTest {
     fun `스크랩 해제 (scrap=false) - delete() 호출 확인`() {
         // Given
         val command = UpdatePoseScrapCommand(userId = 1L, poseId = 10L, scrap = false)
+        val scrapPoseSlot = slot<ScrapPose>()
         every { poseRepository.existsPose(10L) } returns true
-        every { scrapPoseRepository.delete(1L, 10L) } just Runs
+        every { scrapPoseRepository.delete(capture(scrapPoseSlot)) } just Runs
 
         // When
         useCase.execute(command)
 
         // Then
-        verify(exactly = 1) { scrapPoseRepository.delete(1L, 10L) }
-        verify(exactly = 0) { scrapPoseRepository.add(any(), any()) }
+        verify(exactly = 1) { scrapPoseRepository.delete(any()) }
+        verify(exactly = 0) { scrapPoseRepository.add(any()) }
+        scrapPoseSlot.captured.id.userId shouldBe 1L
+        scrapPoseSlot.captured.id.poseId shouldBe 10L
     }
 
     @Test
@@ -73,8 +81,8 @@ class UpdatePoseScrapUseCaseTest {
             useCase.execute(command)
         }
         ex.resultCode shouldBe ResultCode.NOT_FOUND
-        verify(exactly = 0) { scrapPoseRepository.add(any(), any()) }
-        verify(exactly = 0) { scrapPoseRepository.delete(any(), any()) }
+        verify(exactly = 0) { scrapPoseRepository.add(any()) }
+        verify(exactly = 0) { scrapPoseRepository.delete(any()) }
     }
 
     @Test
@@ -83,13 +91,13 @@ class UpdatePoseScrapUseCaseTest {
         // Given
         val command = UpdatePoseScrapCommand(userId = 1L, poseId = 10L, scrap = true)
         every { poseRepository.existsPose(10L) } returns true
-        every { scrapPoseRepository.add(1L, 10L) } just Runs
+        every { scrapPoseRepository.add(any()) } just Runs
 
         // When
         useCase.execute(command)
 
         // Then - 예외 없이 정상 처리
-        verify(exactly = 1) { scrapPoseRepository.add(1L, 10L) }
+        verify(exactly = 1) { scrapPoseRepository.add(any()) }
     }
 
     @Test
@@ -98,12 +106,12 @@ class UpdatePoseScrapUseCaseTest {
         // Given
         val command = UpdatePoseScrapCommand(userId = 1L, poseId = 10L, scrap = false)
         every { poseRepository.existsPose(10L) } returns true
-        every { scrapPoseRepository.delete(1L, 10L) } just Runs
+        every { scrapPoseRepository.delete(any()) } just Runs
 
         // When
         useCase.execute(command)
 
         // Then - 예외 없이 정상 처리
-        verify(exactly = 1) { scrapPoseRepository.delete(1L, 10L) }
+        verify(exactly = 1) { scrapPoseRepository.delete(any()) }
     }
 }

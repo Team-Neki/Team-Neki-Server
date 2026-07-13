@@ -1,6 +1,6 @@
 package com.neki.common.exception.handler
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.exception.dto.ExceptionMsg
 import com.neki.common.exception.dto.FieldErrorDetail

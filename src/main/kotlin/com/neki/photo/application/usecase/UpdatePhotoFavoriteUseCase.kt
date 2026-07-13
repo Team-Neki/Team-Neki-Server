@@ -1,11 +1,12 @@
 package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.photo.application.command.UpdatePhotoFavoriteCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.domain.entity.FavoritePhoto
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -27,10 +28,11 @@ class UpdatePhotoFavoriteUseCase(
 
         if (!photoExists) throw BusinessException(ResultCode.NOT_FOUND)
 
+        val favoritePhoto = FavoritePhoto(command.userId, command.photoId)
         if (command.favorite) {
-            favoriteImageRepository.add(command.userId, command.photoId)
+            favoriteImageRepository.add(favoritePhoto)
         } else {
-            favoriteImageRepository.delete(command.userId, command.photoId)
+            favoriteImageRepository.delete(favoritePhoto)
         }
     }
 }

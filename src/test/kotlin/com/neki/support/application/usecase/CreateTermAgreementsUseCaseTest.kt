@@ -1,6 +1,6 @@
 package com.neki.support.application.usecase
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.support.application.command.CreateTermAgreementsCommand
 import com.neki.support.application.command.TermAgreementItem

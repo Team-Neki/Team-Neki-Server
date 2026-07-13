@@ -1,7 +1,7 @@
 package com.neki.pose.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.pose.application.command.GetRandomPoseCommand
 import com.neki.pose.application.contract.MediaStorageInfo
@@ -11,6 +11,7 @@ import com.neki.pose.application.port.RandomGeneratorPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
 import com.neki.pose.application.result.GetPoseResult
 import com.neki.pose.domain.entity.Pose
+import com.neki.pose.domain.entity.ScrapPose
 
 @UseCase
 class RandomPoseUseCase(
@@ -31,7 +32,7 @@ class RandomPoseUseCase(
         val pose: Pose = poseRepository.findPoseByOffset(randomOffset, command.headCount, command.excludeIds)
             ?: throw BusinessException(ResultCode.NO_MORE_RANDOM_POSE)
 
-        val isScraped: Boolean = scrapPoseRepository.existsOwnedPoseScrap(command.userId, pose.id!!)
+        val isScraped: Boolean = scrapPoseRepository.existsOwnedPoseScrap(ScrapPose(command.userId, pose.id!!))
 
         val mediaInfo: MediaStorageInfo = mediaClient.getMediaStorageInfo(pose.mediaId)
 

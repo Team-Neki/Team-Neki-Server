@@ -1,12 +1,13 @@
 package com.neki.map.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.map.application.command.UpdateBrandOrderCommand
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.UserBrandOrderRepositoryPort
 import com.neki.map.domain.entity.Brand
+import com.neki.map.domain.entity.UserBrandOrder
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -25,15 +26,12 @@ class UpdateBrandOrderUseCase(
     fun execute(command: UpdateBrandOrderCommand) {
         val brandIds: List<Long> = command.brandIds
 
-        if (brandIds.size != brandIds.toSet().size) {
-            throw BusinessException(ResultCode.INVALID_PARAMETER)
-        }
-
         val existingBrandIds: Set<Long> = brandRepository.findAll().mapNotNull(Brand::id).toSet()
         if (!existingBrandIds.containsAll(brandIds)) {
             throw BusinessException(ResultCode.NOT_FOUND)
         }
 
-        userBrandOrderRepository.replaceOrder(command.userId, brandIds)
+        val orders: List<UserBrandOrder> = UserBrandOrder.ofOrderedBrandIds(command.userId, brandIds)
+        userBrandOrderRepository.replaceOrder(command.userId, orders)
     }
 }

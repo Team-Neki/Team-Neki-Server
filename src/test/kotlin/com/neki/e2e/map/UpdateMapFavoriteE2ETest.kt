@@ -1,6 +1,6 @@
 package com.neki.e2e.map
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.map.api.dto.UpdateMapFavoriteRequest
 import com.neki.map.domain.entity.Brand
 import com.neki.map.domain.entity.FavoriteMapId

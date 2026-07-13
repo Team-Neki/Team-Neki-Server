@@ -282,8 +282,8 @@ class FavoriteImageRepositoryAdapter(
     private val queryRepository: FavoritePhotoQueryRepository,
 ) : FavoriteImageRepositoryPort {
 
-    override fun delete(userId: Long, photoId: Long) =
-        jpaRepository.deleteById(FavoritePhotoId(userId, photoId))
+    override fun delete(favoritePhoto: FavoritePhoto) =
+        jpaRepository.deleteById(favoritePhoto.id)
 
     override fun deleteAll(userId: Long, photoIds: List<Long>) {
         if (photoIds.isEmpty()) return
@@ -316,7 +316,7 @@ class DeletePhotoUseCase(
     fun execute(command: DeletePhotoCommand) {
         val photo = transactionRunner.run {
             // 1. Delete favorites FIRST (dependent)
-            favoriteImageRepository.delete(command.userId, command.photoId)
+            favoriteImageRepository.delete(FavoritePhoto(command.userId, command.photoId))
 
             // 2. Delete photo SECOND (parent)
             photoImageRepository.deleteOwnedPhoto(command.userId, command.photoId)

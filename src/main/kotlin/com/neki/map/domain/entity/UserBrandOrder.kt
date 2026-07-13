@@ -24,24 +24,46 @@ class UserBrandOrder(
     @Column(name = "sort_order", nullable = false)
     var sortOrder: Int,
 ) : BaseTimeEntity() {
-    protected constructor() : this(
-        UserBrandOrderId(0L, 0L),
-        0,
+
+    constructor(
+        userId: Long,
+        brandId: Long,
+        sortOrder: Int,
+    ) : this(
+        id = UserBrandOrderId(
+            userId = userId,
+            brandId = brandId,
+        ),
+        sortOrder = sortOrder,
     )
 
-    constructor(userId: Long, brandId: Long, sortOrder: Int) : this(
-        UserBrandOrderId(userId, brandId),
-        sortOrder,
-    )
+    companion object {
+        /**
+         * 사용자가 지정한 브랜드 순서를 정렬 엔티티 목록으로 변환한다.
+         * 리스트의 위치(index)가 곧 정렬 순서(sortOrder)가 된다.
+         */
+        fun ofOrderedBrandIds(userId: Long, brandIds: List<Long>): List<UserBrandOrder> =
+            brandIds.mapIndexed { index, brandId ->
+                UserBrandOrder(userId = userId, brandId = brandId, sortOrder = index)
+            }
+    }
 }
 
 @Embeddable
 data class UserBrandOrderId(
 
-    @Column(name = "user_id")
+    @Column(
+        name = "user_id",
+        nullable = false,
+        updatable = false,
+    )
     val userId: Long,
 
-    @Column(name = "brand_id")
+    @Column(
+        name = "brand_id",
+        nullable = false,
+        updatable = false,
+    )
     val brandId: Long,
 
 ) : Serializable

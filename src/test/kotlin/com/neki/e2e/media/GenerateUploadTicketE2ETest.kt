@@ -1,6 +1,6 @@
 package com.neki.e2e.media
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.media.api.dto.UploadTicketRequest
 import com.neki.media.domain.MediaType
 import com.neki.user.domain.entity.User

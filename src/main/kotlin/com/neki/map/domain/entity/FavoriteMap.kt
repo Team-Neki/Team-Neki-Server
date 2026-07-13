@@ -1,12 +1,15 @@
 package com.neki.map.domain.entity
 
-import com.neki.common.domain.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
 import jakarta.persistence.Table
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.io.Serializable
+import java.time.LocalDateTime
 
 /**
  * fileName       : FavoriteMap
@@ -16,27 +19,44 @@ import java.io.Serializable
  */
 @Entity
 @Table(name = "TB_FAVORITE_MAP")
+@EntityListeners(AuditingEntityListener::class)
 class FavoriteMap(
 
     @EmbeddedId
     val id: FavoriteMapId,
-) : BaseTimeEntity() {
-    protected constructor() : this(
-        FavoriteMapId(0L, 0L),
+
+    @CreatedDate
+    @Column(
+        name = "created_at",
+        nullable = false,
+        updatable = false,
     )
+    var createdAt: LocalDateTime? = null,
+) {
 
     constructor(userId: Long, locationId: Long) : this(
-        FavoriteMapId(userId, locationId),
+        id = FavoriteMapId(
+            userId = userId,
+            locationId = locationId,
+        ),
     )
 }
 
 @Embeddable
 data class FavoriteMapId(
 
-    @Column(name = "user_id")
+    @Column(
+        name = "user_id",
+        nullable = false,
+        updatable = false,
+    )
     val userId: Long,
 
-    @Column(name = "location_id")
+    @Column(
+        name = "location_id",
+        nullable = false,
+        updatable = false,
+    )
     val locationId: Long,
 
 ) : Serializable

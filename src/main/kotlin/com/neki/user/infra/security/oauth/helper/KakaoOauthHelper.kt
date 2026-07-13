@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.oauth.helper
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.application.contract.OIDCDecodePayload
 import com.neki.user.application.contract.OIDCPublicKeyDto

@@ -1,11 +1,12 @@
 package com.neki.map.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.map.application.command.UpdateMapFavoriteCommand
 import com.neki.map.application.port.FavoriteMapRepositoryPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
+import com.neki.map.domain.entity.FavoriteMap
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -26,10 +27,11 @@ class UpdateMapFavoriteUseCase(
 
         if (!locationExists) throw BusinessException(ResultCode.NOT_FOUND)
 
+        val favoriteMap = FavoriteMap(command.userId, command.locationId)
         if (command.favorite) {
-            favoriteMapRepository.add(command.userId, command.locationId)
+            favoriteMapRepository.add(favoriteMap)
         } else {
-            favoriteMapRepository.delete(command.userId, command.locationId)
+            favoriteMapRepository.delete(favoriteMap)
         }
     }
 }
