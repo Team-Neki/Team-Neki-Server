@@ -20,12 +20,12 @@ class ScrapPose(
     @EmbeddedId
     val id: ScrapPoseId,
 ) : BaseTimeEntity() {
-    protected constructor() : this(
-        ScrapPoseId(0L, 0L),
-    )
 
     constructor(userId: Long, imageId: Long) : this(
-        ScrapPoseId(userId, imageId),
+        id = ScrapPoseId(
+            userId = userId,
+            poseId = imageId,
+        ),
     )
 }
 

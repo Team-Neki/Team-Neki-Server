@@ -21,12 +21,12 @@ class FavoriteMap(
     @EmbeddedId
     val id: FavoriteMapId,
 ) : BaseTimeEntity() {
-    protected constructor() : this(
-        FavoriteMapId(0L, 0L),
-    )
 
     constructor(userId: Long, locationId: Long) : this(
-        FavoriteMapId(userId, locationId),
+        id = FavoriteMapId(
+            userId = userId,
+            locationId = locationId,
+        ),
     )
 }
 

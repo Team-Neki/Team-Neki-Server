@@ -21,12 +21,12 @@ class FavoritePhoto(
     @EmbeddedId
     val id: FavoritePhotoId,
 ) : BaseTimeEntity() {
-    protected constructor() : this(
-        FavoritePhotoId(0L, 0L),
-    )
 
     constructor(userId: Long, imageId: Long) : this(
-        FavoritePhotoId(userId, imageId),
+        id = FavoritePhotoId(
+            userId = userId,
+            photoId = imageId,
+        ),
     )
 }
 

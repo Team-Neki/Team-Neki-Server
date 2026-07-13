@@ -24,14 +24,17 @@ class UserBrandOrder(
     @Column(name = "sort_order", nullable = false)
     var sortOrder: Int,
 ) : BaseTimeEntity() {
-    protected constructor() : this(
-        UserBrandOrderId(0L, 0L),
-        0,
-    )
 
-    constructor(userId: Long, brandId: Long, sortOrder: Int) : this(
-        UserBrandOrderId(userId, brandId),
-        sortOrder,
+    constructor(
+        userId: Long,
+        brandId: Long,
+        sortOrder: Int,
+    ) : this(
+        id = UserBrandOrderId(
+            userId = userId,
+            brandId = brandId,
+        ),
+        sortOrder = sortOrder,
     )
 }
 
