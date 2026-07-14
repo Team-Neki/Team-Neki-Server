@@ -1,6 +1,6 @@
 package com.neki.media.application.usecase
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.media.application.command.GenerateUploadTicketCommand
 import com.neki.media.application.contract.UploadTicket

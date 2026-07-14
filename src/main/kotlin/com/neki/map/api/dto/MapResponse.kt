@@ -55,6 +55,34 @@ data class GetPolygonLocationResponse(
 
         @field:Schema(description = "위도", example = "37.497946")
         val latitude: Double,
+
+        @field:Schema(description = "즐겨찾기 여부", example = "true")
+        val favorite: Boolean,
+    )
+}
+
+data class GetFavoriteMapResponse(
+    @field:Schema(description = "즐겨찾기한 포토부스 위치 목록 (즐겨찾기한 순서)")
+    val items: List<PhotoBoothLocationInfo>,
+) {
+    data class PhotoBoothLocationInfo(
+        @field:Schema(description = "포토부스 ID", example = "1")
+        val id: Long,
+
+        @field:Schema(description = "브랜드 이름", example = "인생네컷")
+        val brandName: String,
+
+        @field:Schema(description = "포토부스 이름", example = "인생네컷 강남역점")
+        val branchName: String,
+
+        @field:Schema(description = "주소", example = "서울 강남구 강남대로 지하 396")
+        val address: String,
+
+        @field:Schema(description = "경도", example = "127.027456")
+        val longitude: Double,
+
+        @field:Schema(description = "위도", example = "37.497946")
+        val latitude: Double,
     )
 }
 
@@ -83,5 +111,8 @@ data class GetPointLocationResponse(
 
         @field:Schema(description = "기준점으로부터의 거리 (미터)", example = "200")
         val distance: Int,
+
+        @field:Schema(description = "즐겨찾기 여부", example = "true")
+        val favorite: Boolean,
     )
 }

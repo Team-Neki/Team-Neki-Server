@@ -1,7 +1,7 @@
 package com.neki.e2e.map
 
 import com.neki.common.api.dto.BaseResponse
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.map.api.dto.GetPointLocationRequest
 import com.neki.map.domain.entity.Brand
 import com.neki.user.domain.entity.User

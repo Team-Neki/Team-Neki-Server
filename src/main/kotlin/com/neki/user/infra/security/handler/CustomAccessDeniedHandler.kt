@@ -2,7 +2,7 @@ package com.neki.user.infra.security.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.common.api.dto.BaseResponse
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.MediaType

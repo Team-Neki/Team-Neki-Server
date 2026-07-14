@@ -3,9 +3,11 @@ package com.neki.map.api.converter
 import com.neki.map.api.dto.CollectPhotoBoothRequest
 import com.neki.map.api.dto.GetPointLocationRequest
 import com.neki.map.api.dto.GetPolygonLocationRequest
+import com.neki.map.api.dto.UpdateBrandOrderRequest
 import com.neki.map.application.command.CollectPhotoBoothCommand
 import com.neki.map.application.command.GetPointLocationCommand
 import com.neki.map.application.command.GetPolygonLocationCommand
+import com.neki.map.application.command.UpdateBrandOrderCommand
 import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Component
 
@@ -26,17 +28,26 @@ class MapCommandConverter {
     fun toCollectPhotoBoothCommand(request: CollectPhotoBoothRequest): CollectPhotoBoothCommand =
         CollectPhotoBoothCommand(keyword = request.keyword!!, brandCode = request.brandCode!!)
 
-    fun toGetPolygonLocationCommand(request: GetPolygonLocationRequest): GetPolygonLocationCommand {
+    fun toGetPolygonLocationCommand(userId: Long, request: GetPolygonLocationRequest): GetPolygonLocationCommand {
         val coordinates: List<Coordinate> = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
         return GetPolygonLocationCommand(
+            userId = userId,
             coordinates = coordinates,
             brandIds = request.brandIds,
         )
     }
 
-    fun toGetPointLocationCommand(request: GetPointLocationRequest): GetPointLocationCommand = GetPointLocationCommand(
-        coordinate = Coordinate(request.longitude ?: GANGNAM_LONGITUDE, request.latitude ?: GANGNAM_LATITUDE),
-        radiusInMeters = request.radiusInMeters,
-        brandIds = request.brandIds,
-    )
+    fun toGetPointLocationCommand(userId: Long, request: GetPointLocationRequest): GetPointLocationCommand =
+        GetPointLocationCommand(
+            userId = userId,
+            coordinate = Coordinate(request.longitude ?: GANGNAM_LONGITUDE, request.latitude ?: GANGNAM_LATITUDE),
+            radiusInMeters = request.radiusInMeters,
+            brandIds = request.brandIds,
+        )
+
+    fun toUpdateBrandOrderCommand(userId: Long, request: UpdateBrandOrderRequest): UpdateBrandOrderCommand =
+        UpdateBrandOrderCommand(
+            userId = userId,
+            brandIds = request.brandIds,
+        )
 }

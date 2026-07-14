@@ -2,6 +2,7 @@ package com.neki.map.application.usecase
 
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MediaClientPort
+import com.neki.map.application.port.UserBrandOrderRepositoryPort
 import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.testfixture.aBrand
 import io.kotest.core.spec.style.FunSpec
@@ -18,14 +19,21 @@ import io.mockk.verify
 class GetBrandUseCaseTest :
     FunSpec({
 
+        val userId = 1L
+
         lateinit var brandRepository: BrandRepositoryPort
         lateinit var mediaClient: MediaClientPort
+        lateinit var userBrandOrderRepository: UserBrandOrderRepositoryPort
         lateinit var useCase: GetBrandUseCase
 
         beforeTest {
             brandRepository = mockk()
             mediaClient = mockk()
-            useCase = GetBrandUseCase(brandRepository, mediaClient)
+            userBrandOrderRepository = mockk()
+            useCase = GetBrandUseCase(brandRepository, mediaClient, userBrandOrderRepository)
+
+            // 별도 명시가 없으면 저장된 정렬 순서가 없는 사용자로 간주 (서버 기본 순서 유지)
+            every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns emptyMap()
         }
 
         test("정상 조회 - 브랜드 목록과 미디어 storageKey가 올바르게 매핑된다") {
@@ -43,7 +51,7 @@ class GetBrandUseCaseTest :
             every { mediaClient.getMediaStorageInfos(listOf(10L, 20L)) } returns listOf(storageInfo1, storageInfo2)
 
             // When
-            val results = useCase.execute()
+            val results = useCase.execute(userId)
 
             // Then
             results shouldHaveSize 2
@@ -71,7 +79,7 @@ class GetBrandUseCaseTest :
             )
 
             // When
-            val results = useCase.execute()
+            val results = useCase.execute(userId)
 
             // Then
             results shouldHaveSize 2
@@ -88,7 +96,7 @@ class GetBrandUseCaseTest :
             every { mediaClient.getMediaStorageInfos(emptyList()) } returns emptyList()
 
             // When
-            val results = useCase.execute()
+            val results = useCase.execute(userId)
 
             // Then
             results shouldHaveSize 2
@@ -116,7 +124,7 @@ class GetBrandUseCaseTest :
             every { mediaClient.getMediaStorageInfos(mediaIds) } returns availableStorageInfos
 
             // When
-            val results = useCase.execute()
+            val results = useCase.execute(userId)
 
             // Then
             results shouldHaveSize 5

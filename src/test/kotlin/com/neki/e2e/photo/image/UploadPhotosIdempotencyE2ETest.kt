@@ -1,6 +1,6 @@
 package com.neki.e2e.photo.image
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.media.api.dto.UploadTicketRequest
 import com.neki.media.domain.MediaType
 import com.neki.photo.api.dto.UploadPhotoRequest

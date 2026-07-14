@@ -19,12 +19,8 @@ class FavoriteImageRepositoryAdapter(
     private val queryRepository: FavoritePhotoQueryRepository,
 ) : FavoriteImageRepositoryPort {
 
-    override fun add(userId: Long, photoId: Long) {
-        val id = FavoritePhotoId(userId, photoId)
-
-        if (!jpaRepository.existsById(id)) {
-            jpaRepository.save(FavoritePhoto(id))
-        }
+    override fun add(favoritePhoto: FavoritePhoto) {
+        jpaRepository.save(favoritePhoto)
     }
 
     override fun addAll(userId: Long, photoIds: List<Long>) {
@@ -33,18 +29,14 @@ class FavoriteImageRepositoryAdapter(
         jpaRepository.saveAll(favorites)
     }
 
-    override fun delete(userId: Long, photoId: Long) = jpaRepository.deleteById(
-        FavoritePhotoId(userId, photoId),
-    )
+    override fun delete(favoritePhoto: FavoritePhoto) = jpaRepository.deleteById(favoritePhoto.id)
 
     override fun deleteAll(userId: Long, photoIds: List<Long>) {
         if (photoIds.isEmpty()) return
         queryRepository.deleteAllByUserIdAndPhotoIds(userId, photoIds)
     }
 
-    override fun exists(userId: Long, photoId: Long): Boolean = jpaRepository.existsById(
-        FavoritePhotoId(userId, photoId),
-    )
+    override fun exists(favoritePhoto: FavoritePhoto): Boolean = jpaRepository.existsById(favoritePhoto.id)
 
     override fun findPhotoIdsByUserId(userId: Long): Set<Long> = jpaRepository.findAllByIdUserId(userId)
         .map { it.id.photoId }

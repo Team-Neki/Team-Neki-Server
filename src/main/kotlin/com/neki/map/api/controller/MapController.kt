@@ -11,9 +11,11 @@ import com.neki.map.api.dto.GetPointLocationRequest
 import com.neki.map.api.dto.GetPointLocationResponse
 import com.neki.map.api.dto.GetPolygonLocationRequest
 import com.neki.map.api.dto.GetPolygonLocationResponse
+import com.neki.map.api.dto.UpdateBrandOrderRequest
 import com.neki.map.application.command.CollectPhotoBoothCommand
 import com.neki.map.application.command.GetPointLocationCommand
 import com.neki.map.application.command.GetPolygonLocationCommand
+import com.neki.map.application.command.UpdateBrandOrderCommand
 import com.neki.map.application.result.CollectPhotoBoothResult
 import com.neki.map.application.result.GetBrandResult
 import com.neki.map.application.result.GetPointLocationResult
@@ -21,12 +23,15 @@ import com.neki.map.application.result.GetPolygonLocationResult
 import com.neki.map.application.usecase.CollectPhotoBoothLocationUseCase
 import com.neki.map.application.usecase.GetBrandUseCase
 import com.neki.map.application.usecase.GetPhotoBoothLocationUseCase
+import com.neki.map.application.usecase.UpdateBrandOrderUseCase
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -43,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/photo-booths")
 class MapController(
     private val getBrandUseCase: GetBrandUseCase,
+    private val updateBrandOrderUseCase: UpdateBrandOrderUseCase,
     private val collectPhotoBoothLocationUseCase: CollectPhotoBoothLocationUseCase,
     private val getPhotoBoothLocationUseCase: GetPhotoBoothLocationUseCase,
     private val commandConverter: MapCommandConverter,
@@ -53,15 +59,37 @@ class MapController(
         summary = "브랜드 종류 조회 API",
         description = """
             브랜드 종류 및 이미지를 조회합니다.
+            사용자가 정렬 순서를 저장한 경우(PUT /api/photo-booths/brand/order) 저장한 순서대로,
+            저장하지 않은 경우 서버 기본 순서대로 반환합니다.
             """,
     )
     @GetMapping("/brand")
-    fun getBrand(): BaseResponse<List<GetBrandResponse>> {
-        val result: List<GetBrandResult> = getBrandUseCase.execute()
+    fun getBrand(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<List<GetBrandResponse>> {
+        val result: List<GetBrandResult> = getBrandUseCase.execute(userId)
 
         val response: List<GetBrandResponse> = resultConverter.toGetBrandResponse(result)
 
         return BaseResponse(data = response)
+    }
+
+    @Operation(
+        summary = "브랜드 정렬 순서 저장 API",
+        description = """
+            사용자가 커스텀한 브랜드 정렬 순서를 저장합니다.
+            brandIds 에 보여주고자 하는 순서대로 브랜드 ID 를 전달하면, 이후 브랜드 조회 API 가 해당 순서로 반환합니다.
+            전체 순서를 덮어쓰는 방식(멱등)이며, 다시 호출하면 기존 순서는 새 순서로 대체됩니다.
+            """,
+    )
+    @PutMapping("/brand/order")
+    fun updateBrandOrder(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @Valid @RequestBody request: UpdateBrandOrderRequest,
+    ): BaseResponse<Any> {
+        val command: UpdateBrandOrderCommand = commandConverter.toUpdateBrandOrderCommand(userId, request)
+
+        updateBrandOrderUseCase.execute(command)
+
+        return BaseResponse()
     }
 
     @Operation(
@@ -96,9 +124,10 @@ class MapController(
     )
     @PostMapping("/polygon")
     fun getPhotoBoothsByPolygon(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: GetPolygonLocationRequest,
     ): BaseResponse<GetPolygonLocationResponse> {
-        val command: GetPolygonLocationCommand = commandConverter.toGetPolygonLocationCommand(request)
+        val command: GetPolygonLocationCommand = commandConverter.toGetPolygonLocationCommand(userId, request)
 
         val result: GetPolygonLocationResult = getPhotoBoothLocationUseCase.execute(command)
 
@@ -118,9 +147,10 @@ class MapController(
     )
     @PostMapping("/point")
     fun getPhotoBoothsByPoint(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: GetPointLocationRequest,
     ): BaseResponse<GetPointLocationResponse> {
-        val command: GetPointLocationCommand = commandConverter.toGetPointLocationCommand(request)
+        val command: GetPointLocationCommand = commandConverter.toGetPointLocationCommand(userId, request)
 
         val result: GetPointLocationResult = getPhotoBoothLocationUseCase.execute(command)
 
