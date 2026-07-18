@@ -1,10 +1,7 @@
 name: Deploy to Staging (K3s + GitOps)
 
 on:
-  push:
-    branches-ignore:
-      - main
-  workflow_dispatch:  # 수동 실행 가능
+  workflow_dispatch:  # 수동 실행만 가능
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/yapp-dev
@@ -130,6 +127,11 @@ jobs:
           cd gitops
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No image change to commit."
+            exit 0
+          fi
 
           git add .
           git commit -m "chore(staging): update image to ${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}
