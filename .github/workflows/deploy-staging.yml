@@ -131,6 +131,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          if git diff --quiet; then
+            echo "No image change to commit."
+            exit 0
+          fi
+
           git add .
           git commit -m "chore(staging): update image to ${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}
 
