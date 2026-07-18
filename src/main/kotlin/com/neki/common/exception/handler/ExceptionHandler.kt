@@ -4,6 +4,7 @@ import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.exception.dto.ExceptionMsg
 import com.neki.common.exception.dto.FieldErrorDetail
+import org.apache.catalina.connector.ClientAbortException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -16,6 +17,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import java.util.function.Consumer
@@ -53,6 +55,14 @@ class ExceptionHandler {
         )
 
         return temp
+    }
+
+    @ExceptionHandler(ClientAbortException::class, AsyncRequestNotUsableException::class)
+    fun handleClientAbort(ex: Exception) {
+        // 클라이언트가 응답 수신 전에 연결을 끊음(브라우저 이탈, 네트워크 끊김, 요청 취소 등).
+        // 서버 측 조치가 필요 없는 정상 현상이므로 스택트레이스 없이 debug 레벨로만 기록한다.
+        // 이미 커밋/종료된 응답에 다시 write 하면 2차 예외가 발생하므로 아무것도 반환하지 않는다.
+        log.debug("[CLIENT_ABORT] client closed connection before response was written: {}", ex.message)
     }
 
     @ExceptionHandler(Exception::class)
