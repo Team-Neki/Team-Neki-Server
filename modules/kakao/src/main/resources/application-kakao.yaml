@@ -1,0 +1,43 @@
+oauth:
+  kakao:
+    jwksUri: https://kauth.kakao.com/.well-known/jwks.json
+    issuer: https://kauth.kakao.com
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+oauth:
+  kakao:
+    androidClientId: 4db94315d17162e99b36029f6f9775c6 #local 환경은 REST_KEY, 배포시에는 APP_ID
+    iosClientId: 4db94315d17162e99b36029f6f9775c6 #local 환경은 REST_KEY, 배포시에는 APP_ID
+    clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
+kakao:
+  api:
+    key: ENC(RvLV9QgxiZTRB5Uxxk01b0Qesu2+wXAReDWFIlIRK/JaD4KPqB34abU4e5qmoEaw2lgI1rHT/cnTV0nz3ymhsFchmFmlIK/77yANAgxM4J0=)
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+oauth:
+  kakao:
+    androidClientId: ENC(lDI6cw226mDsd0R8PMdfQZdksG0cl+UN05E4+hJI7KguRGIn1+oBB/mLDhkXfp+43Oq7gkQCo7vKLrZMxzFDLQhbeb7Mx8KMEyBCjw7LfSQ=)
+    iosClientId: ENC(0KhQuAcBG2ddDzIS/WhvDbb+l+SbuCiYE/ANF8OVMvtvQcEwsY8xiFlr5lp0IAKyLEk75SSoIhM5picVY7xjV0+DPl/vA6lt8CA4Ae17Hd8=)
+    clientSecret: ENC(PjnJy0hcYdqBkqvSGqCcEp61czlJpJ1n4nYMCkAcFdo7ASIJrbBUqxJay41zVg8kG45KiPhYbxTfJe+X9vQlp5qZfIbZuVtAc85SHLexQIc=)
+kakao:
+  api:
+    key: ENC(RvLV9QgxiZTRB5Uxxk01b0Qesu2+wXAReDWFIlIRK/JaD4KPqB34abU4e5qmoEaw2lgI1rHT/cnTV0nz3ymhsFchmFmlIK/77yANAgxM4J0=)
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+oauth:
+  kakao:
+    androidClientId: ENC(CxmbXHAS35D0ZAsj/UHZ6uVn9esjjauf0k9FNqQ6FnyRo3HNd3P9cSOVGU1u3i/ikdzU+ufcCbxGqibd+5ULmWbWVGLDXX0X9FjXuQCe0Xs=)
+    iosClientId: ENC(AMcYSI/XjGnthawUtuDNr5LEwG6QfAbCRdEBCifrI16kqZDQh2bupmgCbGj5ilRJXjWLp1e7Sh3hFC//glGv+I1hNhXh+o0qo8U2V7q84ac=)
+    clientSecret: ENC(1Sqtyp6KkZnm2tO2fa8b+okZh+Yp5GRJOeAyqai9p2MEM6voQExn2OjR8PeMLPqtUL8PM6nuiwNyX9rtkp9TjQvH2RfaEfPkilNR0JWEUCE=)
+kakao:
+  api:
+    key: ENC(paBCyk8YzPpST6axlrKuVxH1W3/2K3wkEJG2ndZ6jt0UPwM+LBFgJE9zYeAk1Ntns1XY9mjZEhMzOiDnL8C0QDJUNQ7s2AYKpiY4jjB7CU0=)

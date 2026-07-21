@@ -1,0 +1,84 @@
+package com.neki.pose.application.usecase
+
+import com.neki.common.annotation.UseCase
+import com.neki.common.transaction.TransactionRunner
+import com.neki.pose.application.dto.PoseQuery
+import com.neki.pose.application.dto.PoseResult
+import com.neki.pose.application.port.MediaClientPort
+import com.neki.pose.application.port.PoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
+import com.neki.pose.entity.Pose
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+/**
+ * fileName       : GetScrapPosesUseCase
+ * author         : darren
+ * date           : 2026. 1. 28
+ * description    :
+ */
+@UseCase
+class GetScrapPosesUseCase(
+    private val poseRepository: PoseRepositoryPort,
+    private val mediaClient: MediaClientPort,
+    private val transactionRunner: TransactionRunner,
+) {
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
+
+    fun execute(query: PoseQuery.GetScrapPoses): PoseResult.GetPoses {
+        // size + 1개 조회하여 hasNext 판단
+        val fetchSize = query.size + 1
+
+        val poses: List<Pose> = transactionRunner.readOnly {
+            poseRepository.listOwnedScrapPoses(
+                userId = query.userId,
+                offset = query.page * query.size,
+                limit = fetchSize,
+                sortOrder = query.sortOrder,
+            )
+        }
+
+        if (poses.isEmpty()) {
+            return PoseResult.GetPoses(emptyList(), hasNext = false)
+        }
+
+        // hasNext 판단: size + 1개 조회했는데 실제로 그만큼 있으면 다음 페이지 존재
+        val hasNext = poses.size > query.size
+
+        // 실제 반환할 사진 목록 (size개만)
+        val posesToReturn = if (hasNext) poses.dropLast(1) else poses
+
+        // storageKey 조회 (페이징된 결과에 대해서만)
+        val mediaStorageInfos: List<MediaContract.StorageInfo> = mediaClient.getMediaStorageInfos(
+            posesToReturn.map { it.mediaId },
+        )
+
+        val mediaByFileId: Map<Long, MediaContract.StorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
+
+        // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
+        val result: List<PoseResult.GetPoses.Item> = posesToReturn.mapNotNull { pose ->
+            val media: MediaContract.StorageInfo = mediaByFileId[pose.mediaId]
+                ?: run {
+                    log.info(
+                        "Media not found yet. photoId={}, fileId={}",
+                        pose.id,
+                        pose.mediaId,
+                    )
+                    return@mapNotNull null
+                }
+
+            PoseResult.GetPoses.Item(
+                poseId = pose.id!!,
+                headCount = pose.headCount,
+                storageKey = media.storageKey,
+                scrap = true,
+                contentType = media.contentType,
+                width = media.width,
+                height = media.height,
+                createdAt = pose.createdAt!!,
+            )
+        }
+
+        return PoseResult.GetPoses(result, hasNext)
+    }
+}

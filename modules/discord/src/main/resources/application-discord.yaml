@@ -1,0 +1,20 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+discord:
+  webhook-url: ENC(mSwyFIgMuIjIeLtDi/afbDJWR84HMkhmJptdiyc0rWqJx6v+pbi89rAiOJTQUpNA2p/DOiGEpLhDkXmOuwc40mBKgWq2YOQh/8eXIirHIUNPVwIiahFDyzOIImC5MvkGbXyGsg3IovRdA7JcqKj7dWJ8GUJTyDnhewcRVPOLW1jiFNoUK946lQDGJXVyYjYEc/B01O5vcptlXU5Wn5hyPA==)
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+discord:
+  webhook-url: ENC(mSwyFIgMuIjIeLtDi/afbDJWR84HMkhmJptdiyc0rWqJx6v+pbi89rAiOJTQUpNA2p/DOiGEpLhDkXmOuwc40mBKgWq2YOQh/8eXIirHIUNPVwIiahFDyzOIImC5MvkGbXyGsg3IovRdA7JcqKj7dWJ8GUJTyDnhewcRVPOLW1jiFNoUK946lQDGJXVyYjYEc/B01O5vcptlXU5Wn5hyPA==)
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+discord:
+  webhook-url: ENC(WB597/GMEWV2A8WlPw8QRpwlk+j9ZwDWuQgHEy/+lOV6km706MivOev3JrlSKRPdsUN0+y3R4HJ9zV5C397AwHUaz8sR3EhDqAGBks2ELRyHcL2wh29rlWIBCXAuqrwCM64YSBD8lQ1PUX6cUHzXs2qM7bK81Jl2ey52UmFyRbRmFdpnXdJEJtBKsjqyzBCjvgUKUTrNpsL2qbZqQHL2BA==)

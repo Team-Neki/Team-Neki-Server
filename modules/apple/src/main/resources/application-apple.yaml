@@ -1,0 +1,28 @@
+oauth:
+  apple:
+    jwksUri: https://appleid.apple.com/auth/keys
+    issuer: https://appleid.apple.com
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+oauth:
+  apple:
+    clientId: swainyun.SignInWithAppleTestApp
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+oauth:
+  apple:
+    clientId: ENC(B3hzusAVdAuJRfiXb+zyzIi54iZpBgpg8fNbcUPy7XgzS+s2PpzK1K1AwvlceQ4+flEknbZYp+vapwAia6f+4w==)
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+oauth:
+  apple:
+    clientId: ENC(VjmTvogS4S0aLry3SX8NWTS2N4j8ffvotHTnQ1+1MfSevuRuBEUgRiXOci/X1Du+5cjkDCDVolL4Zgz32JmpIg==)

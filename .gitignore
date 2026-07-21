@@ -46,7 +46,9 @@ localstack_data/
 infra/terraform/aws/staging/.terraform
 *.tfstate*
 
+# oh-my-claudecode tooling state
+.omc/
+
 ### Firebase (FCM service account) ###
-src/main/resources/firebase-service-account.json
 **/firebase-service-account.json
 **/*-firebase-adminsdk-*.json

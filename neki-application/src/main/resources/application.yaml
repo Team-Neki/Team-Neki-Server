@@ -1,0 +1,109 @@
+spring:
+  application:
+    name: Neki
+  profiles:
+    active: local
+  config:
+    import:
+      - classpath:application-postgres.yaml
+      - classpath:application-redis.yaml
+      - classpath:application-s3.yaml
+      - classpath:application-kakao.yaml
+      - classpath:application-apple.yaml
+      - classpath:application-discord.yaml
+      - classpath:application-jasypt.yaml
+      - classpath:application-firebase.yaml
+
+logging:
+  level:
+    org.flywaydb: info
+
+springdoc:
+  override-with-generic-response: false
+
+# Application Version (from build.gradle.kts)
+app:
+  version: "@version@"
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://127.0.0.1:3000
+      - http://localhost:5173
+      - http://127.0.0.1:5173
+      - http://localhost:63342
+      - http://127.0.0.1:63342
+      - https://dev-yapp-admin.suitestudy.com
+      - https://yapp-admin.suitestudy.com/
+
+# Spring Boot Actuator 설정 (Health Check for Kubernetes)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+    prometheus:
+      enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: neki
+
+
+aws:
+  s3:
+    access-key: ${AWS_S3_ACCESS_KEY:}
+    secret-key: ${AWS_S3_SECRET_KEY:}
+    bucket: ${AWS_S3_BUCKET:}
+    base-url: ${AWS_S3_BASE_URL:}
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+app:
+  server:
+    url: http://localhost:8080
+  auth:
+    accessTokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
+    accessTokenExpiry: 3600000 #1시간 1분(60000)
+    refreshTokenSecret: ENC(fJ09aRyNLygqwQI3I0HfzIzvuVpsnOMauvW/1/qR5YIvmQS2JtKZiKsvoijbVAl25HE1bDZ29uYPjqFUTMuCdTh8zp+PczJ1FaYao3SgQ/iiodtxmleizF22NLwpwIyvIswND7ANcrS0IVgHTFinViJMFhb6rKgm6z1JK54Mbbg=)
+    refreshTokenExpiry: 604800000 #7일
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+app:
+  server:
+    url: https://dev-yapp.suitestudy.com:4641
+  auth:
+    accessTokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
+    accessTokenExpiry: 3600000 #1시간
+    refreshTokenSecret: ENC(fJ09aRyNLygqwQI3I0HfzIzvuVpsnOMauvW/1/qR5YIvmQS2JtKZiKsvoijbVAl25HE1bDZ29uYPjqFUTMuCdTh8zp+PczJ1FaYao3SgQ/iiodtxmleizF22NLwpwIyvIswND7ANcrS0IVgHTFinViJMFhb6rKgm6z1JK54Mbbg=)
+    refreshTokenExpiry: 7200000 #2시간
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+app:
+  server:
+    url: https://yapp.suitestudy.com:4641
+  auth:
+    accessTokenSecret: ENC(Fto92NwjerNn8SesxCmNSAj1To1wyUCpZrHUV5+h5TGJKT4Ab3xsNcLs65I+rGx0e+7oZFVj0ZSGRYa8gVS5rw6Jo1gPXAu05J8CbtM5iyjWhqKx4NO/onZ8+aESOzIeJCAq2+Wq/KX1OeWhLvgvOT8RvwDs3h+LEiTxGD6G+Mc=)
+    accessTokenExpiry: 3600000 #1시간
+    refreshTokenSecret: ENC(wCYjp+IqW+rEqRHMTEdvlb9PCs/1kmU9MfB9vf9vgtP9Zabih84v6+ue65mTvEvD8fObuLzbbcFGJWvPgEaGOZlOR9axs/u0i2KZ/5rifqVggXu0qgtMyJaJj7va9TWm+tLX3XKN4CIc3kx6/XuRwoPVi7Y9yFaJV+eC3tmi5Ak=)
+    refreshTokenExpiry: 1209600000 #14일
