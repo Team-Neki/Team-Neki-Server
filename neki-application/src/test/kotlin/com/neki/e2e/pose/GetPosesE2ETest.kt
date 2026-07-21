@@ -1,6 +1,6 @@
 package com.neki.e2e.pose
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.media.entity.MediaStatus
 import com.neki.pose.HeadCount
 import com.neki.user.entity.User

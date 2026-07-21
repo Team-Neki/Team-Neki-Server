@@ -1,6 +1,6 @@
 package com.neki.user.application.usecase
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.user.application.command.RefreshTokenCommand
 import com.neki.user.application.port.AuthTokenProviderPort

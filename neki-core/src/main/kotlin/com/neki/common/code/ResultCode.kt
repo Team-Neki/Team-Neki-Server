@@ -1,4 +1,4 @@
-package com.neki.common.api.dto
+package com.neki.common.code
 
 /**
  * fileName       : ResultCode
@@ -17,12 +17,14 @@ enum class ResultCode(val code: String, val message: String) {
     NOT_FOUND("D-04", "데이터를 찾을 수 없습니다."),
     ALREADY_REQUEST("D-05", "이미 처리된 요청입니다."),
     UPLOAD_FAILED("D-06", "파일 업로드에 실패했습니다."),
-    REQUIRED_TERMS_NOT_AGREED("D-07", "필수 약관에 동의해주세요."),
-    NO_MORE_RANDOM_POSE("D-08", "더 이상 추천할 포즈가 없습니다."),
+    CONFLICT_FOLDER("D-07", message = "해당하는 폴더가 존재합니다."),
+    REQUIRED_TERMS_NOT_AGREED("D-08", "필수 약관에 동의해주세요."),
+    NO_MORE_RANDOM_POSE("D-09", "더 이상 추천할 포즈가 없습니다."),
+    CANNOT_UPDATE_REQUIRED_TERM("D-10", "필수 약관은 변경할 수 없습니다."),
+    PUSH_NOT_CONFIGURED("D-11", "푸시 알림이 설정되지 않았습니다."),
+    PUSH_SEND_FAILED("D-12", "푸시 알림 발송에 실패했습니다."),
 
-    CONFLICT_FOLDER("D-06", message = "해당하는 폴더가 존재합니다."),
-
-    ACCESS_DENIED_ERROR("D-996", "토큰 권한이 없습니다."),
+    ACCESS_DENIED_ERROR("D-995", "토큰 권한이 없습니다."),
     MISSING_TOKEN_ERROR("D-996", "토큰이 존재하지 않습니다."),
     EXPIRED_TOKEN_ERROR("D-997", "토큰이 만료되었습니다."),
     INVALID_TOKEN_ERROR("D-998", "토큰이 올바르지 않습니다."),

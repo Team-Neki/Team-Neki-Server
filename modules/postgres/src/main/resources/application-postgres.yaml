@@ -20,14 +20,14 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
         show_sql: true
     open-in-view: false
   flyway:
-    enabled: false
+    enabled: true
     baseline-on-migrate: true
 ---
 spring:

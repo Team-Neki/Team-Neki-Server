@@ -11,4 +11,5 @@ include(
     ":modules:discord",
     ":modules:jasypt",
     ":modules:apple",
+    ":modules:firebase",
 )

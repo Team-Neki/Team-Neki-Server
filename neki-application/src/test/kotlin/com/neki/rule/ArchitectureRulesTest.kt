@@ -231,7 +231,8 @@ class ArchitectureRulesTest {
          * - annotation: UseCase (com.neki.common.annotation)
          * - domain: BaseTimeEntity, vo.SortOrder (com.neki.common.domain..)
          * - transaction: TransactionRunner (com.neki.common.transaction)
-         * - api.dto: ResultCode, BaseResponse (com.neki.common.api.dto, :core 전용)
+         * - api.dto: BaseResponse (com.neki.common.api.dto, :core 전용)
+         * - code: ResultCode (com.neki.common.code)
          * - exception: BusinessException (com.neki.common.exception, exact — exception.handler는 :application 소속)
          *
          * 주의: com.neki.common.api.config/document, com.neki.common.exception.handler,
@@ -248,6 +249,7 @@ class ArchitectureRulesTest {
                     "com.neki.common.domain..",
                     "com.neki.common.transaction..",
                     "com.neki.common.api.dto..",
+                    "com.neki.common.code..",
                     "com.neki.common.exception",
                 ).should().dependOnClassesThat().resideInAnyPackage(
                     "..infra..",

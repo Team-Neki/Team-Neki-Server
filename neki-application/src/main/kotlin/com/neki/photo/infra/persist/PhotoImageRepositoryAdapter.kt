@@ -1,6 +1,6 @@
 package com.neki.photo.infra.persist
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.domain.vo.SortOrder
 import com.neki.common.exception.BusinessException
 import com.neki.photo.application.contract.PhotoWithFavorite

@@ -21,16 +21,19 @@ class UserTermAgreement(
     @Column(name = "term_version", nullable = false, length = 20)
     val termVersion: String,
 ) : BaseTimeEntity() {
-    protected constructor() : this(
-        UserTermAgreementId(0L, 0L),
-        LocalDateTime.now(),
-        "",
-    )
 
-    constructor(userId: Long, termId: Long, agreedAt: LocalDateTime, termVersion: String) : this(
-        UserTermAgreementId(userId, termId),
-        agreedAt,
-        termVersion,
+    constructor(
+        userId: Long,
+        termId: Long,
+        agreedAt: LocalDateTime,
+        termVersion: String,
+    ) : this(
+        id = UserTermAgreementId(
+            userId = userId,
+            termId = termId,
+        ),
+        agreedAt = agreedAt,
+        termVersion = termVersion,
     )
 }
 

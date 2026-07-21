@@ -8,7 +8,7 @@ on:
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/neki-prod
-  GITOPS_REPO: YAPP-Github/27th-App-Team-2-BE-gitops
+  GITOPS_REPO: Team-Neki/Team-Neki-GitOps
   GITOPS_PATH: overlays/prod/deployment.yaml
 
 jobs:
@@ -131,6 +131,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          if git diff --quiet; then
+            echo "No image change to commit."
+            exit 0
+          fi
+
           git add .
           git commit -m "chore(prod): update image to ${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}
 
@@ -171,7 +176,7 @@ jobs:
                      },
                      {
                        "name": "GitOps 레포",
-                       "value": "[27th-App-Team-2-BE-gitops](https://github.com/${{ env.GITOPS_REPO }})",
+                       "value": "[Team-Neki-GitOps](https://github.com/${{ env.GITOPS_REPO }})",
                        "inline": false
                      }
                    ],

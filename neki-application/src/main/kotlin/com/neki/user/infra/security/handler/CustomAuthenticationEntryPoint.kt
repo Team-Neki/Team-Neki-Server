@@ -2,7 +2,7 @@ package com.neki.user.infra.security.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.common.api.dto.BaseResponse
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.UnsupportedJwtException

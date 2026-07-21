@@ -1,6 +1,6 @@
 package com.neki.user.enums
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 
 enum class ProviderType(val value: String) {

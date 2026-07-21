@@ -1,9 +1,11 @@
 package com.neki.pose.application.port
 
+import com.neki.pose.entity.ScrapPose
+
 interface ScrapPoseRepositoryPort {
-    fun add(userId: Long, poseId: Long)
+    fun add(scrapPose: ScrapPose)
 
-    fun delete(userId: Long, poseId: Long)
+    fun delete(scrapPose: ScrapPose)
 
-    fun existsOwnedPoseScrap(userId: Long, poseId: Long): Boolean
+    fun existsOwnedPoseScrap(scrapPose: ScrapPose): Boolean
 }

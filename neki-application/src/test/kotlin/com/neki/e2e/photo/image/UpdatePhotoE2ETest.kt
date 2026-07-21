@@ -1,6 +1,6 @@
 package com.neki.e2e.photo.image
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.media.entity.MediaStatus
 import com.neki.photo.api.dto.UpdatePhotoRequest
 import com.neki.user.entity.User

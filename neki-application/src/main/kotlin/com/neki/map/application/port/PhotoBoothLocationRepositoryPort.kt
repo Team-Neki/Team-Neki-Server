@@ -19,6 +19,8 @@ interface PhotoBoothLocationRepositoryPort {
 
     fun getPhotoBoothLocations(brandId: Long): List<PhotoBoothLocation>
 
+    fun existsById(locationId: Long): Boolean
+
     fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationDto>
 
     fun listPointLocations(

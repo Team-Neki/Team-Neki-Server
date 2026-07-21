@@ -29,4 +29,10 @@ data class GetUserResponse(
 
     @field:Schema(description = "최신 약관 동의 여부", example = "true")
     val agreeTerms: Boolean,
+
+    @field:Schema(description = "마케팅 약관 동의 여부", example = "true")
+    val marketingTerm: Boolean,
+
+    @field:Schema(description = "푸시 알림 동의 여부", example = "false")
+    val pushAgreed: Boolean,
 )

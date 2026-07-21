@@ -1,7 +1,7 @@
 package com.neki.media.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.media.application.command.GetMediaStorageInfoCommand
 import com.neki.media.application.port.MediaRepositoryPort

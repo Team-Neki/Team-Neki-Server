@@ -1,6 +1,6 @@
 package com.neki.map.application.usecase
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.map.application.command.CollectPhotoBoothCommand
 import com.neki.map.application.contract.LocalSearchResult

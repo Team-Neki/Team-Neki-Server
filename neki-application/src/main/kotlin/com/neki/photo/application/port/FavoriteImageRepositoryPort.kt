@@ -1,5 +1,7 @@
 package com.neki.photo.application.port
 
+import com.neki.photo.entity.FavoritePhoto
+
 /**
  * fileName       : FavoriteImageRepository
  * author         : koo
@@ -8,15 +10,15 @@ package com.neki.photo.application.port
  */
 interface FavoriteImageRepositoryPort {
 
-    fun add(userId: Long, photoId: Long)
+    fun add(favoritePhoto: FavoritePhoto)
 
     fun addAll(userId: Long, photoIds: List<Long>)
 
-    fun delete(userId: Long, photoId: Long)
+    fun delete(favoritePhoto: FavoritePhoto)
 
     fun deleteAll(userId: Long, photoIds: List<Long>)
 
-    fun exists(userId: Long, photoId: Long): Boolean
+    fun exists(favoritePhoto: FavoritePhoto): Boolean
 
     fun findPhotoIdsByUserId(userId: Long): Set<Long>
 

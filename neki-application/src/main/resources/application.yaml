@@ -12,6 +12,7 @@ spring:
       - classpath:application-apple.yaml
       - classpath:application-discord.yaml
       - classpath:application-jasypt.yaml
+      - classpath:application-firebase.yaml
 
 logging:
   level:

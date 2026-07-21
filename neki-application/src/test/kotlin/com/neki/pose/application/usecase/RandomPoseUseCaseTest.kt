@@ -1,6 +1,6 @@
 package com.neki.pose.application.usecase
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.pose.HeadCount
 import com.neki.pose.application.command.GetRandomPoseCommand
@@ -9,6 +9,7 @@ import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.RandomGeneratorPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
+import com.neki.pose.entity.ScrapPoseId
 import com.neki.testfixture.aPose
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -61,7 +62,7 @@ class RandomPoseUseCaseTest {
         every { poseRepository.countPoses(HeadCount.TWO, emptyList()) } returns 5L
         every { randomGenerator.nextLong(5L) } returns 2L
         every { poseRepository.findPoseByOffset(2L, HeadCount.TWO, emptyList()) } returns pose
-        every { scrapPoseRepository.existsOwnedPoseScrap(1L, 10L) } returns false
+        every { scrapPoseRepository.existsOwnedPoseScrap(match { it.id == ScrapPoseId(1L, 10L) }) } returns false
         every { mediaClient.getMediaStorageInfo(101L) } returns makeMediaStorageInfo(101L)
 
         // When
@@ -115,7 +116,7 @@ class RandomPoseUseCaseTest {
         every { poseRepository.countPoses(HeadCount.TWO, emptyList()) } returns 1L
         every { randomGenerator.nextLong(1L) } returns 0L
         every { poseRepository.findPoseByOffset(0L, HeadCount.TWO, emptyList()) } returns pose
-        every { scrapPoseRepository.existsOwnedPoseScrap(1L, 5L) } returns true
+        every { scrapPoseRepository.existsOwnedPoseScrap(match { it.id == ScrapPoseId(1L, 5L) }) } returns true
         every { mediaClient.getMediaStorageInfo(201L) } returns makeMediaStorageInfo(201L)
 
         // When
@@ -137,7 +138,7 @@ class RandomPoseUseCaseTest {
         every { poseRepository.countPoses(HeadCount.TWO, emptyList()) } returns 5L
         every { randomGenerator.nextLong(5L) } returns 2L
         every { poseRepository.findPoseByOffset(2L, HeadCount.TWO, emptyList()) } returns pose
-        every { scrapPoseRepository.existsOwnedPoseScrap(1L, 10L) } returns false
+        every { scrapPoseRepository.existsOwnedPoseScrap(match { it.id == ScrapPoseId(1L, 10L) }) } returns false
         every { mediaClient.getMediaStorageInfo(101L) } throws RuntimeException("미디어 조회 실패")
 
         // When / Then

@@ -1,8 +1,10 @@
 package com.neki.map.application.usecase
 
 import com.neki.common.annotation.UseCase
+import com.neki.map.BrandOrderPolicy
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MediaClientPort
+import com.neki.map.application.port.UserBrandOrderRepositoryPort
 import com.neki.map.application.result.GetBrandResult
 import com.neki.map.entity.Brand
 import com.neki.photo.application.contract.MediaStorageInfo
@@ -16,22 +18,29 @@ import org.slf4j.LoggerFactory
  * description    : Brand 조회
  */
 @UseCase
-class GetBrandUseCase(private val brandRepository: BrandRepositoryPort, private val mediaClient: MediaClientPort) {
+class GetBrandUseCase(
+    private val brandRepository: BrandRepositoryPort,
+    private val mediaClient: MediaClientPort,
+    private val userBrandOrderRepository: UserBrandOrderRepositoryPort,
+) {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun execute(): List<GetBrandResult> {
+    fun execute(userId: Long): List<GetBrandResult> {
         val brands: List<Brand> = brandRepository.findAll()
 
+        val sortOrderMap: Map<Long, Int> = userBrandOrderRepository.findSortOrderMapByUserId(userId)
+        val sortedBrands: List<Brand> = BrandOrderPolicy.sort(brands, sortOrderMap)
+
         val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
-            brands.mapNotNull {
+            sortedBrands.mapNotNull {
                 it.mediaId
             },
         )
 
         val mediaByMediaId = mediaStorageInfos.associateBy { it.mediaId }
 
-        return brands.map { brand ->
+        return sortedBrands.map { brand ->
             GetBrandResult(
                 id = brand.id!!,
                 name = brand.name,

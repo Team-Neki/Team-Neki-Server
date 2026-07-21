@@ -183,7 +183,7 @@ class OauthLoginUseCaseTest {
 
         every {
             oidcTokenValidatorPort.validateIdToken(idToken, ProviderType.KAKAO, Platform.IOS)
-        } throws BusinessException(com.neki.common.api.dto.ResultCode.INVALID_TOKEN_ERROR)
+        } throws BusinessException(com.neki.common.code.ResultCode.INVALID_TOKEN_ERROR)
 
         // When & Then
         shouldThrow<BusinessException> {

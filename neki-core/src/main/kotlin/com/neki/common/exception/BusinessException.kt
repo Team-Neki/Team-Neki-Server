@@ -1,6 +1,6 @@
 package com.neki.common.exception
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 
 /**
  * fileName       : BusinessException

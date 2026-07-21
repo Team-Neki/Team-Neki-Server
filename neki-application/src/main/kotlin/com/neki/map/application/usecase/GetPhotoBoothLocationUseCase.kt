@@ -6,6 +6,7 @@ import com.neki.map.application.command.GetPointLocationCommand
 import com.neki.map.application.command.GetPolygonLocationCommand
 import com.neki.map.application.contract.PhotoBoothLocationDto
 import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.application.port.FavoriteMapRepositoryPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.application.result.GetPointLocationResult
 import com.neki.map.application.result.GetPolygonLocationResult
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory
 @UseCase
 class GetPhotoBoothLocationUseCase(
     private val photoBoothLocationRepository: PhotoBoothLocationRepositoryPort,
+    private val favoriteMapRepository: FavoriteMapRepositoryPort,
     private val transactionRunner: TransactionRunner,
 ) {
 
@@ -29,33 +31,43 @@ class GetPhotoBoothLocationUseCase(
     /**
      * 다각형 기준으로 포토부스 위치 조회
      */
-    fun execute(command: GetPolygonLocationCommand): GetPolygonLocationResult {
-        val locations: List<PhotoBoothLocationDto> = transactionRunner.readOnly {
-            photoBoothLocationRepository.listPolygonLocations(
-                coordinates = command.coordinates,
-                brandIds = command.brandIds,
-            )
-        }
+    fun execute(command: GetPolygonLocationCommand): GetPolygonLocationResult = transactionRunner.readOnly {
+        val locations: List<PhotoBoothLocationDto> = photoBoothLocationRepository.listPolygonLocations(
+            coordinates = command.coordinates,
+            brandIds = command.brandIds,
+        )
 
         if (locations.isEmpty()) {
-            return GetPolygonLocationResult(emptyList())
+            return@readOnly GetPolygonLocationResult(emptyList(), emptySet())
         }
 
-        return GetPolygonLocationResult(locations)
+        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+            userId = command.userId,
+            locationIds = locations.map { it.id },
+        )
+
+        GetPolygonLocationResult(locations, favoriteLocationIds)
     }
 
     /**
      * 특정 Point(사용자) 기준으로 포토부스 위치 조회
      */
-    fun execute(command: GetPointLocationCommand): GetPointLocationResult {
-        val locations: List<PhotoBoothLocationWithDistanceDto> = transactionRunner.readOnly {
-            photoBoothLocationRepository.listPointLocations(
-                coordinate = command.coordinate,
-                radiusInMeters = command.radiusInMeters,
-                brandIds = command.brandIds,
-            )
+    fun execute(command: GetPointLocationCommand): GetPointLocationResult = transactionRunner.readOnly {
+        val locations: List<PhotoBoothLocationWithDistanceDto> = photoBoothLocationRepository.listPointLocations(
+            coordinate = command.coordinate,
+            radiusInMeters = command.radiusInMeters,
+            brandIds = command.brandIds,
+        )
+
+        if (locations.isEmpty()) {
+            return@readOnly GetPointLocationResult(emptyList(), emptySet())
         }
 
-        return GetPointLocationResult(locations)
+        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+            userId = command.userId,
+            locationIds = locations.map { it.id },
+        )
+
+        GetPointLocationResult(locations, favoriteLocationIds)
     }
 }

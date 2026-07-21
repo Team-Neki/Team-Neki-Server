@@ -48,3 +48,7 @@ infra/terraform/aws/staging/.terraform
 
 # oh-my-claudecode tooling state
 .omc/
+
+### Firebase (FCM service account) ###
+**/firebase-service-account.json
+**/*-firebase-adminsdk-*.json

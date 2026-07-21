@@ -1,14 +1,18 @@
 package com.neki.e2e.user
 
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.e2e.E2ETestBase
+import com.neki.notification.entity.Notification
+import com.neki.notification.infra.persist.jpa.JpaNotificationRepository
 import com.neki.user.entity.User
+import io.kotest.matchers.nulls.shouldBeNull
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
@@ -26,6 +30,9 @@ class UserE2ETest : E2ETestBase() {
 
     @LocalServerPort
     private var port: Int = 0
+
+    @Autowired
+    private lateinit var notificationRepository: JpaNotificationRepository
 
     private val expiredAccessToken: String =
         "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sIm5hbWUiOiLthYzsiqTtirgg7IKs7Jqp7J6QIiwicHJvdmlkZXJfdHlwZSI6IlRFU1QiLCJpYXQiOjE3Njc1MTQyMjQsImV4cCI6MTc2NzUxNDI4NH0.QJ0T0eoYxMf7PUxQni2AGMMrNEMMFphY1W5vLE66vUyuPES-trmvqs7xbm9mp63v"
@@ -108,6 +115,52 @@ class UserE2ETest : E2ETestBase() {
             .header("Authorization", accessToken)
             .`when`()
             .get("/api/users/info")
+            .then()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+    }
+
+    @Test
+    @DisplayName("로그아웃 시 사용자의 FCM 토큰이 삭제된다")
+    fun givenValidToken_whenLogout_thenDeletesFcmToken() {
+        // Given: 사용자의 FCM 토큰이 등록되어 있다
+        notificationRepository.save(
+            Notification(userId = testUser.id!!, deviceToken = "device-token-123", pushAgreed = true),
+        )
+
+        // When
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .post("/api/users/logout")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        // Then: FCM 토큰이 삭제된다
+        notificationRepository.findByUserId(testUser.id!!).shouldBeNull()
+    }
+
+    @Test
+    @DisplayName("FCM 토큰이 등록되지 않은 상태로 로그아웃해도 성공한다")
+    fun givenNoFcmToken_whenLogout_thenReturnsSuccess() {
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .post("/api/users/logout")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+    }
+
+    @Test
+    @DisplayName("토큰 없이 로그아웃 시 403 에러를 반환한다")
+    fun givenNoToken_whenLogout_thenReturnsForbidden() {
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .`when`()
+            .post("/api/users/logout")
             .then()
             .statusCode(HttpStatus.FORBIDDEN.value())
     }

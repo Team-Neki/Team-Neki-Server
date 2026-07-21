@@ -104,7 +104,7 @@ enum class ResultCode(val code: String, val message: String) {
 Key files:
 
 - `src/main/kotlin/com/neki/common/exception/BusinessException.kt`
-- `src/main/kotlin/com/neki/common/api/dto/ResultCode.kt`
+- `src/main/kotlin/com/neki/common/code/ResultCode.kt`
 - `src/main/kotlin/com/neki/common/exception/handler/ExceptionHandler.kt`
 
 ---

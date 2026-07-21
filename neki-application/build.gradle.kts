@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":modules:postgres"))
     implementation(project(":modules:jasypt"))
     implementation(project(":modules:apple"))
+    implementation(project(":modules:firebase"))
 
     implementation("org.locationtech.jts:jts-core:$jtsVersion")
 

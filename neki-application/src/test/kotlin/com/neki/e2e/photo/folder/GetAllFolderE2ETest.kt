@@ -1,7 +1,7 @@
 package com.neki.e2e.photo.folder
 
 import com.neki.common.api.dto.BaseResponse
-import com.neki.common.api.dto.ResultCode
+import com.neki.common.code.ResultCode
 import com.neki.photo.entity.Folder
 import com.neki.user.entity.User
 import io.restassured.RestAssured
