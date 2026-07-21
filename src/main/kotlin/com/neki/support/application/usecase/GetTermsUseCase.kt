@@ -1,21 +1,20 @@
 package com.neki.support.application.usecase
 
 import com.neki.common.annotation.UseCase
+import com.neki.support.application.dto.TermResult
 import com.neki.support.application.port.TermRepositoryPort
-import com.neki.support.application.result.GetTermsResult
-import com.neki.support.application.result.TermInfo
 import com.neki.support.domain.entity.Term
 
 @UseCase
 class GetTermsUseCase(private val termRepository: TermRepositoryPort) {
 
-    fun execute(): GetTermsResult {
+    fun execute(): TermResult.GetTerms {
         val activeTerms: List<Term> = termRepository.findAllActiveTerms()
 
-        return GetTermsResult(
+        return TermResult.GetTerms(
             terms = activeTerms
                 .map { term ->
-                    TermInfo(
+                    TermResult.TermInfo(
                         id = term.id!!,
                         termType = term.termType,
                         title = term.title,

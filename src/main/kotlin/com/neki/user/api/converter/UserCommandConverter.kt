@@ -2,11 +2,8 @@ package com.neki.user.api.converter
 
 import com.neki.user.api.dto.UpdateUserProfileImageRequest
 import com.neki.user.api.dto.UpdateUserRequest
-import com.neki.user.application.command.DeleteUserCommand
-import com.neki.user.application.command.GetUserCommand
-import com.neki.user.application.command.LogoutCommand
-import com.neki.user.application.command.UpdateUserInfoCommand
-import com.neki.user.application.command.UpdateUserProfileImageCommand
+import com.neki.user.application.dto.UserCommand
+import com.neki.user.application.dto.UserQuery
 import org.springframework.stereotype.Component
 
 /**
@@ -18,14 +15,14 @@ import org.springframework.stereotype.Component
 @Component
 class UserCommandConverter {
 
-    fun toGetUserCommand(userId: Long) = GetUserCommand(userId)
+    fun toGetUserQuery(userId: Long) = UserQuery.GetUser(userId)
 
-    fun toUpdateUserCommand(userId: Long, request: UpdateUserRequest) = UpdateUserInfoCommand(userId, request.name)
+    fun toUpdateUserCommand(userId: Long, request: UpdateUserRequest) = UserCommand.UpdateUserInfo(userId, request.name)
 
     fun toUpdateUserProfileImageCommand(userId: Long, request: UpdateUserProfileImageRequest) =
-        UpdateUserProfileImageCommand(userId, request.mediaId)
+        UserCommand.UpdateUserProfileImage(userId, request.mediaId)
 
-    fun toDeleteUserCommand(userId: Long) = DeleteUserCommand(userId)
+    fun toDeleteUserCommand(userId: Long) = UserCommand.DeleteUser(userId)
 
-    fun toLogoutCommand(userId: Long) = LogoutCommand(userId)
+    fun toLogoutCommand(userId: Long) = UserCommand.Logout(userId)
 }

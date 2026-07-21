@@ -7,10 +7,9 @@ import com.neki.user.api.dto.CreateAuthRequest
 import com.neki.user.api.dto.GetAuthResponse
 import com.neki.user.api.dto.GetKakaoTokenResponse
 import com.neki.user.api.dto.RefreshTokenRequest
-import com.neki.user.application.command.RefreshTokenCommand
-import com.neki.user.application.command.RegisterOauthUserCommand
 import com.neki.user.application.contract.KakaoTokenPayload
-import com.neki.user.application.result.GetAuthResult
+import com.neki.user.application.dto.AuthCommand
+import com.neki.user.application.dto.AuthResult
 import com.neki.user.application.usecase.OauthLoginUseCase
 import com.neki.user.application.usecase.RefreshTokenUseCase
 import io.swagger.v3.oas.annotations.Hidden
@@ -118,9 +117,9 @@ class AuthController(
         @PathVariable(name = "providerType") providerType: String,
         @RequestBody @Valid request: CreateAuthRequest,
     ): BaseResponse<GetAuthResponse> {
-        val command: RegisterOauthUserCommand = commandConverter.toCreateAuthCommand(request, providerType)
+        val command: AuthCommand.RegisterOauthUser = commandConverter.toCreateAuthCommand(request, providerType)
 
-        val result: GetAuthResult = oauthLoginUseCase.execute(command)
+        val result: AuthResult.GetAuth = oauthLoginUseCase.execute(command)
 
         val response: GetAuthResponse = resultConverter.toCreateAuthResponse(result)
 
@@ -159,9 +158,9 @@ class AuthController(
     )
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetAuthResponse> {
-        val command: RefreshTokenCommand = commandConverter.toRefreshTokenCommand(request)
+        val command: AuthCommand.RefreshToken = commandConverter.toRefreshTokenCommand(request)
 
-        val result: GetAuthResult = refreshTokenUseCase.execute(command)
+        val result: AuthResult.GetAuth = refreshTokenUseCase.execute(command)
 
         val response: GetAuthResponse = resultConverter.toCreateAuthResponse(result)
 

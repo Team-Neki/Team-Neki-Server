@@ -3,7 +3,7 @@ package com.neki.map.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.command.UpdateBrandOrderCommand
+import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.UserBrandOrderRepositoryPort
 import com.neki.map.domain.entity.Brand
@@ -23,7 +23,7 @@ class UpdateBrandOrderUseCase(
 ) {
 
     @Transactional
-    fun execute(command: UpdateBrandOrderCommand) {
+    fun execute(command: MapCommand.UpdateBrandOrder) {
         val brandIds: List<Long> = command.brandIds
 
         val existingBrandIds: Set<Long> = brandRepository.findAll().mapNotNull(Brand::id).toSet()

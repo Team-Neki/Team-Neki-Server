@@ -2,7 +2,7 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.CreateFolderCommand
+import com.neki.photo.application.dto.FolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.testfixture.aFolder
 import io.kotest.assertions.throwables.shouldThrow
@@ -29,7 +29,7 @@ class CreateFolderUseCaseTest {
     @DisplayName("이름이 고유한 경우 폴더 저장 후 ID 반환")
     fun `이름이 고유한 경우 폴더 저장 후 ID 반환`() {
         // Given
-        val command = CreateFolderCommand(userId = 1L, name = "새 폴더")
+        val command = FolderCommand.CreateFolder(userId = 1L, name = "새 폴더")
         val savedFolder = aFolder(id = 42L, userId = 1L, name = "새 폴더")
 
         every { folderRepository.existsOwnedFolderName(1L, "새 폴더") } returns false
@@ -47,7 +47,7 @@ class CreateFolderUseCaseTest {
     @DisplayName("이름이 중복된 경우 CONFLICT_FOLDER 예외 발생")
     fun `이름이 중복된 경우 CONFLICT_FOLDER 예외 발생`() {
         // Given
-        val command = CreateFolderCommand(userId = 1L, name = "중복 폴더")
+        val command = FolderCommand.CreateFolder(userId = 1L, name = "중복 폴더")
 
         every { folderRepository.existsOwnedFolderName(1L, "중복 폴더") } returns true
 

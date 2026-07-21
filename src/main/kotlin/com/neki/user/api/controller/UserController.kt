@@ -7,12 +7,9 @@ import com.neki.user.api.converter.UserResultConverter
 import com.neki.user.api.dto.GetUserResponse
 import com.neki.user.api.dto.UpdateUserProfileImageRequest
 import com.neki.user.api.dto.UpdateUserRequest
-import com.neki.user.application.command.DeleteUserCommand
-import com.neki.user.application.command.GetUserCommand
-import com.neki.user.application.command.LogoutCommand
-import com.neki.user.application.command.UpdateUserInfoCommand
-import com.neki.user.application.command.UpdateUserProfileImageCommand
-import com.neki.user.application.result.GetUserResult
+import com.neki.user.application.dto.UserCommand
+import com.neki.user.application.dto.UserQuery
+import com.neki.user.application.dto.UserResult
 import com.neki.user.application.usecase.DeleteMeUseCase
 import com.neki.user.application.usecase.GetUserInfoUseCase
 import com.neki.user.application.usecase.LogoutUseCase
@@ -58,9 +55,9 @@ class UserController(
     )
     @GetMapping("/info")
     fun info(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetUserResponse> {
-        val command: GetUserCommand = commandConverter.toGetUserCommand(userId)
+        val query: UserQuery.GetUser = commandConverter.toGetUserQuery(userId)
 
-        val result: GetUserResult = getUserInfoUseCase.execute(command)
+        val result: UserResult.GetUser = getUserInfoUseCase.execute(query)
 
         val response: GetUserResponse = resultConverter.toGetUserResponse(result)
 
@@ -81,7 +78,7 @@ class UserController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: UpdateUserRequest,
     ): BaseResponse<Any> {
-        val command: UpdateUserInfoCommand = commandConverter.toUpdateUserCommand(userId, request)
+        val command: UserCommand.UpdateUserInfo = commandConverter.toUpdateUserCommand(userId, request)
 
         updateMeUseCase.execute(command)
 
@@ -102,7 +99,10 @@ class UserController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: UpdateUserProfileImageRequest,
     ): BaseResponse<Any> {
-        val command: UpdateUserProfileImageCommand = commandConverter.toUpdateUserProfileImageCommand(userId, request)
+        val command: UserCommand.UpdateUserProfileImage = commandConverter.toUpdateUserProfileImageCommand(
+            userId,
+            request,
+        )
 
         updateProfileUseCase.execute(command)
 
@@ -115,7 +115,7 @@ class UserController(
     )
     @DeleteMapping("/me")
     fun deleteMe(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<Any> {
-        val command: DeleteUserCommand = commandConverter.toDeleteUserCommand(userId)
+        val command: UserCommand.DeleteUser = commandConverter.toDeleteUserCommand(userId)
 
         deleteMeUseCase.execute(command)
 
@@ -128,7 +128,7 @@ class UserController(
     )
     @PostMapping("/logout")
     fun logout(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<Any> {
-        val command: LogoutCommand = commandConverter.toLogoutCommand(userId)
+        val command: UserCommand.Logout = commandConverter.toLogoutCommand(userId)
 
         logoutUseCase.execute(command)
 

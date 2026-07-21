@@ -3,7 +3,7 @@ package com.neki.user.application.usecase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
-import com.neki.user.application.command.DeleteUserCommand
+import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.port.NotificationClientPort
 import com.neki.user.application.port.TermClientPort
 import com.neki.user.application.port.UserEventPublisherPort
@@ -46,7 +46,7 @@ class DeleteMeUseCaseTest {
         every { notificationClient.deleteFcmToken(1L) } returns Unit
 
         // When
-        useCase.execute(DeleteUserCommand(userId = 1L))
+        useCase.execute(UserCommand.DeleteUser(userId = 1L))
 
         // Then
         user.email shouldBe null
@@ -66,7 +66,7 @@ class DeleteMeUseCaseTest {
         every { notificationClient.deleteFcmToken(1L) } returns Unit
 
         // When
-        useCase.execute(DeleteUserCommand(userId = 1L))
+        useCase.execute(UserCommand.DeleteUser(userId = 1L))
 
         // Then
         verify(exactly = 1) { termClient.revokeOptionalTerms(1L) }
@@ -84,7 +84,7 @@ class DeleteMeUseCaseTest {
         every { notificationClient.deleteFcmToken(1L) } returns Unit
 
         // When
-        useCase.execute(DeleteUserCommand(userId = 1L))
+        useCase.execute(UserCommand.DeleteUser(userId = 1L))
 
         // Then
         verify(exactly = 1) { notificationClient.deleteFcmToken(1L) }
@@ -98,7 +98,7 @@ class DeleteMeUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(DeleteUserCommand(userId = 999L))
+            useCase.execute(UserCommand.DeleteUser(userId = 999L))
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
     }
@@ -111,7 +111,7 @@ class DeleteMeUseCaseTest {
 
         // When & Then
         shouldThrow<BusinessException> {
-            useCase.execute(DeleteUserCommand(userId = 999L))
+            useCase.execute(UserCommand.DeleteUser(userId = 999L))
         }
         verify(exactly = 0) { termClient.revokeOptionalTerms(any()) }
         verify(exactly = 0) { notificationClient.deleteFcmToken(any()) }

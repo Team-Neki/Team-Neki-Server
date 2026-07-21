@@ -2,13 +2,13 @@ package com.neki.support.api.converter
 
 import com.neki.support.api.dto.GetTermsResponse
 import com.neki.support.api.dto.TermInfoResponse
-import com.neki.support.application.result.GetTermsResult
+import com.neki.support.application.dto.TermResult
 import org.springframework.stereotype.Component
 
 @Component
 class TermResultConverter {
 
-    fun toGetTermsResponse(result: GetTermsResult): GetTermsResponse = GetTermsResponse(
+    fun toGetTermsResponse(result: TermResult.GetTerms): GetTermsResponse = GetTermsResponse(
         terms = result.terms.map { termInfo ->
             TermInfoResponse(
                 id = termInfo.id,

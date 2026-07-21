@@ -218,34 +218,55 @@ Use consistent verb names across all ports:
 
 ---
 
-## Command/Result Pattern
+## Command/Query/Result Pattern
 
-### Command (Input)
+application DTO는 모두 `application/dto/` 에 두고, 도메인 그룹별 `object` 하위 중첩 클래스로 묶는다.
+쓰기 입력은 `XxxCommand`, 조회 입력은 `XxxQuery`, 출력은 `XxxResult`.
+
+### Command (쓰기 입력)
 
 ```kotlin
-// src/main/kotlin/com/neki/photo/application/command/FolderCommand.kt
-data class CreateFolderCommand(
-    val userId: Long,
-    val name: String,
-)
+// src/main/kotlin/com/neki/photo/application/dto/FolderCommand.kt
+object FolderCommand {
+    data class CreateFolder(
+        val userId: Long,
+        val name: String,
+    )
 
-data class DeleteFolderCommand(
-    val userId: Long,
-    val folderId: Long,
-)
+    data class DeleteFolders(
+        val userId: Long,
+        val folderIds: List<Long>,
+    )
+}
 ```
 
-### Result (Output)
+### Query (조회 입력)
 
 ```kotlin
-// src/main/kotlin/com/neki/photo/application/result/FolderResult.kt
-data class CreateFolderResult(
-    val folderId: Long,
-)
+// src/main/kotlin/com/neki/photo/application/dto/FolderQuery.kt
+object FolderQuery {
+    data class GetFolders(
+        val userId: Long,
+        val limit: Int?,
+    )
+}
+```
 
-data class GetFoldersResult(
-    val folders: List<FolderInfo>,
-)
+### Result (출력)
+
+```kotlin
+// src/main/kotlin/com/neki/photo/application/dto/FolderResult.kt
+object FolderResult {
+    data class CreateFolder(
+        val folderId: Long,
+    )
+
+    data class GetFolders(
+        val items: List<FolderInfo>,
+    ) {
+        data class FolderInfo(val folderId: Long, val name: String, val storageKey: String?, val count: Long)
+    }
+}
 ```
 
 ---

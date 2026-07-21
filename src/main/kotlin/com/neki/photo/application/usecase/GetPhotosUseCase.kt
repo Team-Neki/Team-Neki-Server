@@ -1,12 +1,12 @@
 package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.photo.application.command.GetPhotosCommand
 import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.contract.PhotoWithFavorite
+import com.neki.photo.application.dto.PhotoImageQuery
+import com.neki.photo.application.dto.PhotoImageResult
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.application.result.GetPhotosResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.collections.dropLast
@@ -27,29 +27,29 @@ class GetPhotosUseCase(
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun execute(command: GetPhotosCommand): GetPhotosResult {
+    fun execute(query: PhotoImageQuery.GetPhotos): PhotoImageResult.GetPhotos {
         // size + 1개 조회하여 hasNext 판단
-        val fetchSize = command.size + 1
+        val fetchSize = query.size + 1
 
         val photosWithFavorite: List<PhotoWithFavorite> = photoImageRepository.listOwnedPhotosWithFavorite(
-            userId = command.userId,
-            folderId = command.folderId,
-            offset = command.page * command.size,
+            userId = query.userId,
+            folderId = query.folderId,
+            offset = query.page * query.size,
             limit = fetchSize,
-            sortOrder = command.sortOrder,
+            sortOrder = query.sortOrder,
         )
 
         val totalCount: Long = photoImageRepository.countOwnedPhotos(
-            userId = command.userId,
-            folderId = command.folderId,
+            userId = query.userId,
+            folderId = query.folderId,
         )
 
         if (photosWithFavorite.isEmpty()) {
-            return GetPhotosResult(emptyList(), hasNext = false, totalCount = totalCount)
+            return PhotoImageResult.GetPhotos(emptyList(), hasNext = false, totalCount = totalCount)
         }
 
         // hasNext 판단: size + 1개 조회했는데 실제로 그만큼 있으면 다음 페이지 존재
-        val hasNext = photosWithFavorite.size > command.size
+        val hasNext = photosWithFavorite.size > query.size
 
         // 실제 반환할 사진 목록 (size개만)
         val photosToReturn: List<PhotoWithFavorite> = if (hasNext) {
@@ -62,26 +62,26 @@ class GetPhotosUseCase(
 
         // storageKey 조회 (페이징된 결과에 대해서만)
         val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
-            command.userId,
+            query.userId,
             photosToReturn.map { it.photo.mediaId },
         )
 
         val mediaByFileId: Map<Long, MediaStorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result: List<GetPhotosResult.PhotoInfo> = photosToReturn.mapNotNull { (photo, isFavorite) ->
+        val result: List<PhotoImageResult.GetPhotos.PhotoInfo> = photosToReturn.mapNotNull { (photo, isFavorite) ->
             val media = mediaByFileId[photo.mediaId]
                 ?: run {
                     log.info(
                         "Media not found yet. photoId={}, fileId={}, userId={}",
                         photo.id,
                         photo.mediaId,
-                        command.userId,
+                        query.userId,
                     )
                     return@mapNotNull null
                 }
 
-            GetPhotosResult.PhotoInfo(
+            PhotoImageResult.GetPhotos.PhotoInfo(
                 photoId = photo.id!!,
                 storageKey = media.storageKey,
                 favorite = isFavorite,
@@ -95,6 +95,6 @@ class GetPhotosUseCase(
             )
         }
 
-        return GetPhotosResult(result, hasNext, totalCount)
+        return PhotoImageResult.GetPhotos(result, hasNext, totalCount)
     }
 }

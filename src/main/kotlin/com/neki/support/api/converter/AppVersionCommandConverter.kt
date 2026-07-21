@@ -1,8 +1,8 @@
 package com.neki.support.api.converter
 
 import com.neki.support.api.dto.UpdateAppVersionRequest
-import com.neki.support.application.command.GetAppVersionCommand
-import com.neki.support.application.command.UpdateAppVersionCommand
+import com.neki.support.application.dto.AppVersionCommand
+import com.neki.support.application.dto.AppVersionQuery
 import com.neki.support.domain.enums.Platform
 import org.springframework.stereotype.Component
 
@@ -15,14 +15,17 @@ import org.springframework.stereotype.Component
 @Component
 class AppVersionCommandConverter {
 
-    fun toGetAppVersionCommand(platformStr: String): GetAppVersionCommand {
+    fun toGetAppVersionQuery(platformStr: String): AppVersionQuery.GetAppVersion {
         val platformEnum: Platform = Platform.from(platformStr)
-        return GetAppVersionCommand(platformEnum)
+        return AppVersionQuery.GetAppVersion(platformEnum)
     }
 
-    fun toUpdateAppVersionCommand(platformStr: String, request: UpdateAppVersionRequest): UpdateAppVersionCommand {
+    fun toUpdateAppVersionCommand(
+        platformStr: String,
+        request: UpdateAppVersionRequest,
+    ): AppVersionCommand.UpdateAppVersion {
         val platformEnum: Platform = Platform.from(platformStr)
-        return UpdateAppVersionCommand(
+        return AppVersionCommand.UpdateAppVersion(
             platform = platformEnum,
             minVersion = request.minVersion,
             currentVersion = request.currentVersion,

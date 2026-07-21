@@ -1,9 +1,9 @@
 package com.neki.notification.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.notification.application.command.GetRecentNotificationsCommand
+import com.neki.notification.application.dto.NotificationQuery
+import com.neki.notification.application.dto.NotificationResult
 import com.neki.notification.application.port.NotificationHistRepositoryPort
-import com.neki.notification.application.result.GetRecentNotificationResult
 import com.neki.notification.domain.entity.NotificationHist
 import org.springframework.transaction.annotation.Transactional
 
@@ -17,12 +17,12 @@ import org.springframework.transaction.annotation.Transactional
 class GetRecentNotificationsUseCase(private val notificationHistRepository: NotificationHistRepositoryPort) {
 
     @Transactional(readOnly = true)
-    fun execute(command: GetRecentNotificationsCommand): List<GetRecentNotificationResult> {
+    fun execute(query: NotificationQuery.GetRecentNotifications): List<NotificationResult.GetRecentNotification> {
         val hists: List<NotificationHist> =
-            notificationHistRepository.findRecentByUserId(command.userId)
+            notificationHistRepository.findRecentByUserId(query.userId)
 
         return hists.map { hist ->
-            GetRecentNotificationResult(
+            NotificationResult.GetRecentNotification(
                 id = hist.id!!,
                 type = hist.type,
                 title = hist.title,

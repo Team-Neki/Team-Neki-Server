@@ -1,9 +1,9 @@
 package com.neki.notification.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.notification.application.command.GetPushAgreementCommand
+import com.neki.notification.application.dto.NotificationQuery
+import com.neki.notification.application.dto.NotificationResult
 import com.neki.notification.application.port.NotificationRepositoryPort
-import com.neki.notification.application.result.GetPushAgreementResult
 
 /**
  * fileName       : GetPushAgreementUseCase
@@ -14,9 +14,9 @@ import com.neki.notification.application.result.GetPushAgreementResult
 @UseCase
 class GetPushAgreementUseCase(private val notificationRepository: NotificationRepositoryPort) {
 
-    fun execute(command: GetPushAgreementCommand): GetPushAgreementResult {
-        val pushAgreed: Boolean = notificationRepository.findByUserId(command.userId)?.pushAgreed ?: false
+    fun execute(query: NotificationQuery.GetPushAgreement): NotificationResult.GetPushAgreement {
+        val pushAgreed: Boolean = notificationRepository.findByUserId(query.userId)?.pushAgreed ?: false
 
-        return GetPushAgreementResult(pushAgreed = pushAgreed)
+        return NotificationResult.GetPushAgreement(pushAgreed = pushAgreed)
     }
 }

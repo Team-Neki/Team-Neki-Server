@@ -1,7 +1,7 @@
 package com.neki.notification.api.converter
 
 import com.neki.notification.api.dto.UpdateNotificationRequest
-import com.neki.notification.application.command.UpdateNotificationCommand
+import com.neki.notification.application.dto.NotificationCommand
 import org.springframework.stereotype.Component
 
 /**
@@ -13,10 +13,12 @@ import org.springframework.stereotype.Component
 @Component
 class NotificationCommandConverter {
 
-    fun toUpdateNotificationCommand(userId: Long, request: UpdateNotificationRequest): UpdateNotificationCommand =
-        UpdateNotificationCommand(
-            userId = userId,
-            deviceToken = request.deviceToken,
-            pushAgreed = request.pushAgreed,
-        )
+    fun toUpdateNotificationCommand(
+        userId: Long,
+        request: UpdateNotificationRequest,
+    ): NotificationCommand.UpdateNotification = NotificationCommand.UpdateNotification(
+        userId = userId,
+        deviceToken = request.deviceToken,
+        pushAgreed = request.pushAgreed,
+    )
 }

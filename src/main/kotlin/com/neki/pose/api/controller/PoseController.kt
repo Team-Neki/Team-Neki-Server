@@ -8,12 +8,9 @@ import com.neki.pose.api.converter.PoseResultConverter
 import com.neki.pose.api.dto.GetPoseResponse
 import com.neki.pose.api.dto.GetPosesResponse
 import com.neki.pose.api.dto.UploadPoseRequest
-import com.neki.pose.application.command.GetPoseCommand
-import com.neki.pose.application.command.GetPosesCommand
-import com.neki.pose.application.command.GetRandomPoseCommand
-import com.neki.pose.application.command.UploadPosesCommand
-import com.neki.pose.application.result.GetPoseResult
-import com.neki.pose.application.result.GetPosesResult
+import com.neki.pose.application.dto.PoseCommand
+import com.neki.pose.application.dto.PoseQuery
+import com.neki.pose.application.dto.PoseResult
 import com.neki.pose.application.usecase.GetPoseUseCase
 import com.neki.pose.application.usecase.GetPosesUseCase
 import com.neki.pose.application.usecase.RandomPoseUseCase
@@ -65,7 +62,7 @@ class PoseController(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
         @Valid @RequestBody request: UploadPoseRequest,
     ): BaseResponse<Any> {
-        val command: UploadPosesCommand = commandConverter.toUploadPosesCommand(ownerId, request)
+        val command: PoseCommand.UploadPoses = commandConverter.toUploadPosesCommand(ownerId, request)
 
         uploadPosesUseCase.execute(command)
 
@@ -94,7 +91,7 @@ class PoseController(
         @RequestParam(required = false) headCount: HeadCount?,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<GetPosesResponse> {
-        val command: GetPosesCommand = commandConverter.toGetPosesCommand(
+        val query: PoseQuery.GetPoses = commandConverter.toGetPosesQuery(
             userId = userId,
             page = page,
             size = size,
@@ -102,7 +99,7 @@ class PoseController(
             sortOrder = sortOrder,
         )
 
-        val result: GetPosesResult = getPosesUseCase.execute(command)
+        val result: PoseResult.GetPoses = getPosesUseCase.execute(query)
 
         val response: GetPosesResponse = resultConverter.toGetPosesResponse(result)
 
@@ -118,9 +115,9 @@ class PoseController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable poseId: Long,
     ): BaseResponse<GetPoseResponse> {
-        val command: GetPoseCommand = commandConverter.toGetPoseCommand(userId, poseId)
+        val query: PoseQuery.GetPose = commandConverter.toGetPoseQuery(userId, poseId)
 
-        val result: GetPoseResult = getPoseUseCase.execute(command)
+        val result: PoseResult.GetPose = getPoseUseCase.execute(query)
 
         val response: GetPoseResponse = resultConverter.toGetPoseResponse(result)
 
@@ -137,9 +134,9 @@ class PoseController(
         @RequestParam(required = true) headCount: HeadCount,
         @RequestParam(required = false, defaultValue = "") excludeIds: String,
     ): BaseResponse<GetPoseResponse> {
-        val command: GetRandomPoseCommand = commandConverter.toGetRandomPoseCommand(userId, headCount, excludeIds)
+        val query: PoseQuery.GetRandomPose = commandConverter.toGetRandomPoseQuery(userId, headCount, excludeIds)
 
-        val result: GetPoseResult = randomPoseUseCase.execute(command)
+        val result: PoseResult.GetPose = randomPoseUseCase.execute(query)
 
         val response: GetPoseResponse = resultConverter.toGetPoseResponse(result)
 

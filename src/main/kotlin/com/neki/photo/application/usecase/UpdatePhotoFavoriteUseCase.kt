@@ -3,7 +3,7 @@ package com.neki.photo.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.UpdatePhotoFavoriteCommand
+import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.domain.entity.FavoritePhoto
@@ -22,7 +22,7 @@ class UpdatePhotoFavoriteUseCase(
 ) {
 
     @Transactional
-    fun execute(command: UpdatePhotoFavoriteCommand) {
+    fun execute(command: PhotoImageCommand.UpdatePhotoFavorite) {
         val photoExists: Boolean =
             photoImageRepository.existsOwnedPhoto(command.userId, command.photoId)
 

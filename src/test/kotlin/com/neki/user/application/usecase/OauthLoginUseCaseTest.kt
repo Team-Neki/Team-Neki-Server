@@ -3,8 +3,8 @@ package com.neki.user.application.usecase
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aUser
-import com.neki.user.application.command.RegisterOauthUserCommand
 import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.application.dto.AuthCommand
 import com.neki.user.application.port.AuthTokenProviderPort
 import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
@@ -74,7 +74,7 @@ class OauthLoginUseCaseTest {
             name = "기존유저",
             imageUrl = null,
         )
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,
@@ -125,7 +125,7 @@ class OauthLoginUseCaseTest {
             name = null,
             imageUrl = null,
         )
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,
@@ -175,7 +175,7 @@ class OauthLoginUseCaseTest {
     fun `ID token 검증 실패 - oidcTokenValidatorPort 예외 전파 확인`() {
         // Given
         val idToken = "invalid-id-token"
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,
@@ -204,7 +204,7 @@ class OauthLoginUseCaseTest {
             name = null,
             imageUrl = null,
         )
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,
@@ -251,7 +251,7 @@ class OauthLoginUseCaseTest {
             name = "관리자",
             imageUrl = null,
         )
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,

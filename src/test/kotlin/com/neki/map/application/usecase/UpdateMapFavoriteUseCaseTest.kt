@@ -2,7 +2,7 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.command.UpdateMapFavoriteCommand
+import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.port.FavoriteMapRepositoryPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.domain.entity.FavoriteMap
@@ -39,7 +39,7 @@ class UpdateMapFavoriteUseCaseTest {
     @DisplayName("즐겨찾기 추가 요청 시 add 호출")
     fun `즐겨찾기 추가 요청 시 add 호출`() {
         // Given
-        val command = UpdateMapFavoriteCommand(userId = 1L, locationId = 1L, favorite = true)
+        val command = MapCommand.UpdateMapFavorite(userId = 1L, locationId = 1L, favorite = true)
 
         val favoriteMapSlot = slot<FavoriteMap>()
         every { photoBoothLocationRepository.existsById(1L) } returns true
@@ -59,7 +59,7 @@ class UpdateMapFavoriteUseCaseTest {
     @DisplayName("즐겨찾기 해제 요청 시 delete 호출")
     fun `즐겨찾기 해제 요청 시 delete 호출`() {
         // Given
-        val command = UpdateMapFavoriteCommand(userId = 1L, locationId = 1L, favorite = false)
+        val command = MapCommand.UpdateMapFavorite(userId = 1L, locationId = 1L, favorite = false)
 
         val favoriteMapSlot = slot<FavoriteMap>()
         every { photoBoothLocationRepository.existsById(1L) } returns true
@@ -79,7 +79,7 @@ class UpdateMapFavoriteUseCaseTest {
     @DisplayName("포토부스 위치가 존재하지 않는 경우 NOT_FOUND 예외 발생")
     fun `포토부스 위치가 존재하지 않는 경우 NOT_FOUND 예외 발생`() {
         // Given
-        val command = UpdateMapFavoriteCommand(userId = 1L, locationId = 99L, favorite = true)
+        val command = MapCommand.UpdateMapFavorite(userId = 1L, locationId = 99L, favorite = true)
 
         every { photoBoothLocationRepository.existsById(99L) } returns false
 

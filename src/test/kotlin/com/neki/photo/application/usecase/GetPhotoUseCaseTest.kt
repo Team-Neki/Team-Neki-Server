@@ -2,9 +2,9 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.GetPhotoCommand
 import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.contract.PhotoWithFavorite
+import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.testfixture.aPhotoImage
@@ -37,7 +37,7 @@ class GetPhotoUseCaseTest {
         val photo = aPhotoImage(id = 1L, userId = 1L, mediaId = 10L, memo = "테스트 메모").also {
             it.createdAt = LocalDateTime.of(2026, 1, 1, 12, 0)
         }
-        val command = GetPhotoCommand(userId = 1L, photoId = 1L)
+        val query = PhotoImageQuery.GetPhoto(userId = 1L, photoId = 1L)
         val mediaInfo = MediaStorageInfo(
             mediaId = 10L,
             storageKey = "key/image.jpg",
@@ -51,7 +51,7 @@ class GetPhotoUseCaseTest {
         every { mediaClient.getMediaStorageInfo(1L, 10L) } returns mediaInfo
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.photoId shouldBe 1L
@@ -67,13 +67,13 @@ class GetPhotoUseCaseTest {
     @DisplayName("사진이 존재하지 않는 경우 NOT_FOUND 예외 발생")
     fun `사진이 존재하지 않는 경우 NOT_FOUND 예외 발생`() {
         // Given
-        val command = GetPhotoCommand(userId = 1L, photoId = 99L)
+        val query = PhotoImageQuery.GetPhoto(userId = 1L, photoId = 99L)
 
         every { photoImageRepository.getOwnedPhotoWithFavorite(1L, 99L) } returns null
 
         // When & Then
         val ex = shouldThrow<BusinessException> {
-            useCase.execute(command)
+            useCase.execute(query)
         }
         ex.resultCode shouldBe ResultCode.NOT_FOUND
     }
@@ -85,7 +85,7 @@ class GetPhotoUseCaseTest {
         val photo = aPhotoImage(id = 1L, userId = 1L, mediaId = 10L).also {
             it.createdAt = LocalDateTime.of(2026, 1, 1, 12, 0)
         }
-        val command = GetPhotoCommand(userId = 1L, photoId = 1L)
+        val query = PhotoImageQuery.GetPhoto(userId = 1L, photoId = 1L)
 
         every { photoImageRepository.getOwnedPhotoWithFavorite(1L, 1L) } returns
             PhotoWithFavorite(photo, isFavorite = false)
@@ -93,7 +93,7 @@ class GetPhotoUseCaseTest {
 
         // When & Then
         shouldThrow<RuntimeException> {
-            useCase.execute(command)
+            useCase.execute(query)
         }
     }
 }

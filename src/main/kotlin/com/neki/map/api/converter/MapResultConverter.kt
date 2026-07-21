@@ -6,11 +6,7 @@ import com.neki.map.api.dto.GetBrandResponse
 import com.neki.map.api.dto.GetFavoriteMapResponse
 import com.neki.map.api.dto.GetPointLocationResponse
 import com.neki.map.api.dto.GetPolygonLocationResponse
-import com.neki.map.application.result.CollectPhotoBoothResult
-import com.neki.map.application.result.GetBrandResult
-import com.neki.map.application.result.GetFavoriteMapResult
-import com.neki.map.application.result.GetPointLocationResult
-import com.neki.map.application.result.GetPolygonLocationResult
+import com.neki.map.application.dto.MapResult
 import org.springframework.stereotype.Component
 
 /**
@@ -25,7 +21,7 @@ class MapResultConverter(private val appProperties: AppProperties) {
         private const val IMAGE_URL_PATH = "/file/image/"
     }
 
-    fun toGetBrandResponse(result: List<GetBrandResult>): List<GetBrandResponse> = result.map {
+    fun toGetBrandResponse(result: List<MapResult.GetBrand>): List<GetBrandResponse> = result.map {
         GetBrandResponse(
             id = it.id,
             name = it.name,
@@ -36,14 +32,14 @@ class MapResultConverter(private val appProperties: AppProperties) {
 
     private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
 
-    fun toCollectPhotoBoothResponse(result: CollectPhotoBoothResult): CollectPhotoBoothResponse =
+    fun toCollectPhotoBoothResponse(result: MapResult.CollectPhotoBooth): CollectPhotoBoothResponse =
         CollectPhotoBoothResponse(
             collectedCount = result.collectedCount,
             duplicatedCount = result.duplicatedCount,
             totalProcessed = result.totalProcessed,
         )
 
-    fun toGetPolygonLocationResponse(result: GetPolygonLocationResult): GetPolygonLocationResponse {
+    fun toGetPolygonLocationResponse(result: MapResult.GetPolygonLocation): GetPolygonLocationResponse {
         val items: List<GetPolygonLocationResponse.PhotoBoothLocationInfo> = result.locations.map {
             GetPolygonLocationResponse.PhotoBoothLocationInfo(
                 id = it.id,
@@ -58,7 +54,7 @@ class MapResultConverter(private val appProperties: AppProperties) {
         return GetPolygonLocationResponse(items = items)
     }
 
-    fun toGetFavoriteMapResponse(result: GetFavoriteMapResult): GetFavoriteMapResponse {
+    fun toGetFavoriteMapResponse(result: MapResult.GetFavoriteMap): GetFavoriteMapResponse {
         val items: List<GetFavoriteMapResponse.PhotoBoothLocationInfo> = result.locations.map {
             GetFavoriteMapResponse.PhotoBoothLocationInfo(
                 id = it.id,
@@ -72,7 +68,7 @@ class MapResultConverter(private val appProperties: AppProperties) {
         return GetFavoriteMapResponse(items = items)
     }
 
-    fun toGetPointLocationResponse(result: GetPointLocationResult): GetPointLocationResponse {
+    fun toGetPointLocationResponse(result: MapResult.GetPointLocation): GetPointLocationResponse {
         val items: List<GetPointLocationResponse.PhotoBoothLocationWithDistanceInfo> = result.locations.map {
             GetPointLocationResponse.PhotoBoothLocationWithDistanceInfo(
                 id = it.id,

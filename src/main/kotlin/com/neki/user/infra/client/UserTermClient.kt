@@ -1,7 +1,7 @@
 package com.neki.user.infra.client
 
-import com.neki.support.application.command.CheckRequiredTermsAgreementCommand
-import com.neki.support.application.result.TermAgreementResult
+import com.neki.support.application.dto.TermQuery
+import com.neki.support.application.dto.TermResult
 import com.neki.support.application.usecase.CheckMarketingAgreementUseCase
 import com.neki.support.application.usecase.CheckRequiredTermsAgreementUseCase
 import com.neki.support.application.usecase.RevokeOptionalTermsUseCase
@@ -19,8 +19,8 @@ class UserTermClient(
      * 필수 약관 동의 여부 조회
      */
     override fun hasAgreedToAllRequired(userId: Long): Boolean {
-        val result: TermAgreementResult = checkRequiredTermsAgreementUseCase.execute(
-            CheckRequiredTermsAgreementCommand(userId = userId),
+        val result: TermResult.TermAgreement = checkRequiredTermsAgreementUseCase.execute(
+            TermQuery.CheckRequiredTermsAgreement(userId = userId),
         )
         return result.agreed
     }

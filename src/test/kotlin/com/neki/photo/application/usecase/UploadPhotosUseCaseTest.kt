@@ -2,8 +2,8 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.UploadPhotoCommand
 import com.neki.photo.application.contract.MediaAvailability
+import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
@@ -50,7 +50,7 @@ class UploadPhotosUseCaseTest {
         )
     }
 
-    private fun makeUploadItem(mediaId: Long, memo: String? = null) = UploadPhotoCommand.UploadItem(
+    private fun makeUploadItem(mediaId: Long, memo: String? = null) = PhotoImageCommand.UploadPhoto.UploadItem(
         mediaId = mediaId,
         uploadMethod = UploadMethod.DIRECT_UPLOAD,
         memo = memo,
@@ -62,7 +62,7 @@ class UploadPhotosUseCaseTest {
     fun `정상 업로드 - 미디어 확인 후 사진 저장, 폴더 연결, 즐겨찾기 추가`() {
         // Given
         val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = 1L, uploads = uploads, favorite = true)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = 1L, uploads = uploads, favorite = true)
         val folder = aFolder(id = 1L, userId = 1L)
         val savedPhotos = listOf(
             aPhotoImage(id = 100L, userId = 1L, mediaId = 10L),
@@ -93,7 +93,7 @@ class UploadPhotosUseCaseTest {
     fun `중복 mediaId가 있는 경우 INVALID_PARAMETER 예외 발생`() {
         // Given
         val uploads = listOf(makeUploadItem(10L), makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = null, uploads = uploads, favorite = false)
 
         // When & Then
         val ex = shouldThrow<BusinessException> {
@@ -108,7 +108,7 @@ class UploadPhotosUseCaseTest {
     fun `폴더를 소유하지 않은 경우 NOT_FOUND 예외 발생`() {
         // Given
         val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = 99L, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = 99L, uploads = uploads, favorite = false)
 
         every { folderRepository.getOwnedFolder(1L, 99L) } returns null
 
@@ -125,7 +125,7 @@ class UploadPhotosUseCaseTest {
     fun `일부 미디어가 UNAVAILABLE인 경우 UPLOAD_FAILED 예외 발생 및 성공 미디어 롤백`() {
         // Given
         val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = null, uploads = uploads, favorite = false)
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L, 20L)) } returns mapOf(
@@ -147,7 +147,7 @@ class UploadPhotosUseCaseTest {
     fun `트랜잭션 실패 시 미디어 롤백 호출`() {
         // Given
         val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = null, uploads = uploads, favorite = false)
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
@@ -167,7 +167,7 @@ class UploadPhotosUseCaseTest {
     fun `이미 등록된 mediaId는 필터링 후 나머지만 저장`() {
         // Given
         val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = null, uploads = uploads, favorite = false)
         // mediaId=10L은 이미 등록됨
         val savedPhotos = listOf(aPhotoImage(id = 200L, userId = 1L, mediaId = 20L))
 
@@ -189,7 +189,7 @@ class UploadPhotosUseCaseTest {
     fun `모든 mediaId가 이미 등록된 경우 early return - 저장 미호출`() {
         // Given
         val uploads = listOf(makeUploadItem(10L), makeUploadItem(20L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = null, uploads = uploads, favorite = false)
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns setOf(10L, 20L)
 
@@ -206,7 +206,7 @@ class UploadPhotosUseCaseTest {
     fun `folderId가 null이면 폴더 연결 없이 사진만 저장`() {
         // Given
         val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = null, uploads = uploads, favorite = false)
         val savedPhotos = listOf(aPhotoImage(id = 100L, userId = 1L, mediaId = 10L))
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
@@ -227,7 +227,7 @@ class UploadPhotosUseCaseTest {
     fun `saveAll에서 ALREADY_REQUEST 예외 발생 시 롤백 없이 early return`() {
         // Given
         val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = null, uploads = uploads, favorite = false)
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
@@ -246,7 +246,7 @@ class UploadPhotosUseCaseTest {
     fun `롤백 중 예외 발생 시 롤백 예외가 전파됨`() {
         // Given
         val uploads = listOf(makeUploadItem(10L))
-        val command = UploadPhotoCommand(userId = 1L, folderId = null, uploads = uploads, favorite = false)
+        val command = PhotoImageCommand.UploadPhoto(userId = 1L, folderId = null, uploads = uploads, favorite = false)
         val originalException = RuntimeException("원래 오류")
         val rollbackException = RuntimeException("롤백 오류")
 

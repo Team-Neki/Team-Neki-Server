@@ -2,8 +2,7 @@ package com.neki.support.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.application.command.CreateTermAgreementsCommand
-import com.neki.support.application.command.TermAgreementItem
+import com.neki.support.application.dto.TermCommand
 import com.neki.support.application.port.TermRepositoryPort
 import com.neki.support.application.port.UserTermAgreementHistRepositoryPort
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
@@ -55,11 +54,11 @@ class CreateTermAgreementsUseCaseTest {
         every { userTermAgreementRepository.deleteAllByUserIdAndTermIds(any(), any()) } just runs
         every { userTermAgreementHistRepository.saveAll(any()) } just runs
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = listOf(
-                TermAgreementItem(termId = 1L, agreed = true),
-                TermAgreementItem(termId = 2L, agreed = true),
+                TermCommand.TermAgreementItem(termId = 1L, agreed = true),
+                TermCommand.TermAgreementItem(termId = 2L, agreed = true),
             ),
         )
 
@@ -81,10 +80,10 @@ class CreateTermAgreementsUseCaseTest {
         every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm, optionalTerm)
         every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = listOf(
-                TermAgreementItem(termId = 2L, agreed = true),
+                TermCommand.TermAgreementItem(termId = 2L, agreed = true),
             ),
         )
 
@@ -110,11 +109,11 @@ class CreateTermAgreementsUseCaseTest {
         every { userTermAgreementRepository.deleteAllByUserIdAndTermIds(any(), any()) } just runs
         every { userTermAgreementHistRepository.saveAll(any()) } just runs
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = listOf(
-                TermAgreementItem(termId = 1L, agreed = true),
-                TermAgreementItem(termId = 2L, agreed = false),
+                TermCommand.TermAgreementItem(termId = 1L, agreed = true),
+                TermCommand.TermAgreementItem(termId = 2L, agreed = false),
             ),
         )
 
@@ -136,7 +135,7 @@ class CreateTermAgreementsUseCaseTest {
         every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm)
         every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = emptyList(),
         )
@@ -158,11 +157,11 @@ class CreateTermAgreementsUseCaseTest {
 
         every { termRepository.findAllActiveTerms() } returns listOf(requiredTerm)
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = listOf(
-                TermAgreementItem(termId = 1L, agreed = true),
-                TermAgreementItem(termId = 999L, agreed = true),
+                TermCommand.TermAgreementItem(termId = 1L, agreed = true),
+                TermCommand.TermAgreementItem(termId = 999L, agreed = true),
             ),
         )
 
@@ -190,10 +189,10 @@ class CreateTermAgreementsUseCaseTest {
         every { userTermAgreementRepository.deleteAllByUserIdAndTermIds(any(), any()) } just runs
         every { userTermAgreementHistRepository.saveAll(capture(histSlot)) } just runs
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = listOf(
-                TermAgreementItem(termId = 2L, agreed = true),
+                TermCommand.TermAgreementItem(termId = 2L, agreed = true),
             ),
         )
 
@@ -224,10 +223,10 @@ class CreateTermAgreementsUseCaseTest {
         every { userTermAgreementRepository.deleteAllByUserIdAndTermIds(any(), any()) } just runs
         every { userTermAgreementHistRepository.saveAll(capture(histSlot)) } just runs
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = listOf(
-                TermAgreementItem(termId = 2L, agreed = false),
+                TermCommand.TermAgreementItem(termId = 2L, agreed = false),
             ),
         )
 
@@ -258,10 +257,10 @@ class CreateTermAgreementsUseCaseTest {
         every { userTermAgreementRepository.deleteAllByUserIdAndTermIds(any(), any()) } just runs
         every { userTermAgreementHistRepository.saveAll(capture(histSlot)) } just runs
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = listOf(
-                TermAgreementItem(termId = 2L, agreed = true),
+                TermCommand.TermAgreementItem(termId = 2L, agreed = true),
             ),
         )
 
@@ -290,10 +289,10 @@ class CreateTermAgreementsUseCaseTest {
         every { userTermAgreementRepository.deleteAllByUserIdAndTermIds(any(), any()) } just runs
         every { userTermAgreementHistRepository.saveAll(capture(histSlot)) } just runs
 
-        val command = CreateTermAgreementsCommand(
+        val command = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = listOf(
-                TermAgreementItem(termId = 2L, agreed = false),
+                TermCommand.TermAgreementItem(termId = 2L, agreed = false),
             ),
         )
 

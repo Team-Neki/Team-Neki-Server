@@ -3,9 +3,9 @@ package com.neki.support.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.application.command.GetAppVersionCommand
+import com.neki.support.application.dto.AppVersionQuery
+import com.neki.support.application.dto.AppVersionResult
 import com.neki.support.application.port.AppVersionRepositoryPort
-import com.neki.support.application.result.GetAppVersionResult
 import com.neki.support.domain.entity.AppVersion
 import org.springframework.transaction.annotation.Transactional
 
@@ -19,11 +19,11 @@ import org.springframework.transaction.annotation.Transactional
 class GetAppVersionUseCase(private val appVersionRepository: AppVersionRepositoryPort) {
 
     @Transactional(readOnly = true)
-    fun execute(command: GetAppVersionCommand): GetAppVersionResult {
-        val appVersion: AppVersion = appVersionRepository.findByPlatform(command.platform)
+    fun execute(query: AppVersionQuery.GetAppVersion): AppVersionResult.GetAppVersion {
+        val appVersion: AppVersion = appVersionRepository.findByPlatform(query.platform)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
-        return GetAppVersionResult(
+        return AppVersionResult.GetAppVersion(
             platform = appVersion.platform,
             minVersion = appVersion.minVersion,
             currentVersion = appVersion.currentVersion,

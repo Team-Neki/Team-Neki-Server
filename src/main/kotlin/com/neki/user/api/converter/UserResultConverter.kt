@@ -2,7 +2,7 @@ package com.neki.user.api.converter
 
 import com.neki.common.properties.AppProperties
 import com.neki.user.api.dto.GetUserResponse
-import com.neki.user.application.result.GetUserResult
+import com.neki.user.application.dto.UserResult
 import org.springframework.stereotype.Component
 
 /**
@@ -19,7 +19,7 @@ class UserResultConverter(private val appProperties: AppProperties) {
         private const val DEFAULT_PROFILE_KEY = "user-profiles/default_profile.png"
     }
 
-    fun toGetUserResponse(result: GetUserResult) = GetUserResponse(
+    fun toGetUserResponse(result: UserResult.GetUser) = GetUserResponse(
         userId = result.userId,
         name = result.name,
         email = result.email,

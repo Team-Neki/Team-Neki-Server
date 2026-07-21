@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
  * fileName       : FolderRepositoryAdapter
  * author         : koo
  * date           : 2025. 12. 23. 오후 7:59
- * description    : File 영속성에 대한 Adapter (command + query)
+ * description    : File 영속성에 대한 Adapter (query + query)
  */
 @Repository
 class FolderRepositoryAdapter(

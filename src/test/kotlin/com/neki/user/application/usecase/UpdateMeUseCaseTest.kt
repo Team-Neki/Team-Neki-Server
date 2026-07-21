@@ -3,7 +3,7 @@ package com.neki.user.application.usecase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
-import com.neki.user.application.command.UpdateUserInfoCommand
+import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.port.UserRepositoryPort
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -33,7 +33,7 @@ class UpdateMeUseCaseTest {
         every { userRepository.findById(1L) } returns user
 
         // When
-        useCase.execute(UpdateUserInfoCommand(userId = 1L, name = "새이름"))
+        useCase.execute(UserCommand.UpdateUserInfo(userId = 1L, name = "새이름"))
 
         // Then
         user.name shouldBe "새이름"
@@ -48,7 +48,7 @@ class UpdateMeUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(UpdateUserInfoCommand(userId = 999L, name = "새이름"))
+            useCase.execute(UserCommand.UpdateUserInfo(userId = 999L, name = "새이름"))
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
     }

@@ -2,8 +2,8 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.command.CollectPhotoBoothCommand
 import com.neki.map.application.contract.LocalSearchResult
+import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
@@ -65,7 +65,7 @@ class CollectPhotoBoothLocationUseCaseTest :
         test("정상 수집 - 신규, 수정, 삭제 location이 올바르게 처리된다") {
             // Given
             val brand = aBrand(id = 1L, code = "lifefour")
-            val command = CollectPhotoBoothCommand(keyword = "인생네컷", brandCode = "lifefour")
+            val command = MapCommand.CollectPhotoBooth(keyword = "인생네컷", brandCode = "lifefour")
 
             // 기존 location: place-1(유지+수정), place-2(삭제 대상)
             val existingLocation1 = aPhotoBoothLocation(id = 10L, mapId = "place-1", brandId = 1L)
@@ -98,7 +98,7 @@ class CollectPhotoBoothLocationUseCaseTest :
 
         test("브랜드 미존재 - BusinessException이 발생한다") {
             // Given
-            val command = CollectPhotoBoothCommand(keyword = "없는브랜드", brandCode = "unknown")
+            val command = MapCommand.CollectPhotoBooth(keyword = "없는브랜드", brandCode = "unknown")
 
             every { brandRepository.getBrand("unknown") } returns null
 
@@ -117,7 +117,7 @@ class CollectPhotoBoothLocationUseCaseTest :
         test("API 결과 없음 - 저장이 호출되지 않는다") {
             // Given
             val brand = aBrand(id = 1L, code = "lifefour")
-            val command = CollectPhotoBoothCommand(keyword = "인생네컷", brandCode = "lifefour")
+            val command = MapCommand.CollectPhotoBooth(keyword = "인생네컷", brandCode = "lifefour")
 
             val existingLocation = aPhotoBoothLocation(id = 10L, mapId = "place-1", brandId = 1L)
 
@@ -140,7 +140,7 @@ class CollectPhotoBoothLocationUseCaseTest :
         test("기존 location 모두 유지 - API 결과가 기존과 동일하면 삭제가 0건이다") {
             // Given
             val brand = aBrand(id = 1L, code = "lifefour")
-            val command = CollectPhotoBoothCommand(keyword = "인생네컷", brandCode = "lifefour")
+            val command = MapCommand.CollectPhotoBooth(keyword = "인생네컷", brandCode = "lifefour")
 
             val existingLocation1 = aPhotoBoothLocation(id = 10L, mapId = "place-1", brandId = 1L)
             val existingLocation2 = aPhotoBoothLocation(id = 20L, mapId = "place-2", brandId = 1L)
@@ -170,7 +170,7 @@ class CollectPhotoBoothLocationUseCaseTest :
         test("API 결과 비어있음 + 기존 location 있음 - 기존 location이 전부 삭제된다") {
             // Given
             val brand = aBrand(id = 1L, code = "lifefour")
-            val command = CollectPhotoBoothCommand(keyword = "인생네컷", brandCode = "lifefour")
+            val command = MapCommand.CollectPhotoBooth(keyword = "인생네컷", brandCode = "lifefour")
 
             val existingLocations = listOf(
                 aPhotoBoothLocation(id = 10L, mapId = "place-1", brandId = 1L),
@@ -201,7 +201,7 @@ class CollectPhotoBoothLocationUseCaseTest :
         test("mapSearch 예외 - 외부 API 장애 시 예외가 전파되고 기존 데이터에 변경이 없다") {
             // Given
             val brand = aBrand(id = 1L, code = "lifefour")
-            val command = CollectPhotoBoothCommand(keyword = "인생네컷", brandCode = "lifefour")
+            val command = MapCommand.CollectPhotoBooth(keyword = "인생네컷", brandCode = "lifefour")
 
             val existingLocation = aPhotoBoothLocation(id = 10L, mapId = "place-1", brandId = 1L)
 

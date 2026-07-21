@@ -1,7 +1,7 @@
 package com.neki.notification.api.converter
 
 import com.neki.notification.api.dto.GetRecentNotificationResponse
-import com.neki.notification.application.result.GetRecentNotificationResult
+import com.neki.notification.application.dto.NotificationResult
 import org.springframework.stereotype.Component
 
 /**
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 class NotificationResultConverter {
 
     fun toGetRecentNotificationResponse(
-        result: List<GetRecentNotificationResult>,
+        result: List<NotificationResult.GetRecentNotification>,
     ): List<GetRecentNotificationResponse> = result.map {
         GetRecentNotificationResponse(
             id = it.id,

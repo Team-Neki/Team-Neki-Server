@@ -1,12 +1,9 @@
 package com.neki.pose.infra.client
 
-import com.neki.media.application.command.ConfirmMediasUploadedCommand
-import com.neki.media.application.command.GetMediaStorageInfoCommand
-import com.neki.media.application.command.GetMediaStorageInfosCommand
-import com.neki.media.application.result.ConfirmMediasUploadedResult
-import com.neki.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
-import com.neki.media.application.result.GetMediaStorageInfoResult
-import com.neki.media.application.result.GetMediaStorageInfosResult
+import com.neki.media.application.dto.MediaCommand
+import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.dto.MediaResult
+import com.neki.media.application.dto.MediaResult.ConfirmMediasUploaded.UploadConfirmStatus
 import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
@@ -30,8 +27,8 @@ class PoseMediaClient(
 ) : MediaClientPort {
 
     override fun getMediaStorageInfo(mediaId: Long): MediaStorageInfo {
-        val result: GetMediaStorageInfoResult = getMediaStorageInfoUseCase.execute(
-            GetMediaStorageInfoCommand(
+        val result: MediaResult.GetMediaStorageInfo = getMediaStorageInfoUseCase.execute(
+            MediaQuery.GetMediaStorageInfo(
                 ownerId = null,
                 mediaId = mediaId,
             ),
@@ -47,8 +44,8 @@ class PoseMediaClient(
     }
 
     override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo> {
-        val result: GetMediaStorageInfosResult =
-            getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(null, mediaIds))
+        val result: MediaResult.GetMediaStorageInfos =
+            getMediaStorageInfosUseCase.execute(MediaQuery.GetMediaStorageInfos(null, mediaIds))
 
         return result.storageInfos.map {
             MediaStorageInfo(
@@ -64,8 +61,8 @@ class PoseMediaClient(
     override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
         if (mediaIds.isEmpty()) return emptyMap()
 
-        val result: ConfirmMediasUploadedResult = confirmMediaUploadedUseCase.execute(
-            ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = mediaIds),
+        val result: MediaResult.ConfirmMediasUploaded = confirmMediaUploadedUseCase.execute(
+            MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = mediaIds),
         )
         return result.results.mapValues { (_, status) ->
             if (status == UploadConfirmStatus.CONFIRMED) MediaAvailability.AVAILABLE else MediaAvailability.UNAVAILABLE
@@ -76,7 +73,7 @@ class PoseMediaClient(
         if (mediaIds.isEmpty()) return
 
         confirmMediaUploadedUseCase.rollback(
-            ConfirmMediasUploadedCommand(
+            MediaCommand.ConfirmMediasUploaded(
                 ownerId = ownerId,
                 mediaIds = mediaIds,
             ),

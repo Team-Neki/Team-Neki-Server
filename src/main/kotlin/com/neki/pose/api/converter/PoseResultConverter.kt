@@ -3,8 +3,7 @@ package com.neki.pose.api.converter
 import com.neki.common.properties.AppProperties
 import com.neki.pose.api.dto.GetPoseResponse
 import com.neki.pose.api.dto.GetPosesResponse
-import com.neki.pose.application.result.GetPoseResult
-import com.neki.pose.application.result.GetPosesResult
+import com.neki.pose.application.dto.PoseResult
 import org.springframework.stereotype.Component
 
 /**
@@ -19,7 +18,7 @@ class PoseResultConverter(private val appProperties: AppProperties) {
         private const val IMAGE_URL_PATH = "/file/image/"
     }
 
-    fun toGetPosesResponse(result: GetPosesResult): GetPosesResponse = GetPosesResponse(
+    fun toGetPosesResponse(result: PoseResult.GetPoses): GetPosesResponse = GetPosesResponse(
         items = result.poses.map {
             GetPosesResponse.PoseInfo(
                 poseId = it.poseId,
@@ -35,7 +34,7 @@ class PoseResultConverter(private val appProperties: AppProperties) {
         hasNext = result.hasNext,
     )
 
-    fun toGetPoseResponse(result: GetPoseResult): GetPoseResponse = GetPoseResponse(
+    fun toGetPoseResponse(result: PoseResult.GetPose): GetPoseResponse = GetPoseResponse(
         poseId = result.poseId,
         headCount = result.headCount,
         imageUrl = toImageUrl(result.storageKey),

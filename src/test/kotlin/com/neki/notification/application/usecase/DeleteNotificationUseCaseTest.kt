@@ -1,6 +1,6 @@
 package com.neki.notification.application.usecase
 
-import com.neki.notification.application.command.DeleteNotificationCommand
+import com.neki.notification.application.dto.NotificationCommand
 import com.neki.notification.application.port.NotificationRepositoryPort
 import io.mockk.Runs
 import io.mockk.every
@@ -30,7 +30,7 @@ class DeleteNotificationUseCaseTest {
         every { notificationRepository.deleteByUserId(userId) } just Runs
 
         // When
-        useCase.execute(DeleteNotificationCommand(userId = userId))
+        useCase.execute(NotificationCommand.DeleteNotification(userId = userId))
 
         // Then
         verify(exactly = 1) { notificationRepository.deleteByUserId(userId) }

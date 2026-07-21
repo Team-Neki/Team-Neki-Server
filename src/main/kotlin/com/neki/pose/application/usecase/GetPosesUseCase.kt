@@ -2,12 +2,12 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.pose.application.command.GetPosesCommand
 import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.contract.PoseWithScrap
+import com.neki.pose.application.dto.PoseQuery
+import com.neki.pose.application.dto.PoseResult
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.application.result.GetPosesResult
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -25,26 +25,26 @@ class GetPosesUseCase(
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun execute(command: GetPosesCommand): GetPosesResult {
+    fun execute(query: PoseQuery.GetPoses): PoseResult.GetPoses {
         // size + 1개 조회하여 hasNext 판단
-        val fetchSize = command.size + 1
+        val fetchSize = query.size + 1
 
         val poses: List<PoseWithScrap> = transactionRunner.readOnly {
             poseRepository.listPosesWithScrap(
-                userId = command.userId,
-                offset = command.page * command.size,
+                userId = query.userId,
+                offset = query.page * query.size,
                 limit = fetchSize,
-                headCount = command.headCount,
-                sortOrder = command.sortOrder,
+                headCount = query.headCount,
+                sortOrder = query.sortOrder,
             )
         }
 
         if (poses.isEmpty()) {
-            return GetPosesResult(poses = emptyList(), hasNext = false)
+            return PoseResult.GetPoses(poses = emptyList(), hasNext = false)
         }
 
         // hasNext 판단: size + 1개 조회했는데 실제로 그만큼 있으면 다음 페이지 존재
-        val hasNext = poses.size > command.size
+        val hasNext = poses.size > query.size
 
         // 실제 반환할 사진 목록 (size개만)
         val posesToReturn = if (hasNext) poses.dropLast(1) else poses
@@ -57,7 +57,7 @@ class GetPosesUseCase(
         val mediaByFileId: Map<Long, MediaStorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result: List<GetPosesResult.PoseInfo> = posesToReturn.mapNotNull { (pose, isScraped) ->
+        val result: List<PoseResult.GetPoses.PoseInfo> = posesToReturn.mapNotNull { (pose, isScraped) ->
             val media: MediaStorageInfo = mediaByFileId[pose.mediaId]
                 ?: run {
                     log.info(
@@ -68,7 +68,7 @@ class GetPosesUseCase(
                     return@mapNotNull null
                 }
 
-            GetPosesResult.PoseInfo(
+            PoseResult.GetPoses.PoseInfo(
                 poseId = pose.id!!,
                 headCount = pose.headCount,
                 storageKey = media.storageKey,
@@ -80,6 +80,6 @@ class GetPosesUseCase(
             )
         }
 
-        return GetPosesResult(result, hasNext)
+        return PoseResult.GetPoses(result, hasNext)
     }
 }

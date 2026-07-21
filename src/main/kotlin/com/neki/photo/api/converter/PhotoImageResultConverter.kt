@@ -4,9 +4,7 @@ import com.neki.common.properties.AppProperties
 import com.neki.photo.api.dto.GetFavoriteSummaryResponse
 import com.neki.photo.api.dto.GetPhotoResponse
 import com.neki.photo.api.dto.GetPhotosResponse
-import com.neki.photo.application.result.GetFavoriteSummaryResult
-import com.neki.photo.application.result.GetPhotoResult
-import com.neki.photo.application.result.GetPhotosResult
+import com.neki.photo.application.dto.PhotoImageResult
 import org.springframework.stereotype.Component
 
 /**
@@ -21,7 +19,7 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
         private const val IMAGE_URL_PATH = "/file/image/"
     }
 
-    fun toGetPhotosResponse(result: GetPhotosResult): GetPhotosResponse = GetPhotosResponse(
+    fun toGetPhotosResponse(result: PhotoImageResult.GetPhotos): GetPhotosResponse = GetPhotosResponse(
         totalCount = result.totalCount,
         items = result.photos.map {
             GetPhotosResponse.PhotoInfo(
@@ -38,7 +36,7 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
         hasNext = result.hasNext,
     )
 
-    fun toGetPhotoResponse(result: GetPhotoResult): GetPhotoResponse = GetPhotoResponse(
+    fun toGetPhotoResponse(result: PhotoImageResult.GetPhoto): GetPhotoResponse = GetPhotoResponse(
         photoId = result.photoId,
         imageUrl = toImageUrl(result.storageKey),
         favorite = result.favorite,
@@ -49,7 +47,7 @@ class PhotoImageResultConverter(private val appProperties: AppProperties) {
         createdAt = result.createdAt,
     )
 
-    fun toGetFavoriteSummaryResponse(result: GetFavoriteSummaryResult): GetFavoriteSummaryResponse =
+    fun toGetFavoriteSummaryResponse(result: PhotoImageResult.GetFavoriteSummary): GetFavoriteSummaryResponse =
         GetFavoriteSummaryResponse(
             latestImageUrl = result.storageKey?.let { toImageUrl(result.storageKey) },
             totalCount = result.totalCount,

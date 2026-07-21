@@ -1,6 +1,6 @@
 package com.neki.notification.application.usecase
 
-import com.neki.notification.application.command.GetPushAgreementCommand
+import com.neki.notification.application.dto.NotificationQuery
 import com.neki.notification.application.port.NotificationRepositoryPort
 import com.neki.notification.domain.entity.Notification
 import io.kotest.matchers.shouldBe
@@ -30,7 +30,7 @@ class GetPushAgreementUseCaseTest {
         every { notificationRepository.findByUserId(userId) } returns notification
 
         // When
-        val result = useCase.execute(GetPushAgreementCommand(userId = userId))
+        val result = useCase.execute(NotificationQuery.GetPushAgreement(userId = userId))
 
         // Then
         result.pushAgreed shouldBe true
@@ -44,7 +44,7 @@ class GetPushAgreementUseCaseTest {
         every { notificationRepository.findByUserId(userId) } returns null
 
         // When
-        val result = useCase.execute(GetPushAgreementCommand(userId = userId))
+        val result = useCase.execute(NotificationQuery.GetPushAgreement(userId = userId))
 
         // Then
         result.pushAgreed shouldBe false

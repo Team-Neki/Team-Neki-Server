@@ -6,11 +6,9 @@ import com.neki.notification.api.converter.NotificationCommandConverter
 import com.neki.notification.api.converter.NotificationResultConverter
 import com.neki.notification.api.dto.GetRecentNotificationResponse
 import com.neki.notification.api.dto.UpdateNotificationRequest
-import com.neki.notification.application.command.GetRecentNotificationsCommand
-import com.neki.notification.application.command.SendPushCommand
-import com.neki.notification.application.command.UpdateNotificationCommand
-import com.neki.notification.application.result.GetRecentNotificationResult
-import com.neki.notification.application.result.SendPushResult
+import com.neki.notification.application.dto.NotificationCommand
+import com.neki.notification.application.dto.NotificationQuery
+import com.neki.notification.application.dto.NotificationResult
 import com.neki.notification.application.usecase.GetRecentNotificationsUseCase
 import com.neki.notification.application.usecase.SendPushUseCase
 import com.neki.notification.application.usecase.UpdateNotificationUseCase
@@ -53,7 +51,7 @@ class NotificationController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: UpdateNotificationRequest,
     ): BaseResponse<Any> {
-        val command: UpdateNotificationCommand =
+        val command: NotificationCommand.UpdateNotification =
             commandConverter.toUpdateNotificationCommand(userId, request)
 
         updateNotificationUseCase.execute(command)
@@ -75,9 +73,9 @@ class NotificationController(
         @RequestParam(required = false, defaultValue = "알림") title: String,
         @RequestParam(required = false, defaultValue = "FCM 푸시 발송입니다.") body: String,
         @RequestParam(required = false) link: String?,
-    ): BaseResponse<SendPushResult> {
-        val result: SendPushResult =
-            sendPushUseCase.execute(SendPushCommand(userId, token, type, title, body, link))
+    ): BaseResponse<NotificationResult.SendPush> {
+        val result: NotificationResult.SendPush =
+            sendPushUseCase.execute(NotificationCommand.SendPush(userId, token, type, title, body, link))
 
         return BaseResponse(data = result)
     }
@@ -90,9 +88,9 @@ class NotificationController(
     fun getRecentNotifications(
         @AuthenticationPrincipal(expression = "id") userId: Long,
     ): BaseResponse<List<GetRecentNotificationResponse>> {
-        val command = GetRecentNotificationsCommand(userId)
+        val query = NotificationQuery.GetRecentNotifications(userId)
 
-        val result: List<GetRecentNotificationResult> = getRecentNotificationsUseCase.execute(command)
+        val result: List<NotificationResult.GetRecentNotification> = getRecentNotificationsUseCase.execute(query)
 
         val response: List<GetRecentNotificationResponse> = resultConverter.toGetRecentNotificationResponse(result)
 

@@ -10,14 +10,9 @@ import com.neki.photo.api.dto.GetPhotoResponse
 import com.neki.photo.api.dto.GetPhotosResponse
 import com.neki.photo.api.dto.UpdatePhotoRequest
 import com.neki.photo.api.dto.UploadPhotoRequest
-import com.neki.photo.application.command.DeletePhotosCommand
-import com.neki.photo.application.command.GetPhotoCommand
-import com.neki.photo.application.command.GetPhotosCommand
-import com.neki.photo.application.command.PutPhotoCommand
-import com.neki.photo.application.command.UpdatePhotoCommand
-import com.neki.photo.application.command.UploadPhotoCommand
-import com.neki.photo.application.result.GetPhotoResult
-import com.neki.photo.application.result.GetPhotosResult
+import com.neki.photo.application.dto.PhotoImageCommand
+import com.neki.photo.application.dto.PhotoImageQuery
+import com.neki.photo.application.dto.PhotoImageResult
 import com.neki.photo.application.usecase.DeletePhotosUseCase
 import com.neki.photo.application.usecase.GetPhotoUseCase
 import com.neki.photo.application.usecase.GetPhotosUseCase
@@ -74,7 +69,7 @@ class PhotoController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: UploadPhotoRequest,
     ): BaseResponse<Any> {
-        val command: UploadPhotoCommand = commandConverter.toUploadPhotoCommand(userId, request)
+        val command: PhotoImageCommand.UploadPhoto = commandConverter.toUploadPhotoCommand(userId, request)
 
         uploadPhotosUseCase.execute(command)
 
@@ -93,9 +88,15 @@ class PhotoController(
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<GetPhotosResponse> {
-        val command: GetPhotosCommand = commandConverter.toGetPhotosCommand(userId, folderId, page, size, sortOrder)
+        val query: PhotoImageQuery.GetPhotos = commandConverter.toGetPhotosQuery(
+            userId,
+            folderId,
+            page,
+            size,
+            sortOrder,
+        )
 
-        val result: GetPhotosResult = getPhotosUseCase.execute(command)
+        val result: PhotoImageResult.GetPhotos = getPhotosUseCase.execute(query)
 
         val response: GetPhotosResponse = resultConverter.toGetPhotosResponse(result)
 
@@ -111,9 +112,9 @@ class PhotoController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable photoId: Long,
     ): BaseResponse<GetPhotoResponse> {
-        val command: GetPhotoCommand = commandConverter.toGetPhotoCommand(userId, photoId)
+        val query: PhotoImageQuery.GetPhoto = commandConverter.toGetPhotoQuery(userId, photoId)
 
-        val result: GetPhotoResult = getPhotoUseCase.execute(command)
+        val result: PhotoImageResult.GetPhoto = getPhotoUseCase.execute(query)
 
         val response: GetPhotoResponse = resultConverter.toGetPhotoResponse(result)
 
@@ -129,7 +130,7 @@ class PhotoController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: DeletePhotosRequest,
     ): BaseResponse<Any> {
-        val command: DeletePhotosCommand = commandConverter.toDeletePhotosCommand(userId, request)
+        val command: PhotoImageCommand.DeletePhotos = commandConverter.toDeletePhotosCommand(userId, request)
 
         deletePhotosUseCase.execute(command)
 
@@ -146,7 +147,7 @@ class PhotoController(
         @PathVariable photoId: Long,
         @Valid @RequestBody request: UpdatePhotoRequest,
     ): BaseResponse<Any> {
-        val command: PutPhotoCommand = commandConverter.toPutPhotoCommand(userId, photoId, request)
+        val command: PhotoImageCommand.PutPhoto = commandConverter.toPutPhotoCommand(userId, photoId, request)
 
         putPhotoUseCase.execute(command)
 
@@ -169,7 +170,7 @@ class PhotoController(
         @PathVariable photoId: Long,
         @Valid @RequestBody request: UpdatePhotoRequest,
     ): BaseResponse<Any> {
-        val command: UpdatePhotoCommand = commandConverter.toUpdatePhotoCommand(userId, photoId, request)
+        val command: PhotoImageCommand.UpdatePhoto = commandConverter.toUpdatePhotoCommand(userId, photoId, request)
 
         updatePhotoUseCase.execute(command)
 

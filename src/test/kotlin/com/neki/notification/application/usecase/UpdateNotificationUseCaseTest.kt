@@ -1,7 +1,7 @@
 package com.neki.notification.application.usecase
 
 import com.neki.common.transaction.TransactionRunner
-import com.neki.notification.application.command.UpdateNotificationCommand
+import com.neki.notification.application.dto.NotificationCommand
 import com.neki.notification.application.port.NotificationRepositoryPort
 import com.neki.notification.domain.entity.Notification
 import io.kotest.matchers.shouldBe
@@ -38,7 +38,11 @@ class UpdateNotificationUseCaseTest {
     fun `기존 설정이 없으면 새 Notification을 생성하여 저장한다`() {
         // Given
         val userId = 1L
-        val command = UpdateNotificationCommand(userId = userId, deviceToken = "token-123", pushAgreed = true)
+        val command = NotificationCommand.UpdateNotification(
+            userId = userId,
+            deviceToken = "token-123",
+            pushAgreed = true,
+        )
 
         val saved = slot<Notification>()
         every { notificationRepository.findByUserId(userId) } returns null
@@ -60,7 +64,11 @@ class UpdateNotificationUseCaseTest {
         // Given
         val userId = 1L
         val existing = Notification(id = 10L, userId = userId, deviceToken = "old-token", pushAgreed = false)
-        val command = UpdateNotificationCommand(userId = userId, deviceToken = "new-token", pushAgreed = true)
+        val command = NotificationCommand.UpdateNotification(
+            userId = userId,
+            deviceToken = "new-token",
+            pushAgreed = true,
+        )
 
         val saved = slot<Notification>()
         every { notificationRepository.findByUserId(userId) } returns existing
@@ -81,7 +89,11 @@ class UpdateNotificationUseCaseTest {
     fun `동시 요청으로 insert 충돌이 나면 update 로 재시도하여 저장한다`() {
         // Given
         val userId = 1L
-        val command = UpdateNotificationCommand(userId = userId, deviceToken = "new-token", pushAgreed = true)
+        val command = NotificationCommand.UpdateNotification(
+            userId = userId,
+            deviceToken = "new-token",
+            pushAgreed = true,
+        )
         // 첫 시도: 미존재로 보고 insert → 다른 트랜잭션이 선점하여 UNIQUE 충돌
         // 두 번째 시도: 이미 커밋된 기존 행을 조회하여 update
         val existing = Notification(id = 10L, userId = userId, deviceToken = "old-token", pushAgreed = false)

@@ -3,9 +3,9 @@ package com.neki.photo.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.CreateFolderCommand
+import com.neki.photo.application.dto.FolderCommand
+import com.neki.photo.application.dto.FolderResult
 import com.neki.photo.application.port.FolderRepositoryPort
-import com.neki.photo.application.result.CreateFolderResult
 import com.neki.photo.domain.entity.Folder
 import org.springframework.transaction.annotation.Transactional
 
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 class CreateFolderUseCase(private val folderRepository: FolderRepositoryPort) {
 
     @Transactional
-    fun execute(command: CreateFolderCommand): CreateFolderResult {
+    fun execute(command: FolderCommand.CreateFolder): FolderResult.CreateFolder {
         if (folderRepository.existsOwnedFolderName(command.userId, command.name)) {
             throw BusinessException(ResultCode.CONFLICT_FOLDER)
         }
@@ -31,6 +31,6 @@ class CreateFolderUseCase(private val folderRepository: FolderRepositoryPort) {
             ),
         )
 
-        return CreateFolderResult(savedFolder.id!!)
+        return FolderResult.CreateFolder(savedFolder.id!!)
     }
 }

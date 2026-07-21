@@ -1,8 +1,8 @@
 package com.neki.pose.application.usecase
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.application.command.GetScrapPosesCommand
 import com.neki.pose.application.contract.MediaStorageInfo
+import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.domain.entity.Pose
@@ -31,7 +31,7 @@ class GetScrapPosesUseCaseTest {
         useCase = GetScrapPosesUseCase(poseRepository, mediaClient, transactionRunner)
     }
 
-    private fun makeCommand(page: Int = 0, size: Int = 10): GetScrapPosesCommand = GetScrapPosesCommand(
+    private fun makeQuery(page: Int = 0, size: Int = 10): PoseQuery.GetScrapPoses = PoseQuery.GetScrapPoses(
         userId = 1L,
         page = page,
         size = size,
@@ -57,7 +57,7 @@ class GetScrapPosesUseCaseTest {
     @DisplayName("정상 조회 + 미디어 매핑 - poses + storageInfo 반환")
     fun `정상 조회 + 미디어 매핑 - poses + storageInfo 반환`() {
         // Given
-        val command = makeCommand(size = 2)
+        val query = makeQuery(size = 2)
         val poseList = listOf(makePose(1L, 101L), makePose(2L, 102L))
 
         every {
@@ -75,7 +75,7 @@ class GetScrapPosesUseCaseTest {
         )
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.poses.size shouldBe 2
@@ -90,7 +90,7 @@ class GetScrapPosesUseCaseTest {
     @DisplayName("hasNext=true - 다음 페이지 존재")
     fun `hasNext=true - 다음 페이지 존재`() {
         // Given
-        val command = makeCommand(size = 2)
+        val query = makeQuery(size = 2)
         // size+1 = 3개 조회됨 → hasNext true
         val poseList = listOf(
             makePose(1L, 101L),
@@ -112,7 +112,7 @@ class GetScrapPosesUseCaseTest {
         )
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.hasNext shouldBe true
@@ -123,7 +123,7 @@ class GetScrapPosesUseCaseTest {
     @DisplayName("hasNext=false - 마지막 페이지")
     fun `hasNext=false - 마지막 페이지`() {
         // Given
-        val command = makeCommand(size = 5)
+        val query = makeQuery(size = 5)
         val poseList = listOf(makePose(1L, 101L), makePose(2L, 102L))
 
         every {
@@ -141,7 +141,7 @@ class GetScrapPosesUseCaseTest {
         )
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.hasNext shouldBe false
@@ -152,7 +152,7 @@ class GetScrapPosesUseCaseTest {
     @DisplayName("빈 결과 - 빈 리스트와 hasNext=false 반환")
     fun `빈 결과 - 빈 리스트와 hasNext=false 반환`() {
         // Given
-        val command = makeCommand()
+        val query = makeQuery()
         every {
             poseRepository.listOwnedScrapPoses(
                 userId = 1L,
@@ -163,7 +163,7 @@ class GetScrapPosesUseCaseTest {
         } returns emptyList()
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.poses shouldBe emptyList()

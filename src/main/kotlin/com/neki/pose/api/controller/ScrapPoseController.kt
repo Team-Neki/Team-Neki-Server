@@ -7,9 +7,9 @@ import com.neki.pose.api.converter.ScrapPoseCommandConverter
 import com.neki.pose.api.converter.ScrapPoseResultConverter
 import com.neki.pose.api.dto.GetPosesResponse
 import com.neki.pose.api.dto.UpdatePoseScarpRequest
-import com.neki.pose.application.command.GetScrapPosesCommand
-import com.neki.pose.application.command.UpdatePoseScrapCommand
-import com.neki.pose.application.result.GetPosesResult
+import com.neki.pose.application.dto.PoseCommand
+import com.neki.pose.application.dto.PoseQuery
+import com.neki.pose.application.dto.PoseResult
 import com.neki.pose.application.usecase.GetScrapPosesUseCase
 import com.neki.pose.application.usecase.UpdatePoseScrapUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -54,7 +54,7 @@ class ScrapPoseController(
         @PathVariable poseId: Long,
         @Valid @RequestBody request: UpdatePoseScarpRequest,
     ): BaseResponse<Any> {
-        val command: UpdatePoseScrapCommand = commandConverter.toUpdatePoseScrapCommand(
+        val command: PoseCommand.UpdatePoseScrap = commandConverter.toUpdatePoseScrapCommand(
             userId = userId,
             poseId = poseId,
             request = request,
@@ -76,14 +76,14 @@ class ScrapPoseController(
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<GetPosesResponse> {
-        val command: GetScrapPosesCommand = commandConverter.toGetPoseScrapCommand(
+        val command: PoseQuery.GetScrapPoses = commandConverter.toGetPoseScrapCommand(
             userId = userId,
             page = page,
             size = size,
             sortOrder = sortOrder,
         )
 
-        val result: GetPosesResult = getScrapPosesUseCase.execute(command)
+        val result: PoseResult.GetPoses = getScrapPosesUseCase.execute(command)
 
         val response: GetPosesResponse = resultConverter.toGetPosesResponse(result)
 

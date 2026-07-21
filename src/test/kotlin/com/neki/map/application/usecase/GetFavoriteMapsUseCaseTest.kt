@@ -1,7 +1,7 @@
 package com.neki.map.application.usecase
 
-import com.neki.map.application.command.GetFavoriteMapsCommand
 import com.neki.map.application.contract.PhotoBoothLocationDto
+import com.neki.map.application.dto.MapQuery
 import com.neki.map.application.port.FavoriteMapRepositoryPort
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -34,7 +34,7 @@ class GetFavoriteMapsUseCaseTest :
 
         test("즐겨찾기한 포토부스가 있으면 즐겨찾기한 순서대로 목록을 반환한다") {
             // Given
-            val command = GetFavoriteMapsCommand(userId = userId)
+            val query = MapQuery.GetFavoriteMaps(userId = userId)
 
             val point1 = geometryFactory.createPoint(Coordinate(127.02, 37.49))
             val point2 = geometryFactory.createPoint(Coordinate(127.03, 37.50))
@@ -59,7 +59,7 @@ class GetFavoriteMapsUseCaseTest :
             every { favoriteMapRepository.findFavoriteLocationsByUserId(userId) } returns locationDtos
 
             // When
-            val result = useCase.execute(command)
+            val result = useCase.execute(query)
 
             // Then
             result.locations shouldHaveSize 2
@@ -71,12 +71,12 @@ class GetFavoriteMapsUseCaseTest :
 
         test("즐겨찾기한 포토부스가 없으면 빈 리스트를 반환한다") {
             // Given
-            val command = GetFavoriteMapsCommand(userId = userId)
+            val query = MapQuery.GetFavoriteMaps(userId = userId)
 
             every { favoriteMapRepository.findFavoriteLocationsByUserId(userId) } returns emptyList()
 
             // When
-            val result = useCase.execute(command)
+            val result = useCase.execute(query)
 
             // Then
             result.locations.shouldBeEmpty()

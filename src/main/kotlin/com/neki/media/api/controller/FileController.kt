@@ -2,8 +2,8 @@ package com.neki.media.api.controller
 
 import com.neki.media.api.converter.FileCommandConverter
 import com.neki.media.api.converter.FileResultConverter
-import com.neki.media.application.command.GetImageByKeyCommand
-import com.neki.media.application.result.GetImageByKeyResult
+import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.usecase.GetImageByKeyUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -41,9 +41,9 @@ class FileController(
     fun getImage(request: HttpServletRequest): ResponseEntity<ByteArray> {
         val objectKey: String = extractObjectKey(request)
 
-        val command: GetImageByKeyCommand = commandConverter.toGetImageByKeyCommand(objectKey)
+        val query: MediaQuery.GetImageByKey = commandConverter.toGetImageByKeyQuery(objectKey)
 
-        val result: GetImageByKeyResult = getImageByKeyUseCase.execute(command)
+        val result: MediaResult.GetImageByKey = getImageByKeyUseCase.execute(query)
 
         val response: ResponseEntity<ByteArray> = resultConverter.toImageResponse(result)
 

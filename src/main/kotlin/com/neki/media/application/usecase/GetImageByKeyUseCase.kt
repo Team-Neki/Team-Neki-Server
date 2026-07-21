@@ -3,11 +3,11 @@ package com.neki.media.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.media.application.command.GetImageByKeyCommand
+import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.port.DistributedLockPort
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.result.GetImageByKeyResult
 import com.neki.media.domain.MediaType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -32,22 +32,22 @@ class GetImageByKeyUseCase(
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun execute(command: GetImageByKeyCommand): GetImageByKeyResult {
-        val objectKey = command.objectKey
+    fun execute(query: MediaQuery.GetImageByKey): MediaResult.GetImageByKey {
+        val objectKey = query.objectKey
         val contentType: String = resolveContentType(objectKey)
         val mediaType: MediaType? = MediaType.fromObjectKey(objectKey)
 
         // 캐싱 대상이 아닌 타입은 S3에서 직접 조회
         if (mediaType == null || !mediaType.isCacheable) {
             val binaryData: ByteArray = mediaStorage.fetchBinaryByKey(objectKey)
-            return GetImageByKeyResult(binaryData, contentType)
+            return MediaResult.GetImageByKey(binaryData, contentType)
         }
 
         // cache를 조회하고 있다면 바로 반환
         val cachedData: ByteArray? = cache.get(objectKey)
         if (cachedData != null) {
             log.debug("[GetImage] Cache hit for key: $objectKey")
-            return GetImageByKeyResult(cachedData, contentType)
+            return MediaResult.GetImageByKey(cachedData, contentType)
         }
 
         // cache가 없다면 lock을 획득하여 S3에서 데이터를 가져오고 캐싱
@@ -62,7 +62,7 @@ class GetImageByKeyUseCase(
                 ?: cache.get(objectKey) // 락 홀더가 채운 캐시 재확인
                 ?: throw BusinessException(ResultCode.ERROR)
 
-        return GetImageByKeyResult(binaryData, contentType)
+        return MediaResult.GetImageByKey(binaryData, contentType)
     }
 
     private fun fetchAndCache(objectKey: String, cacheTtl: Duration): ByteArray {

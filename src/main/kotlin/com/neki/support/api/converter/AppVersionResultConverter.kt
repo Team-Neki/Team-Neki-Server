@@ -1,7 +1,7 @@
 package com.neki.support.api.converter
 
 import com.neki.support.api.dto.GetAppVersionResponse
-import com.neki.support.application.result.GetAppVersionResult
+import com.neki.support.application.dto.AppVersionResult
 import org.springframework.stereotype.Component
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class AppVersionResultConverter {
 
-    fun toGetAppVersionResponse(result: GetAppVersionResult): GetAppVersionResponse = GetAppVersionResponse(
+    fun toGetAppVersionResponse(result: AppVersionResult.GetAppVersion): GetAppVersionResponse = GetAppVersionResponse(
         platform = result.platform.name,
         minVersion = result.minVersion,
         currentVersion = result.currentVersion,

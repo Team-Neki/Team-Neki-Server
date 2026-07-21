@@ -3,8 +3,7 @@ package com.neki.support.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.application.command.CreateTermAgreementsCommand
-import com.neki.support.application.command.TermAgreementItem
+import com.neki.support.application.dto.TermCommand
 import com.neki.support.application.port.TermRepositoryPort
 import com.neki.support.application.port.UserTermAgreementHistRepositoryPort
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
@@ -23,7 +22,7 @@ class CreateTermAgreementsUseCase(
 ) {
 
     @Transactional
-    fun execute(command: CreateTermAgreementsCommand) {
+    fun execute(command: TermCommand.CreateTermAgreements) {
         val activeTermsById: Map<Long, Term> = termRepository.findAllActiveTerms()
             .associateBy { it.id!! }
 
@@ -39,7 +38,7 @@ class CreateTermAgreementsUseCase(
      * 존재하지 않는 약관이 포함되면 예외를 던진다.
      */
     private fun validateRequestedTermsAreActive(
-        agreements: List<TermAgreementItem>,
+        agreements: List<TermCommand.TermAgreementItem>,
         activeTermsById: Map<Long, Term>,
     ) {
         val hasUnknownTerm: Boolean = agreements.any { it.termId !in activeTermsById }
@@ -56,7 +55,7 @@ class CreateTermAgreementsUseCase(
      * - 그 외(아직 동의하지 않았는데 요청에 필수 약관이 빠져 있음)에는 예외를 던진다.
      */
     private fun processRequiredTerms(
-        command: CreateTermAgreementsCommand,
+        command: TermCommand.CreateTermAgreements,
         activeTermsById: Map<Long, Term>,
         now: LocalDateTime,
     ) {
@@ -84,11 +83,11 @@ class CreateTermAgreementsUseCase(
     }
 
     private fun processOptionalTerms(
-        command: CreateTermAgreementsCommand,
+        command: TermCommand.CreateTermAgreements,
         activeTermsById: Map<Long, Term>,
         now: LocalDateTime,
     ) {
-        val optionalItems: List<TermAgreementItem> = command.agreements
+        val optionalItems: List<TermCommand.TermAgreementItem> = command.agreements
             .filterNot { activeTermsById.getValue(it.termId).isRequired }
         val (agreedItems, disagreedItems) = optionalItems.partition { it.agreed }
 

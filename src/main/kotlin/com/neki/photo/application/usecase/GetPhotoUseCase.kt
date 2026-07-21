@@ -3,11 +3,11 @@ package com.neki.photo.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.GetPhotoCommand
 import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.dto.PhotoImageQuery
+import com.neki.photo.application.dto.PhotoImageResult
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.application.result.GetPhotoResult
 
 /**
  * fileName       : GetPhotoUseCase
@@ -21,13 +21,13 @@ class GetPhotoUseCase(
     private val mediaClient: MediaClientPort,
 ) {
 
-    fun execute(command: GetPhotoCommand): GetPhotoResult {
-        val (photo, isFavorite) = photoRepository.getOwnedPhotoWithFavorite(command.userId, command.photoId)
+    fun execute(query: PhotoImageQuery.GetPhoto): PhotoImageResult.GetPhoto {
+        val (photo, isFavorite) = photoRepository.getOwnedPhotoWithFavorite(query.userId, query.photoId)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
-        val mediaInfo: MediaStorageInfo = mediaClient.getMediaStorageInfo(command.userId, photo.mediaId)
+        val mediaInfo: MediaStorageInfo = mediaClient.getMediaStorageInfo(query.userId, photo.mediaId)
 
-        return GetPhotoResult(
+        return PhotoImageResult.GetPhoto(
             photoId = photo.id!!,
             storageKey = mediaInfo.storageKey,
             favorite = isFavorite,

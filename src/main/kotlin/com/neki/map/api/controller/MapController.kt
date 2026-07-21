@@ -12,14 +12,9 @@ import com.neki.map.api.dto.GetPointLocationResponse
 import com.neki.map.api.dto.GetPolygonLocationRequest
 import com.neki.map.api.dto.GetPolygonLocationResponse
 import com.neki.map.api.dto.UpdateBrandOrderRequest
-import com.neki.map.application.command.CollectPhotoBoothCommand
-import com.neki.map.application.command.GetPointLocationCommand
-import com.neki.map.application.command.GetPolygonLocationCommand
-import com.neki.map.application.command.UpdateBrandOrderCommand
-import com.neki.map.application.result.CollectPhotoBoothResult
-import com.neki.map.application.result.GetBrandResult
-import com.neki.map.application.result.GetPointLocationResult
-import com.neki.map.application.result.GetPolygonLocationResult
+import com.neki.map.application.dto.MapCommand
+import com.neki.map.application.dto.MapQuery
+import com.neki.map.application.dto.MapResult
 import com.neki.map.application.usecase.CollectPhotoBoothLocationUseCase
 import com.neki.map.application.usecase.GetBrandUseCase
 import com.neki.map.application.usecase.GetPhotoBoothLocationUseCase
@@ -65,7 +60,7 @@ class MapController(
     )
     @GetMapping("/brand")
     fun getBrand(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<List<GetBrandResponse>> {
-        val result: List<GetBrandResult> = getBrandUseCase.execute(userId)
+        val result: List<MapResult.GetBrand> = getBrandUseCase.execute(userId)
 
         val response: List<GetBrandResponse> = resultConverter.toGetBrandResponse(result)
 
@@ -85,7 +80,7 @@ class MapController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: UpdateBrandOrderRequest,
     ): BaseResponse<Any> {
-        val command: UpdateBrandOrderCommand = commandConverter.toUpdateBrandOrderCommand(userId, request)
+        val command: MapCommand.UpdateBrandOrder = commandConverter.toUpdateBrandOrderCommand(userId, request)
 
         updateBrandOrderUseCase.execute(command)
 
@@ -104,9 +99,9 @@ class MapController(
     fun collectPhotoBooths(
         @Valid @RequestBody request: CollectPhotoBoothRequest,
     ): BaseResponse<CollectPhotoBoothResponse> {
-        val command: CollectPhotoBoothCommand = commandConverter.toCollectPhotoBoothCommand(request)
+        val command: MapCommand.CollectPhotoBooth = commandConverter.toCollectPhotoBoothCommand(request)
 
-        val result: CollectPhotoBoothResult = collectPhotoBoothLocationUseCase.execute(command)
+        val result: MapResult.CollectPhotoBooth = collectPhotoBoothLocationUseCase.execute(command)
 
         val response: CollectPhotoBoothResponse = resultConverter.toCollectPhotoBoothResponse(result)
 
@@ -127,9 +122,9 @@ class MapController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: GetPolygonLocationRequest,
     ): BaseResponse<GetPolygonLocationResponse> {
-        val command: GetPolygonLocationCommand = commandConverter.toGetPolygonLocationCommand(userId, request)
+        val query: MapQuery.GetPolygonLocation = commandConverter.toGetPolygonLocationQuery(userId, request)
 
-        val result: GetPolygonLocationResult = getPhotoBoothLocationUseCase.execute(command)
+        val result: MapResult.GetPolygonLocation = getPhotoBoothLocationUseCase.execute(query)
 
         val response: GetPolygonLocationResponse = resultConverter.toGetPolygonLocationResponse(result)
 
@@ -150,9 +145,9 @@ class MapController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: GetPointLocationRequest,
     ): BaseResponse<GetPointLocationResponse> {
-        val command: GetPointLocationCommand = commandConverter.toGetPointLocationCommand(userId, request)
+        val query: MapQuery.GetPointLocation = commandConverter.toGetPointLocationQuery(userId, request)
 
-        val result: GetPointLocationResult = getPhotoBoothLocationUseCase.execute(command)
+        val result: MapResult.GetPointLocation = getPhotoBoothLocationUseCase.execute(query)
 
         val response: GetPointLocationResponse = resultConverter.toGetPointLocationResponse(result)
 

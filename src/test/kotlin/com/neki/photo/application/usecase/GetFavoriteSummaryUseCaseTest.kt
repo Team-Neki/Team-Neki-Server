@@ -1,7 +1,7 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.application.command.GetFavoriteSummaryCommand
 import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
@@ -21,7 +21,7 @@ class GetFavoriteSummaryUseCaseTest {
     lateinit var mediaClient: MediaClientPort
     lateinit var useCase: GetFavoriteSummaryUseCase
 
-    val command = GetFavoriteSummaryCommand(userId = 1L)
+    val query = PhotoImageQuery.GetFavoriteSummary(userId = 1L)
 
     @BeforeEach
     fun setUp() {
@@ -43,7 +43,7 @@ class GetFavoriteSummaryUseCaseTest {
         every { favoriteImageRepository.countByUserId(1L) } returns 0L
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.storageKey shouldBe null
@@ -58,7 +58,7 @@ class GetFavoriteSummaryUseCaseTest {
         every { photoImageRepository.getLatestFavoritePhoto(1L) } returns null
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.storageKey shouldBe null
@@ -76,7 +76,7 @@ class GetFavoriteSummaryUseCaseTest {
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L)) } returns emptyList()
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.storageKey shouldBe null
@@ -99,7 +99,7 @@ class GetFavoriteSummaryUseCaseTest {
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L)) } returns listOf(mediaInfo)
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.storageKey shouldBe "key/cover.jpg"

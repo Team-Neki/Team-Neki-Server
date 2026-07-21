@@ -5,15 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.user.application.command.RegisterOauthUserCommand
 import com.neki.user.application.contract.KakaoTokenPayload
 import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.application.dto.AuthCommand
+import com.neki.user.application.dto.AuthResult
 import com.neki.user.application.port.AuthTokenProviderPort
 import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.application.result.GetAuthResult
 import com.neki.user.domain.entity.User
 import com.neki.user.domain.enums.RoleType
 import com.neki.user.event.UserRegisteredEvent
@@ -50,7 +50,7 @@ class OauthLoginUseCase(
      * 3. ID Token 검증 및 Claims 추출
      * 4. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
-    fun execute(command: RegisterOauthUserCommand): GetAuthResult {
+    fun execute(command: AuthCommand.RegisterOauthUser): AuthResult.GetAuth {
         val oauthInfoPayload: OauthInfoPayload = oidcTokenValidatorPort.validateIdToken(
             command.idToken,
             command.providerType,
@@ -90,7 +90,7 @@ class OauthLoginUseCase(
             providerType = user.providerType,
         )
 
-        return GetAuthResult(
+        return AuthResult.GetAuth(
             accessToken = accessToken,
             refreshToken = refreshToken,
         )

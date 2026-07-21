@@ -2,7 +2,7 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.PutPhotoCommand
+import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.testfixture.aPhotoImage
 import io.kotest.assertions.throwables.shouldThrow
@@ -31,7 +31,7 @@ class PutPhotoUseCaseTest {
         // Given
         val photo = aPhotoImage(id = 1L, userId = 1L, memo = "기존 메모")
         val capturedAt = LocalDateTime.of(2026, 1, 1, 12, 0)
-        val command = PutPhotoCommand(userId = 1L, photoId = 1L, memo = "새 메모", capturedAt = capturedAt)
+        val command = PhotoImageCommand.PutPhoto(userId = 1L, photoId = 1L, memo = "새 메모", capturedAt = capturedAt)
 
         every { photoImageRepository.getOwnedPhoto(1L, 1L) } returns photo
 
@@ -47,7 +47,7 @@ class PutPhotoUseCaseTest {
     @DisplayName("사진이 존재하지 않는 경우 NOT_FOUND 예외 발생")
     fun `사진이 존재하지 않는 경우 NOT_FOUND 예외 발생`() {
         // Given
-        val command = PutPhotoCommand(userId = 1L, photoId = 99L, memo = "메모", capturedAt = null)
+        val command = PhotoImageCommand.PutPhoto(userId = 1L, photoId = 99L, memo = "메모", capturedAt = null)
 
         every { photoImageRepository.getOwnedPhoto(1L, 99L) } returns null
 
@@ -63,7 +63,7 @@ class PutPhotoUseCaseTest {
     fun `memo가 null인 경우 null로 업데이트`() {
         // Given
         val photo = aPhotoImage(id = 1L, userId = 1L, memo = "기존 메모")
-        val command = PutPhotoCommand(userId = 1L, photoId = 1L, memo = null, capturedAt = null)
+        val command = PhotoImageCommand.PutPhoto(userId = 1L, photoId = 1L, memo = null, capturedAt = null)
 
         every { photoImageRepository.getOwnedPhoto(1L, 1L) } returns photo
 

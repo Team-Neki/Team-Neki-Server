@@ -4,12 +4,12 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.map.application.command.CollectPhotoBoothCommand
 import com.neki.map.application.contract.LocalSearchResult
+import com.neki.map.application.dto.MapCommand
+import com.neki.map.application.dto.MapResult
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
-import com.neki.map.application.result.CollectPhotoBoothResult
 import com.neki.map.domain.entity.PhotoBoothLocation
 import com.neki.map.domain.vo.GeoPoint
 import org.slf4j.Logger
@@ -30,7 +30,7 @@ class CollectPhotoBoothLocationUseCase(
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun execute(command: CollectPhotoBoothCommand): CollectPhotoBoothResult {
+    fun execute(command: MapCommand.CollectPhotoBooth): MapResult.CollectPhotoBooth {
         log.info(
             "Start collecting photo booth locations - keyword: {}, brandCode: {}",
             command.keyword,
@@ -84,7 +84,7 @@ class CollectPhotoBoothLocationUseCase(
     private fun persistChanges(
         processed: Map<String, PhotoBoothLocation>,
         existingLocations: Map<String, PhotoBoothLocation>,
-    ): CollectPhotoBoothResult {
+    ): MapResult.CollectPhotoBooth {
         val insertCount: Int = processed.keys.count { it !in existingLocations }
         val updateCount: Int = processed.keys.count { it in existingLocations }
         val toDelete: List<PhotoBoothLocation> = existingLocations.values.filter { it.mapId !in processed }
@@ -111,7 +111,7 @@ class CollectPhotoBoothLocationUseCase(
             processed.size,
         )
 
-        return CollectPhotoBoothResult(
+        return MapResult.CollectPhotoBooth(
             collectedCount = insertCount,
             duplicatedCount = updateCount,
             totalProcessed = processed.size,

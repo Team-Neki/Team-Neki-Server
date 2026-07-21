@@ -1,6 +1,6 @@
 package com.neki.media.api.converter
 
-import com.neki.media.application.result.GetImageByKeyResult
+import com.neki.media.application.dto.MediaResult
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 @Component
 class FileResultConverter {
 
-    fun toImageResponse(result: GetImageByKeyResult): ResponseEntity<ByteArray> = ResponseEntity.ok()
+    fun toImageResponse(result: MediaResult.GetImageByKey): ResponseEntity<ByteArray> = ResponseEntity.ok()
         .contentType(MediaType.parseMediaType(result.contentType))
         .cacheControl(CacheControl.maxAge(CACHE_MAX_AGE_SECONDS, TimeUnit.SECONDS))
         .header(HttpHeaders.CONTENT_LENGTH, result.binaryData.size.toString())

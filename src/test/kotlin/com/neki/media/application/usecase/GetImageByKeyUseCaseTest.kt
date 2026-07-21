@@ -2,7 +2,7 @@ package com.neki.media.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.media.application.command.GetImageByKeyCommand
+import com.neki.media.application.dto.MediaQuery
 import com.neki.media.application.port.DistributedLockPort
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaStoragePort
@@ -50,7 +50,7 @@ class GetImageByKeyUseCaseTest {
         every { mediaStorage.fetchBinaryByKey(objectKey) } returns imageData
 
         // When
-        val result = useCase.execute(GetImageByKeyCommand(objectKey = objectKey))
+        val result = useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
 
         // Then
         result.binaryData shouldBe imageData
@@ -68,7 +68,7 @@ class GetImageByKeyUseCaseTest {
         every { cache.get(objectKey) } returns imageData
 
         // When
-        val result = useCase.execute(GetImageByKeyCommand(objectKey = objectKey))
+        val result = useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
 
         // Then
         result.binaryData shouldBe imageData
@@ -98,7 +98,7 @@ class GetImageByKeyUseCaseTest {
         }
 
         // When
-        val result = useCase.execute(GetImageByKeyCommand(objectKey = objectKey))
+        val result = useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
 
         // Then
         result.binaryData shouldBe imageData
@@ -122,7 +122,7 @@ class GetImageByKeyUseCaseTest {
         } returns null // 락 미획득
 
         // When
-        val result = useCase.execute(GetImageByKeyCommand(objectKey = objectKey))
+        val result = useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
 
         // Then
         result.binaryData shouldBe imageData
@@ -146,7 +146,7 @@ class GetImageByKeyUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(GetImageByKeyCommand(objectKey = objectKey))
+            useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
         }
         exception.resultCode shouldBe ResultCode.ERROR
     }
@@ -162,8 +162,8 @@ class GetImageByKeyUseCaseTest {
         every { cache.get(unknownKey) } returns imageData
 
         // When
-        val jpgResult = useCase.execute(GetImageByKeyCommand(objectKey = jpgKey))
-        val unknownResult = useCase.execute(GetImageByKeyCommand(objectKey = unknownKey))
+        val jpgResult = useCase.execute(MediaQuery.GetImageByKey(objectKey = jpgKey))
+        val unknownResult = useCase.execute(MediaQuery.GetImageByKey(objectKey = unknownKey))
 
         // Then
         jpgResult.contentType shouldBe "image/jpeg"
@@ -189,7 +189,7 @@ class GetImageByKeyUseCaseTest {
         }
 
         // When
-        val result = useCase.execute(GetImageByKeyCommand(objectKey = objectKey))
+        val result = useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
 
         // Then
         result.binaryData shouldBe imageData
@@ -206,7 +206,7 @@ class GetImageByKeyUseCaseTest {
         every { cache.get(objectKey) } returns imageData
 
         // When
-        val result = useCase.execute(GetImageByKeyCommand(objectKey = objectKey))
+        val result = useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
 
         // Then
         result.contentType shouldBe "application/octet-stream"

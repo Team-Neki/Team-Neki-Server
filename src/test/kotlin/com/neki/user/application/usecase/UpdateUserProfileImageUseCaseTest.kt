@@ -4,8 +4,8 @@ import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aUser
-import com.neki.user.application.command.UpdateUserProfileImageCommand
 import com.neki.user.application.contract.MediaAvailability
+import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.port.MediaClientPort
 import com.neki.user.application.port.UserRepositoryPort
 import io.kotest.assertions.throwables.shouldThrow
@@ -53,7 +53,7 @@ class UpdateUserProfileImageUseCaseTest {
         every { mediaClient.deleteMedia(ownerId = userId, mediaIds = oldMediaId) } just runs
 
         // When
-        useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = newMediaId))
+        useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = newMediaId))
 
         // Then
         user.profileImageId shouldBe newMediaId
@@ -73,7 +73,7 @@ class UpdateUserProfileImageUseCaseTest {
         every { userRepository.findById(userId) } returns user
 
         // When
-        useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = sameMediaId))
+        useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = sameMediaId))
 
         // Then
         user.profileImageId shouldBe sameMediaId
@@ -92,7 +92,7 @@ class UpdateUserProfileImageUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = newMediaId))
+            useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = newMediaId))
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND
         verify(exactly = 0) { userRepository.findById(any()) }
@@ -112,7 +112,7 @@ class UpdateUserProfileImageUseCaseTest {
 
         // When & Then
         shouldThrow<RuntimeException> {
-            useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = newMediaId))
+            useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = newMediaId))
         }
         verify(exactly = 1) { mediaClient.rollbackMediasUploaded(ownerId = userId, mediaIds = listOf(newMediaId)) }
     }
@@ -129,7 +129,7 @@ class UpdateUserProfileImageUseCaseTest {
         every { mediaClient.deleteMedia(ownerId = userId, mediaIds = oldMediaId) } just runs
 
         // When
-        useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = null))
+        useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = null))
 
         // Then
         user.profileImageId shouldBe null
@@ -146,7 +146,7 @@ class UpdateUserProfileImageUseCaseTest {
         every { userRepository.findById(userId) } returns user
 
         // When
-        useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = null))
+        useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = null))
 
         // Then
         user.profileImageId shouldBe null
@@ -172,7 +172,7 @@ class UpdateUserProfileImageUseCaseTest {
         // When & Then
         // catch 블록에서 rollbackMediasUploaded가 예외를 던지면, rollback 예외가 전파됨 (원래 예외는 마스킹됨)
         val thrownException = shouldThrow<RuntimeException> {
-            useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = newMediaId))
+            useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = newMediaId))
         }
         thrownException.message shouldBe "롤백 오류"
         verify(exactly = 1) { mediaClient.rollbackMediasUploaded(ownerId = userId, mediaIds = listOf(newMediaId)) }
@@ -194,7 +194,7 @@ class UpdateUserProfileImageUseCaseTest {
 
         // When & Then
         shouldThrow<RuntimeException> {
-            useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = newMediaId))
+            useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = newMediaId))
         }
         // 프로필은 트랜잭션 내에서 이미 업데이트됨
         user.profileImageId shouldBe newMediaId
@@ -213,7 +213,7 @@ class UpdateUserProfileImageUseCaseTest {
         every { userRepository.findById(userId) } returns user
 
         // When
-        useCase.execute(UpdateUserProfileImageCommand(userId = userId, mediaId = newMediaId))
+        useCase.execute(UserCommand.UpdateUserProfileImage(userId = userId, mediaId = newMediaId))
 
         // Then
         user.profileImageId shouldBe newMediaId

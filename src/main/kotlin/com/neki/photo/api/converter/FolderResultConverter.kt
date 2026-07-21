@@ -3,8 +3,7 @@ package com.neki.photo.api.converter
 import com.neki.common.properties.AppProperties
 import com.neki.photo.api.dto.CreateFolderResponse
 import com.neki.photo.api.dto.GetAllFolderResponse
-import com.neki.photo.application.result.CreateFolderResult
-import com.neki.photo.application.result.GetFoldersResult
+import com.neki.photo.application.dto.FolderResult
 import org.springframework.stereotype.Component
 
 /**
@@ -20,7 +19,7 @@ class FolderResultConverter(private val appProperties: AppProperties) {
         private const val IMAGE_URL_PATH = "/file/image/"
     }
 
-    fun toGetAllFoldersResponse(result: GetFoldersResult): GetAllFolderResponse = GetAllFolderResponse(
+    fun toGetAllFoldersResponse(result: FolderResult.GetFolders): GetAllFolderResponse = GetAllFolderResponse(
         items = result.items.map {
             GetAllFolderResponse.FolderInfo(
                 it.folderId,
@@ -32,7 +31,8 @@ class FolderResultConverter(private val appProperties: AppProperties) {
 
     )
 
-    fun toCreateFolderResponse(result: CreateFolderResult): CreateFolderResponse = CreateFolderResponse(result.folderId)
+    fun toCreateFolderResponse(result: FolderResult.CreateFolder): CreateFolderResponse =
+        CreateFolderResponse(result.folderId)
 
     private fun toImageUrl(objectKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$objectKey"
 }

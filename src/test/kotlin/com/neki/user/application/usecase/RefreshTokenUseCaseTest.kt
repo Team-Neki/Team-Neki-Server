@@ -2,7 +2,7 @@ package com.neki.user.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.application.command.RefreshTokenCommand
+import com.neki.user.application.dto.AuthCommand
 import com.neki.user.application.port.AuthTokenProviderPort
 import com.neki.user.domain.enums.ProviderType
 import com.neki.user.infra.security.token.UserPrincipal
@@ -63,7 +63,7 @@ class RefreshTokenUseCaseTest {
         } returns "new-refresh-token"
 
         // When
-        val result = useCase.execute(RefreshTokenCommand(refreshToken = refreshToken))
+        val result = useCase.execute(AuthCommand.RefreshToken(refreshToken = refreshToken))
 
         // Then
         result.accessToken shouldBe "new-access-token"
@@ -81,7 +81,7 @@ class RefreshTokenUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(RefreshTokenCommand(refreshToken = invalidToken))
+            useCase.execute(AuthCommand.RefreshToken(refreshToken = invalidToken))
         }
         exception.resultCode shouldBe ResultCode.INVALID_TOKEN_ERROR
         verify(exactly = 0) { tokenProviderPort.getAuthenticationFromRefreshToken(any()) }
@@ -96,7 +96,7 @@ class RefreshTokenUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(RefreshTokenCommand(refreshToken = expiredToken))
+            useCase.execute(AuthCommand.RefreshToken(refreshToken = expiredToken))
         }
         exception.resultCode shouldBe ResultCode.INVALID_TOKEN_ERROR
         verify(exactly = 0) { tokenProviderPort.getAuthenticationFromRefreshToken(any()) }

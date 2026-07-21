@@ -4,8 +4,8 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.user.application.command.UpdateUserProfileImageCommand
 import com.neki.user.application.contract.MediaAvailability
+import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.port.MediaClientPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.domain.entity.User
@@ -24,7 +24,7 @@ class UpdateUserProfileImageUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: UpdateUserProfileImageCommand) {
+    fun execute(command: UserCommand.UpdateUserProfileImage) {
         val newMediaId = command.mediaId
 
         if (newMediaId != null) {

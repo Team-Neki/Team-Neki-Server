@@ -2,9 +2,8 @@ package com.neki.photo.api.converter
 
 import com.neki.common.domain.vo.SortOrder
 import com.neki.photo.api.dto.UpdatePhotoFavoriteRequest
-import com.neki.photo.application.command.GetFavoritePhotosCommand
-import com.neki.photo.application.command.GetFavoriteSummaryCommand
-import com.neki.photo.application.command.UpdatePhotoFavoriteCommand
+import com.neki.photo.application.dto.PhotoImageCommand
+import com.neki.photo.application.dto.PhotoImageQuery
 import org.springframework.stereotype.Component
 
 /**
@@ -16,12 +15,12 @@ import org.springframework.stereotype.Component
 @Component
 class FavoritePhotoCommandConverter {
 
-    fun toGetFavoritePhotosCommand(
+    fun toGetFavoritePhotosQuery(
         userId: Long,
         page: Int,
         size: Int,
         sortOrder: SortOrder,
-    ): GetFavoritePhotosCommand = GetFavoritePhotosCommand(
+    ): PhotoImageQuery.GetFavoritePhotos = PhotoImageQuery.GetFavoritePhotos(
         userId = userId,
         page = page,
         size = size,
@@ -29,11 +28,11 @@ class FavoritePhotoCommandConverter {
     )
 
     fun toUpdatePhotoFavoriteCommand(userId: Long, photoId: Long, request: UpdatePhotoFavoriteRequest) =
-        UpdatePhotoFavoriteCommand(
+        PhotoImageCommand.UpdatePhotoFavorite(
             userId = userId,
             photoId = photoId,
             favorite = request.favorite!!,
         )
 
-    fun toGetFavoriteSummaryCommand(userId: Long) = GetFavoriteSummaryCommand(userId = userId)
+    fun toGetFavoriteSummaryQuery(userId: Long) = PhotoImageQuery.GetFavoriteSummary(userId = userId)
 }

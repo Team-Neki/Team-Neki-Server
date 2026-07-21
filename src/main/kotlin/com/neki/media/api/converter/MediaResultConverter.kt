@@ -1,7 +1,7 @@
 package com.neki.media.api.converter
 
 import com.neki.media.api.dto.UploadTicketResponse
-import com.neki.media.application.result.GenerateUploadTicketResult
+import com.neki.media.application.dto.MediaResult
 import org.springframework.stereotype.Component
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class MediaResultConverter {
 
-    fun toUploadTicketResponse(result: GenerateUploadTicketResult): UploadTicketResponse = UploadTicketResponse(
+    fun toUploadTicketResponse(result: MediaResult.GenerateUploadTicket): UploadTicketResponse = UploadTicketResponse(
         method = result.method,
         expiresIn = result.expiresAt,
         items = result.tickets.map { ticket ->

@@ -4,7 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.photo.application.command.DeleteFoldersCommand
+import com.neki.photo.application.dto.FolderCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
@@ -28,7 +28,7 @@ class DeleteFoldersUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: DeleteFoldersCommand) {
+    fun execute(command: FolderCommand.DeleteFolders) {
         // 삭제할 사진 ID 조회 (중간 테이블 기준)
         val photoIdsToDelete: List<Long> = if (command.deletePhotos) {
             transactionRunner.readOnly {

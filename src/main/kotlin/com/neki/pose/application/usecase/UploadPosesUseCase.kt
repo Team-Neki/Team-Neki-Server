@@ -4,8 +4,8 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.pose.application.command.UploadPosesCommand
 import com.neki.pose.application.contract.MediaAvailability
+import com.neki.pose.application.dto.PoseCommand
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.domain.entity.Pose
@@ -22,7 +22,7 @@ class UploadPosesUseCase(
     private val transactionRunner: TransactionRunner,
     private val poseRepository: PoseRepositoryPort,
 ) {
-    fun execute(command: UploadPosesCommand) {
+    fun execute(command: PoseCommand.UploadPoses) {
         validateNoDuplicateMediaIds(command.uploads)
 
         val mediaIds: List<Long> = command.uploads.map { it.mediaId }
@@ -54,7 +54,7 @@ class UploadPosesUseCase(
         }
     }
 
-    private fun validateNoDuplicateMediaIds(uploads: List<UploadPosesCommand.UploadItem>) {
+    private fun validateNoDuplicateMediaIds(uploads: List<PoseCommand.UploadPoses.UploadItem>) {
         val mediaIds: List<Long> = uploads.map { it.mediaId }
         val duplicates: Set<Long> = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
 

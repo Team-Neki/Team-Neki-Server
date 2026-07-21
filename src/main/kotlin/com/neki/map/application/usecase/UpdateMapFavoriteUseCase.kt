@@ -3,7 +3,7 @@ package com.neki.map.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.command.UpdateMapFavoriteCommand
+import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.port.FavoriteMapRepositoryPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
 import com.neki.map.domain.entity.FavoriteMap
@@ -22,7 +22,7 @@ class UpdateMapFavoriteUseCase(
 ) {
 
     @Transactional
-    fun execute(command: UpdateMapFavoriteCommand) {
+    fun execute(command: MapCommand.UpdateMapFavorite) {
         val locationExists: Boolean = photoBoothLocationRepository.existsById(command.locationId)
 
         if (!locationExists) throw BusinessException(ResultCode.NOT_FOUND)

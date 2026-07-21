@@ -1,9 +1,8 @@
 package com.neki.user.infra.client
 
-import com.neki.media.application.command.ConfirmMediasUploadedCommand
-import com.neki.media.application.command.DeleteMediaCommand
-import com.neki.media.application.command.GetMediaStorageInfoCommand
-import com.neki.media.application.result.ConfirmMediasUploadedResult
+import com.neki.media.application.dto.MediaCommand
+import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.neki.media.application.usecase.DeleteMediaUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
@@ -30,7 +29,7 @@ class UserMediaClient(
 
     override fun deleteMedia(ownerId: Long, mediaId: Long) {
         runCatching {
-            deleteMediaUseCase.execute(DeleteMediaCommand(ownerId, mediaId))
+            deleteMediaUseCase.execute(MediaCommand.DeleteMedia(ownerId, mediaId))
         }.onFailure { e ->
             log.warn(
                 "Failed to request media deletion. Will be cleaned up by batch later. ownerId={}, mediaId={}",
@@ -42,15 +41,15 @@ class UserMediaClient(
     }
 
     override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability {
-        val result: ConfirmMediasUploadedResult = confirmMediaUploadedUseCase.execute(
-            ConfirmMediasUploadedCommand(
+        val result: MediaResult.ConfirmMediasUploaded = confirmMediaUploadedUseCase.execute(
+            MediaCommand.ConfirmMediasUploaded(
                 ownerId = ownerId,
                 mediaIds = listOf(mediaId),
             ),
         )
 
         return when (result.results[mediaId]) {
-            ConfirmMediasUploadedResult.UploadConfirmStatus.CONFIRMED -> MediaAvailability.AVAILABLE
+            MediaResult.ConfirmMediasUploaded.UploadConfirmStatus.CONFIRMED -> MediaAvailability.AVAILABLE
             else -> MediaAvailability.UNAVAILABLE
         }
     }
@@ -59,7 +58,7 @@ class UserMediaClient(
         if (mediaIds.isEmpty()) return
 
         confirmMediaUploadedUseCase.rollback(
-            ConfirmMediasUploadedCommand(
+            MediaCommand.ConfirmMediasUploaded(
                 ownerId = ownerId,
                 mediaIds = mediaIds,
             ),
@@ -68,7 +67,7 @@ class UserMediaClient(
 
     override fun getStorageKey(ownerId: Long, mediaId: Long): String? = runCatching {
         getMediaStorageInfoUseCase.execute(
-            GetMediaStorageInfoCommand(ownerId = ownerId, mediaId = mediaId),
+            MediaQuery.GetMediaStorageInfo(ownerId = ownerId, mediaId = mediaId),
         ).storageKey
     }.getOrNull()
 }

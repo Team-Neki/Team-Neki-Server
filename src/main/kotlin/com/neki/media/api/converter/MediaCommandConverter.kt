@@ -1,7 +1,7 @@
 package com.neki.media.api.converter
 
 import com.neki.media.api.dto.UploadTicketRequest
-import com.neki.media.application.command.GenerateUploadTicketCommand
+import com.neki.media.application.dto.MediaCommand
 import org.springframework.stereotype.Component
 
 /**
@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component
 @Component
 class MediaCommandConverter {
 
-    fun toGenerateUploadTicketCommand(ownerId: Long, request: UploadTicketRequest): GenerateUploadTicketCommand =
-        GenerateUploadTicketCommand(
+    fun toGenerateUploadTicketCommand(ownerId: Long, request: UploadTicketRequest): MediaCommand.GenerateUploadTicket =
+        MediaCommand.GenerateUploadTicket(
             ownerId = ownerId,
             items = request.items.map { item ->
-                GenerateUploadTicketCommand.UploadTicketItem(
+                MediaCommand.GenerateUploadTicket.UploadTicketItem(
                     filename = item.filename!!,
                     contentType = item.contentType!!,
                     mediaType = item.mediaType!!,

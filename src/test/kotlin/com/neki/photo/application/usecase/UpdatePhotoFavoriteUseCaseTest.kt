@@ -2,7 +2,7 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.UpdatePhotoFavoriteCommand
+import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.domain.entity.FavoritePhoto
@@ -35,7 +35,7 @@ class UpdatePhotoFavoriteUseCaseTest {
     @DisplayName("즐겨찾기 추가 요청 시 add 호출")
     fun `즐겨찾기 추가 요청 시 add 호출`() {
         // Given
-        val command = UpdatePhotoFavoriteCommand(userId = 1L, photoId = 1L, favorite = true)
+        val command = PhotoImageCommand.UpdatePhotoFavorite(userId = 1L, photoId = 1L, favorite = true)
 
         val favoritePhotoSlot = slot<FavoritePhoto>()
         every { photoImageRepository.existsOwnedPhoto(1L, 1L) } returns true
@@ -55,7 +55,7 @@ class UpdatePhotoFavoriteUseCaseTest {
     @DisplayName("즐겨찾기 해제 요청 시 delete 호출")
     fun `즐겨찾기 해제 요청 시 delete 호출`() {
         // Given
-        val command = UpdatePhotoFavoriteCommand(userId = 1L, photoId = 1L, favorite = false)
+        val command = PhotoImageCommand.UpdatePhotoFavorite(userId = 1L, photoId = 1L, favorite = false)
 
         val favoritePhotoSlot = slot<FavoritePhoto>()
         every { photoImageRepository.existsOwnedPhoto(1L, 1L) } returns true
@@ -75,7 +75,7 @@ class UpdatePhotoFavoriteUseCaseTest {
     @DisplayName("사진이 존재하지 않는 경우 NOT_FOUND 예외 발생")
     fun `사진이 존재하지 않는 경우 NOT_FOUND 예외 발생`() {
         // Given
-        val command = UpdatePhotoFavoriteCommand(userId = 1L, photoId = 99L, favorite = true)
+        val command = PhotoImageCommand.UpdatePhotoFavorite(userId = 1L, photoId = 99L, favorite = true)
 
         every { photoImageRepository.existsOwnedPhoto(1L, 99L) } returns false
 

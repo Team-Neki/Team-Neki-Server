@@ -2,10 +2,8 @@ package com.neki.pose.api.converter
 
 import com.neki.common.domain.vo.SortOrder
 import com.neki.pose.api.dto.UploadPoseRequest
-import com.neki.pose.application.command.GetPoseCommand
-import com.neki.pose.application.command.GetPosesCommand
-import com.neki.pose.application.command.GetRandomPoseCommand
-import com.neki.pose.application.command.UploadPosesCommand
+import com.neki.pose.application.dto.PoseCommand
+import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.domain.HeadCount
 import org.springframework.stereotype.Component
 
@@ -18,10 +16,10 @@ import org.springframework.stereotype.Component
 @Component
 class PoseCommandConverter {
 
-    fun toUploadPosesCommand(userId: Long, request: UploadPoseRequest) = UploadPosesCommand(
+    fun toUploadPosesCommand(userId: Long, request: UploadPoseRequest) = PoseCommand.UploadPoses(
         userId = userId,
         uploads = request.uploads.map { item ->
-            UploadPosesCommand.UploadItem(
+            PoseCommand.UploadPoses.UploadItem(
                 mediaId = item.mediaId!!,
                 headCount = item.headCount,
                 memo = item.memo,
@@ -29,13 +27,13 @@ class PoseCommandConverter {
         },
     )
 
-    fun toGetPosesCommand(
+    fun toGetPosesQuery(
         userId: Long,
         page: Int,
         size: Int,
         headCount: HeadCount?,
         sortOrder: SortOrder,
-    ): GetPosesCommand = GetPosesCommand(
+    ): PoseQuery.GetPoses = PoseQuery.GetPoses(
         userId = userId,
         page = page,
         size = size,
@@ -43,12 +41,13 @@ class PoseCommandConverter {
         sortOrder = sortOrder,
     )
 
-    fun toGetPoseCommand(userId: Long, poseId: Long): GetPoseCommand = GetPoseCommand(userId = userId, poseId = poseId)
+    fun toGetPoseQuery(userId: Long, poseId: Long): PoseQuery.GetPose =
+        PoseQuery.GetPose(userId = userId, poseId = poseId)
 
-    fun toGetRandomPoseCommand(userId: Long, headCount: HeadCount, excludeIds: String): GetRandomPoseCommand {
+    fun toGetRandomPoseQuery(userId: Long, headCount: HeadCount, excludeIds: String): PoseQuery.GetRandomPose {
         val parsedExcludeIds: List<Long> = excludeIds
             .split(",")
             .mapNotNull { it.trim().toLongOrNull() }
-        return GetRandomPoseCommand(userId = userId, headCount = headCount, excludeIds = parsedExcludeIds)
+        return PoseQuery.GetRandomPose(userId = userId, headCount = headCount, excludeIds = parsedExcludeIds)
     }
 }

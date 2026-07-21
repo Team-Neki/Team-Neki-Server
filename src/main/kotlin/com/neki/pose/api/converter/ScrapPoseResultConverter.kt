@@ -2,7 +2,7 @@ package com.neki.pose.api.converter
 
 import com.neki.common.properties.AppProperties
 import com.neki.pose.api.dto.GetPosesResponse
-import com.neki.pose.application.result.GetPosesResult
+import com.neki.pose.application.dto.PoseResult
 import org.springframework.stereotype.Component
 
 /**
@@ -17,7 +17,7 @@ class ScrapPoseResultConverter(private val appProperties: AppProperties) {
         private const val IMAGE_URL_PATH = "/file/image/"
     }
 
-    fun toGetPosesResponse(result: GetPosesResult): GetPosesResponse = GetPosesResponse(
+    fun toGetPosesResponse(result: PoseResult.GetPoses): GetPosesResponse = GetPosesResponse(
         items = result.poses.map {
             GetPosesResponse.PoseInfo(
                 poseId = it.poseId,

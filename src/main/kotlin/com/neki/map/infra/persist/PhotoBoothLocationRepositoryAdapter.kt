@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository
  * fileName       : PhotoBoothLocationAdapter
  * author         : darren
  * date           : 2026. 1. 16. 11:25
- * description    : PhotoBoothLocation 영속성에 대한 Adapter (command + query)
+ * description    : PhotoBoothLocation 영속성에 대한 Adapter (query + query)
  */
 @Repository
 class PhotoBoothLocationRepositoryAdapter(

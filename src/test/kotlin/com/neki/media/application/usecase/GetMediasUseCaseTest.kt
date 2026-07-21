@@ -1,6 +1,6 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.application.command.GetMediasCommand
+import com.neki.media.application.dto.MediaQuery
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
@@ -54,8 +54,8 @@ class GetMediasUseCaseTest {
         every { cache.get(storageKey) } returns imageData
 
         // When
-        val command = GetMediasCommand(ownerId = ownerId, mediaIds = listOf(mediaId))
-        val result = useCase.execute(command)
+        val query = MediaQuery.GetMedias(ownerId = ownerId, mediaIds = listOf(mediaId))
+        val result = useCase.execute(query)
 
         // Then
         result.medias shouldHaveSize 1
@@ -78,8 +78,8 @@ class GetMediasUseCaseTest {
         every { cache.put(storageKey, imageData, any<Duration>()) } returns Unit
 
         // When
-        val command = GetMediasCommand(ownerId = ownerId, mediaIds = listOf(mediaId))
-        val result = useCase.execute(command)
+        val query = MediaQuery.GetMedias(ownerId = ownerId, mediaIds = listOf(mediaId))
+        val result = useCase.execute(query)
 
         // Then
         result.medias shouldHaveSize 1
@@ -102,8 +102,8 @@ class GetMediasUseCaseTest {
         every { mediaStorage.fetchBinaryByKey(storageKey) } returns imageData
 
         // When
-        val command = GetMediasCommand(ownerId = ownerId, mediaIds = listOf(mediaId))
-        val result = useCase.execute(command)
+        val query = MediaQuery.GetMedias(ownerId = ownerId, mediaIds = listOf(mediaId))
+        val result = useCase.execute(query)
 
         // Then
         result.medias shouldHaveSize 1
@@ -122,8 +122,8 @@ class GetMediasUseCaseTest {
         every { mediaRepository.getActiveMedias(ownerId, mediaIds) } returns emptyList()
 
         // When
-        val command = GetMediasCommand(ownerId = ownerId, mediaIds = mediaIds)
-        val result = useCase.execute(command)
+        val query = MediaQuery.GetMedias(ownerId = ownerId, mediaIds = mediaIds)
+        val result = useCase.execute(query)
 
         // Then
         result.medias shouldHaveSize 0
@@ -148,8 +148,8 @@ class GetMediasUseCaseTest {
         }
 
         // When
-        val command = GetMediasCommand(ownerId = ownerId, mediaIds = mediaIds)
-        val result = useCase.execute(command)
+        val query = MediaQuery.GetMedias(ownerId = ownerId, mediaIds = mediaIds)
+        val result = useCase.execute(query)
 
         // Then
         result.medias shouldHaveSize 3

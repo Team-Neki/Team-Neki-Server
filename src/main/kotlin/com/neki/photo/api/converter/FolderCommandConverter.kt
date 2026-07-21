@@ -6,13 +6,8 @@ import com.neki.photo.api.dto.DeleteFoldersRequest
 import com.neki.photo.api.dto.MovePhotosToFolderRequest
 import com.neki.photo.api.dto.RemovePhotosFromFolderRequest
 import com.neki.photo.api.dto.UpdateFolderRequest
-import com.neki.photo.application.command.CopyPhotosToFolderCommand
-import com.neki.photo.application.command.CreateFolderCommand
-import com.neki.photo.application.command.DeleteFoldersCommand
-import com.neki.photo.application.command.GetFoldersCommand
-import com.neki.photo.application.command.MovePhotosToFolderCommand
-import com.neki.photo.application.command.RemovePhotosFromFolderCommand
-import com.neki.photo.application.command.UpdateFolderCommand
+import com.neki.photo.application.dto.FolderCommand
+import com.neki.photo.application.dto.FolderQuery
 import org.springframework.stereotype.Component
 
 /**
@@ -24,23 +19,23 @@ import org.springframework.stereotype.Component
 @Component
 class FolderCommandConverter {
 
-    fun toCreateFolderCommand(request: CreateFolderRequest, userId: Long): CreateFolderCommand =
-        CreateFolderCommand(userId, request.name!!)
+    fun toCreateFolderCommand(request: CreateFolderRequest, userId: Long): FolderCommand.CreateFolder =
+        FolderCommand.CreateFolder(userId, request.name!!)
 
-    fun toGetFoldersCommand(userId: Long, limit: Int?): GetFoldersCommand = GetFoldersCommand(userId, limit)
+    fun toGetFoldersQuery(userId: Long, limit: Int?): FolderQuery.GetFolders = FolderQuery.GetFolders(userId, limit)
 
     fun toDeleteFoldersCommand(request: DeleteFoldersRequest, userId: Long, deletePhotos: Boolean) =
-        DeleteFoldersCommand(userId, request.folderIds, deletePhotos)
+        FolderCommand.DeleteFolders(userId, request.folderIds, deletePhotos)
 
     fun toUpdateFolderCommand(request: UpdateFolderRequest, folderId: Long, userId: Long) =
-        UpdateFolderCommand(userId, folderId, request.name!!)
+        FolderCommand.UpdateFolder(userId, folderId, request.name!!)
 
     fun toRemovePhotosFromFolderCommand(request: RemovePhotosFromFolderRequest, folderId: Long, userId: Long) =
-        RemovePhotosFromFolderCommand(userId, folderId, request.photoIds)
+        FolderCommand.RemovePhotosFromFolder(userId, folderId, request.photoIds)
 
     fun toMovePhotosToFolderCommand(request: MovePhotosToFolderRequest, userId: Long) =
-        MovePhotosToFolderCommand(userId, request.sourceFolderId!!, request.photoIds, request.targetFolderIds)
+        FolderCommand.MovePhotosToFolder(userId, request.sourceFolderId!!, request.photoIds, request.targetFolderIds)
 
     fun toCopyPhotosToFolderCommand(request: CopyPhotosToFolderRequest, userId: Long) =
-        CopyPhotosToFolderCommand(userId, request.photoIds, request.targetFolderIds)
+        FolderCommand.CopyPhotosToFolder(userId, request.photoIds, request.targetFolderIds)
 }
