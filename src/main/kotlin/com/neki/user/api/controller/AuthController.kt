@@ -1,8 +1,7 @@
 package com.neki.user.api.controller
 
 import com.neki.common.api.dto.BaseResponse
-import com.neki.user.api.converter.AuthCommandConverter
-import com.neki.user.api.converter.AuthResultConverter
+import com.neki.user.api.dto.AuthConverter
 import com.neki.user.api.dto.CreateAuthRequest
 import com.neki.user.api.dto.GetAuthResponse
 import com.neki.user.api.dto.GetKakaoTokenResponse
@@ -39,8 +38,8 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(
     private val oauthLoginUseCase: OauthLoginUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
-    private val commandConverter: AuthCommandConverter,
-    private val resultConverter: AuthResultConverter,
+    private val requestConverter: AuthConverter.RequestConverter,
+    private val responseConverter: AuthConverter.ResponseConverter,
 ) {
 
     /**
@@ -117,11 +116,11 @@ class AuthController(
         @PathVariable(name = "providerType") providerType: String,
         @RequestBody @Valid request: CreateAuthRequest,
     ): BaseResponse<GetAuthResponse> {
-        val command: AuthCommand.RegisterOauthUser = commandConverter.toCreateAuthCommand(request, providerType)
+        val command: AuthCommand.RegisterOauthUser = requestConverter.toCreateAuthCommand(request, providerType)
 
         val result: AuthResult.GetAuth = oauthLoginUseCase.execute(command)
 
-        val response: GetAuthResponse = resultConverter.toCreateAuthResponse(result)
+        val response: GetAuthResponse = responseConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -158,11 +157,11 @@ class AuthController(
     )
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetAuthResponse> {
-        val command: AuthCommand.RefreshToken = commandConverter.toRefreshTokenCommand(request)
+        val command: AuthCommand.RefreshToken = requestConverter.toRefreshTokenCommand(request)
 
         val result: AuthResult.GetAuth = refreshTokenUseCase.execute(command)
 
-        val response: GetAuthResponse = resultConverter.toCreateAuthResponse(result)
+        val response: GetAuthResponse = responseConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }

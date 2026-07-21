@@ -1,7 +1,6 @@
 package com.neki.media.api.controller
 
-import com.neki.media.api.converter.FileCommandConverter
-import com.neki.media.api.converter.FileResultConverter
+import com.neki.media.api.dto.FileConverter
 import com.neki.media.application.dto.MediaQuery
 import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.usecase.GetImageByKeyUseCase
@@ -24,8 +23,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/file")
 class FileController(
     private val getImageByKeyUseCase: GetImageByKeyUseCase,
-    private val commandConverter: FileCommandConverter,
-    private val resultConverter: FileResultConverter,
+    private val requestConverter: FileConverter.RequestConverter,
+    private val responseConverter: FileConverter.ResponseConverter,
 ) {
     @Operation(
         summary = "이미지 파일 조회",
@@ -41,11 +40,11 @@ class FileController(
     fun getImage(request: HttpServletRequest): ResponseEntity<ByteArray> {
         val objectKey: String = extractObjectKey(request)
 
-        val query: MediaQuery.GetImageByKey = commandConverter.toGetImageByKeyQuery(objectKey)
+        val query: MediaQuery.GetImageByKey = requestConverter.toGetImageByKeyQuery(objectKey)
 
         val result: MediaResult.GetImageByKey = getImageByKeyUseCase.execute(query)
 
-        val response: ResponseEntity<ByteArray> = resultConverter.toImageResponse(result)
+        val response: ResponseEntity<ByteArray> = responseConverter.toImageResponse(result)
 
         return response
     }

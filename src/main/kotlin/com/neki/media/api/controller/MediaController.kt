@@ -2,8 +2,7 @@ package com.neki.media.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.media.api.converter.MediaCommandConverter
-import com.neki.media.api.converter.MediaResultConverter
+import com.neki.media.api.dto.MediaConverter
 import com.neki.media.api.dto.UploadTicketRequest
 import com.neki.media.api.dto.UploadTicketResponse
 import com.neki.media.application.dto.MediaCommand
@@ -30,8 +29,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/media")
 class MediaController(
     private val generateUploadTicketUseCase: GenerateUploadTicketUseCase,
-    private val commandConverter: MediaCommandConverter,
-    private val resultConverter: MediaResultConverter,
+    private val requestConverter: MediaConverter.RequestConverter,
+    private val responseConverter: MediaConverter.ResponseConverter,
 ) {
 
     @Operation(
@@ -63,14 +62,14 @@ class MediaController(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
         @Valid @RequestBody request: UploadTicketRequest,
     ): BaseResponse<UploadTicketResponse> {
-        val command: MediaCommand.GenerateUploadTicket = commandConverter.toGenerateUploadTicketCommand(
+        val command: MediaCommand.GenerateUploadTicket = requestConverter.toGenerateUploadTicketCommand(
             ownerId,
             request,
         )
 
         val result: MediaResult.GenerateUploadTicket = generateUploadTicketUseCase.execute(command)
 
-        val response: UploadTicketResponse = resultConverter.toUploadTicketResponse(result)
+        val response: UploadTicketResponse = responseConverter.toUploadTicketResponse(result)
 
         return BaseResponse(data = response)
     }

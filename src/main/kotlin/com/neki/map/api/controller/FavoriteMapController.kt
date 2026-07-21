@@ -2,9 +2,9 @@ package com.neki.map.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.map.api.converter.FavoriteMapCommandConverter
-import com.neki.map.api.converter.MapResultConverter
+import com.neki.map.api.dto.FavoriteMapConverter
 import com.neki.map.api.dto.GetFavoriteMapResponse
+import com.neki.map.api.dto.MapConverter
 import com.neki.map.api.dto.UpdateMapFavoriteRequest
 import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.dto.MapQuery
@@ -36,8 +36,8 @@ class FavoriteMapController(
     private val updateMapFavoriteUseCase: UpdateMapFavoriteUseCase,
     private val getFavoriteMapsUseCase: GetFavoriteMapsUseCase,
 
-    private val commandConverter: FavoriteMapCommandConverter,
-    private val resultConverter: MapResultConverter,
+    private val requestConverter: FavoriteMapConverter.RequestConverter,
+    private val responseConverter: MapConverter.ResponseConverter,
 ) {
     @Operation(
         summary = "포토부스 즐겨찾기",
@@ -50,7 +50,7 @@ class FavoriteMapController(
         @Valid @RequestBody request: UpdateMapFavoriteRequest,
     ): BaseResponse<Any> {
         val command: MapCommand.UpdateMapFavorite =
-            commandConverter.toUpdateMapFavoriteCommand(userId, locationId, request)
+            requestConverter.toUpdateMapFavoriteCommand(userId, locationId, request)
 
         updateMapFavoriteUseCase.execute(command)
 
@@ -65,11 +65,11 @@ class FavoriteMapController(
     fun getFavoriteMaps(
         @AuthenticationPrincipal(expression = "id") userId: Long,
     ): BaseResponse<GetFavoriteMapResponse> {
-        val query: MapQuery.GetFavoriteMaps = commandConverter.toGetFavoriteMapsQuery(userId)
+        val query: MapQuery.GetFavoriteMaps = requestConverter.toGetFavoriteMapsQuery(userId)
 
         val result: MapResult.GetFavoriteMap = getFavoriteMapsUseCase.execute(query)
 
-        val response: GetFavoriteMapResponse = resultConverter.toGetFavoriteMapResponse(result)
+        val response: GetFavoriteMapResponse = responseConverter.toGetFavoriteMapResponse(result)
 
         return BaseResponse(data = response)
     }

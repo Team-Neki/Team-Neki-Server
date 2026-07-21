@@ -1,8 +1,7 @@
 package com.neki.support.api.controller
 
 import com.neki.common.api.dto.BaseResponse
-import com.neki.support.api.converter.AppVersionCommandConverter
-import com.neki.support.api.converter.AppVersionResultConverter
+import com.neki.support.api.dto.AppVersionConverter
 import com.neki.support.api.dto.GetAppVersionResponse
 import com.neki.support.api.dto.UpdateAppVersionRequest
 import com.neki.support.application.dto.AppVersionCommand
@@ -32,8 +31,8 @@ import org.springframework.web.bind.annotation.RestController
 class VersionController(
     private val getAppVersionUseCase: GetAppVersionUseCase,
     private val updateAppVersionUseCase: UpdateAppVersionUseCase,
-    private val commandConverter: AppVersionCommandConverter,
-    private val resultConverter: AppVersionResultConverter,
+    private val requestConverter: AppVersionConverter.RequestConverter,
+    private val responseConverter: AppVersionConverter.ResponseConverter,
 ) {
 
     @Operation(
@@ -42,11 +41,11 @@ class VersionController(
     )
     @GetMapping("/{platform}")
     fun getAppVersion(@PathVariable platform: String): BaseResponse<GetAppVersionResponse> {
-        val query: AppVersionQuery.GetAppVersion = commandConverter.toGetAppVersionQuery(platform)
+        val query: AppVersionQuery.GetAppVersion = requestConverter.toGetAppVersionQuery(platform)
 
         val result: AppVersionResult.GetAppVersion = getAppVersionUseCase.execute(query)
 
-        val response: GetAppVersionResponse = resultConverter.toGetAppVersionResponse(result)
+        val response: GetAppVersionResponse = responseConverter.toGetAppVersionResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -60,7 +59,7 @@ class VersionController(
         @PathVariable platform: String,
         @Valid @RequestBody request: UpdateAppVersionRequest,
     ): BaseResponse<Any> {
-        val command: AppVersionCommand.UpdateAppVersion = commandConverter.toUpdateAppVersionCommand(platform, request)
+        val command: AppVersionCommand.UpdateAppVersion = requestConverter.toUpdateAppVersionCommand(platform, request)
 
         updateAppVersionUseCase.execute(command)
 

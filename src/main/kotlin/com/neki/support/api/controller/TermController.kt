@@ -2,10 +2,9 @@ package com.neki.support.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.support.api.converter.TermCommandConverter
-import com.neki.support.api.converter.TermResultConverter
 import com.neki.support.api.dto.CreateTermAgreementsRequest
 import com.neki.support.api.dto.GetTermsResponse
+import com.neki.support.api.dto.TermConverter
 import com.neki.support.application.dto.TermCommand
 import com.neki.support.application.dto.TermResult
 import com.neki.support.application.usecase.CreateTermAgreementsUseCase
@@ -26,8 +25,8 @@ import org.springframework.web.bind.annotation.RestController
 class TermController(
     private val getTermsUseCase: GetTermsUseCase,
     private val createTermAgreementsUseCase: CreateTermAgreementsUseCase,
-    private val commandConverter: TermCommandConverter,
-    private val resultConverter: TermResultConverter,
+    private val requestConverter: TermConverter.RequestConverter,
+    private val responseConverter: TermConverter.ResponseConverter,
 ) {
 
     @Operation(
@@ -37,7 +36,7 @@ class TermController(
     @GetMapping
     fun getTerms(): BaseResponse<GetTermsResponse> {
         val result: TermResult.GetTerms = getTermsUseCase.execute()
-        val response: GetTermsResponse = resultConverter.toGetTermsResponse(result)
+        val response: GetTermsResponse = responseConverter.toGetTermsResponse(result)
         return BaseResponse(data = response)
     }
 
@@ -51,7 +50,7 @@ class TermController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: CreateTermAgreementsRequest,
     ): BaseResponse<Any> {
-        val command: TermCommand.CreateTermAgreements = commandConverter.toCreateTermAgreementsCommand(userId, request)
+        val command: TermCommand.CreateTermAgreements = requestConverter.toCreateTermAgreementsCommand(userId, request)
         createTermAgreementsUseCase.execute(command)
         return BaseResponse()
     }

@@ -2,9 +2,8 @@ package com.neki.notification.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.notification.api.converter.NotificationCommandConverter
-import com.neki.notification.api.converter.NotificationResultConverter
 import com.neki.notification.api.dto.GetRecentNotificationResponse
+import com.neki.notification.api.dto.NotificationConverter
 import com.neki.notification.api.dto.UpdateNotificationRequest
 import com.neki.notification.application.dto.NotificationCommand
 import com.neki.notification.application.dto.NotificationQuery
@@ -38,8 +37,8 @@ class NotificationController(
     private val updateNotificationUseCase: UpdateNotificationUseCase,
     private val sendPushUseCase: SendPushUseCase,
     private val getRecentNotificationsUseCase: GetRecentNotificationsUseCase,
-    private val commandConverter: NotificationCommandConverter,
-    private val resultConverter: NotificationResultConverter,
+    private val requestConverter: NotificationConverter.RequestConverter,
+    private val responseConverter: NotificationConverter.ResponseConverter,
 ) {
 
     @Operation(
@@ -52,7 +51,7 @@ class NotificationController(
         @Valid @RequestBody request: UpdateNotificationRequest,
     ): BaseResponse<Any> {
         val command: NotificationCommand.UpdateNotification =
-            commandConverter.toUpdateNotificationCommand(userId, request)
+            requestConverter.toUpdateNotificationCommand(userId, request)
 
         updateNotificationUseCase.execute(command)
 
@@ -92,7 +91,7 @@ class NotificationController(
 
         val result: List<NotificationResult.GetRecentNotification> = getRecentNotificationsUseCase.execute(query)
 
-        val response: List<GetRecentNotificationResponse> = resultConverter.toGetRecentNotificationResponse(result)
+        val response: List<GetRecentNotificationResponse> = responseConverter.toGetRecentNotificationResponse(result)
 
         return BaseResponse(data = response)
     }

@@ -3,9 +3,8 @@ package com.neki.pose.api.controller
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.api.converter.ScrapPoseCommandConverter
-import com.neki.pose.api.converter.ScrapPoseResultConverter
 import com.neki.pose.api.dto.GetPosesResponse
+import com.neki.pose.api.dto.ScrapPoseConverter
 import com.neki.pose.api.dto.UpdatePoseScarpRequest
 import com.neki.pose.application.dto.PoseCommand
 import com.neki.pose.application.dto.PoseQuery
@@ -40,8 +39,8 @@ class ScrapPoseController(
     private val updatePoseScrapUseCase: UpdatePoseScrapUseCase,
     private val getScrapPosesUseCase: GetScrapPosesUseCase,
 
-    private val commandConverter: ScrapPoseCommandConverter,
-    private val resultConverter: ScrapPoseResultConverter,
+    private val requestConverter: ScrapPoseConverter.RequestConverter,
+    private val responseConverter: ScrapPoseConverter.ResponseConverter,
 ) {
 
     @Operation(
@@ -54,7 +53,7 @@ class ScrapPoseController(
         @PathVariable poseId: Long,
         @Valid @RequestBody request: UpdatePoseScarpRequest,
     ): BaseResponse<Any> {
-        val command: PoseCommand.UpdatePoseScrap = commandConverter.toUpdatePoseScrapCommand(
+        val command: PoseCommand.UpdatePoseScrap = requestConverter.toUpdatePoseScrapCommand(
             userId = userId,
             poseId = poseId,
             request = request,
@@ -76,7 +75,7 @@ class ScrapPoseController(
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<GetPosesResponse> {
-        val command: PoseQuery.GetScrapPoses = commandConverter.toGetPoseScrapCommand(
+        val command: PoseQuery.GetScrapPoses = requestConverter.toGetPoseScrapCommand(
             userId = userId,
             page = page,
             size = size,
@@ -85,7 +84,7 @@ class ScrapPoseController(
 
         val result: PoseResult.GetPoses = getScrapPosesUseCase.execute(command)
 
-        val response: GetPosesResponse = resultConverter.toGetPosesResponse(result)
+        val response: GetPosesResponse = responseConverter.toGetPosesResponse(result)
 
         return BaseResponse(data = response)
     }

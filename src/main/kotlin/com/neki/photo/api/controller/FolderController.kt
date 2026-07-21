@@ -2,12 +2,11 @@ package com.neki.photo.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.photo.api.converter.FolderCommandConverter
-import com.neki.photo.api.converter.FolderResultConverter
 import com.neki.photo.api.dto.CopyPhotosToFolderRequest
 import com.neki.photo.api.dto.CreateFolderRequest
 import com.neki.photo.api.dto.CreateFolderResponse
 import com.neki.photo.api.dto.DeleteFoldersRequest
+import com.neki.photo.api.dto.FolderConverter
 import com.neki.photo.api.dto.GetAllFolderResponse
 import com.neki.photo.api.dto.MovePhotosToFolderRequest
 import com.neki.photo.api.dto.RemovePhotosFromFolderRequest
@@ -55,8 +54,8 @@ class FolderController(
     private val removePhotosFromFolderUseCase: RemovePhotosFromFolderUseCase,
     private val movePhotosToFolderUseCase: MovePhotosToFolderUseCase,
     private val copyPhotosToFolderUseCase: CopyPhotosToFolderUseCase,
-    private val commandConverter: FolderCommandConverter,
-    private val resultConverter: FolderResultConverter,
+    private val requestConverter: FolderConverter.RequestConverter,
+    private val responseConverter: FolderConverter.ResponseConverter,
 ) {
 
     @Operation(
@@ -68,11 +67,11 @@ class FolderController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: CreateFolderRequest,
     ): BaseResponse<CreateFolderResponse> {
-        val command: FolderCommand.CreateFolder = commandConverter.toCreateFolderCommand(request, userId)
+        val command: FolderCommand.CreateFolder = requestConverter.toCreateFolderCommand(request, userId)
 
         val result: FolderResult.CreateFolder = createFolderUseCase.execute(command)
 
-        val response: CreateFolderResponse = resultConverter.toCreateFolderResponse(result)
+        val response: CreateFolderResponse = responseConverter.toCreateFolderResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -86,11 +85,11 @@ class FolderController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @RequestParam("limit") @Min(1) limit: Int?,
     ): BaseResponse<GetAllFolderResponse> {
-        val query: FolderQuery.GetFolders = commandConverter.toGetFoldersQuery(userId, limit)
+        val query: FolderQuery.GetFolders = requestConverter.toGetFoldersQuery(userId, limit)
 
         val result: FolderResult.GetFolders = getFoldersUseCase.execute(query)
 
-        val response: GetAllFolderResponse = resultConverter.toGetAllFoldersResponse(result)
+        val response: GetAllFolderResponse = responseConverter.toGetAllFoldersResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -105,7 +104,7 @@ class FolderController(
         @RequestParam(defaultValue = "false") deletePhotos: Boolean,
         @Valid @RequestBody request: DeleteFoldersRequest,
     ): BaseResponse<Any> {
-        val command: FolderCommand.DeleteFolders = commandConverter.toDeleteFoldersCommand(
+        val command: FolderCommand.DeleteFolders = requestConverter.toDeleteFoldersCommand(
             request,
             userId,
             deletePhotos,
@@ -126,7 +125,7 @@ class FolderController(
         @PathVariable folderId: Long,
         @Valid @RequestBody request: UpdateFolderRequest,
     ): BaseResponse<Any> {
-        val command: FolderCommand.UpdateFolder = commandConverter.toUpdateFolderCommand(request, folderId, userId)
+        val command: FolderCommand.UpdateFolder = requestConverter.toUpdateFolderCommand(request, folderId, userId)
 
         updateFolderUseCase.execute(command)
 
@@ -142,7 +141,7 @@ class FolderController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: MovePhotosToFolderRequest,
     ): BaseResponse<Any> {
-        val command: FolderCommand.MovePhotosToFolder = commandConverter.toMovePhotosToFolderCommand(
+        val command: FolderCommand.MovePhotosToFolder = requestConverter.toMovePhotosToFolderCommand(
             request,
             userId,
         )
@@ -161,7 +160,7 @@ class FolderController(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: CopyPhotosToFolderRequest,
     ): BaseResponse<Any> {
-        val command: FolderCommand.CopyPhotosToFolder = commandConverter.toCopyPhotosToFolderCommand(
+        val command: FolderCommand.CopyPhotosToFolder = requestConverter.toCopyPhotosToFolderCommand(
             request,
             userId,
         )
@@ -181,7 +180,7 @@ class FolderController(
         @PathVariable folderId: Long,
         @Valid @RequestBody request: RemovePhotosFromFolderRequest,
     ): BaseResponse<Any> {
-        val command: FolderCommand.RemovePhotosFromFolder = commandConverter.toRemovePhotosFromFolderCommand(
+        val command: FolderCommand.RemovePhotosFromFolder = requestConverter.toRemovePhotosFromFolderCommand(
             request,
             folderId,
             userId,
