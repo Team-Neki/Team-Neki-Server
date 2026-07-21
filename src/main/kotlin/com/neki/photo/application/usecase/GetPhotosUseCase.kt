@@ -1,12 +1,12 @@
 package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.photo.application.contract.MediaStorageInfo
-import com.neki.photo.application.contract.PhotoWithFavorite
 import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.dto.PhotoImageResult
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
+import com.neki.photo.application.port.dto.PhotoContract
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.collections.dropLast
@@ -31,13 +31,14 @@ class GetPhotosUseCase(
         // size + 1개 조회하여 hasNext 판단
         val fetchSize = query.size + 1
 
-        val photosWithFavorite: List<PhotoWithFavorite> = photoImageRepository.listOwnedPhotosWithFavorite(
-            userId = query.userId,
-            folderId = query.folderId,
-            offset = query.page * query.size,
-            limit = fetchSize,
-            sortOrder = query.sortOrder,
-        )
+        val photosWithFavorite: List<PhotoContract.PhotoWithFavorite> =
+            photoImageRepository.listOwnedPhotosWithFavorite(
+                userId = query.userId,
+                folderId = query.folderId,
+                offset = query.page * query.size,
+                limit = fetchSize,
+                sortOrder = query.sortOrder,
+            )
 
         val totalCount: Long = photoImageRepository.countOwnedPhotos(
             userId = query.userId,
@@ -52,7 +53,7 @@ class GetPhotosUseCase(
         val hasNext = photosWithFavorite.size > query.size
 
         // 실제 반환할 사진 목록 (size개만)
-        val photosToReturn: List<PhotoWithFavorite> = if (hasNext) {
+        val photosToReturn: List<PhotoContract.PhotoWithFavorite> = if (hasNext) {
             photosWithFavorite.dropLast(
                 1,
             )
@@ -61,12 +62,12 @@ class GetPhotosUseCase(
         }
 
         // storageKey 조회 (페이징된 결과에 대해서만)
-        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaContract.StorageInfo> = mediaClient.getMediaStorageInfos(
             query.userId,
             photosToReturn.map { it.photo.mediaId },
         )
 
-        val mediaByFileId: Map<Long, MediaStorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
+        val mediaByFileId: Map<Long, MediaContract.StorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
         val result: List<PhotoImageResult.GetPhotos.PhotoInfo> = photosToReturn.mapNotNull { (photo, isFavorite) ->

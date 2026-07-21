@@ -1,8 +1,8 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.application.contract.FolderWithStats
 import com.neki.photo.application.dto.FolderQuery
 import com.neki.photo.application.port.FolderRepositoryPort
+import com.neki.photo.application.port.dto.PhotoContract
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -29,8 +29,18 @@ class GetFoldersUseCaseTest {
         // Given
         val query = FolderQuery.GetFolders(userId = 1L, limit = 10)
         val foldersWithStats = listOf(
-            FolderWithStats(folderId = 1L, name = "폴더1", coverImageStorageKey = "key/image1.jpg", photoCount = 5L),
-            FolderWithStats(folderId = 2L, name = "폴더2", coverImageStorageKey = "key/image2.jpg", photoCount = 3L),
+            PhotoContract.FolderWithStats(
+                folderId = 1L,
+                name = "폴더1",
+                coverImageStorageKey = "key/image1.jpg",
+                photoCount = 5L,
+            ),
+            PhotoContract.FolderWithStats(
+                folderId = 2L,
+                name = "폴더2",
+                coverImageStorageKey = "key/image2.jpg",
+                photoCount = 3L,
+            ),
         )
 
         every { folderRepository.listOwnedFoldersWithStats(1L, 10) } returns foldersWithStats
@@ -67,7 +77,7 @@ class GetFoldersUseCaseTest {
         // Given
         val query = FolderQuery.GetFolders(userId = 1L, limit = null)
         val foldersWithStats = listOf(
-            FolderWithStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
+            PhotoContract.FolderWithStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
         )
 
         every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns foldersWithStats

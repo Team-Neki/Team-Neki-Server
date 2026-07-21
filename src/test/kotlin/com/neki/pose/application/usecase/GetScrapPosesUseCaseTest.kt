@@ -1,10 +1,10 @@
 package com.neki.pose.application.usecase
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
 import com.neki.pose.domain.entity.Pose
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose
@@ -45,7 +45,7 @@ class GetScrapPosesUseCaseTest {
         return pose
     }
 
-    private fun makeMediaStorageInfo(mediaId: Long): MediaStorageInfo = MediaStorageInfo(
+    private fun makeMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo = MediaContract.StorageInfo(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",

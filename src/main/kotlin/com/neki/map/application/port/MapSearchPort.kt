@@ -1,6 +1,6 @@
 package com.neki.map.application.port
 
-import com.neki.map.application.contract.LocalSearchResult
+import com.neki.map.application.port.dto.MapContract
 
 /**
  * fileName       : MapSearchPort
@@ -9,5 +9,5 @@ import com.neki.map.application.contract.LocalSearchResult
  * description    :
  */
 interface MapSearchPort {
-    fun searchAllKorea(keyword: String): List<LocalSearchResult.Place>
+    fun searchAllKorea(keyword: String): List<MapContract.LocalSearchResult.Place>
 }

@@ -1,10 +1,10 @@
 package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.photo.application.contract.FolderWithStats
 import com.neki.photo.application.dto.FolderQuery
 import com.neki.photo.application.dto.FolderResult
 import com.neki.photo.application.port.FolderRepositoryPort
+import com.neki.photo.application.port.dto.PhotoContract
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -18,7 +18,7 @@ class GetFoldersUseCase(private val folderRepository: FolderRepositoryPort) {
 
     @Transactional(readOnly = true)
     fun execute(query: FolderQuery.GetFolders): FolderResult.GetFolders {
-        val foldersWithStats: List<FolderWithStats> = folderRepository.listOwnedFoldersWithStats(
+        val foldersWithStats: List<PhotoContract.FolderWithStats> = folderRepository.listOwnedFoldersWithStats(
             query.userId,
             query.limit,
         )

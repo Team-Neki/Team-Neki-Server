@@ -1,8 +1,8 @@
 package com.neki.media.infra.storage.fake
 
-import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.dto.MediaRef
 import com.neki.media.application.port.MediaStoragePort
+import com.neki.media.application.port.dto.MediaStorageContract
 import com.neki.media.domain.MediaType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -48,12 +48,13 @@ class FakeMediaStorageAdapter : MediaStoragePort {
 
     override fun exists(key: String): Boolean = true
 
-    override fun generateUploadTicket(key: String, contentType: String): UploadTicket = UploadTicket(
-        url = "https://fake-storage.test/upload/$key",
-        method = "PUT",
-        expiresAt = Instant.now().plusSeconds(3600),
-        contentType = contentType,
-    )
+    override fun generateUploadTicket(key: String, contentType: String): MediaStorageContract.UploadTicket =
+        MediaStorageContract.UploadTicket(
+            url = "https://fake-storage.test/upload/$key",
+            method = "PUT",
+            expiresAt = Instant.now().plusSeconds(3600),
+            contentType = contentType,
+        )
 
     // 테스트용 메서드
     fun putTestData(key: String, data: ByteArray) {

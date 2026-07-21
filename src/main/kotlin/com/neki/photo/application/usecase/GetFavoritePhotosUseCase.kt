@@ -2,11 +2,11 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.dto.PhotoImageResult
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.photo.domain.entity.PhotoImage
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -52,12 +52,12 @@ class GetFavoritePhotosUseCase(
         val photosToReturn: List<PhotoImage> = if (hasNext) photos.dropLast(1) else photos
 
         // storageKey 조회 (페이징된 결과에 대해서만)
-        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaContract.StorageInfo> = mediaClient.getMediaStorageInfos(
             query.userId,
             photosToReturn.map { it.mediaId },
         )
 
-        val mediaByFileId: Map<Long, MediaStorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
+        val mediaByFileId: Map<Long, MediaContract.StorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
         val result: List<PhotoImageResult.GetPhotos.PhotoInfo> = photosToReturn.mapNotNull {

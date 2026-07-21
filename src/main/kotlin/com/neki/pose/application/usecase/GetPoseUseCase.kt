@@ -4,12 +4,12 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.dto.PoseResult
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.PoseViewCachePort
+import com.neki.pose.application.port.dto.MediaContract
 
 @UseCase
 class GetPoseUseCase(
@@ -27,7 +27,7 @@ class GetPoseUseCase(
             transactionRunner.run { poseRepository.incrementViewCount(query.poseId) }
         }
 
-        val mediaInfo: MediaStorageInfo = mediaClient.getMediaStorageInfo(pose.mediaId)
+        val mediaInfo: MediaContract.StorageInfo = mediaClient.getMediaStorageInfo(pose.mediaId)
 
         return PoseResult.GetPose(
             poseId = pose.id!!,

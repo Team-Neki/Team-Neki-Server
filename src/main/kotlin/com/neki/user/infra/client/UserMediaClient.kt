@@ -6,8 +6,8 @@ import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.neki.media.application.usecase.DeleteMediaUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
-import com.neki.user.application.contract.MediaAvailability
 import com.neki.user.application.port.MediaClientPort
+import com.neki.user.application.port.dto.MediaContract
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -40,7 +40,7 @@ class UserMediaClient(
         }
     }
 
-    override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability {
+    override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaContract.Availability {
         val result: MediaResult.ConfirmMediasUploaded = confirmMediaUploadedUseCase.execute(
             MediaCommand.ConfirmMediasUploaded(
                 ownerId = ownerId,
@@ -49,8 +49,8 @@ class UserMediaClient(
         )
 
         return when (result.results[mediaId]) {
-            MediaResult.ConfirmMediasUploaded.UploadConfirmStatus.CONFIRMED -> MediaAvailability.AVAILABLE
-            else -> MediaAvailability.UNAVAILABLE
+            MediaResult.ConfirmMediasUploaded.UploadConfirmStatus.CONFIRMED -> MediaContract.Availability.AVAILABLE
+            else -> MediaContract.Availability.UNAVAILABLE
         }
     }
 

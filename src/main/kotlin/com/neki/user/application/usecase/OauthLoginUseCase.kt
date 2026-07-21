@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.user.application.contract.KakaoTokenPayload
-import com.neki.user.application.contract.OauthInfoPayload
 import com.neki.user.application.dto.AuthCommand
 import com.neki.user.application.dto.AuthResult
 import com.neki.user.application.port.AuthTokenProviderPort
@@ -14,6 +12,7 @@ import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
+import com.neki.user.application.port.dto.AuthContract
 import com.neki.user.domain.entity.User
 import com.neki.user.domain.enums.RoleType
 import com.neki.user.event.UserRegisteredEvent
@@ -51,7 +50,7 @@ class OauthLoginUseCase(
      * 4. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
     fun execute(command: AuthCommand.RegisterOauthUser): AuthResult.GetAuth {
-        val oauthInfoPayload: OauthInfoPayload = oidcTokenValidatorPort.validateIdToken(
+        val oauthInfoPayload: AuthContract.OauthInfoPayload = oidcTokenValidatorPort.validateIdToken(
             command.idToken,
             command.providerType,
             command.platform,
@@ -96,7 +95,7 @@ class OauthLoginUseCase(
         )
     }
 
-    private fun registerOauthUserIfEmpty(oauthInfoPayload: OauthInfoPayload): Pair<User, Boolean> {
+    private fun registerOauthUserIfEmpty(oauthInfoPayload: AuthContract.OauthInfoPayload): Pair<User, Boolean> {
         val existingUser: User? = userRepositoryPort.findByOid(
             oid = oauthInfoPayload.oid,
             provider = oauthInfoPayload.providerType,
@@ -129,7 +128,7 @@ class OauthLoginUseCase(
      * @return KakaoTokenResponse 카카오 토큰 정보
      * @throws Exception 토큰 획득 실패 시
      */
-    fun getAccessTokenByCode(code: String): KakaoTokenPayload {
+    fun getAccessTokenByCode(code: String): AuthContract.KakaoTokenPayload {
         val clientId = oauthProperties.kakao.androidClientId
         val clientSecret = oauthProperties.kakao.clientSecret
 
@@ -154,7 +153,7 @@ class OauthLoginUseCase(
         val objectMapper: ObjectMapper = jacksonObjectMapper()
         val jsonNode: JsonNode = objectMapper.readTree(response)
 
-        return KakaoTokenPayload(
+        return AuthContract.KakaoTokenPayload(
             accessToken = jsonNode.get("access_token").asText(),
             tokenType = jsonNode.get("token_type").asText(),
             refreshToken = jsonNode.get("refresh_token").asText(),

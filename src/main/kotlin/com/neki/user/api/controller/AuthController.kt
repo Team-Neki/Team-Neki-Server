@@ -4,9 +4,9 @@ import com.neki.common.api.dto.BaseResponse
 import com.neki.user.api.dto.AuthConverter
 import com.neki.user.api.dto.AuthRequest
 import com.neki.user.api.dto.AuthResponse
-import com.neki.user.application.contract.KakaoTokenPayload
 import com.neki.user.application.dto.AuthCommand
 import com.neki.user.application.dto.AuthResult
+import com.neki.user.application.port.dto.AuthContract
 import com.neki.user.application.usecase.OauthLoginUseCase
 import com.neki.user.application.usecase.RefreshTokenUseCase
 import io.swagger.v3.oas.annotations.Hidden
@@ -172,7 +172,7 @@ class AuthController(
     @Hidden
     @GetMapping("/test/kakao/redirect")
     fun kakaoTestRedirect(@RequestParam code: String): BaseResponse<AuthResponse.GetKakaoToken> {
-        val tokenResponse: KakaoTokenPayload = oauthLoginUseCase.getAccessTokenByCode(code)
+        val tokenResponse: AuthContract.KakaoTokenPayload = oauthLoginUseCase.getAccessTokenByCode(code)
         return BaseResponse(
             data = AuthResponse.GetKakaoToken(
                 accessToken = tokenResponse.accessToken,

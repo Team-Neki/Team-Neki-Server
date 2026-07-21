@@ -2,10 +2,10 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.contract.MediaAvailability
 import com.neki.pose.application.dto.PoseCommand
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
 import com.neki.pose.domain.HeadCount
 import com.neki.testfixture.FakeTransactionRunner
 import io.kotest.assertions.throwables.shouldThrow
@@ -54,7 +54,7 @@ class UploadPosesUseCaseTest {
 
         every {
             mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L, 102L))
-        } returns mapOf(101L to MediaAvailability.AVAILABLE, 102L to MediaAvailability.AVAILABLE)
+        } returns mapOf(101L to MediaContract.Availability.AVAILABLE, 102L to MediaContract.Availability.AVAILABLE)
 
         every { poseRepository.saveAll(any()) } answers { firstArg() }
 
@@ -91,9 +91,9 @@ class UploadPosesUseCaseTest {
         every {
             mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L, 102L, 103L))
         } returns mapOf(
-            101L to MediaAvailability.AVAILABLE,
-            102L to MediaAvailability.UNAVAILABLE,
-            103L to MediaAvailability.AVAILABLE,
+            101L to MediaContract.Availability.AVAILABLE,
+            102L to MediaContract.Availability.UNAVAILABLE,
+            103L to MediaContract.Availability.AVAILABLE,
         )
         every { mediaClient.rollbackMediasUploaded(1L, any()) } just Runs
 
@@ -116,7 +116,7 @@ class UploadPosesUseCaseTest {
 
         every {
             mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L, 102L))
-        } returns mapOf(101L to MediaAvailability.AVAILABLE, 102L to MediaAvailability.AVAILABLE)
+        } returns mapOf(101L to MediaContract.Availability.AVAILABLE, 102L to MediaContract.Availability.AVAILABLE)
 
         every { poseRepository.saveAll(any()) } throws RuntimeException("DB 저장 실패")
         every { mediaClient.rollbackMediasUploaded(1L, listOf(101L, 102L)) } just Runs
@@ -139,7 +139,7 @@ class UploadPosesUseCaseTest {
 
         every {
             mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L))
-        } returns mapOf(101L to MediaAvailability.AVAILABLE)
+        } returns mapOf(101L to MediaContract.Availability.AVAILABLE)
 
         every { poseRepository.saveAll(any()) } throws originalException
         every { mediaClient.rollbackMediasUploaded(1L, listOf(101L)) } throws rollbackException

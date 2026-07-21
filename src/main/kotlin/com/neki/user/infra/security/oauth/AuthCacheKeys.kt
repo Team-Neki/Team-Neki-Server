@@ -1,9 +1,9 @@
-package com.neki.user.application.contract
+package com.neki.user.infra.security.oauth
 
 /**
- * fileName       : CacheKeys
- * author         : darren
- * date           : 2026. 01. 12.
+ * fileName       : AuthCacheKeys
+ * author         : koo
+ * date           : 2026. 7. 22.
  * description    : Redis 캐시 키 중앙 관리
  *
  * 모든 캐시 키는 이 클래스에서 관리하여 일관성 유지

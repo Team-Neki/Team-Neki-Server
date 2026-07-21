@@ -1,6 +1,6 @@
 package com.neki.user.application.port
 
-import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.application.port.dto.AuthContract
 import com.neki.user.domain.enums.Platform
 import com.neki.user.domain.enums.ProviderType
 
@@ -11,5 +11,5 @@ import com.neki.user.domain.enums.ProviderType
  * description    :
  */
 interface OidcTokenValidatorPort {
-    fun validateIdToken(idToken: String, providerType: ProviderType, platform: Platform): OauthInfoPayload
+    fun validateIdToken(idToken: String, providerType: ProviderType, platform: Platform): AuthContract.OauthInfoPayload
 }

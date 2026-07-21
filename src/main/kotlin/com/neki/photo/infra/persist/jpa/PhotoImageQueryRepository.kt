@@ -1,7 +1,7 @@
 package com.neki.photo.infra.persist.jpa
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.contract.PhotoWithFavorite
+import com.neki.photo.application.port.dto.PhotoContract
 import com.neki.photo.domain.entity.PhotoImage
 import com.neki.photo.domain.entity.QFavoritePhoto.favoritePhoto
 import com.neki.photo.domain.entity.QPhotoImage.photoImage
@@ -41,11 +41,11 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-    ): List<PhotoWithFavorite> {
+    ): List<PhotoContract.PhotoWithFavorite> {
         val query = queryFactory
             .select(
                 Projections.constructor(
-                    PhotoWithFavorite::class.java,
+                    PhotoContract.PhotoWithFavorite::class.java,
                     photoImage,
                     CaseBuilder()
                         .`when`(favoritePhoto.id.photoId.isNotNull).then(true)
@@ -113,10 +113,10 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         .limit(1)
         .fetchOne()
 
-    fun findOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite? = queryFactory
+    fun findOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoContract.PhotoWithFavorite? = queryFactory
         .select(
             Projections.constructor(
-                PhotoWithFavorite::class.java,
+                PhotoContract.PhotoWithFavorite::class.java,
                 photoImage,
                 CaseBuilder()
                     .`when`(favoritePhoto.id.photoId.isNotNull).then(true)

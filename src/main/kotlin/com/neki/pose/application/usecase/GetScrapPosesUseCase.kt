@@ -2,11 +2,11 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.dto.PoseResult
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
 import com.neki.pose.domain.entity.Pose
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -49,15 +49,15 @@ class GetScrapPosesUseCase(
         val posesToReturn = if (hasNext) poses.dropLast(1) else poses
 
         // storageKey 조회 (페이징된 결과에 대해서만)
-        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaContract.StorageInfo> = mediaClient.getMediaStorageInfos(
             posesToReturn.map { it.mediaId },
         )
 
-        val mediaByFileId: Map<Long, MediaStorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
+        val mediaByFileId: Map<Long, MediaContract.StorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
         val result: List<PoseResult.GetPoses.PoseInfo> = posesToReturn.mapNotNull { pose ->
-            val media: MediaStorageInfo = mediaByFileId[pose.mediaId]
+            val media: MediaContract.StorageInfo = mediaByFileId[pose.mediaId]
                 ?: run {
                     log.info(
                         "Media not found yet. photoId={}, fileId={}",

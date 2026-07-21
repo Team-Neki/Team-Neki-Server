@@ -4,12 +4,12 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.dto.MapResult
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
+import com.neki.map.application.port.dto.MapContract
 import com.neki.map.domain.entity.PhotoBoothLocation
 import com.neki.map.domain.vo.GeoPoint
 import org.slf4j.Logger
@@ -49,7 +49,7 @@ class CollectPhotoBoothLocationUseCase(
         log.info("Existing locations count: {}", existingLocations.size)
 
         // 2. 카카오 API에서 검색 (인프라 계층에서 rate limiting, retry 처리)
-        val places: List<LocalSearchResult.Place> = mapSearch.searchAllKorea(command.keyword)
+        val places: List<MapContract.LocalSearchResult.Place> = mapSearch.searchAllKorea(command.keyword)
 
         // 3. 도메인 엔티티로 변환
         val processed = places.associateBy({ it.id }) { place ->
@@ -61,7 +61,7 @@ class CollectPhotoBoothLocationUseCase(
     }
 
     private fun mapToPhotoBoothLocation(
-        place: LocalSearchResult.Place,
+        place: MapContract.LocalSearchResult.Place,
         brandId: Long,
         existing: PhotoBoothLocation?,
     ): PhotoBoothLocation {

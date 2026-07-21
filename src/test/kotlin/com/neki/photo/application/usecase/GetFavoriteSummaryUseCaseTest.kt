@@ -1,10 +1,10 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPhotoImage
 import io.kotest.matchers.shouldBe
@@ -88,7 +88,7 @@ class GetFavoriteSummaryUseCaseTest {
     fun `count가 0보다 크고 photo와 미디어가 모두 존재하는 경우 count와 storageKey 반환`() {
         // Given
         val photo = aPhotoImage(id = 1L, userId = 1L, mediaId = 10L)
-        val mediaInfo = MediaStorageInfo(
+        val mediaInfo = MediaContract.StorageInfo(
             mediaId = 10L,
             storageKey = "key/cover.jpg",
             contentType = "image/jpeg",

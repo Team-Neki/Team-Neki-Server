@@ -1,10 +1,10 @@
 package com.neki.map.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.map.application.contract.PhotoBoothLocationDto
 import com.neki.map.application.dto.MapQuery
 import com.neki.map.application.dto.MapResult
 import com.neki.map.application.port.FavoriteMapRepositoryPort
+import com.neki.map.application.port.dto.MapContract
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -18,7 +18,7 @@ class GetFavoriteMapsUseCase(private val favoriteMapRepository: FavoriteMapRepos
 
     @Transactional(readOnly = true)
     fun execute(query: MapQuery.GetFavoriteMaps): MapResult.GetFavoriteMap {
-        val locations: List<PhotoBoothLocationDto> =
+        val locations: List<MapContract.PhotoBoothLocation> =
             favoriteMapRepository.findFavoriteLocationsByUserId(query.userId)
 
         return MapResult.GetFavoriteMap(locations = locations)

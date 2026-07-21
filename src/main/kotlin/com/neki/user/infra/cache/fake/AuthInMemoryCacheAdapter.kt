@@ -1,7 +1,7 @@
 package com.neki.user.infra.cache.fake
 
-import com.neki.user.application.contract.OIDCPublicKeysPayload
 import com.neki.user.application.port.AuthCachePort
+import com.neki.user.application.port.dto.AuthContract
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -17,7 +17,7 @@ import java.time.Duration
 class AuthInMemoryCacheAdapter : AuthCachePort {
 
     private val cache = mutableMapOf<String, Any>()
-    override fun setPublicKeys(key: String, value: OIDCPublicKeysPayload, ttl: Duration) {
+    override fun setPublicKeys(key: String, value: AuthContract.OIDCPublicKeysPayload, ttl: Duration) {
         try {
             cache[key] = value
         } catch (e: Exception) {
@@ -25,7 +25,8 @@ class AuthInMemoryCacheAdapter : AuthCachePort {
         }
     }
 
-    override fun getPublicKeys(key: String): OIDCPublicKeysPayload? = cache[key] as? OIDCPublicKeysPayload
+    override fun getPublicKeys(key: String): AuthContract.OIDCPublicKeysPayload? =
+        cache[key] as? AuthContract.OIDCPublicKeysPayload
 
     override fun clearPublicKeys(key: String) {
         cache.remove(key)

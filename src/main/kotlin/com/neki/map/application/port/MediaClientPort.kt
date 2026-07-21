@@ -1,6 +1,6 @@
 package com.neki.map.application.port
 
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.port.dto.MediaContract
 
 /**
  * fileName       : MediaClient
@@ -10,5 +10,5 @@ import com.neki.photo.application.contract.MediaStorageInfo
  */
 interface MediaClientPort {
 
-    fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo>
+    fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaContract.StorageInfo>
 }

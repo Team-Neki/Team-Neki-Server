@@ -1,6 +1,6 @@
 package com.neki.user.application.port
 
-import com.neki.user.application.contract.OIDCPublicKeysPayload
+import com.neki.user.application.port.dto.AuthContract
 import java.time.Duration
 
 /**
@@ -10,9 +10,9 @@ import java.time.Duration
  * description    : 캐시사용을 위한 Port 인터페이스
  */
 interface AuthCachePort {
-    fun setPublicKeys(key: String, value: OIDCPublicKeysPayload, ttl: Duration)
+    fun setPublicKeys(key: String, value: AuthContract.OIDCPublicKeysPayload, ttl: Duration)
 
-    fun getPublicKeys(key: String): OIDCPublicKeysPayload?
+    fun getPublicKeys(key: String): AuthContract.OIDCPublicKeysPayload?
 
     fun clearPublicKeys(key: String)
 }

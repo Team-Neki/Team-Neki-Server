@@ -1,7 +1,6 @@
 package com.neki.map.application.dto
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
-import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.application.port.dto.MapContract
 
 /**
  * fileName       : MapResult
@@ -16,12 +15,15 @@ object MapResult {
 
     data class PhotoBooth(val x1: Double, val y1: Double, val x2: Double, val y2: Double)
 
-    data class GetPolygonLocation(val locations: List<PhotoBoothLocationDto>, val favoriteLocationIds: Set<Long>)
-
-    data class GetPointLocation(
-        val locations: List<PhotoBoothLocationWithDistanceDto>,
+    data class GetPolygonLocation(
+        val locations: List<MapContract.PhotoBoothLocation>,
         val favoriteLocationIds: Set<Long>,
     )
 
-    data class GetFavoriteMap(val locations: List<PhotoBoothLocationDto>)
+    data class GetPointLocation(
+        val locations: List<MapContract.PhotoBoothLocationWithDistance>,
+        val favoriteLocationIds: Set<Long>,
+    )
+
+    data class GetFavoriteMap(val locations: List<MapContract.PhotoBoothLocation>)
 }

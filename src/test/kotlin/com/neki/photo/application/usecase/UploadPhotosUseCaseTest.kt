@@ -2,13 +2,13 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.contract.MediaAvailability
 import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.photo.domain.enums.UploadMethod
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aFolder
@@ -72,8 +72,8 @@ class UploadPhotosUseCaseTest {
         every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L, 20L)) } returns mapOf(
-            10L to MediaAvailability.AVAILABLE,
-            20L to MediaAvailability.AVAILABLE,
+            10L to MediaContract.Availability.AVAILABLE,
+            20L to MediaContract.Availability.AVAILABLE,
         )
         every { photoImageRepository.saveAll(any()) } returns savedPhotos
         every { photoImageFolderRepository.saveAll(listOf(100L, 200L), 1L) } just Runs
@@ -129,8 +129,8 @@ class UploadPhotosUseCaseTest {
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L, 20L)) } returns mapOf(
-            10L to MediaAvailability.AVAILABLE,
-            20L to MediaAvailability.UNAVAILABLE,
+            10L to MediaContract.Availability.AVAILABLE,
+            20L to MediaContract.Availability.UNAVAILABLE,
         )
         every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } just Runs
 
@@ -151,7 +151,7 @@ class UploadPhotosUseCaseTest {
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
-            mapOf(10L to MediaAvailability.AVAILABLE)
+            mapOf(10L to MediaContract.Availability.AVAILABLE)
         every { photoImageRepository.saveAll(any()) } throws RuntimeException("DB 저장 실패")
         every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } just Runs
 
@@ -173,7 +173,7 @@ class UploadPhotosUseCaseTest {
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L, 20L)) } returns setOf(10L)
         every { mediaClient.verifyMediasUploaded(1L, listOf(20L)) } returns
-            mapOf(20L to MediaAvailability.AVAILABLE)
+            mapOf(20L to MediaContract.Availability.AVAILABLE)
         every { photoImageRepository.saveAll(any()) } returns savedPhotos
 
         // When
@@ -211,7 +211,7 @@ class UploadPhotosUseCaseTest {
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
-            mapOf(10L to MediaAvailability.AVAILABLE)
+            mapOf(10L to MediaContract.Availability.AVAILABLE)
         every { photoImageRepository.saveAll(any()) } returns savedPhotos
 
         // When
@@ -231,7 +231,7 @@ class UploadPhotosUseCaseTest {
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
-            mapOf(10L to MediaAvailability.AVAILABLE)
+            mapOf(10L to MediaContract.Availability.AVAILABLE)
         every { photoImageRepository.saveAll(any()) } throws BusinessException(ResultCode.ALREADY_REQUEST)
 
         // When - 예외 없이 정상 종료
@@ -252,7 +252,7 @@ class UploadPhotosUseCaseTest {
 
         every { photoImageRepository.getRegisteredMediaIds(listOf(10L)) } returns emptySet()
         every { mediaClient.verifyMediasUploaded(1L, listOf(10L)) } returns
-            mapOf(10L to MediaAvailability.AVAILABLE)
+            mapOf(10L to MediaContract.Availability.AVAILABLE)
         every { photoImageRepository.saveAll(any()) } throws originalException
         every { mediaClient.rollbackMediasUploaded(1L, listOf(10L)) } throws rollbackException
 

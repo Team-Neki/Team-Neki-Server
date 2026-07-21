@@ -1,10 +1,10 @@
 package com.neki.photo.application.usecase
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPhotoImage
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -38,7 +38,7 @@ class GetFavoritePhotosUseCaseTest {
     private fun makeQuery(page: Int = 0, size: Int = 10) =
         PhotoImageQuery.GetFavoritePhotos(userId = 1L, page = page, size = size, sortOrder = SortOrder.DESC)
 
-    private fun makeMediaInfo(mediaId: Long) = MediaStorageInfo(
+    private fun makeMediaInfo(mediaId: Long) = MediaContract.StorageInfo(
         mediaId = mediaId,
         storageKey = "key/$mediaId.jpg",
         contentType = "image/jpeg",

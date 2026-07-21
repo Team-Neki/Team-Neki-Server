@@ -1,7 +1,7 @@
 package com.neki.pose.infra.persist.jpa
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.application.contract.PoseWithScrap
+import com.neki.pose.application.port.dto.PoseContract
 import com.neki.pose.domain.HeadCount
 import com.neki.pose.domain.entity.Pose
 import com.neki.pose.domain.entity.QPose.pose
@@ -20,10 +20,10 @@ import org.springframework.stereotype.Repository
 @Repository
 class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
 
-    fun findOwnedPoseWithScrap(userId: Long, poseId: Long): PoseWithScrap? = queryFactory
+    fun findOwnedPoseWithScrap(userId: Long, poseId: Long): PoseContract.PoseWithScrap? = queryFactory
         .select(
             Projections.constructor(
-                PoseWithScrap::class.java,
+                PoseContract.PoseWithScrap::class.java,
                 pose,
                 CaseBuilder()
                     .`when`(scrapPose.id.poseId.isNotNull).then(true)
@@ -47,10 +47,10 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         limit: Int,
         headCount: HeadCount?,
         sortOrder: SortOrder,
-    ): List<PoseWithScrap> = queryFactory
+    ): List<PoseContract.PoseWithScrap> = queryFactory
         .select(
             Projections.constructor(
-                PoseWithScrap::class.java,
+                PoseContract.PoseWithScrap::class.java,
                 pose,
                 CaseBuilder()
                     .`when`(scrapPose.id.poseId.isNotNull).then(true)

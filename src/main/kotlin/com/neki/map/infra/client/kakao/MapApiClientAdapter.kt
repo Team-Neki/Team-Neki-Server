@@ -2,8 +2,8 @@ package com.neki.map.infra.client.kakao
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.port.MapApiClientPort
+import com.neki.map.application.port.dto.MapContract
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
@@ -26,7 +26,7 @@ class MapApiClientAdapter(private val apiKey: String, private val restClient: Re
      * @param rect 사각형 범위 (x1,y1,x2,y2 - 좌하단 경도,위도,우상단 경도,위도)
      * @return KakaoLocalSearchResponse
      */
-    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): LocalSearchResult {
+    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): MapContract.LocalSearchResult {
         log.info("Kakao API Request - query: {}, page: {}, size: {}, rect: {}", query, page, size, rect)
 
         val response: KakaoLocalSearchPayload = restClient.get()
@@ -50,9 +50,9 @@ class MapApiClientAdapter(private val apiKey: String, private val restClient: Re
             .body(KakaoLocalSearchPayload::class.java)
             ?: throw BusinessException(ResultCode.ERROR)
 
-        return LocalSearchResult(
+        return MapContract.LocalSearchResult(
             documents = response.documents.map { kakaoPlace ->
-                LocalSearchResult.Place(
+                MapContract.LocalSearchResult.Place(
                     id = kakaoPlace.id,
                     placeName = kakaoPlace.placeName,
                     roadAddressName = kakaoPlace.roadAddressName,
@@ -63,7 +63,7 @@ class MapApiClientAdapter(private val apiKey: String, private val restClient: Re
                     categoryName = kakaoPlace.categoryName,
                 )
             },
-            searchPaginationMeta = LocalSearchResult.SearchPaginationMeta(
+            searchPaginationMeta = MapContract.LocalSearchResult.SearchPaginationMeta(
                 totalCount = response.meta.totalCount,
                 pageableCount = response.meta.pageableCount,
                 isEnd = response.meta.isEnd,

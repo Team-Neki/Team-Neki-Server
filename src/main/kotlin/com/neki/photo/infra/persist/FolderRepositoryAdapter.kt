@@ -1,7 +1,7 @@
 package com.neki.photo.infra.persist
 
-import com.neki.photo.application.contract.FolderWithStats
 import com.neki.photo.application.port.FolderRepositoryPort
+import com.neki.photo.application.port.dto.PhotoContract
 import com.neki.photo.domain.entity.Folder
 import com.neki.photo.infra.persist.jpa.FolderQueryRepository
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
@@ -26,7 +26,7 @@ class FolderRepositoryAdapter(
 
     override fun listOwnedFolders(userId: Long): List<Folder> = jpaRepository.findAllByUserId(userId)
 
-    override fun listOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderWithStats> =
+    override fun listOwnedFoldersWithStats(userId: Long, limit: Int?): List<PhotoContract.FolderWithStats> =
         queryRepository.findOwnedFoldersWithStats(userId, limit)
 
     override fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder> =

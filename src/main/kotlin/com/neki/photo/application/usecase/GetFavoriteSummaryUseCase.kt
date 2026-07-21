@@ -2,12 +2,12 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.photo.application.contract.MediaStorageInfo
 import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.dto.PhotoImageResult
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.photo.domain.entity.PhotoImage
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -47,12 +47,12 @@ class GetFavoriteSummaryUseCase(
             return PhotoImageResult.GetFavoriteSummary(storageKey = null, totalCount = totalCount)
         }
 
-        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaContract.StorageInfo> = mediaClient.getMediaStorageInfos(
             query.userId,
             listOf(latestPhoto.mediaId),
         )
 
-        val media: MediaStorageInfo? = mediaStorageInfos.firstOrNull()
+        val media: MediaContract.StorageInfo? = mediaStorageInfos.firstOrNull()
         if (media == null) {
             log.info("Media not found yet. photoId=${latestPhoto.id}, mediaId=${latestPhoto.mediaId}")
             return PhotoImageResult.GetFavoriteSummary(storageKey = null, totalCount = totalCount)

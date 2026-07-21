@@ -4,10 +4,10 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.pose.application.contract.MediaAvailability
 import com.neki.pose.application.dto.PoseCommand
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
 import com.neki.pose.domain.entity.Pose
 
 /**
@@ -28,7 +28,7 @@ class UploadPosesUseCase(
         val mediaIds: List<Long> = command.uploads.map { it.mediaId }
 
         // 모든 media가 object storage에 정상적으로 저장되었는지 일괄 확인
-        val availabilities: Map<Long, MediaAvailability> = mediaClient.verifyMediasUploaded(
+        val availabilities: Map<Long, MediaContract.Availability> = mediaClient.verifyMediasUploaded(
             ownerId = command.userId,
             mediaIds = mediaIds,
         )
@@ -63,14 +63,14 @@ class UploadPosesUseCase(
         }
     }
 
-    private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaAvailability>) {
+    private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaContract.Availability>) {
         val unavailableMediaIds: Set<Long> = availabilities
-            .filter { it.value != MediaAvailability.AVAILABLE }
+            .filter { it.value != MediaContract.Availability.AVAILABLE }
             .keys
 
         if (unavailableMediaIds.isNotEmpty()) {
             val successfulMediaIds = availabilities
-                .filter { it.value == MediaAvailability.AVAILABLE }
+                .filter { it.value == MediaContract.Availability.AVAILABLE }
                 .keys
                 .toList()
 

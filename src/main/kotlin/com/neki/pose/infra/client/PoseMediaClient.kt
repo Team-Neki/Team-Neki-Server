@@ -7,9 +7,8 @@ import com.neki.media.application.dto.MediaResult.ConfirmMediasUploaded.UploadCo
 import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
-import com.neki.pose.application.contract.MediaAvailability
-import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.port.MediaClientPort
+import com.neki.pose.application.port.dto.MediaContract
 import org.springframework.stereotype.Component
 
 /**
@@ -26,7 +25,7 @@ class PoseMediaClient(
     private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
 ) : MediaClientPort {
 
-    override fun getMediaStorageInfo(mediaId: Long): MediaStorageInfo {
+    override fun getMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo {
         val result: MediaResult.GetMediaStorageInfo = getMediaStorageInfoUseCase.execute(
             MediaQuery.GetMediaStorageInfo(
                 ownerId = null,
@@ -34,7 +33,7 @@ class PoseMediaClient(
             ),
         )
 
-        return MediaStorageInfo(
+        return MediaContract.StorageInfo(
             mediaId = result.mediaId,
             storageKey = result.storageKey,
             contentType = result.contentType,
@@ -43,12 +42,12 @@ class PoseMediaClient(
         )
     }
 
-    override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo> {
+    override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaContract.StorageInfo> {
         val result: MediaResult.GetMediaStorageInfos =
             getMediaStorageInfosUseCase.execute(MediaQuery.GetMediaStorageInfos(null, mediaIds))
 
         return result.storageInfos.map {
-            MediaStorageInfo(
+            MediaContract.StorageInfo(
                 mediaId = it.mediaId,
                 storageKey = it.storageKey,
                 contentType = it.contentType,
@@ -58,14 +57,18 @@ class PoseMediaClient(
         }
     }
 
-    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
+    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaContract.Availability> {
         if (mediaIds.isEmpty()) return emptyMap()
 
         val result: MediaResult.ConfirmMediasUploaded = confirmMediaUploadedUseCase.execute(
             MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = mediaIds),
         )
         return result.results.mapValues { (_, status) ->
-            if (status == UploadConfirmStatus.CONFIRMED) MediaAvailability.AVAILABLE else MediaAvailability.UNAVAILABLE
+            if (status == UploadConfirmStatus.CONFIRMED) {
+                MediaContract.Availability.AVAILABLE
+            } else {
+                MediaContract.Availability.UNAVAILABLE
+            }
         }
     }
 

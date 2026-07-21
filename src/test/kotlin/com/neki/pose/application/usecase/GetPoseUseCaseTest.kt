@@ -2,12 +2,12 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.contract.MediaStorageInfo
-import com.neki.pose.application.contract.PoseWithScrap
 import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.PoseViewCachePort
+import com.neki.pose.application.port.dto.MediaContract
+import com.neki.pose.application.port.dto.PoseContract
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose
 import io.kotest.assertions.throwables.shouldThrow
@@ -37,13 +37,17 @@ class GetPoseUseCaseTest {
         useCase = GetPoseUseCase(poseRepository, mediaClient, poseViewCache, transactionRunner)
     }
 
-    private fun makePoseWithScrap(id: Long = 1L, mediaId: Long = 101L, scraped: Boolean = false): PoseWithScrap {
+    private fun makePoseWithScrap(
+        id: Long = 1L,
+        mediaId: Long = 101L,
+        scraped: Boolean = false,
+    ): PoseContract.PoseWithScrap {
         val pose = aPose(id = id, mediaId = mediaId)
         pose.createdAt = LocalDateTime.of(2026, 1, 1, 0, 0)
-        return PoseWithScrap(pose = pose, isScraped = scraped)
+        return PoseContract.PoseWithScrap(pose = pose, isScraped = scraped)
     }
 
-    private fun makeMediaStorageInfo(mediaId: Long = 101L): MediaStorageInfo = MediaStorageInfo(
+    private fun makeMediaStorageInfo(mediaId: Long = 101L): MediaContract.StorageInfo = MediaContract.StorageInfo(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",

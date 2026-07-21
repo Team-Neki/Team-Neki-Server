@@ -1,8 +1,8 @@
 package com.neki.media.api.controller
 
-import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.dto.MediaRef
 import com.neki.media.application.port.MediaStoragePort
+import com.neki.media.application.port.dto.MediaStorageContract
 import com.neki.media.domain.MediaKey
 import com.neki.media.domain.MediaType
 import jakarta.servlet.http.HttpServletRequest
@@ -54,7 +54,7 @@ class MediaTestController(private val mediaStorage: MediaStoragePort) {
         val key: String = MediaKey.generate(MediaType.TEMP, effectiveFilename, contentType)
 
         // Presigned URL 생성
-        val uploadTicket: UploadTicket = mediaStorage.generateUploadTicket(
+        val uploadTicket: MediaStorageContract.UploadTicket = mediaStorage.generateUploadTicket(
             key = key,
             contentType = contentType,
         )

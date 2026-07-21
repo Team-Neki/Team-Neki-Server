@@ -1,7 +1,7 @@
 package com.neki.media.application.port
 
-import com.neki.media.application.contract.UploadTicket
 import com.neki.media.application.dto.MediaRef
+import com.neki.media.application.port.dto.MediaStorageContract
 
 /**
  * fileName       : MediaStorage
@@ -21,5 +21,5 @@ interface MediaStoragePort {
 
     fun exists(key: String): Boolean
 
-    fun generateUploadTicket(key: String, contentType: String): UploadTicket
+    fun generateUploadTicket(key: String, contentType: String): MediaStorageContract.UploadTicket
 }

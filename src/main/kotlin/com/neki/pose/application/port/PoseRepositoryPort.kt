@@ -1,7 +1,7 @@
 package com.neki.pose.application.port
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.application.contract.PoseWithScrap
+import com.neki.pose.application.port.dto.PoseContract
 import com.neki.pose.domain.HeadCount
 import com.neki.pose.domain.entity.Pose
 
@@ -13,7 +13,7 @@ import com.neki.pose.domain.entity.Pose
  */
 interface PoseRepositoryPort {
 
-    fun getOwnedPoseWithScrap(userId: Long, poseId: Long): PoseWithScrap?
+    fun getOwnedPoseWithScrap(userId: Long, poseId: Long): PoseContract.PoseWithScrap?
 
     fun saveAll(poses: List<Pose>): List<Pose>
 
@@ -23,7 +23,7 @@ interface PoseRepositoryPort {
         limit: Int,
         headCount: HeadCount?,
         sortOrder: SortOrder,
-    ): List<PoseWithScrap>
+    ): List<PoseContract.PoseWithScrap>
 
     fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose>
 

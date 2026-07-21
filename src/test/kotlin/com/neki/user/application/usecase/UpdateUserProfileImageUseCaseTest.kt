@@ -4,10 +4,10 @@ import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aUser
-import com.neki.user.application.contract.MediaAvailability
 import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.port.MediaClientPort
 import com.neki.user.application.port.UserRepositoryPort
+import com.neki.user.application.port.dto.MediaContract
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -48,7 +48,7 @@ class UpdateUserProfileImageUseCaseTest {
         val user = aUser(id = userId, profileImageId = oldMediaId)
 
         every { mediaClient.verifyMediaUploaded(ownerId = userId, mediaId = newMediaId) } returns
-            MediaAvailability.AVAILABLE
+            MediaContract.Availability.AVAILABLE
         every { userRepository.findById(userId) } returns user
         every { mediaClient.deleteMedia(ownerId = userId, mediaIds = oldMediaId) } just runs
 
@@ -69,7 +69,7 @@ class UpdateUserProfileImageUseCaseTest {
         val user = aUser(id = userId, profileImageId = sameMediaId)
 
         every { mediaClient.verifyMediaUploaded(ownerId = userId, mediaId = sameMediaId) } returns
-            MediaAvailability.AVAILABLE
+            MediaContract.Availability.AVAILABLE
         every { userRepository.findById(userId) } returns user
 
         // When
@@ -88,7 +88,7 @@ class UpdateUserProfileImageUseCaseTest {
         val newMediaId = 20L
 
         every { mediaClient.verifyMediaUploaded(ownerId = userId, mediaId = newMediaId) } returns
-            MediaAvailability.UNAVAILABLE
+            MediaContract.Availability.UNAVAILABLE
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
@@ -106,7 +106,7 @@ class UpdateUserProfileImageUseCaseTest {
         val newMediaId = 20L
 
         every { mediaClient.verifyMediaUploaded(ownerId = userId, mediaId = newMediaId) } returns
-            MediaAvailability.AVAILABLE
+            MediaContract.Availability.AVAILABLE
         every { userRepository.findById(userId) } throws RuntimeException("DB 오류")
         every { mediaClient.rollbackMediasUploaded(ownerId = userId, mediaIds = listOf(newMediaId)) } just runs
 
@@ -163,7 +163,7 @@ class UpdateUserProfileImageUseCaseTest {
         val rollbackException = RuntimeException("롤백 오류")
 
         every { mediaClient.verifyMediaUploaded(ownerId = userId, mediaId = newMediaId) } returns
-            MediaAvailability.AVAILABLE
+            MediaContract.Availability.AVAILABLE
         every { userRepository.findById(userId) } throws originalException
         every {
             mediaClient.rollbackMediasUploaded(ownerId = userId, mediaIds = listOf(newMediaId))
@@ -188,7 +188,7 @@ class UpdateUserProfileImageUseCaseTest {
         val user = aUser(id = userId, profileImageId = oldMediaId)
 
         every { mediaClient.verifyMediaUploaded(ownerId = userId, mediaId = newMediaId) } returns
-            MediaAvailability.AVAILABLE
+            MediaContract.Availability.AVAILABLE
         every { userRepository.findById(userId) } returns user
         every { mediaClient.deleteMedia(ownerId = userId, mediaIds = oldMediaId) } throws RuntimeException("삭제 실패")
 
@@ -209,7 +209,7 @@ class UpdateUserProfileImageUseCaseTest {
         val user = aUser(id = userId, profileImageId = null) // 기존 프로필 이미지 없음
 
         every { mediaClient.verifyMediaUploaded(ownerId = userId, mediaId = newMediaId) } returns
-            MediaAvailability.AVAILABLE
+            MediaContract.Availability.AVAILABLE
         every { userRepository.findById(userId) } returns user
 
         // When

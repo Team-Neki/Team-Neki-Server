@@ -1,7 +1,6 @@
 package com.neki.pose.application.port
 
-import com.neki.pose.application.contract.MediaAvailability
-import com.neki.pose.application.contract.MediaStorageInfo
+import com.neki.pose.application.port.dto.MediaContract
 
 /**
  * fileName       : MediaClientPort
@@ -11,15 +10,15 @@ import com.neki.pose.application.contract.MediaStorageInfo
  */
 interface MediaClientPort {
 
-    fun getMediaStorageInfo(mediaId: Long): MediaStorageInfo
+    fun getMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo
 
-    fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo>
+    fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaContract.StorageInfo>
 
     /**
      * 여러 media가 object storage에 정상적으로 저장되었는지 확인
      * @return mediaId와 가용 여부의 Map
      */
-    fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability>
+    fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaContract.Availability>
 
     /**
      * 보상 트랜잭션: 여러 media 상태를 INITIATED로 롤백

@@ -1,7 +1,7 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
 import com.neki.map.application.port.FavoriteMapRepositoryPort
+import com.neki.map.application.port.dto.MapContract
 import com.neki.map.domain.entity.FavoriteMap
 import com.neki.map.infra.persist.jpa.FavoriteMapQueryRepository
 import com.neki.map.infra.persist.jpa.JpaFavoriteMapRepository
@@ -27,7 +27,7 @@ class FavoriteMapRepositoryAdapter(
 
     override fun exists(favoriteMap: FavoriteMap): Boolean = jpaRepository.existsById(favoriteMap.id)
 
-    override fun findFavoriteLocationsByUserId(userId: Long): List<PhotoBoothLocationDto> =
+    override fun findFavoriteLocationsByUserId(userId: Long): List<MapContract.PhotoBoothLocation> =
         queryRepository.findFavoriteLocationsByUserId(userId)
 
     override fun findFavoritedLocationIds(userId: Long, locationIds: List<Long>): Set<Long> =

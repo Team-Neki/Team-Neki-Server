@@ -1,8 +1,6 @@
 package com.neki.photo.application.port
 
-import com.neki.photo.application.contract.MediaAvailability
-import com.neki.photo.application.contract.MediaInfo
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.port.dto.MediaContract
 
 /**
  * fileName       : MediaClient
@@ -12,11 +10,11 @@ import com.neki.photo.application.contract.MediaStorageInfo
  */
 interface MediaClientPort {
 
-    fun getMediaBinaries(ownerId: Long, mediaIds: List<Long>): List<MediaInfo>
+    fun getMediaBinaries(ownerId: Long, mediaIds: List<Long>): List<MediaContract.Info>
 
-    fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaStorageInfo
+    fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaContract.StorageInfo
 
-    fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaStorageInfo>
+    fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaContract.StorageInfo>
 
     fun deleteMedias(ownerId: Long, mediaIds: List<Long>)
 
@@ -24,7 +22,7 @@ interface MediaClientPort {
      * 여러 media가 object storage에 정상적으로 저장되었는지 확인
      * @return mediaId와 가용 여부의 Map
      */
-    fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability>
+    fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaContract.Availability>
 
     /**
      * 보상 트랜잭션: 여러 media 상태를 INITIATED로 롤백

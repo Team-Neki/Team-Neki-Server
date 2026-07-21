@@ -2,12 +2,12 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.RandomGeneratorPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
 import com.neki.pose.domain.HeadCount
 import com.neki.pose.domain.entity.ScrapPoseId
 import com.neki.testfixture.aPose
@@ -44,7 +44,7 @@ class RandomPoseUseCaseTest {
     ): PoseQuery.GetRandomPose =
         PoseQuery.GetRandomPose(userId = userId, headCount = headCount, excludeIds = excludeIds)
 
-    private fun makeMediaStorageInfo(mediaId: Long): MediaStorageInfo = MediaStorageInfo(
+    private fun makeMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo = MediaContract.StorageInfo(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",

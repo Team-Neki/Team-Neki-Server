@@ -1,11 +1,11 @@
 package com.neki.photo.application.usecase
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.contract.MediaStorageInfo
-import com.neki.photo.application.contract.PhotoWithFavorite
 import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
+import com.neki.photo.application.port.dto.PhotoContract
 import com.neki.testfixture.aPhotoImage
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -43,7 +43,7 @@ class GetPhotosUseCaseTest {
         sortOrder = SortOrder.DESC,
     )
 
-    private fun makeMediaInfo(mediaId: Long) = MediaStorageInfo(
+    private fun makeMediaInfo(mediaId: Long) = MediaContract.StorageInfo(
         mediaId = mediaId,
         storageKey = "key/$mediaId.jpg",
         contentType = "image/jpeg",
@@ -59,8 +59,8 @@ class GetPhotosUseCaseTest {
         val photo1 = photoWithCreatedAt(id = 1L, mediaId = 10L)
         val photo2 = photoWithCreatedAt(id = 2L, mediaId = 20L)
         val photosWithFavorite = listOf(
-            PhotoWithFavorite(photo1, isFavorite = false),
-            PhotoWithFavorite(photo2, isFavorite = true),
+            PhotoContract.PhotoWithFavorite(photo1, isFavorite = false),
+            PhotoContract.PhotoWithFavorite(photo2, isFavorite = true),
         )
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 11, SortOrder.DESC) } returns
@@ -90,7 +90,9 @@ class GetPhotosUseCaseTest {
     fun `size+1개 조회 시 hasNext=true 반환`() {
         // Given
         val query = makeQuery(size = 2)
-        val photos = (1L..3L).map { PhotoWithFavorite(photoWithCreatedAt(id = it, mediaId = it * 10), false) }
+        val photos = (1L..3L).map {
+            PhotoContract.PhotoWithFavorite(photoWithCreatedAt(id = it, mediaId = it * 10), false)
+        }
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 3, SortOrder.DESC) } returns photos
         every { photoImageRepository.countOwnedPhotos(1L, null) } returns 3L
@@ -113,7 +115,9 @@ class GetPhotosUseCaseTest {
     fun `정확히 size개 조회 시 hasNext=false 반환`() {
         // Given
         val query = makeQuery(size = 2)
-        val photos = (1L..2L).map { PhotoWithFavorite(photoWithCreatedAt(id = it, mediaId = it * 10), false) }
+        val photos = (1L..2L).map {
+            PhotoContract.PhotoWithFavorite(photoWithCreatedAt(id = it, mediaId = it * 10), false)
+        }
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 3, SortOrder.DESC) } returns photos
         every { photoImageRepository.countOwnedPhotos(1L, null) } returns 2L
@@ -158,8 +162,8 @@ class GetPhotosUseCaseTest {
         val photo1 = photoWithCreatedAt(id = 1L, mediaId = 10L)
         val photo2 = photoWithCreatedAt(id = 2L, mediaId = 20L)
         val photosWithFavorite = listOf(
-            PhotoWithFavorite(photo1, isFavorite = false),
-            PhotoWithFavorite(photo2, isFavorite = false),
+            PhotoContract.PhotoWithFavorite(photo1, isFavorite = false),
+            PhotoContract.PhotoWithFavorite(photo2, isFavorite = false),
         )
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 11, SortOrder.DESC) } returns
@@ -183,7 +187,7 @@ class GetPhotosUseCaseTest {
         // Given
         val query = makeQuery(size = 10)
         val photo1 = photoWithCreatedAt(id = 1L, mediaId = 10L)
-        val photosWithFavorite = listOf(PhotoWithFavorite(photo1, isFavorite = false))
+        val photosWithFavorite = listOf(PhotoContract.PhotoWithFavorite(photo1, isFavorite = false))
 
         every { photoImageRepository.listOwnedPhotosWithFavorite(1L, null, 0, 11, SortOrder.DESC) } returns
             photosWithFavorite

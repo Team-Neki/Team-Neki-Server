@@ -1,7 +1,6 @@
 package com.neki.user.infra.security.oauth.helper
 
-import com.neki.user.application.contract.OIDCPublicKeysPayload
-import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.application.port.dto.AuthContract
 import com.neki.user.domain.enums.Platform
 
 /**
@@ -11,5 +10,9 @@ import com.neki.user.domain.enums.Platform
  * description    : OAuth OIDC 검증을 위한 Port
  */
 interface OauthHelper {
-    fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysPayload, platform: Platform): OauthInfoPayload
+    fun getOauthInfoByIdToken(
+        idToken: String,
+        publicKeys: AuthContract.OIDCPublicKeysPayload,
+        platform: Platform,
+    ): AuthContract.OauthInfoPayload
 }

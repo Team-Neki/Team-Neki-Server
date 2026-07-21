@@ -1,10 +1,9 @@
 package com.neki.map.application.usecase
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
-import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.neki.map.application.dto.MapQuery
 import com.neki.map.application.port.FavoriteMapRepositoryPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
+import com.neki.map.application.port.dto.MapContract
 import com.neki.testfixture.FakeTransactionRunner
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -58,14 +57,14 @@ class GetPhotoBoothLocationUseCaseTest :
             val point1 = geometryFactory.createPoint(Coordinate(127.02, 37.49))
             val point2 = geometryFactory.createPoint(Coordinate(127.03, 37.50))
             val locationDtos = listOf(
-                PhotoBoothLocationDto(
+                MapContract.PhotoBoothLocation(
                     id = 1L,
                     brandName = "인생네컷",
                     branchName = "강남점",
                     address = "서울 강남구",
                     location = point1,
                 ),
-                PhotoBoothLocationDto(
+                MapContract.PhotoBoothLocation(
                     id = 2L,
                     brandName = "하루필름",
                     branchName = "홍대점",
@@ -143,7 +142,7 @@ class GetPhotoBoothLocationUseCaseTest :
 
             val point = geometryFactory.createPoint(Coordinate(127.0280, 37.4985))
             val locationDtos = listOf(
-                PhotoBoothLocationWithDistanceDto(
+                MapContract.PhotoBoothLocationWithDistance(
                     id = 1L,
                     brandName = "인생네컷",
                     branchName = "강남점",

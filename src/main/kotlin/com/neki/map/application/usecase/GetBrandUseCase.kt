@@ -7,7 +7,7 @@ import com.neki.map.application.port.MediaClientPort
 import com.neki.map.application.port.UserBrandOrderRepositoryPort
 import com.neki.map.domain.BrandOrderPolicy
 import com.neki.map.domain.entity.Brand
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.port.dto.MediaContract
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -32,7 +32,7 @@ class GetBrandUseCase(
         val sortOrderMap: Map<Long, Int> = userBrandOrderRepository.findSortOrderMapByUserId(userId)
         val sortedBrands: List<Brand> = BrandOrderPolicy.sort(brands, sortOrderMap)
 
-        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
+        val mediaStorageInfos: List<MediaContract.StorageInfo> = mediaClient.getMediaStorageInfos(
             sortedBrands.mapNotNull {
                 it.mediaId
             },

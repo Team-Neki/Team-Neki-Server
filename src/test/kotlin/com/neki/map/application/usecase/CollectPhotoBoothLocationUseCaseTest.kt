@@ -2,11 +2,11 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
+import com.neki.map.application.port.dto.MapContract
 import com.neki.map.domain.entity.PhotoBoothLocation
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aBrand
@@ -51,7 +51,7 @@ class CollectPhotoBoothLocationUseCaseTest :
             roadAddressName: String = "서울특별시 강남구 테헤란로 $id",
             latitude: String = "37.4979", // latitude 파라미터로 전달됨 (-90..90 범위)
             longitude: String = "37.0", // longitude 파라미터로 전달됨 (-180..180 범위)
-        ) = LocalSearchResult.Place(
+        ) = MapContract.LocalSearchResult.Place(
             id = id,
             placeName = placeName,
             roadAddressName = roadAddressName,

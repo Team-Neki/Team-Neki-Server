@@ -1,7 +1,6 @@
 package com.neki.map.infra.persist.jpa
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
-import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.application.port.dto.MapContract
 import com.neki.map.domain.entity.QBrand.brand
 import com.neki.map.domain.entity.QPhotoBoothLocation.photoBoothLocation
 import com.querydsl.core.types.Projections
@@ -30,14 +29,14 @@ class PhotoBoothLocationQueryRepository(
      * @param coordinates 다각형을 구성하는 좌표 리스트 (경도, 위도)
      * @param brandIds 브랜드 ID 리스트 (nullable)
      */
-    fun findByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationDto> {
+    fun findByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): List<MapContract.PhotoBoothLocation> {
         // LINESTRING 생성을 위한 좌표 문자열 생성
         val lineString: String = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
 
         val query = queryFactory
             .select(
                 Projections.constructor(
-                    PhotoBoothLocationDto::class.java,
+                    MapContract.PhotoBoothLocation::class.java,
                     photoBoothLocation.id,
                     brand.name,
                     photoBoothLocation.branchName,
@@ -70,7 +69,7 @@ class PhotoBoothLocationQueryRepository(
         coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
-    ): List<PhotoBoothLocationWithDistanceDto> {
+    ): List<MapContract.PhotoBoothLocationWithDistance> {
         val sql = """
             SELECT
                 TB_PHOTO_BOOTH_LOCATION.id,
@@ -112,7 +111,7 @@ class PhotoBoothLocationQueryRepository(
             val locationWkt = row[4] as String
             val jtsPoint = wktReader.read(locationWkt) as Point
 
-            PhotoBoothLocationWithDistanceDto(
+            MapContract.PhotoBoothLocationWithDistance(
                 id = (row[0] as Number).toLong(),
                 brandName = row[1] as String,
                 branchName = row[2] as String,

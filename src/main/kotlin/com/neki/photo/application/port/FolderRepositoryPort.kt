@@ -1,6 +1,6 @@
 package com.neki.photo.application.port
 
-import com.neki.photo.application.contract.FolderWithStats
+import com.neki.photo.application.port.dto.PhotoContract
 import com.neki.photo.domain.entity.Folder
 
 /**
@@ -17,7 +17,7 @@ interface FolderRepositoryPort {
 
     fun listOwnedFolders(userId: Long): List<Folder>
 
-    fun listOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderWithStats>
+    fun listOwnedFoldersWithStats(userId: Long, limit: Int?): List<PhotoContract.FolderWithStats>
 
     fun getOwnedFolder(userId: Long, folderId: Long): Folder?
     fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder>

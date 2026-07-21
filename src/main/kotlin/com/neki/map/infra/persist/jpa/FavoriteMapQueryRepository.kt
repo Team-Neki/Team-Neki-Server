@@ -1,6 +1,6 @@
 package com.neki.map.infra.persist.jpa
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
+import com.neki.map.application.port.dto.MapContract
 import com.neki.map.domain.entity.QBrand.brand
 import com.neki.map.domain.entity.QFavoriteMap.favoriteMap
 import com.neki.map.domain.entity.QPhotoBoothLocation.photoBoothLocation
@@ -21,10 +21,10 @@ class FavoriteMapQueryRepository(private val queryFactory: JPAQueryFactory) {
      * 사용자가 즐겨찾기한 포토부스를 최근 즐겨찾기한 순서대로 조회
      * @param userId 사용자 ID
      */
-    fun findFavoriteLocationsByUserId(userId: Long): List<PhotoBoothLocationDto> = queryFactory
+    fun findFavoriteLocationsByUserId(userId: Long): List<MapContract.PhotoBoothLocation> = queryFactory
         .select(
             Projections.constructor(
-                PhotoBoothLocationDto::class.java,
+                MapContract.PhotoBoothLocation::class.java,
                 photoBoothLocation.id,
                 brand.name,
                 photoBoothLocation.branchName,
