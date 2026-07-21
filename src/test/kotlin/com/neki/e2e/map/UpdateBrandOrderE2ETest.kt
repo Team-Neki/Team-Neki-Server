@@ -1,7 +1,7 @@
 package com.neki.e2e.map
 
 import com.neki.common.code.ResultCode
-import com.neki.map.api.dto.UpdateBrandOrderRequest
+import com.neki.map.api.dto.MapRequest
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -54,7 +54,7 @@ class UpdateBrandOrderE2ETest : MapE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateBrandOrderRequest(listOf(photogray.id!!, photoism.id!!, lifefour.id!!)))
+            .body(MapRequest.UpdateBrandOrder(listOf(photogray.id!!, photoism.id!!, lifefour.id!!)))
             .`when`()
             .put("/api/photo-booths/brand/order")
             .then()
@@ -160,7 +160,7 @@ class UpdateBrandOrderE2ETest : MapE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateBrandOrderRequest(listOf(photoism.id!!, 99999L)))
+            .body(MapRequest.UpdateBrandOrder(listOf(photoism.id!!, 99999L)))
             .`when`()
             .put("/api/photo-booths/brand/order")
             .then()
@@ -175,7 +175,7 @@ class UpdateBrandOrderE2ETest : MapE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateBrandOrderRequest(emptyList()))
+            .body(MapRequest.UpdateBrandOrder(emptyList()))
             .`when`()
             .put("/api/photo-booths/brand/order")
             .then()
@@ -186,7 +186,7 @@ class UpdateBrandOrderE2ETest : MapE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateBrandOrderRequest(brandIds))
+            .body(MapRequest.UpdateBrandOrder(brandIds))
             .`when`()
             .put("/api/photo-booths/brand/order")
             .then()

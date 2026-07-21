@@ -2,9 +2,9 @@ package com.neki.support.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.support.api.dto.CreateTermAgreementsRequest
-import com.neki.support.api.dto.GetTermsResponse
 import com.neki.support.api.dto.TermConverter
+import com.neki.support.api.dto.TermRequest
+import com.neki.support.api.dto.TermResponse
 import com.neki.support.application.dto.TermCommand
 import com.neki.support.application.dto.TermResult
 import com.neki.support.application.usecase.CreateTermAgreementsUseCase
@@ -34,9 +34,9 @@ class TermController(
         description = "현재 활성화된 약관 목록을 조회합니다.",
     )
     @GetMapping
-    fun getTerms(): BaseResponse<GetTermsResponse> {
+    fun getTerms(): BaseResponse<TermResponse.GetTerms> {
         val result: TermResult.GetTerms = getTermsUseCase.execute()
-        val response: GetTermsResponse = responseConverter.toGetTermsResponse(result)
+        val response: TermResponse.GetTerms = responseConverter.toGetTermsResponse(result)
         return BaseResponse(data = response)
     }
 
@@ -48,7 +48,7 @@ class TermController(
     @PostMapping("/agreements")
     fun createTermAgreements(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: CreateTermAgreementsRequest,
+        @Valid @RequestBody request: TermRequest.CreateTermAgreements,
     ): BaseResponse<Any> {
         val command: TermCommand.CreateTermAgreements = requestConverter.toCreateTermAgreementsCommand(userId, request)
         createTermAgreementsUseCase.execute(command)

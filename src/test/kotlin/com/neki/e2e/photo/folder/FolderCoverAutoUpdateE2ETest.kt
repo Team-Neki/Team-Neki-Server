@@ -2,11 +2,10 @@ package com.neki.e2e.photo.folder
 
 import com.neki.common.code.ResultCode
 import com.neki.e2e.photo.image.PhotoImageE2ETestBase
-import com.neki.media.api.dto.UploadTicketRequest
+import com.neki.media.api.dto.MediaRequest
 import com.neki.media.domain.MediaType
-import com.neki.photo.api.dto.DeletePhotosRequest
-import com.neki.photo.api.dto.RemovePhotosFromFolderRequest
-import com.neki.photo.api.dto.UploadPhotoRequest
+import com.neki.photo.api.dto.FolderRequest
+import com.neki.photo.api.dto.PhotoImageRequest
 import com.neki.photo.domain.entity.PhotoImageFolder
 import com.neki.photo.domain.enums.UploadMethod
 import com.neki.user.domain.entity.User
@@ -53,9 +52,9 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     // ===================
 
     private fun createMediaIds(count: Int): List<Long> {
-        val ticketRequest = UploadTicketRequest(
+        val ticketRequest = MediaRequest.UploadTicket(
             items = (1..count).map {
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "photo$it.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -78,10 +77,10 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     }
 
     private fun uploadPhotosViaApi(folderId: Long?, mediaIds: List<Long>) {
-        val uploadRequest = UploadPhotoRequest(
+        val uploadRequest = PhotoImageRequest.UploadPhoto(
             folderId = folderId,
             uploads = mediaIds.map {
-                UploadPhotoRequest.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.UploadPhotoItem(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
@@ -105,7 +104,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = photoIds))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = photoIds))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -376,7 +375,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(sharedPhotoId)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(sharedPhotoId)))
             .`when`()
             .delete("/api/folders/${folderA.id}/photos")
             .then()

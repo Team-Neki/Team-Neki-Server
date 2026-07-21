@@ -15,7 +15,7 @@ object TermConverter {
     class RequestConverter {
         fun toCreateTermAgreementsCommand(
             userId: Long,
-            request: CreateTermAgreementsRequest,
+            request: TermRequest.CreateTermAgreements,
         ): TermCommand.CreateTermAgreements = TermCommand.CreateTermAgreements(
             userId = userId,
             agreements = request.agreements.map { item ->
@@ -29,9 +29,9 @@ object TermConverter {
 
     @Component
     class ResponseConverter {
-        fun toGetTermsResponse(result: TermResult.GetTerms): GetTermsResponse = GetTermsResponse(
+        fun toGetTermsResponse(result: TermResult.GetTerms): TermResponse.GetTerms = TermResponse.GetTerms(
             terms = result.terms.map { termInfo ->
-                TermInfoResponse(
+                TermResponse.TermInfo(
                     id = termInfo.id,
                     termType = termInfo.termType.name,
                     title = termInfo.title,

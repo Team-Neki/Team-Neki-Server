@@ -3,9 +3,9 @@ package com.neki.map.api.controller
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.map.api.dto.FavoriteMapConverter
-import com.neki.map.api.dto.GetFavoriteMapResponse
 import com.neki.map.api.dto.MapConverter
-import com.neki.map.api.dto.UpdateMapFavoriteRequest
+import com.neki.map.api.dto.MapRequest
+import com.neki.map.api.dto.MapResponse
 import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.dto.MapQuery
 import com.neki.map.application.dto.MapResult
@@ -47,7 +47,7 @@ class FavoriteMapController(
     fun favoriteMap(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable locationId: Long,
-        @Valid @RequestBody request: UpdateMapFavoriteRequest,
+        @Valid @RequestBody request: MapRequest.UpdateMapFavorite,
     ): BaseResponse<Any> {
         val command: MapCommand.UpdateMapFavorite =
             requestConverter.toUpdateMapFavoriteCommand(userId, locationId, request)
@@ -64,12 +64,12 @@ class FavoriteMapController(
     @GetMapping("/favorite")
     fun getFavoriteMaps(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-    ): BaseResponse<GetFavoriteMapResponse> {
+    ): BaseResponse<MapResponse.GetFavoriteMap> {
         val query: MapQuery.GetFavoriteMaps = requestConverter.toGetFavoriteMapsQuery(userId)
 
         val result: MapResult.GetFavoriteMap = getFavoriteMapsUseCase.execute(query)
 
-        val response: GetFavoriteMapResponse = responseConverter.toGetFavoriteMapResponse(result)
+        val response: MapResponse.GetFavoriteMap = responseConverter.toGetFavoriteMapResponse(result)
 
         return BaseResponse(data = response)
     }

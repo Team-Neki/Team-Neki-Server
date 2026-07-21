@@ -17,10 +17,10 @@ object UserConverter {
     class RequestConverter {
         fun toGetUserQuery(userId: Long) = UserQuery.GetUser(userId)
 
-        fun toUpdateUserCommand(userId: Long, request: UpdateUserRequest) =
+        fun toUpdateUserCommand(userId: Long, request: UserRequest.UpdateUser) =
             UserCommand.UpdateUserInfo(userId, request.name)
 
-        fun toUpdateUserProfileImageCommand(userId: Long, request: UpdateUserProfileImageRequest) =
+        fun toUpdateUserProfileImageCommand(userId: Long, request: UserRequest.UpdateUserProfileImage) =
             UserCommand.UpdateUserProfileImage(userId, request.mediaId)
 
         fun toDeleteUserCommand(userId: Long) = UserCommand.DeleteUser(userId)
@@ -35,7 +35,7 @@ object UserConverter {
             private const val DEFAULT_PROFILE_KEY = "user-profiles/default_profile.png"
         }
 
-        fun toGetUserResponse(result: UserResult.GetUser) = GetUserResponse(
+        fun toGetUserResponse(result: UserResult.GetUser) = UserResponse.GetUser(
             userId = result.userId,
             name = result.name,
             email = result.email,

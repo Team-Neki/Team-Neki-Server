@@ -3,9 +3,9 @@ package com.neki.pose.api.controller
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.api.dto.GetPosesResponse
+import com.neki.pose.api.dto.PoseRequest
+import com.neki.pose.api.dto.PoseResponse
 import com.neki.pose.api.dto.ScrapPoseConverter
-import com.neki.pose.api.dto.UpdatePoseScarpRequest
 import com.neki.pose.application.dto.PoseCommand
 import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.dto.PoseResult
@@ -51,7 +51,7 @@ class ScrapPoseController(
     fun scrapPose(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable poseId: Long,
-        @Valid @RequestBody request: UpdatePoseScarpRequest,
+        @Valid @RequestBody request: PoseRequest.UpdatePoseScarp,
     ): BaseResponse<Any> {
         val command: PoseCommand.UpdatePoseScrap = requestConverter.toUpdatePoseScrapCommand(
             userId = userId,
@@ -74,7 +74,7 @@ class ScrapPoseController(
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
-    ): BaseResponse<GetPosesResponse> {
+    ): BaseResponse<PoseResponse.GetPoses> {
         val command: PoseQuery.GetScrapPoses = requestConverter.toGetPoseScrapCommand(
             userId = userId,
             page = page,
@@ -84,7 +84,7 @@ class ScrapPoseController(
 
         val result: PoseResult.GetPoses = getScrapPosesUseCase.execute(command)
 
-        val response: GetPosesResponse = responseConverter.toGetPosesResponse(result)
+        val response: PoseResponse.GetPoses = responseConverter.toGetPosesResponse(result)
 
         return BaseResponse(data = response)
     }

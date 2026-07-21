@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 object PhotoImageConverter {
     @Component
     class RequestConverter {
-        fun toUploadPhotoCommand(userId: Long, request: UploadPhotoRequest) = PhotoImageCommand.UploadPhoto(
+        fun toUploadPhotoCommand(userId: Long, request: PhotoImageRequest.UploadPhoto) = PhotoImageCommand.UploadPhoto(
             userId = userId,
             folderId = request.folderId,
             uploads = request.uploads.map { item ->
@@ -49,25 +49,27 @@ object PhotoImageConverter {
             photoId = photoId,
         )
 
-        fun toDeletePhotosCommand(userId: Long, request: DeletePhotosRequest) = PhotoImageCommand.DeletePhotos(
-            userId = userId,
-            photoIds = request.photoIds,
-        )
+        fun toDeletePhotosCommand(userId: Long, request: PhotoImageRequest.DeletePhotos) =
+            PhotoImageCommand.DeletePhotos(
+                userId = userId,
+                photoIds = request.photoIds,
+            )
 
         @Deprecated(message = "PUT API 변경 후 제거")
-        fun toUpdatePhotoCommand(userId: Long, photoId: Long, request: UpdatePhotoRequest) =
+        fun toUpdatePhotoCommand(userId: Long, photoId: Long, request: PhotoImageRequest.UpdatePhoto) =
             PhotoImageCommand.UpdatePhoto(
                 userId = userId,
                 photoId = photoId,
                 memo = request.memo,
             )
 
-        fun toPutPhotoCommand(userId: Long, photoId: Long, request: UpdatePhotoRequest) = PhotoImageCommand.PutPhoto(
-            userId = userId,
-            photoId = photoId,
-            memo = request.memo,
-            capturedAt = request.capturedAt,
-        )
+        fun toPutPhotoCommand(userId: Long, photoId: Long, request: PhotoImageRequest.UpdatePhoto) =
+            PhotoImageCommand.PutPhoto(
+                userId = userId,
+                photoId = photoId,
+                memo = request.memo,
+                capturedAt = request.capturedAt,
+            )
     }
 
     @Component
@@ -76,39 +78,42 @@ object PhotoImageConverter {
             private const val IMAGE_URL_PATH = "/file/image/"
         }
 
-        fun toGetPhotosResponse(result: PhotoImageResult.GetPhotos): GetPhotosResponse = GetPhotosResponse(
-            totalCount = result.totalCount,
-            items = result.photos.map {
-                GetPhotosResponse.PhotoInfo(
-                    photoId = it.photoId,
-                    imageUrl = toImageUrl(it.storageKey),
-                    favorite = it.favorite,
-                    contentType = it.contentType,
-                    width = it.width,
-                    height = it.height,
-                    memo = it.memo,
-                    createdAt = it.createdAt,
-                )
-            },
-            hasNext = result.hasNext,
-        )
-
-        fun toGetPhotoResponse(result: PhotoImageResult.GetPhoto): GetPhotoResponse = GetPhotoResponse(
-            photoId = result.photoId,
-            imageUrl = toImageUrl(result.storageKey),
-            favorite = result.favorite,
-            contentType = result.contentType,
-            width = result.width,
-            height = result.height,
-            memo = result.memo,
-            createdAt = result.createdAt,
-        )
-
-        fun toGetFavoriteSummaryResponse(result: PhotoImageResult.GetFavoriteSummary): GetFavoriteSummaryResponse =
-            GetFavoriteSummaryResponse(
-                latestImageUrl = result.storageKey?.let { toImageUrl(result.storageKey) },
+        fun toGetPhotosResponse(result: PhotoImageResult.GetPhotos): PhotoImageResponse.GetPhotos =
+            PhotoImageResponse.GetPhotos(
                 totalCount = result.totalCount,
+                items = result.photos.map {
+                    PhotoImageResponse.GetPhotos.PhotoInfo(
+                        photoId = it.photoId,
+                        imageUrl = toImageUrl(it.storageKey),
+                        favorite = it.favorite,
+                        contentType = it.contentType,
+                        width = it.width,
+                        height = it.height,
+                        memo = it.memo,
+                        createdAt = it.createdAt,
+                    )
+                },
+                hasNext = result.hasNext,
             )
+
+        fun toGetPhotoResponse(result: PhotoImageResult.GetPhoto): PhotoImageResponse.GetPhoto =
+            PhotoImageResponse.GetPhoto(
+                photoId = result.photoId,
+                imageUrl = toImageUrl(result.storageKey),
+                favorite = result.favorite,
+                contentType = result.contentType,
+                width = result.width,
+                height = result.height,
+                memo = result.memo,
+                createdAt = result.createdAt,
+            )
+
+        fun toGetFavoriteSummaryResponse(
+            result: PhotoImageResult.GetFavoriteSummary,
+        ): PhotoImageResponse.GetFavoriteSummary = PhotoImageResponse.GetFavoriteSummary(
+            latestImageUrl = result.storageKey?.let { toImageUrl(result.storageKey) },
+            totalCount = result.totalCount,
+        )
 
         private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
     }

@@ -2,7 +2,7 @@ package com.neki.e2e.notification
 
 import com.neki.common.code.ResultCode
 import com.neki.e2e.E2ETestBase
-import com.neki.notification.api.dto.UpdateNotificationRequest
+import com.neki.notification.api.dto.NotificationRequest
 import com.neki.notification.domain.entity.Notification
 import com.neki.notification.infra.persist.jpa.JpaNotificationRepository
 import com.neki.user.domain.entity.User
@@ -62,7 +62,7 @@ class NotificationE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateNotificationRequest(deviceToken = "device-token-123", pushAgreed = true))
+            .body(NotificationRequest.UpdateNotification(deviceToken = "device-token-123", pushAgreed = true))
             .`when`()
             .patch("/api/notifications")
             .then()
@@ -113,7 +113,7 @@ class NotificationE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateNotificationRequest(deviceToken = "", pushAgreed = true))
+            .body(NotificationRequest.UpdateNotification(deviceToken = "", pushAgreed = true))
             .`when`()
             .patch("/api/notifications")
             .then()
@@ -126,7 +126,7 @@ class NotificationE2ETest : E2ETestBase() {
     fun givenNoToken_whenUpdateNotification_thenReturnsForbidden() {
         RestAssured.given()
             .contentType(ContentType.JSON)
-            .body(UpdateNotificationRequest(deviceToken = "device-token-123", pushAgreed = true))
+            .body(NotificationRequest.UpdateNotification(deviceToken = "device-token-123", pushAgreed = true))
             .`when`()
             .patch("/api/notifications")
             .then()
@@ -165,7 +165,7 @@ class NotificationE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateNotificationRequest(deviceToken = deviceToken, pushAgreed = pushAgreed))
+            .body(NotificationRequest.UpdateNotification(deviceToken = deviceToken, pushAgreed = pushAgreed))
             .`when`()
             .patch("/api/notifications")
             .then()

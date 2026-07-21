@@ -2,10 +2,9 @@ package com.neki.user.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.user.api.dto.GetUserResponse
-import com.neki.user.api.dto.UpdateUserProfileImageRequest
-import com.neki.user.api.dto.UpdateUserRequest
 import com.neki.user.api.dto.UserConverter
+import com.neki.user.api.dto.UserRequest
+import com.neki.user.api.dto.UserResponse
 import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.dto.UserQuery
 import com.neki.user.application.dto.UserResult
@@ -53,12 +52,12 @@ class UserController(
         """,
     )
     @GetMapping("/info")
-    fun info(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<GetUserResponse> {
+    fun info(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<UserResponse.GetUser> {
         val query: UserQuery.GetUser = requestConverter.toGetUserQuery(userId)
 
         val result: UserResult.GetUser = getUserInfoUseCase.execute(query)
 
-        val response: GetUserResponse = responseConverter.toGetUserResponse(result)
+        val response: UserResponse.GetUser = responseConverter.toGetUserResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -75,7 +74,7 @@ class UserController(
     @PatchMapping("/me")
     fun updateMe(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: UpdateUserRequest,
+        @Valid @RequestBody request: UserRequest.UpdateUser,
     ): BaseResponse<Any> {
         val command: UserCommand.UpdateUserInfo = requestConverter.toUpdateUserCommand(userId, request)
 
@@ -96,7 +95,7 @@ class UserController(
     @PatchMapping("/me/profile-image")
     fun updateProfileImage(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: UpdateUserProfileImageRequest,
+        @Valid @RequestBody request: UserRequest.UpdateUserProfileImage,
     ): BaseResponse<Any> {
         val command: UserCommand.UpdateUserProfileImage = requestConverter.toUpdateUserProfileImageCommand(
             userId,

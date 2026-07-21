@@ -15,7 +15,7 @@ object MediaConverter {
     class RequestConverter {
         fun toGenerateUploadTicketCommand(
             ownerId: Long,
-            request: UploadTicketRequest,
+            request: MediaRequest.UploadTicket,
         ): MediaCommand.GenerateUploadTicket = MediaCommand.GenerateUploadTicket(
             ownerId = ownerId,
             items = request.items.map { item ->
@@ -33,12 +33,12 @@ object MediaConverter {
 
     @Component
     class ResponseConverter {
-        fun toUploadTicketResponse(result: MediaResult.GenerateUploadTicket): UploadTicketResponse =
-            UploadTicketResponse(
+        fun toUploadTicketResponse(result: MediaResult.GenerateUploadTicket): MediaResponse.UploadTicket =
+            MediaResponse.UploadTicket(
                 method = result.method,
                 expiresIn = result.expiresAt,
                 items = result.tickets.map { ticket ->
-                    UploadTicketResponse.UploadTicketInfo(
+                    MediaResponse.UploadTicket.UploadTicketInfo(
                         mediaId = ticket.mediaId,
                         uploadTicket = ticket.uploadUrl,
                         contentType = ticket.contentType,

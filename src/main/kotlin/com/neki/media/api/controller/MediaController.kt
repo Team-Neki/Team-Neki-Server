@@ -3,8 +3,8 @@ package com.neki.media.api.controller
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.media.api.dto.MediaConverter
-import com.neki.media.api.dto.UploadTicketRequest
-import com.neki.media.api.dto.UploadTicketResponse
+import com.neki.media.api.dto.MediaRequest
+import com.neki.media.api.dto.MediaResponse
 import com.neki.media.application.dto.MediaCommand
 import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.usecase.GenerateUploadTicketUseCase
@@ -60,8 +60,8 @@ class MediaController(
     @PostMapping("/upload")
     fun generateUploadTicket(
         @AuthenticationPrincipal(expression = "id") ownerId: Long,
-        @Valid @RequestBody request: UploadTicketRequest,
-    ): BaseResponse<UploadTicketResponse> {
+        @Valid @RequestBody request: MediaRequest.UploadTicket,
+    ): BaseResponse<MediaResponse.UploadTicket> {
         val command: MediaCommand.GenerateUploadTicket = requestConverter.toGenerateUploadTicketCommand(
             ownerId,
             request,
@@ -69,7 +69,7 @@ class MediaController(
 
         val result: MediaResult.GenerateUploadTicket = generateUploadTicketUseCase.execute(command)
 
-        val response: UploadTicketResponse = responseConverter.toUploadTicketResponse(result)
+        val response: MediaResponse.UploadTicket = responseConverter.toUploadTicketResponse(result)
 
         return BaseResponse(data = response)
     }

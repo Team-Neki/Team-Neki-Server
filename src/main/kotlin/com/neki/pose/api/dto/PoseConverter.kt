@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component
 object PoseConverter {
     @Component
     class RequestConverter {
-        fun toUploadPosesCommand(userId: Long, request: UploadPoseRequest) = PoseCommand.UploadPoses(
+        fun toUploadPosesCommand(userId: Long, request: PoseRequest.UploadPose) = PoseCommand.UploadPoses(
             userId = userId,
             uploads = request.uploads.map { item ->
                 PoseCommand.UploadPoses.UploadItem(
@@ -59,9 +59,9 @@ object PoseConverter {
             private const val IMAGE_URL_PATH = "/file/image/"
         }
 
-        fun toGetPosesResponse(result: PoseResult.GetPoses): GetPosesResponse = GetPosesResponse(
+        fun toGetPosesResponse(result: PoseResult.GetPoses): PoseResponse.GetPoses = PoseResponse.GetPoses(
             items = result.poses.map {
-                GetPosesResponse.PoseInfo(
+                PoseResponse.GetPoses.PoseInfo(
                     poseId = it.poseId,
                     headCount = it.headCount,
                     imageUrl = toImageUrl(it.storageKey),
@@ -75,7 +75,7 @@ object PoseConverter {
             hasNext = result.hasNext,
         )
 
-        fun toGetPoseResponse(result: PoseResult.GetPose): GetPoseResponse = GetPoseResponse(
+        fun toGetPoseResponse(result: PoseResult.GetPose): PoseResponse.GetPose = PoseResponse.GetPose(
             poseId = result.poseId,
             headCount = result.headCount,
             imageUrl = toImageUrl(result.storageKey),

@@ -15,21 +15,24 @@ import org.springframework.stereotype.Component
 object FolderConverter {
     @Component
     class RequestConverter {
-        fun toCreateFolderCommand(request: CreateFolderRequest, userId: Long): FolderCommand.CreateFolder =
+        fun toCreateFolderCommand(request: FolderRequest.CreateFolder, userId: Long): FolderCommand.CreateFolder =
             FolderCommand.CreateFolder(userId, request.name!!)
 
         fun toGetFoldersQuery(userId: Long, limit: Int?): FolderQuery.GetFolders = FolderQuery.GetFolders(userId, limit)
 
-        fun toDeleteFoldersCommand(request: DeleteFoldersRequest, userId: Long, deletePhotos: Boolean) =
+        fun toDeleteFoldersCommand(request: FolderRequest.DeleteFolders, userId: Long, deletePhotos: Boolean) =
             FolderCommand.DeleteFolders(userId, request.folderIds, deletePhotos)
 
-        fun toUpdateFolderCommand(request: UpdateFolderRequest, folderId: Long, userId: Long) =
+        fun toUpdateFolderCommand(request: FolderRequest.UpdateFolder, folderId: Long, userId: Long) =
             FolderCommand.UpdateFolder(userId, folderId, request.name!!)
 
-        fun toRemovePhotosFromFolderCommand(request: RemovePhotosFromFolderRequest, folderId: Long, userId: Long) =
-            FolderCommand.RemovePhotosFromFolder(userId, folderId, request.photoIds)
+        fun toRemovePhotosFromFolderCommand(
+            request: FolderRequest.RemovePhotosFromFolder,
+            folderId: Long,
+            userId: Long,
+        ) = FolderCommand.RemovePhotosFromFolder(userId, folderId, request.photoIds)
 
-        fun toMovePhotosToFolderCommand(request: MovePhotosToFolderRequest, userId: Long) =
+        fun toMovePhotosToFolderCommand(request: FolderRequest.MovePhotosToFolder, userId: Long) =
             FolderCommand.MovePhotosToFolder(
                 userId,
                 request.sourceFolderId!!,
@@ -37,7 +40,7 @@ object FolderConverter {
                 request.targetFolderIds,
             )
 
-        fun toCopyPhotosToFolderCommand(request: CopyPhotosToFolderRequest, userId: Long) =
+        fun toCopyPhotosToFolderCommand(request: FolderRequest.CopyPhotosToFolder, userId: Long) =
             FolderCommand.CopyPhotosToFolder(userId, request.photoIds, request.targetFolderIds)
     }
 
@@ -47,20 +50,21 @@ object FolderConverter {
             private const val IMAGE_URL_PATH = "/file/image/"
         }
 
-        fun toGetAllFoldersResponse(result: FolderResult.GetFolders): GetAllFolderResponse = GetAllFolderResponse(
-            items = result.items.map {
-                GetAllFolderResponse.FolderInfo(
-                    it.folderId,
-                    it.name,
-                    latestImageUrl = it.storageKey?.let { key -> toImageUrl(key) },
-                    totalCount = it.count,
-                )
-            },
+        fun toGetAllFoldersResponse(result: FolderResult.GetFolders): FolderResponse.GetAllFolder =
+            FolderResponse.GetAllFolder(
+                items = result.items.map {
+                    FolderResponse.GetAllFolder.FolderInfo(
+                        it.folderId,
+                        it.name,
+                        latestImageUrl = it.storageKey?.let { key -> toImageUrl(key) },
+                        totalCount = it.count,
+                    )
+                },
 
-        )
+            )
 
-        fun toCreateFolderResponse(result: FolderResult.CreateFolder): CreateFolderResponse =
-            CreateFolderResponse(result.folderId)
+        fun toCreateFolderResponse(result: FolderResult.CreateFolder): FolderResponse.CreateFolder =
+            FolderResponse.CreateFolder(result.folderId)
 
         private fun toImageUrl(objectKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$objectKey"
     }

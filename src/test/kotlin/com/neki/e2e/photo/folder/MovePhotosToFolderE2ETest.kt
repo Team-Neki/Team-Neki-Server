@@ -3,7 +3,7 @@ package com.neki.e2e.photo.folder
 import com.neki.common.code.ResultCode
 import com.neki.e2e.photo.image.PhotoImageE2ETestBase
 import com.neki.media.domain.entity.MediaStatus
-import com.neki.photo.api.dto.MovePhotosToFolderRequest
+import com.neki.photo.api.dto.FolderRequest
 import com.neki.photo.domain.entity.Folder
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -52,7 +52,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -91,7 +91,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -124,7 +124,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = folder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(folder.id!!),
@@ -151,7 +151,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = sourceFolder.id)
 
-        val request = MovePhotosToFolderRequest(
+        val request = FolderRequest.MovePhotosToFolder(
             sourceFolderId = sourceFolder.id,
             photoIds = listOf(photo.id!!),
             targetFolderIds = listOf(targetFolder.id!!),
@@ -197,7 +197,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = 99999L,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -223,7 +223,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(99999L),
@@ -251,7 +251,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = otherFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -279,7 +279,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(otherFolder.id!!),
@@ -304,7 +304,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = emptyList(),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -331,7 +331,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photoNotInSource.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -367,7 +367,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo1.id!!, photo2.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -405,7 +405,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(movingPhoto.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -441,7 +441,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
@@ -475,7 +475,7 @@ class MovePhotosToFolderE2ETest : PhotoImageE2ETestBase() {
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
             .body(
-                MovePhotosToFolderRequest(
+                FolderRequest.MovePhotosToFolder(
                     sourceFolderId = sourceFolder.id,
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),

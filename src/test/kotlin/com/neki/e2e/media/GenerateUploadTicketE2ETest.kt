@@ -1,7 +1,7 @@
 package com.neki.e2e.media
 
 import com.neki.common.code.ResultCode
-import com.neki.media.api.dto.UploadTicketRequest
+import com.neki.media.api.dto.MediaRequest
 import com.neki.media.domain.MediaType
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -47,29 +47,29 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     @DisplayName("5개의 upload ticket 발급 성공 - 모든 Media가 INITIATED 상태로 생성된다")
     fun givenFiveItems_whenGenerateUploadTicket_thenReturnsFiveTicketsAndMediaCreated() {
         // given
-        val request = UploadTicketRequest(
+        val request = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "photo2.png",
                     contentType = "image/png",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "photo3.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "photo4.png",
                     contentType = "image/png",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "photo5.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -103,9 +103,9 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     @DisplayName("최대 10개의 upload ticket 발급 성공")
     fun givenTenItems_whenGenerateUploadTicket_thenReturnsTenTickets() {
         // given
-        val request = UploadTicketRequest(
+        val request = MediaRequest.UploadTicket(
             items = (1..10).map {
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "photo$it.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -134,7 +134,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     @DisplayName("검증 실패 - 빈 리스트")
     fun givenEmptyItems_whenGenerateUploadTicket_thenReturnsBadRequest() {
         // given
-        val request = UploadTicketRequest(items = emptyList())
+        val request = MediaRequest.UploadTicket(items = emptyList())
 
         // when & then
         RestAssured.given()
@@ -151,9 +151,9 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     @DisplayName("검증 실패 - 11개 초과")
     fun givenElevenItems_whenGenerateUploadTicket_thenReturnsBadRequest() {
         // given
-        val request = UploadTicketRequest(
+        val request = MediaRequest.UploadTicket(
             items = (1..11).map {
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "photo$it.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -176,9 +176,9 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     @DisplayName("검증 실패 - filename이 빈 문자열")
     fun givenEmptyFilename_whenGenerateUploadTicket_thenReturnsBadRequest() {
         // given
-        val request = UploadTicketRequest(
+        val request = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -202,9 +202,9 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     @DisplayName("검증 실패 - contentType이 빈 문자열")
     fun givenEmptyContentType_whenGenerateUploadTicket_thenReturnsBadRequest() {
         // given
-        val request = UploadTicketRequest(
+        val request = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "test.jpg",
                     contentType = "",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -228,9 +228,9 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     @DisplayName("검증 실패 - mediaType이 null")
     fun givenNullMediaType_whenGenerateUploadTicket_thenReturnsBadRequest() {
         // given
-        val request = UploadTicketRequest(
+        val request = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "test.jpg",
                     contentType = "image/jpeg",
                     mediaType = null,
@@ -254,9 +254,9 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
     @DisplayName("토큰이 없는 사용자는 403 에러를 반환한다")
     fun givenNoAuth_whenGenerateUploadTicket_thenReturnsForbidden() {
         // given
-        val request = UploadTicketRequest(
+        val request = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.UploadTicketItem(
                     filename = "test.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,

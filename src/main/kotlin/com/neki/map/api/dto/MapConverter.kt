@@ -21,10 +21,13 @@ object MapConverter {
             const val GANGNAM_LATITUDE = 37.4979
         }
 
-        fun toCollectPhotoBoothCommand(request: CollectPhotoBoothRequest): MapCommand.CollectPhotoBooth =
+        fun toCollectPhotoBoothCommand(request: MapRequest.CollectPhotoBooth): MapCommand.CollectPhotoBooth =
             MapCommand.CollectPhotoBooth(keyword = request.keyword!!, brandCode = request.brandCode!!)
 
-        fun toGetPolygonLocationQuery(userId: Long, request: GetPolygonLocationRequest): MapQuery.GetPolygonLocation {
+        fun toGetPolygonLocationQuery(
+            userId: Long,
+            request: MapRequest.GetPolygonLocation,
+        ): MapQuery.GetPolygonLocation {
             val coordinates: List<Coordinate> = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
             return MapQuery.GetPolygonLocation(
                 userId = userId,
@@ -33,7 +36,7 @@ object MapConverter {
             )
         }
 
-        fun toGetPointLocationQuery(userId: Long, request: GetPointLocationRequest): MapQuery.GetPointLocation =
+        fun toGetPointLocationQuery(userId: Long, request: MapRequest.GetPointLocation): MapQuery.GetPointLocation =
             MapQuery.GetPointLocation(
                 userId = userId,
                 coordinate = Coordinate(request.longitude ?: GANGNAM_LONGITUDE, request.latitude ?: GANGNAM_LATITUDE),
@@ -41,7 +44,7 @@ object MapConverter {
                 brandIds = request.brandIds,
             )
 
-        fun toUpdateBrandOrderCommand(userId: Long, request: UpdateBrandOrderRequest): MapCommand.UpdateBrandOrder =
+        fun toUpdateBrandOrderCommand(userId: Long, request: MapRequest.UpdateBrandOrder): MapCommand.UpdateBrandOrder =
             MapCommand.UpdateBrandOrder(
                 userId = userId,
                 brandIds = request.brandIds,
@@ -54,8 +57,8 @@ object MapConverter {
             private const val IMAGE_URL_PATH = "/file/image/"
         }
 
-        fun toGetBrandResponse(result: List<MapResult.GetBrand>): List<GetBrandResponse> = result.map {
-            GetBrandResponse(
+        fun toGetBrandResponse(result: List<MapResult.GetBrand>): List<MapResponse.GetBrand> = result.map {
+            MapResponse.GetBrand(
                 id = it.id,
                 name = it.name,
                 code = it.code,
@@ -65,16 +68,16 @@ object MapConverter {
 
         private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
 
-        fun toCollectPhotoBoothResponse(result: MapResult.CollectPhotoBooth): CollectPhotoBoothResponse =
-            CollectPhotoBoothResponse(
+        fun toCollectPhotoBoothResponse(result: MapResult.CollectPhotoBooth): MapResponse.CollectPhotoBooth =
+            MapResponse.CollectPhotoBooth(
                 collectedCount = result.collectedCount,
                 duplicatedCount = result.duplicatedCount,
                 totalProcessed = result.totalProcessed,
             )
 
-        fun toGetPolygonLocationResponse(result: MapResult.GetPolygonLocation): GetPolygonLocationResponse {
-            val items: List<GetPolygonLocationResponse.PhotoBoothLocationInfo> = result.locations.map {
-                GetPolygonLocationResponse.PhotoBoothLocationInfo(
+        fun toGetPolygonLocationResponse(result: MapResult.GetPolygonLocation): MapResponse.GetPolygonLocation {
+            val items: List<MapResponse.GetPolygonLocation.PhotoBoothLocationInfo> = result.locations.map {
+                MapResponse.GetPolygonLocation.PhotoBoothLocationInfo(
                     id = it.id,
                     brandName = it.brandName,
                     branchName = it.branchName,
@@ -84,12 +87,12 @@ object MapConverter {
                     favorite = it.id in result.favoriteLocationIds,
                 )
             }
-            return GetPolygonLocationResponse(items = items)
+            return MapResponse.GetPolygonLocation(items = items)
         }
 
-        fun toGetFavoriteMapResponse(result: MapResult.GetFavoriteMap): GetFavoriteMapResponse {
-            val items: List<GetFavoriteMapResponse.PhotoBoothLocationInfo> = result.locations.map {
-                GetFavoriteMapResponse.PhotoBoothLocationInfo(
+        fun toGetFavoriteMapResponse(result: MapResult.GetFavoriteMap): MapResponse.GetFavoriteMap {
+            val items: List<MapResponse.GetFavoriteMap.PhotoBoothLocationInfo> = result.locations.map {
+                MapResponse.GetFavoriteMap.PhotoBoothLocationInfo(
                     id = it.id,
                     brandName = it.brandName,
                     branchName = it.branchName,
@@ -98,12 +101,12 @@ object MapConverter {
                     latitude = it.location.y,
                 )
             }
-            return GetFavoriteMapResponse(items = items)
+            return MapResponse.GetFavoriteMap(items = items)
         }
 
-        fun toGetPointLocationResponse(result: MapResult.GetPointLocation): GetPointLocationResponse {
-            val items: List<GetPointLocationResponse.PhotoBoothLocationWithDistanceInfo> = result.locations.map {
-                GetPointLocationResponse.PhotoBoothLocationWithDistanceInfo(
+        fun toGetPointLocationResponse(result: MapResult.GetPointLocation): MapResponse.GetPointLocation {
+            val items: List<MapResponse.GetPointLocation.PhotoBoothLocationWithDistanceInfo> = result.locations.map {
+                MapResponse.GetPointLocation.PhotoBoothLocationWithDistanceInfo(
                     id = it.id,
                     brandName = it.brandName,
                     branchName = it.branchName,
@@ -114,7 +117,7 @@ object MapConverter {
                     favorite = it.id in result.favoriteLocationIds,
                 )
             }
-            return GetPointLocationResponse(items = items)
+            return MapResponse.GetPointLocation(items = items)
         }
     }
 }

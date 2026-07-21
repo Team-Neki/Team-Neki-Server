@@ -15,7 +15,10 @@ import org.springframework.stereotype.Component
 object AuthConverter {
     @Component
     class RequestConverter {
-        fun toCreateAuthCommand(request: CreateAuthRequest, providerTypeStr: String): AuthCommand.RegisterOauthUser {
+        fun toCreateAuthCommand(
+            request: AuthRequest.CreateAuth,
+            providerTypeStr: String,
+        ): AuthCommand.RegisterOauthUser {
             val providerType: ProviderType = ProviderType.from(providerTypeStr)
             return AuthCommand.RegisterOauthUser(
                 idToken = request.idToken!!,
@@ -24,13 +27,13 @@ object AuthConverter {
             )
         }
 
-        fun toRefreshTokenCommand(request: RefreshTokenRequest): AuthCommand.RefreshToken =
+        fun toRefreshTokenCommand(request: AuthRequest.RefreshToken): AuthCommand.RefreshToken =
             AuthCommand.RefreshToken(request.refreshToken!!)
     }
 
     @Component
     class ResponseConverter {
-        fun toCreateAuthResponse(result: AuthResult.GetAuth): GetAuthResponse =
-            GetAuthResponse(accessToken = result.accessToken, result.refreshToken)
+        fun toCreateAuthResponse(result: AuthResult.GetAuth): AuthResponse.GetAuth =
+            AuthResponse.GetAuth(accessToken = result.accessToken, result.refreshToken)
     }
 }

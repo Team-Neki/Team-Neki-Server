@@ -1,7 +1,7 @@
 package com.neki.e2e.photo.folder
 
 import com.neki.common.code.ResultCode
-import com.neki.photo.api.dto.CreateFolderRequest
+import com.neki.photo.api.dto.FolderRequest
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -46,7 +46,7 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(CreateFolderRequest("즐겨찾기"))
+            .body(FolderRequest.CreateFolder("즐겨찾기"))
             .`when`()
             .post("/api/folders")
             .then()
@@ -60,7 +60,7 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
         val names = listOf("친구", "가족", "회사")
 
         names.forEach { folderName ->
-            val request = CreateFolderRequest(name = folderName)
+            val request = FolderRequest.CreateFolder(name = folderName)
 
             RestAssured.given()
                 .contentType(ContentType.JSON)
@@ -80,7 +80,7 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(CreateFolderRequest(name = ""))
+            .body(FolderRequest.CreateFolder(name = ""))
             .`when`()
             .post("/api/folders")
             .then()
@@ -116,7 +116,7 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(CreateFolderRequest(name))
+            .body(FolderRequest.CreateFolder(name))
             .`when`()
             .post("/api/folders")
             .then()
@@ -127,7 +127,7 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(CreateFolderRequest(name))
+            .body(FolderRequest.CreateFolder(name))
             .`when`()
             .post("/api/folders")
             .then()
@@ -141,7 +141,7 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(CreateFolderRequest(name = "일이삼사오육칠팔구십일")) // 11자
+            .body(FolderRequest.CreateFolder(name = "일이삼사오육칠팔구십일")) // 11자
             .`when`()
             .post("/api/folders")
             .then()

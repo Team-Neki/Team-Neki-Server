@@ -2,7 +2,7 @@ package com.neki.e2e.pose
 
 import com.neki.common.code.ResultCode
 import com.neki.media.domain.entity.MediaStatus
-import com.neki.pose.api.dto.UpdatePoseScarpRequest
+import com.neki.pose.api.dto.PoseRequest
 import com.neki.pose.domain.entity.ScrapPoseId
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -60,7 +60,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(true))
+                .body(PoseRequest.UpdatePoseScarp(true))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -85,7 +85,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(true))
+                .body(PoseRequest.UpdatePoseScarp(true))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -95,7 +95,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(true))
+                .body(PoseRequest.UpdatePoseScarp(true))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -125,7 +125,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(false))
+                .body(PoseRequest.UpdatePoseScarp(false))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -149,7 +149,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(true))
+                .body(PoseRequest.UpdatePoseScarp(true))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -160,7 +160,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(false))
+                .body(PoseRequest.UpdatePoseScarp(false))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -184,7 +184,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(true))
+                .body(PoseRequest.UpdatePoseScarp(true))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -195,7 +195,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(false))
+                .body(PoseRequest.UpdatePoseScarp(false))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -205,7 +205,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(false))
+                .body(PoseRequest.UpdatePoseScarp(false))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()
@@ -234,7 +234,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdatePoseScarpRequest(true))
+                .body(PoseRequest.UpdatePoseScarp(true))
                 .`when`()
                 .patch("/api/poses/$nonExistentPoseId/scrap")
                 .then()
@@ -252,7 +252,7 @@ class UpdatePoseScrapE2ETest : PoseE2ETestBase() {
             // when & then
             RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(UpdatePoseScarpRequest(true))
+                .body(PoseRequest.UpdatePoseScarp(true))
                 .`when`()
                 .patch("/api/poses/${pose.id}/scrap")
                 .then()

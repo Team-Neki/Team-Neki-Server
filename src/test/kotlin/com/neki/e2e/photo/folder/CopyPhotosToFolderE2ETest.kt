@@ -3,7 +3,7 @@ package com.neki.e2e.photo.folder
 import com.neki.common.code.ResultCode
 import com.neki.e2e.photo.image.PhotoImageE2ETestBase
 import com.neki.media.domain.entity.MediaStatus
-import com.neki.photo.api.dto.CopyPhotosToFolderRequest
+import com.neki.photo.api.dto.FolderRequest
 import com.neki.photo.domain.entity.Folder
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -55,7 +55,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -92,7 +92,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -122,7 +122,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(folder.id!!),
                 ),
@@ -148,7 +148,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
         val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!, folderId = sourceFolder.id)
 
-        val request = CopyPhotosToFolderRequest(
+        val request = FolderRequest.CopyPhotosToFolder(
             photoIds = listOf(photo.id!!),
             targetFolderIds = listOf(targetFolder.id!!),
         )
@@ -194,7 +194,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When & Then
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(99999L),
                 ),
@@ -219,7 +219,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When & Then
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(otherFolder.id!!),
                 ),
@@ -245,7 +245,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When & Then
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(otherUserPhoto.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -267,7 +267,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When & Then
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = emptyList(),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -295,7 +295,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photoNotInSource.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -328,7 +328,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When: photo1, photo2만 복제
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo1.id!!, photo2.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -363,7 +363,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(copyingPhoto.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -396,7 +396,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -427,7 +427,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -462,7 +462,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // photo1을 target에도 미리 추가 (partial overlap 상태)
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo1.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),
@@ -475,7 +475,7 @@ class CopyPhotosToFolderE2ETest : PhotoImageE2ETestBase() {
         // When: photo1 + photo2를 복제 (photo1은 이미 target에 존재)
         givenAuthenticated()
             .body(
-                CopyPhotosToFolderRequest(
+                FolderRequest.CopyPhotosToFolder(
                     photoIds = listOf(photo1.id!!, photo2.id!!),
                     targetFolderIds = listOf(targetFolder.id!!),
                 ),

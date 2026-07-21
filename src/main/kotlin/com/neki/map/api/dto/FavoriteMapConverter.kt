@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 object FavoriteMapConverter {
     @Component
     class RequestConverter {
-        fun toUpdateMapFavoriteCommand(userId: Long, locationId: Long, request: UpdateMapFavoriteRequest) =
+        fun toUpdateMapFavoriteCommand(userId: Long, locationId: Long, request: MapRequest.UpdateMapFavorite) =
             MapCommand.UpdateMapFavorite(
                 userId = userId,
                 locationId = locationId,

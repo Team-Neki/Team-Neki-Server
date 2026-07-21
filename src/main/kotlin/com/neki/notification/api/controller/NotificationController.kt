@@ -2,9 +2,9 @@ package com.neki.notification.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.notification.api.dto.GetRecentNotificationResponse
 import com.neki.notification.api.dto.NotificationConverter
-import com.neki.notification.api.dto.UpdateNotificationRequest
+import com.neki.notification.api.dto.NotificationRequest
+import com.neki.notification.api.dto.NotificationResponse
 import com.neki.notification.application.dto.NotificationCommand
 import com.neki.notification.application.dto.NotificationQuery
 import com.neki.notification.application.dto.NotificationResult
@@ -48,7 +48,7 @@ class NotificationController(
     @PatchMapping
     fun updateNotification(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: UpdateNotificationRequest,
+        @Valid @RequestBody request: NotificationRequest.UpdateNotification,
     ): BaseResponse<Any> {
         val command: NotificationCommand.UpdateNotification =
             requestConverter.toUpdateNotificationCommand(userId, request)
@@ -86,12 +86,13 @@ class NotificationController(
     @GetMapping("/recent")
     fun getRecentNotifications(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-    ): BaseResponse<List<GetRecentNotificationResponse>> {
+    ): BaseResponse<List<NotificationResponse.GetRecentNotification>> {
         val query = NotificationQuery.GetRecentNotifications(userId)
 
         val result: List<NotificationResult.GetRecentNotification> = getRecentNotificationsUseCase.execute(query)
 
-        val response: List<GetRecentNotificationResponse> = responseConverter.toGetRecentNotificationResponse(result)
+        val response: List<NotificationResponse.GetRecentNotification> =
+            responseConverter.toGetRecentNotificationResponse(result)
 
         return BaseResponse(data = response)
     }

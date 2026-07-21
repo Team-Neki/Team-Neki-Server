@@ -4,10 +4,9 @@ import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.domain.vo.SortOrder
 import com.neki.photo.api.dto.FavoritePhotoConverter
-import com.neki.photo.api.dto.GetFavoriteSummaryResponse
-import com.neki.photo.api.dto.GetPhotosResponse
 import com.neki.photo.api.dto.PhotoImageConverter
-import com.neki.photo.api.dto.UpdatePhotoFavoriteRequest
+import com.neki.photo.api.dto.PhotoImageRequest
+import com.neki.photo.api.dto.PhotoImageResponse
 import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.dto.PhotoImageResult
@@ -54,7 +53,7 @@ class FavoritePhotoController(
     fun favoritePhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable photoId: Long,
-        @Valid @RequestBody request: UpdatePhotoFavoriteRequest,
+        @Valid @RequestBody request: PhotoImageRequest.UpdatePhotoFavorite,
     ): BaseResponse<Any> {
         val command: PhotoImageCommand.UpdatePhotoFavorite =
             requestConverter.toUpdatePhotoFavoriteCommand(userId, photoId, request)
@@ -71,12 +70,12 @@ class FavoritePhotoController(
     @GetMapping("/favorite/summary")
     fun getFavoriteSummary(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-    ): BaseResponse<GetFavoriteSummaryResponse> {
+    ): BaseResponse<PhotoImageResponse.GetFavoriteSummary> {
         val query: PhotoImageQuery.GetFavoriteSummary = requestConverter.toGetFavoriteSummaryQuery(userId)
 
         val result: PhotoImageResult.GetFavoriteSummary = getFavoriteSummaryUseCase.execute(query)
 
-        val response: GetFavoriteSummaryResponse = responseConverter.toGetFavoriteSummaryResponse(result)
+        val response: PhotoImageResponse.GetFavoriteSummary = responseConverter.toGetFavoriteSummaryResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -91,13 +90,13 @@ class FavoritePhotoController(
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
-    ): BaseResponse<GetPhotosResponse> {
+    ): BaseResponse<PhotoImageResponse.GetPhotos> {
         val query: PhotoImageQuery.GetFavoritePhotos =
             requestConverter.toGetFavoritePhotosQuery(userId, page, size, sortOrder)
 
         val result: PhotoImageResult.GetPhotos = getFavoritePhotosUseCase.execute(query)
 
-        val response: GetPhotosResponse = responseConverter.toGetPhotosResponse(result)
+        val response: PhotoImageResponse.GetPhotos = responseConverter.toGetPhotosResponse(result)
 
         return BaseResponse(data = response)
     }

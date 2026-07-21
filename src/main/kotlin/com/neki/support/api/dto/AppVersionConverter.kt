@@ -22,7 +22,7 @@ object AppVersionConverter {
 
         fun toUpdateAppVersionCommand(
             platformStr: String,
-            request: UpdateAppVersionRequest,
+            request: AppVersionRequest.UpdateAppVersion,
         ): AppVersionCommand.UpdateAppVersion {
             val platformEnum: Platform = Platform.from(platformStr)
             return AppVersionCommand.UpdateAppVersion(
@@ -35,8 +35,8 @@ object AppVersionConverter {
 
     @Component
     class ResponseConverter {
-        fun toGetAppVersionResponse(result: AppVersionResult.GetAppVersion): GetAppVersionResponse =
-            GetAppVersionResponse(
+        fun toGetAppVersionResponse(result: AppVersionResult.GetAppVersion): AppVersionResponse.GetAppVersion =
+            AppVersionResponse.GetAppVersion(
                 platform = result.platform.name,
                 minVersion = result.minVersion,
                 currentVersion = result.currentVersion,

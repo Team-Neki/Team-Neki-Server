@@ -26,7 +26,7 @@ object FavoritePhotoConverter {
             sortOrder = sortOrder,
         )
 
-        fun toUpdatePhotoFavoriteCommand(userId: Long, photoId: Long, request: UpdatePhotoFavoriteRequest) =
+        fun toUpdatePhotoFavoriteCommand(userId: Long, photoId: Long, request: PhotoImageRequest.UpdatePhotoFavorite) =
             PhotoImageCommand.UpdatePhotoFavorite(
                 userId = userId,
                 photoId = photoId,

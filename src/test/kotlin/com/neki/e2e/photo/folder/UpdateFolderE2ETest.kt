@@ -3,9 +3,8 @@ package com.neki.e2e.photo.folder
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.code.ResultCode
 import com.neki.e2e.E2ETestBase
-import com.neki.photo.api.dto.CreateFolderRequest
-import com.neki.photo.api.dto.CreateFolderResponse
-import com.neki.photo.api.dto.UpdateFolderRequest
+import com.neki.photo.api.dto.FolderRequest
+import com.neki.photo.api.dto.FolderResponse
 import com.neki.photo.domain.entity.Folder
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
 import com.neki.user.domain.entity.User
@@ -68,7 +67,7 @@ class UpdateFolderE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateFolderRequest(name = "변경된 이름"))
+            .body(FolderRequest.UpdateFolder(name = "변경된 이름"))
             .`when`()
             .patch("/api/folders/${folder.id}")
             .then()
@@ -88,7 +87,7 @@ class UpdateFolderE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateFolderRequest(name = ""))
+            .body(FolderRequest.UpdateFolder(name = ""))
             .`when`()
             .patch("/api/folders/${folder.id}")
             .then()
@@ -132,7 +131,7 @@ class UpdateFolderE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateFolderRequest(name = "새 이름"))
+            .body(FolderRequest.UpdateFolder(name = "새 이름"))
             .`when`()
             .patch("/api/folders/$nonExistentFolderId")
             .then()
@@ -147,18 +146,18 @@ class UpdateFolderE2ETest : E2ETestBase() {
         val response = RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(CreateFolderRequest("폴더1"))
+            .body(FolderRequest.CreateFolder("폴더1"))
             .`when`()
             .post("/api/folders")
             .then()
             .statusCode(HttpStatus.OK.value())
             .extract()
-            .`as`(object : TypeRef<BaseResponse<CreateFolderResponse>>() {})
+            .`as`(object : TypeRef<BaseResponse<FolderResponse.CreateFolder>>() {})
 
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(CreateFolderRequest("폴더2"))
+            .body(FolderRequest.CreateFolder("폴더2"))
             .`when`()
             .post("/api/folders")
             .then()
@@ -170,7 +169,7 @@ class UpdateFolderE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateFolderRequest(name = "폴더2"))
+            .body(FolderRequest.UpdateFolder(name = "폴더2"))
             .`when`()
             .patch("/api/folders/${response.data?.folderId}")
             .then()
@@ -191,7 +190,7 @@ class UpdateFolderE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateFolderRequest(name = "새 이름"))
+            .body(FolderRequest.UpdateFolder(name = "새 이름"))
             .`when`()
             .patch("/api/folders/${otherUserFolder.id}")
             .then()
@@ -212,7 +211,7 @@ class UpdateFolderE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateFolderRequest(name = originalName))
+            .body(FolderRequest.UpdateFolder(name = originalName))
             .`when`()
             .patch("/api/folders/${folder.id}")
             .then()
@@ -230,7 +229,7 @@ class UpdateFolderE2ETest : E2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateFolderRequest(name = "일이삼사오육칠팔구십일")) // 11자
+            .body(FolderRequest.UpdateFolder(name = "일이삼사오육칠팔구십일")) // 11자
             .`when`()
             .patch("/api/folders/${folder.id}")
             .then()

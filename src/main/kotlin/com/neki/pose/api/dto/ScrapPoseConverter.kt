@@ -19,7 +19,7 @@ object ScrapPoseConverter {
         fun toUpdatePoseScrapCommand(
             userId: Long,
             poseId: Long,
-            request: UpdatePoseScarpRequest,
+            request: PoseRequest.UpdatePoseScarp,
         ): PoseCommand.UpdatePoseScrap =
             PoseCommand.UpdatePoseScrap(userId = userId, poseId = poseId, scrap = request.scrap!!)
 
@@ -33,9 +33,9 @@ object ScrapPoseConverter {
             private const val IMAGE_URL_PATH = "/file/image/"
         }
 
-        fun toGetPosesResponse(result: PoseResult.GetPoses): GetPosesResponse = GetPosesResponse(
+        fun toGetPosesResponse(result: PoseResult.GetPoses): PoseResponse.GetPoses = PoseResponse.GetPoses(
             items = result.poses.map {
-                GetPosesResponse.PoseInfo(
+                PoseResponse.GetPoses.PoseInfo(
                     poseId = it.poseId,
                     headCount = it.headCount,
                     imageUrl = toImageUrl(it.storageKey),

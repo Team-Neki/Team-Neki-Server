@@ -15,7 +15,7 @@ object NotificationConverter {
     class RequestConverter {
         fun toUpdateNotificationCommand(
             userId: Long,
-            request: UpdateNotificationRequest,
+            request: NotificationRequest.UpdateNotification,
         ): NotificationCommand.UpdateNotification = NotificationCommand.UpdateNotification(
             userId = userId,
             deviceToken = request.deviceToken,
@@ -27,8 +27,8 @@ object NotificationConverter {
     class ResponseConverter {
         fun toGetRecentNotificationResponse(
             result: List<NotificationResult.GetRecentNotification>,
-        ): List<GetRecentNotificationResponse> = result.map {
-            GetRecentNotificationResponse(
+        ): List<NotificationResponse.GetRecentNotification> = result.map {
+            NotificationResponse.GetRecentNotification(
                 id = it.id,
                 type = it.type,
                 title = it.title,

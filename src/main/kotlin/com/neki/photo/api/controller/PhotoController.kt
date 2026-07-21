@@ -3,12 +3,9 @@ package com.neki.photo.api.controller
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.api.dto.DeletePhotosRequest
-import com.neki.photo.api.dto.GetPhotoResponse
-import com.neki.photo.api.dto.GetPhotosResponse
 import com.neki.photo.api.dto.PhotoImageConverter
-import com.neki.photo.api.dto.UpdatePhotoRequest
-import com.neki.photo.api.dto.UploadPhotoRequest
+import com.neki.photo.api.dto.PhotoImageRequest
+import com.neki.photo.api.dto.PhotoImageResponse
 import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.dto.PhotoImageResult
@@ -66,7 +63,7 @@ class PhotoController(
     @PostMapping
     fun uploadPhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: UploadPhotoRequest,
+        @Valid @RequestBody request: PhotoImageRequest.UploadPhoto,
     ): BaseResponse<Any> {
         val command: PhotoImageCommand.UploadPhoto = requestConverter.toUploadPhotoCommand(userId, request)
 
@@ -86,7 +83,7 @@ class PhotoController(
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
-    ): BaseResponse<GetPhotosResponse> {
+    ): BaseResponse<PhotoImageResponse.GetPhotos> {
         val query: PhotoImageQuery.GetPhotos = requestConverter.toGetPhotosQuery(
             userId,
             folderId,
@@ -97,7 +94,7 @@ class PhotoController(
 
         val result: PhotoImageResult.GetPhotos = getPhotosUseCase.execute(query)
 
-        val response: GetPhotosResponse = responseConverter.toGetPhotosResponse(result)
+        val response: PhotoImageResponse.GetPhotos = responseConverter.toGetPhotosResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -110,12 +107,12 @@ class PhotoController(
     fun photoDetail(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable photoId: Long,
-    ): BaseResponse<GetPhotoResponse> {
+    ): BaseResponse<PhotoImageResponse.GetPhoto> {
         val query: PhotoImageQuery.GetPhoto = requestConverter.toGetPhotoQuery(userId, photoId)
 
         val result: PhotoImageResult.GetPhoto = getPhotoUseCase.execute(query)
 
-        val response: GetPhotoResponse = responseConverter.toGetPhotoResponse(result)
+        val response: PhotoImageResponse.GetPhoto = responseConverter.toGetPhotoResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -127,7 +124,7 @@ class PhotoController(
     @DeleteMapping
     fun deletePhotos(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: DeletePhotosRequest,
+        @Valid @RequestBody request: PhotoImageRequest.DeletePhotos,
     ): BaseResponse<Any> {
         val command: PhotoImageCommand.DeletePhotos = requestConverter.toDeletePhotosCommand(userId, request)
 
@@ -144,7 +141,7 @@ class PhotoController(
     fun putPhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable photoId: Long,
-        @Valid @RequestBody request: UpdatePhotoRequest,
+        @Valid @RequestBody request: PhotoImageRequest.UpdatePhoto,
     ): BaseResponse<Any> {
         val command: PhotoImageCommand.PutPhoto = requestConverter.toPutPhotoCommand(userId, photoId, request)
 
@@ -167,7 +164,7 @@ class PhotoController(
     fun updatePhoto(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable photoId: Long,
-        @Valid @RequestBody request: UpdatePhotoRequest,
+        @Valid @RequestBody request: PhotoImageRequest.UpdatePhoto,
     ): BaseResponse<Any> {
         val command: PhotoImageCommand.UpdatePhoto = requestConverter.toUpdatePhotoCommand(userId, photoId, request)
 

@@ -2,8 +2,8 @@ package com.neki.support.api.controller
 
 import com.neki.common.api.dto.BaseResponse
 import com.neki.support.api.dto.AppVersionConverter
-import com.neki.support.api.dto.GetAppVersionResponse
-import com.neki.support.api.dto.UpdateAppVersionRequest
+import com.neki.support.api.dto.AppVersionRequest
+import com.neki.support.api.dto.AppVersionResponse
 import com.neki.support.application.dto.AppVersionCommand
 import com.neki.support.application.dto.AppVersionQuery
 import com.neki.support.application.dto.AppVersionResult
@@ -40,12 +40,12 @@ class VersionController(
         description = "플랫폼별 최소 버전 및 현재 버전을 조회합니다. (android, ios)",
     )
     @GetMapping("/{platform}")
-    fun getAppVersion(@PathVariable platform: String): BaseResponse<GetAppVersionResponse> {
+    fun getAppVersion(@PathVariable platform: String): BaseResponse<AppVersionResponse.GetAppVersion> {
         val query: AppVersionQuery.GetAppVersion = requestConverter.toGetAppVersionQuery(platform)
 
         val result: AppVersionResult.GetAppVersion = getAppVersionUseCase.execute(query)
 
-        val response: GetAppVersionResponse = responseConverter.toGetAppVersionResponse(result)
+        val response: AppVersionResponse.GetAppVersion = responseConverter.toGetAppVersionResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -57,7 +57,7 @@ class VersionController(
     @PatchMapping("/{platform}")
     fun updateAppVersion(
         @PathVariable platform: String,
-        @Valid @RequestBody request: UpdateAppVersionRequest,
+        @Valid @RequestBody request: AppVersionRequest.UpdateAppVersion,
     ): BaseResponse<Any> {
         val command: AppVersionCommand.UpdateAppVersion = requestConverter.toUpdateAppVersionCommand(platform, request)
 
