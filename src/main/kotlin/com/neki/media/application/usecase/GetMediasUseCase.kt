@@ -25,7 +25,7 @@ class GetMediasUseCase(
     fun execute(query: MediaQuery.GetMedias): MediaResult.GetMedias {
         val medias: List<Media> = mediaRepository.getActiveMedias(query.ownerId, query.mediaIds)
 
-        val mediaInfos: List<MediaResult.GetMedias.MediaInfo> = medias.map { it ->
+        val mediaInfos: List<MediaResult.GetMedias.Item> = medias.map { it ->
             val storageKey = it.storageKey
 
             val binaryData = if (it.mediaType.isCacheable) {
@@ -37,7 +37,7 @@ class GetMediasUseCase(
                 mediaStorage.fetchBinaryByKey(storageKey)
             }
 
-            MediaResult.GetMedias.MediaInfo(
+            MediaResult.GetMedias.Item(
                 mediaId = it.id!!,
                 binaryData = binaryData,
                 contentType = it.contentType,

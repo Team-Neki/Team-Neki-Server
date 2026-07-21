@@ -23,8 +23,8 @@ class GetFoldersUseCase(private val folderRepository: FolderRepositoryPort) {
             query.limit,
         )
 
-        val items: List<FolderResult.GetFolders.FolderInfo> = foldersWithStats.map { folder ->
-            FolderResult.GetFolders.FolderInfo(
+        val items: List<FolderResult.GetFolders.Item> = foldersWithStats.map { folder ->
+            FolderResult.GetFolders.Item(
                 folderId = folder.folderId,
                 name = folder.name,
                 storageKey = folder.coverImageStorageKey,

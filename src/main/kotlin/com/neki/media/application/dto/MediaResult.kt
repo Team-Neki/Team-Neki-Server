@@ -19,18 +19,18 @@ object MediaResult {
     /**
      * 미디어 업로드 티켓 생성 결과
      */
-    data class GenerateUploadTicket(val method: String, val expiresAt: Instant, val tickets: List<UploadTicketInfo>) {
-        data class UploadTicketInfo(val mediaId: Long, val uploadUrl: String, val contentType: String)
+    data class GenerateUploadTicket(val method: String, val expiresAt: Instant, val tickets: List<Item>) {
+        data class Item(val mediaId: Long, val uploadUrl: String, val contentType: String)
     }
 
     /**
      * 미디어 조회
      */
-    data class GetMedias(val medias: List<MediaInfo>) {
-        data class MediaInfo(val mediaId: Long, val binaryData: ByteArray, val contentType: String) {
+    data class GetMedias(val medias: List<Item>) {
+        data class Item(val mediaId: Long, val binaryData: ByteArray, val contentType: String) {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
-                if (other !is MediaInfo) return false
+                if (other !is Item) return false
                 return mediaId == other.mediaId
             }
 
@@ -56,8 +56,8 @@ object MediaResult {
         val height: Int? = null,
     )
 
-    data class GetMediaStorageInfos(val storageInfos: List<StorageInfo>) {
-        data class StorageInfo(
+    data class GetMediaStorageInfos(val storageInfos: List<Item>) {
+        data class Item(
             val mediaId: Long,
             val storageKey: String,
             val contentType: String,

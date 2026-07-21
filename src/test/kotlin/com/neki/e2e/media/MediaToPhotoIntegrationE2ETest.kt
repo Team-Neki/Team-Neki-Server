@@ -53,17 +53,17 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         // Step 1: POST /api/media → mediaIds와 uploadTickets 받기
         val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo2.png",
                     contentType = "image/png",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo3.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -93,7 +93,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = null,
             uploads = mediaIds.map {
-                PhotoImageRequest.UploadPhoto.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
@@ -132,12 +132,12 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         // Step 1: POST /api/media → mediaIds 받기
         val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo2.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -162,7 +162,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = folder.id,
             uploads = mediaIds.map {
-                PhotoImageRequest.UploadPhoto.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = "테스트 메모",
@@ -205,12 +205,12 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         // Step 1: 서로 다른 mediaType으로 ticket 발급
         val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "attachment1.png",
                     contentType = "image/png",
                     mediaType = MediaType.ATTACHMENT,
@@ -235,7 +235,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = null,
             uploads = mediaIds.map {
-                PhotoImageRequest.UploadPhoto.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
@@ -271,7 +271,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         // ticket 발급
         val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -296,7 +296,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = otherUsersFolder.id,
             uploads = mediaIds.map {
-                PhotoImageRequest.UploadPhoto.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
@@ -323,7 +323,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         // given
         val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -348,7 +348,7 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = 999999L,
             uploads = mediaIds.map {
-                PhotoImageRequest.UploadPhoto.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,

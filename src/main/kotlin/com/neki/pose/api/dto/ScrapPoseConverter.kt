@@ -35,7 +35,7 @@ object ScrapPoseConverter {
 
         fun toGetPosesResponse(result: PoseResult.GetPoses): PoseResponse.GetPoses = PoseResponse.GetPoses(
             items = result.poses.map {
-                PoseResponse.GetPoses.PoseInfo(
+                PoseResponse.GetPoses.Item(
                     poseId = it.poseId,
                     headCount = it.headCount,
                     imageUrl = toImageUrl(it.storageKey),

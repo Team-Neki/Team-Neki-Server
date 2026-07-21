@@ -50,7 +50,7 @@ class UploadPhotosUseCaseTest {
         )
     }
 
-    private fun makeUploadItem(mediaId: Long, memo: String? = null) = PhotoImageCommand.UploadPhoto.UploadItem(
+    private fun makeUploadItem(mediaId: Long, memo: String? = null) = PhotoImageCommand.UploadPhoto.Item(
         mediaId = mediaId,
         uploadMethod = UploadMethod.DIRECT_UPLOAD,
         memo = memo,

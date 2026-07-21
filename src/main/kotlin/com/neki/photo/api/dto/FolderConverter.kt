@@ -53,7 +53,7 @@ object FolderConverter {
         fun toGetAllFoldersResponse(result: FolderResult.GetFolders): FolderResponse.GetAllFolder =
             FolderResponse.GetAllFolder(
                 items = result.items.map {
-                    FolderResponse.GetAllFolder.FolderInfo(
+                    FolderResponse.GetAllFolder.Item(
                         it.folderId,
                         it.name,
                         latestImageUrl = it.storageKey?.let { key -> toImageUrl(key) },

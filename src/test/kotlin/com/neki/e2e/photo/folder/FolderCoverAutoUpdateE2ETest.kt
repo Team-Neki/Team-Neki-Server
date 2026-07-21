@@ -54,7 +54,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
     private fun createMediaIds(count: Int): List<Long> {
         val ticketRequest = MediaRequest.UploadTicket(
             items = (1..count).map {
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo$it.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -80,7 +80,7 @@ class FolderCoverAutoUpdateE2ETest : PhotoImageE2ETestBase() {
         val uploadRequest = PhotoImageRequest.UploadPhoto(
             folderId = folderId,
             uploads = mediaIds.map {
-                PhotoImageRequest.UploadPhoto.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,

@@ -20,8 +20,8 @@ class GetMediaStorageInfosUseCase(private val mediaRepository: MediaRepositoryPo
             mediaRepository.getActiveMedias(it, query.mediaIds)
         } ?: mediaRepository.getActiveMedias(query.mediaIds)
 
-        val storageInfos: List<MediaResult.GetMediaStorageInfos.StorageInfo> = medias.map {
-            MediaResult.GetMediaStorageInfos.StorageInfo(
+        val storageInfos: List<MediaResult.GetMediaStorageInfos.Item> = medias.map {
+            MediaResult.GetMediaStorageInfos.Item(
                 mediaId = it.id!!,
                 storageKey = it.storageKey,
                 contentType = it.contentType,

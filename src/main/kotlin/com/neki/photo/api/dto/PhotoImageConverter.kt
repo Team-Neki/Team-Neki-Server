@@ -20,7 +20,7 @@ object PhotoImageConverter {
             userId = userId,
             folderId = request.folderId,
             uploads = request.uploads.map { item ->
-                PhotoImageCommand.UploadPhoto.UploadItem(
+                PhotoImageCommand.UploadPhoto.Item(
                     mediaId = item.mediaId!!,
                     uploadMethod = item.uploadMethod,
                     memo = item.memo,
@@ -82,7 +82,7 @@ object PhotoImageConverter {
             PhotoImageResponse.GetPhotos(
                 totalCount = result.totalCount,
                 items = result.photos.map {
-                    PhotoImageResponse.GetPhotos.PhotoInfo(
+                    PhotoImageResponse.GetPhotos.Item(
                         photoId = it.photoId,
                         imageUrl = toImageUrl(it.storageKey),
                         favorite = it.favorite,

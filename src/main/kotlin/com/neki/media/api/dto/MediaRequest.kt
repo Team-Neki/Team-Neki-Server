@@ -20,9 +20,10 @@ object MediaRequest {
         @field:Valid
         @field:NotEmpty(message = "업로드 항목이 비어있습니다.")
         @field:Size(min = 1, max = 10, message = "한 번에 1개에서 10개까지 업로드할 수 있습니다.")
-        val items: List<UploadTicketItem>,
+        val items: List<Item>,
     ) {
-        data class UploadTicketItem(
+        @Schema(name = "UploadTicketItem")
+        data class Item(
             @field:Schema(description = "파일명", example = "abc.png")
             @field:NotBlank(message = "파일명은 필수 입력값입니다.")
             val filename: String?,

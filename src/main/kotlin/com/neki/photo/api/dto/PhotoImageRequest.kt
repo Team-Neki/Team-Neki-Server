@@ -24,12 +24,13 @@ object PhotoImageRequest {
         @field:NotEmpty(message = "uploads가 비어있습니다.")
         @field:Valid
         @field:Size(max = 10, message = "한 번에 최대 10장까지 업로드할 수 있습니다.")
-        val uploads: List<UploadPhotoItem>,
+        val uploads: List<Item>,
 
         @field:Schema(description = "업로드 사진 즐겨찾기 등록 여부", example = "true")
         val favorite: Boolean? = null,
     ) {
-        data class UploadPhotoItem(
+        @Schema(name = "UploadPhotoItem")
+        data class Item(
             @field:NotNull(message = "mediaId는 필수 입력값입니다.")
             val mediaId: Long?,
 

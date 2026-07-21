@@ -15,11 +15,12 @@ object PhotoImageResponse {
         @field:Schema(description = "전체 개수")
         val totalCount: Long,
         @field:Schema(description = "사진 목록")
-        val items: List<PhotoInfo>,
+        val items: List<Item>,
         @field:Schema(description = "다음 페이지 존재 여부", example = "true")
         val hasNext: Boolean,
     ) {
-        data class PhotoInfo(
+        @Schema(name = "PhotoInfo")
+        data class Item(
             @field:Schema(description = "사진 ID", example = "1")
             val photoId: Long,
             @field:Schema(description = "사진 URL", example = "https://dev-yapp.suitestudy.com:4641/file/image/...")

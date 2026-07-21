@@ -60,7 +60,7 @@ class GetFavoritePhotosUseCase(
         val mediaByFileId: Map<Long, MediaContract.StorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result: List<PhotoImageResult.GetPhotos.PhotoInfo> = photosToReturn.mapNotNull {
+        val result: List<PhotoImageResult.GetPhotos.Item> = photosToReturn.mapNotNull {
             val media = mediaByFileId[it.mediaId]
                 ?: run {
                     log.info(
@@ -72,7 +72,7 @@ class GetFavoritePhotosUseCase(
                     return@mapNotNull null
                 }
 
-            PhotoImageResult.GetPhotos.PhotoInfo(
+            PhotoImageResult.GetPhotos.Item(
                 photoId = it.id!!,
                 storageKey = media.storageKey,
                 favorite = true,

@@ -61,7 +61,7 @@ class GenerateUploadTicketUseCase(
                 expiresAt = uploadTicket.expiresAt
             }
 
-            MediaResult.GenerateUploadTicket.UploadTicketInfo(
+            MediaResult.GenerateUploadTicket.Item(
                 mediaId = savedMedia.id!!,
                 uploadUrl = uploadTicket.url,
                 contentType = item.contentType,

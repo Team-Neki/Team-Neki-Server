@@ -11,8 +11,8 @@ import com.neki.media.domain.MediaType
 object MediaCommand {
     data class ConfirmMediasUploaded(val ownerId: Long, val mediaIds: List<Long>)
 
-    data class GenerateUploadTicket(val ownerId: Long, val items: List<UploadTicketItem>) {
-        data class UploadTicketItem(
+    data class GenerateUploadTicket(val ownerId: Long, val items: List<Item>) {
+        data class Item(
             val filename: String,
             val contentType: String,
             val mediaType: MediaType,

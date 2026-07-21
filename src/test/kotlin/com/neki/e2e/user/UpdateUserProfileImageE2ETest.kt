@@ -129,7 +129,7 @@ class UpdateUserProfileImageE2ETest : MediaE2ETestBase() {
     private fun createUploadedMedia(): Long {
         val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "profile-${System.currentTimeMillis()}.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.USER_PROFILE,

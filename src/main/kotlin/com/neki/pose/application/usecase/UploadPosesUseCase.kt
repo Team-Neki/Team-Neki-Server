@@ -54,7 +54,7 @@ class UploadPosesUseCase(
         }
     }
 
-    private fun validateNoDuplicateMediaIds(uploads: List<PoseCommand.UploadPoses.UploadItem>) {
+    private fun validateNoDuplicateMediaIds(uploads: List<PoseCommand.UploadPoses.Item>) {
         val mediaIds: List<Long> = uploads.map { it.mediaId }
         val duplicates: Set<Long> = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
 

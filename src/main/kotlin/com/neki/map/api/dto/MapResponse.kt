@@ -39,9 +39,10 @@ object MapResponse {
     @Schema(name = "GetPolygonLocationResponse")
     data class GetPolygonLocation(
         @field:Schema(description = "포토부스 위치 목록")
-        val items: List<PhotoBoothLocationInfo>,
+        val items: List<Item>,
     ) {
-        data class PhotoBoothLocationInfo(
+        @Schema(name = "PhotoBoothLocationInfo")
+        data class Item(
             @field:Schema(description = "포토부스 ID", example = "1")
             val id: Long,
 
@@ -68,9 +69,10 @@ object MapResponse {
     @Schema(name = "GetFavoriteMapResponse")
     data class GetFavoriteMap(
         @field:Schema(description = "즐겨찾기한 포토부스 위치 목록 (즐겨찾기한 순서)")
-        val items: List<PhotoBoothLocationInfo>,
+        val items: List<Item>,
     ) {
-        data class PhotoBoothLocationInfo(
+        @Schema(name = "PhotoBoothLocationInfo")
+        data class Item(
             @field:Schema(description = "포토부스 ID", example = "1")
             val id: Long,
 
@@ -94,9 +96,10 @@ object MapResponse {
     @Schema(name = "GetPointLocationResponse")
     data class GetPointLocation(
         @field:Schema(description = "포토부스 위치 목록 (거리순 정렬)")
-        val items: List<PhotoBoothLocationWithDistanceInfo>,
+        val items: List<Item>,
     ) {
-        data class PhotoBoothLocationWithDistanceInfo(
+        @Schema(name = "PhotoBoothLocationWithDistanceInfo")
+        data class Item(
             @field:Schema(description = "포토부스 ID", example = "1")
             val id: Long,
 

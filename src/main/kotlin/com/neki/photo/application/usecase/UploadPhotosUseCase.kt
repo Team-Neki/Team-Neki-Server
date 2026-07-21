@@ -34,7 +34,7 @@ class UploadPhotosUseCase(
         validateNoDuplicateMediaIds(command.uploads)
         validateFolderOwnership(command.userId, command.folderId)
 
-        val newUploads: List<PhotoImageCommand.UploadPhoto.UploadItem> = filterNewUploads(command.uploads)
+        val newUploads: List<PhotoImageCommand.UploadPhoto.Item> = filterNewUploads(command.uploads)
         if (newUploads.isEmpty()) return
 
         val newMediaIds: List<Long> = newUploads.map { it.mediaId }
@@ -77,14 +77,14 @@ class UploadPhotosUseCase(
     }
 
     private fun filterNewUploads(
-        uploads: List<PhotoImageCommand.UploadPhoto.UploadItem>,
-    ): List<PhotoImageCommand.UploadPhoto.UploadItem> {
+        uploads: List<PhotoImageCommand.UploadPhoto.Item>,
+    ): List<PhotoImageCommand.UploadPhoto.Item> {
         val mediaIds: List<Long> = uploads.map { it.mediaId }
         val existingMediaIds: Set<Long> = photoImageRepository.getRegisteredMediaIds(mediaIds)
         return uploads.filter { it.mediaId !in existingMediaIds }
     }
 
-    private fun validateNoDuplicateMediaIds(uploads: List<PhotoImageCommand.UploadPhoto.UploadItem>) {
+    private fun validateNoDuplicateMediaIds(uploads: List<PhotoImageCommand.UploadPhoto.Item>) {
         val mediaIds: List<Long> = uploads.map { it.mediaId }
         val duplicates: Set<Long> = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
 

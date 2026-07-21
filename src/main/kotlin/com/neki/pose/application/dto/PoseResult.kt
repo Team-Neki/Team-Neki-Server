@@ -10,8 +10,8 @@ import java.time.LocalDateTime
  * description    : Pose domain result
  */
 object PoseResult {
-    data class GetPoses(val poses: List<PoseInfo>, val hasNext: Boolean) {
-        data class PoseInfo(
+    data class GetPoses(val poses: List<Item>, val hasNext: Boolean) {
+        data class Item(
             val poseId: Long,
             val headCount: HeadCount,
             val storageKey: String,

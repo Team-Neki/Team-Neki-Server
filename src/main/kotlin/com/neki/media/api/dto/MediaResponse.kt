@@ -17,9 +17,10 @@ object MediaResponse {
         @field:Schema(description = "만료일자", example = "2025-12-23T07:09:00")
         val expiresIn: Instant,
         @field:Schema(description = "목록")
-        val items: List<UploadTicketInfo>,
+        val items: List<Item>,
     ) {
-        data class UploadTicketInfo(
+        @Schema(name = "UploadTicketInfo")
+        data class Item(
             @field:Schema(description = "Media ID", example = "1")
             val mediaId: Long,
             @field:Schema(

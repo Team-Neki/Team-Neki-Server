@@ -19,7 +19,7 @@ object MediaConverter {
         ): MediaCommand.GenerateUploadTicket = MediaCommand.GenerateUploadTicket(
             ownerId = ownerId,
             items = request.items.map { item ->
-                MediaCommand.GenerateUploadTicket.UploadTicketItem(
+                MediaCommand.GenerateUploadTicket.Item(
                     filename = item.filename!!,
                     contentType = item.contentType!!,
                     mediaType = item.mediaType!!,
@@ -38,7 +38,7 @@ object MediaConverter {
                 method = result.method,
                 expiresIn = result.expiresAt,
                 items = result.tickets.map { ticket ->
-                    MediaResponse.UploadTicket.UploadTicketInfo(
+                    MediaResponse.UploadTicket.Item(
                         mediaId = ticket.mediaId,
                         uploadTicket = ticket.uploadUrl,
                         contentType = ticket.contentType,

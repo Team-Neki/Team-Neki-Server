@@ -9,7 +9,7 @@ package com.neki.photo.application.dto
 object FolderResult {
     data class CreateFolder(val folderId: Long)
 
-    data class GetFolders(val items: List<FolderInfo>) {
-        data class FolderInfo(val folderId: Long, val name: String, val storageKey: String?, val count: Long)
+    data class GetFolders(val items: List<Item>) {
+        data class Item(val folderId: Long, val name: String, val storageKey: String?, val count: Long)
     }
 }

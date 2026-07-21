@@ -20,7 +20,7 @@ object PoseConverter {
         fun toUploadPosesCommand(userId: Long, request: PoseRequest.UploadPose) = PoseCommand.UploadPoses(
             userId = userId,
             uploads = request.uploads.map { item ->
-                PoseCommand.UploadPoses.UploadItem(
+                PoseCommand.UploadPoses.Item(
                     mediaId = item.mediaId!!,
                     headCount = item.headCount,
                     memo = item.memo,
@@ -61,7 +61,7 @@ object PoseConverter {
 
         fun toGetPosesResponse(result: PoseResult.GetPoses): PoseResponse.GetPoses = PoseResponse.GetPoses(
             items = result.poses.map {
-                PoseResponse.GetPoses.PoseInfo(
+                PoseResponse.GetPoses.Item(
                     poseId = it.poseId,
                     headCount = it.headCount,
                     imageUrl = toImageUrl(it.storageKey),

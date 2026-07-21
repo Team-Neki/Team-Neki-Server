@@ -12,8 +12,9 @@ import jakarta.validation.constraints.NotNull
  */
 object PoseRequest {
     @Schema(name = "UploadPoseRequest")
-    data class UploadPose(val uploads: List<UploadPoseItem>) {
-        data class UploadPoseItem(
+    data class UploadPose(val uploads: List<Item>) {
+        @Schema(name = "UploadPoseItem")
+        data class Item(
             @field:NotNull(message = "mediaId는 필수 입력값입니다.")
             val mediaId: Long?,
 

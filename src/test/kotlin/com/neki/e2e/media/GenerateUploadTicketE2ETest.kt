@@ -49,27 +49,27 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         // given
         val request = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo2.png",
                     contentType = "image/png",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo3.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo4.png",
                     contentType = "image/png",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo5.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -105,7 +105,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         // given
         val request = MediaRequest.UploadTicket(
             items = (1..10).map {
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo$it.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -153,7 +153,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         // given
         val request = MediaRequest.UploadTicket(
             items = (1..11).map {
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo$it.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -178,7 +178,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         // given
         val request = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -204,7 +204,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         // given
         val request = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "test.jpg",
                     contentType = "",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -230,7 +230,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         // given
         val request = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "test.jpg",
                     contentType = "image/jpeg",
                     mediaType = null,
@@ -256,7 +256,7 @@ class GenerateUploadTicketE2ETest : MediaE2ETestBase() {
         // given
         val request = MediaRequest.UploadTicket(
             items = listOf(
-                MediaRequest.UploadTicket.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "test.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,

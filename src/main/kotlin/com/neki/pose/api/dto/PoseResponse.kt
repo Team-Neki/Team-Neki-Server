@@ -14,11 +14,12 @@ object PoseResponse {
     @Schema(name = "GetPosesResponse")
     data class GetPoses(
         @field:Schema(description = "포즈 목록")
-        val items: List<PoseInfo>,
+        val items: List<Item>,
         @field:Schema(description = "다음 페이지 존재 여부", example = "true")
         val hasNext: Boolean,
     ) {
-        data class PoseInfo(
+        @Schema(name = "PoseInfo")
+        data class Item(
             @field:Schema(description = "포즈 ID", example = "1")
             val poseId: Long,
             @field:Schema(description = "인원 수", example = "ONE")

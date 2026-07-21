@@ -56,7 +56,7 @@ class GetScrapPosesUseCase(
         val mediaByFileId: Map<Long, MediaContract.StorageInfo> = mediaStorageInfos.associateBy { it.mediaId }
 
         // 아직 저장되지 않은 이미지가 있다면 일부만 먼저 반환, eventually consistent
-        val result: List<PoseResult.GetPoses.PoseInfo> = posesToReturn.mapNotNull { pose ->
+        val result: List<PoseResult.GetPoses.Item> = posesToReturn.mapNotNull { pose ->
             val media: MediaContract.StorageInfo = mediaByFileId[pose.mediaId]
                 ?: run {
                     log.info(
@@ -67,7 +67,7 @@ class GetScrapPosesUseCase(
                     return@mapNotNull null
                 }
 
-            PoseResult.GetPoses.PoseInfo(
+            PoseResult.GetPoses.Item(
                 poseId = pose.id!!,
                 headCount = pose.headCount,
                 storageKey = media.storageKey,

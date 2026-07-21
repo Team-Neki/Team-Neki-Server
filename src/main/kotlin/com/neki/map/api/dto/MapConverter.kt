@@ -76,8 +76,8 @@ object MapConverter {
             )
 
         fun toGetPolygonLocationResponse(result: MapResult.GetPolygonLocation): MapResponse.GetPolygonLocation {
-            val items: List<MapResponse.GetPolygonLocation.PhotoBoothLocationInfo> = result.locations.map {
-                MapResponse.GetPolygonLocation.PhotoBoothLocationInfo(
+            val items: List<MapResponse.GetPolygonLocation.Item> = result.locations.map {
+                MapResponse.GetPolygonLocation.Item(
                     id = it.id,
                     brandName = it.brandName,
                     branchName = it.branchName,
@@ -91,8 +91,8 @@ object MapConverter {
         }
 
         fun toGetFavoriteMapResponse(result: MapResult.GetFavoriteMap): MapResponse.GetFavoriteMap {
-            val items: List<MapResponse.GetFavoriteMap.PhotoBoothLocationInfo> = result.locations.map {
-                MapResponse.GetFavoriteMap.PhotoBoothLocationInfo(
+            val items: List<MapResponse.GetFavoriteMap.Item> = result.locations.map {
+                MapResponse.GetFavoriteMap.Item(
                     id = it.id,
                     brandName = it.brandName,
                     branchName = it.branchName,
@@ -105,8 +105,8 @@ object MapConverter {
         }
 
         fun toGetPointLocationResponse(result: MapResult.GetPointLocation): MapResponse.GetPointLocation {
-            val items: List<MapResponse.GetPointLocation.PhotoBoothLocationWithDistanceInfo> = result.locations.map {
-                MapResponse.GetPointLocation.PhotoBoothLocationWithDistanceInfo(
+            val items: List<MapResponse.GetPointLocation.Item> = result.locations.map {
+                MapResponse.GetPointLocation.Item(
                     id = it.id,
                     brandName = it.brandName,
                     branchName = it.branchName,

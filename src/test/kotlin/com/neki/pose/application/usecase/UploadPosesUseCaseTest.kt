@@ -34,16 +34,11 @@ class UploadPosesUseCaseTest {
         useCase = UploadPosesUseCase(mediaClient, transactionRunner, poseRepository)
     }
 
-    private fun makeUploadItem(
-        mediaId: Long,
-        headCount: HeadCount = HeadCount.TWO,
-    ): PoseCommand.UploadPoses.UploadItem =
-        PoseCommand.UploadPoses.UploadItem(mediaId = mediaId, headCount = headCount, memo = null)
+    private fun makeUploadItem(mediaId: Long, headCount: HeadCount = HeadCount.TWO): PoseCommand.UploadPoses.Item =
+        PoseCommand.UploadPoses.Item(mediaId = mediaId, headCount = headCount, memo = null)
 
-    private fun makeCommand(
-        userId: Long = 1L,
-        uploads: List<PoseCommand.UploadPoses.UploadItem>,
-    ): PoseCommand.UploadPoses = PoseCommand.UploadPoses(userId = userId, uploads = uploads)
+    private fun makeCommand(userId: Long = 1L, uploads: List<PoseCommand.UploadPoses.Item>): PoseCommand.UploadPoses =
+        PoseCommand.UploadPoses(userId = userId, uploads = uploads)
 
     @Test
     @DisplayName("정상 업로드 - 미디어 검증 → pose 저장")

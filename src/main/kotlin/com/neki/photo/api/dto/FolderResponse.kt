@@ -18,9 +18,10 @@ object FolderResponse {
     @Schema(name = "GetAllFolderResponse")
     data class GetAllFolder(
         @field:Schema(description = "폴더 목록")
-        val items: List<FolderInfo>,
+        val items: List<Item>,
     ) {
-        data class FolderInfo(
+        @Schema(name = "FolderInfo")
+        data class Item(
             @field:Schema(description = "폴더 ID", example = "1")
             val folderId: Long,
             @field:Schema(description = "폴더명", example = "즐겨찾기")

@@ -49,12 +49,12 @@ class GenerateUploadTicketUseCaseTest {
         // Given
         val ownerId = 1L
         val items = listOf(
-            MediaCommand.GenerateUploadTicket.UploadTicketItem(
+            MediaCommand.GenerateUploadTicket.Item(
                 filename = "photo1.jpg",
                 contentType = "image/jpeg",
                 mediaType = MediaType.POSE,
             ),
-            MediaCommand.GenerateUploadTicket.UploadTicketItem(
+            MediaCommand.GenerateUploadTicket.Item(
                 filename = "photo2.jpg",
                 contentType = "image/jpeg",
                 mediaType = MediaType.POSE,
@@ -102,12 +102,12 @@ class GenerateUploadTicketUseCaseTest {
         // Given
         val ownerId = 1L
         val items = listOf(
-            MediaCommand.GenerateUploadTicket.UploadTicketItem(
+            MediaCommand.GenerateUploadTicket.Item(
                 filename = "photo1.jpg",
                 contentType = "image/jpeg",
                 mediaType = MediaType.POSE,
             ),
-            MediaCommand.GenerateUploadTicket.UploadTicketItem(
+            MediaCommand.GenerateUploadTicket.Item(
                 filename = "photo2.png",
                 contentType = "image/png",
                 mediaType = MediaType.POSE,

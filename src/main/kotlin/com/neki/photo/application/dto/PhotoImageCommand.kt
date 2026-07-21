@@ -10,13 +10,8 @@ import java.time.LocalDateTime
  * description    : Photo image domain command
  */
 object PhotoImageCommand {
-    data class UploadPhoto(
-        val userId: Long,
-        val folderId: Long?,
-        val uploads: List<UploadItem>,
-        val favorite: Boolean,
-    ) {
-        data class UploadItem(
+    data class UploadPhoto(val userId: Long, val folderId: Long?, val uploads: List<Item>, val favorite: Boolean) {
+        data class Item(
             val mediaId: Long,
             val uploadMethod: UploadMethod?,
             val memo: String?,

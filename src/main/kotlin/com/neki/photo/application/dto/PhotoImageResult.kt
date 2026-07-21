@@ -10,9 +10,9 @@ import java.time.LocalDateTime
  * description    : photo image application 결과
  */
 object PhotoImageResult {
-    data class GetPhotos(val photos: List<PhotoInfo>, val hasNext: Boolean, val totalCount: Long) {
+    data class GetPhotos(val photos: List<Item>, val hasNext: Boolean, val totalCount: Long) {
 
-        data class PhotoInfo(
+        data class Item(
             val photoId: Long,
             val storageKey: String,
             val favorite: Boolean,
