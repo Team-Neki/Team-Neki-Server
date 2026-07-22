@@ -49,7 +49,7 @@ oauth:
     jwksUri: https://kauth.kakao.com/.well-known/jwks.json
     issuer: https://kauth.kakao.com
   apple:
-    clientId: ENC(HyKZc+YrsgDpfGXRTjPumTSB3frVyZCrBEMn1IyaHOjisXPDs6F0SdsOVs3vg1aYnarKbRvFyrVxbKN+mqgaMA==)
+    clientId: ENC(B3hzusAVdAuJRfiXb+zyzIi54iZpBgpg8fNbcUPy7XgzS+s2PpzK1K1AwvlceQ4+flEknbZYp+vapwAia6f+4w==)
     jwksUri: https://appleid.apple.com/auth/keys
     issuer: https://appleid.apple.com
 
