@@ -71,4 +71,8 @@ class User(
         this.email = null
         this.oid = null
     }
+
+    fun migrateOid(newOid: String) {
+        this.oid = newOid
+    }
 }

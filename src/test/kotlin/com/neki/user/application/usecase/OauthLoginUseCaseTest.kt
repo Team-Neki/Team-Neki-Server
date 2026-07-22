@@ -5,11 +5,13 @@ import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aUser
 import com.neki.user.application.command.RegisterOauthUserCommand
 import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.application.port.AppleUserTransferRepositoryPort
 import com.neki.user.application.port.AuthTokenProviderPort
 import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
+import com.neki.user.domain.entity.AppleUserTransfer
 import com.neki.user.domain.entity.User
 import com.neki.user.domain.enums.Platform
 import com.neki.user.domain.enums.ProviderType
@@ -32,6 +34,7 @@ class OauthLoginUseCaseTest {
     lateinit var restClient: RestClient
     lateinit var tokenProviderPort: AuthTokenProviderPort
     lateinit var userRepositoryPort: UserRepositoryPort
+    lateinit var appleUserTransferRepositoryPort: AppleUserTransferRepositoryPort
     lateinit var nicknameGenerator: NicknameGeneratorPort
     lateinit var userEventPublisher: UserEventPublisherPort
     lateinit var transactionRunner: FakeTransactionRunner
@@ -44,6 +47,7 @@ class OauthLoginUseCaseTest {
         restClient = mockk()
         tokenProviderPort = mockk()
         userRepositoryPort = mockk()
+        appleUserTransferRepositoryPort = mockk()
         nicknameGenerator = mockk()
         userEventPublisher = mockk()
         transactionRunner = FakeTransactionRunner()
@@ -54,6 +58,7 @@ class OauthLoginUseCaseTest {
             restClient = restClient,
             tokenProviderPort = tokenProviderPort,
             userRepositoryPort = userRepositoryPort,
+            appleUserTransferRepositoryPort = appleUserTransferRepositoryPort,
             nicknameGenerator = nicknameGenerator,
             userEventPublisher = userEventPublisher,
             transactionRunner = transactionRunner,
@@ -166,6 +171,113 @@ class OauthLoginUseCaseTest {
         // Then
         result.accessToken shouldBe "new-access-token"
         result.refreshToken shouldBe "new-refresh-token"
+        verify(exactly = 1) { nicknameGenerator.generateUniqueNickname() }
+        verify(exactly = 1) { userRepositoryPort.save(any()) }
+    }
+
+    @Test
+    @DisplayName("Apple 로그인 방어 - new sub 미존재 + 매핑 new_sub 존재 시 기존 유저 oid 갱신 후 로그인")
+    fun `Apple new_sub 매핑으로 기존 유저를 찾아 oid 를 갱신한다`() {
+        // Given
+        val idToken = "apple-id-token"
+        val newSub = "apple-new-B-sub"
+        val existingUser = aUser(
+            id = 10L,
+            name = "기존애플유저",
+            roles = RoleType.USER.role,
+            providerType = ProviderType.APPLE,
+            oid = "apple-old-A-sub",
+        )
+        val payload = OauthInfoPayload(
+            providerType = ProviderType.APPLE,
+            oid = newSub,
+            email = "a@privaterelay.appleid.com",
+            name = "a",
+            imageUrl = null,
+        )
+        val command = RegisterOauthUserCommand(idToken, ProviderType.APPLE, Platform.IOS)
+        val mapping = AppleUserTransfer(
+            userId = 10L,
+            oldSub = "apple-old-A-sub",
+            transferSub = "apple-transfer-sub",
+            newSub = newSub,
+        )
+
+        every { oidcTokenValidatorPort.validateIdToken(idToken, ProviderType.APPLE, Platform.IOS) } returns payload
+        every { userRepositoryPort.findByOid(oid = newSub, provider = ProviderType.APPLE) } returns null
+        every { appleUserTransferRepositoryPort.findByNewSub(newSub) } returns mapping
+        every { userRepositoryPort.findById(10L) } returns existingUser
+        every { userRepositoryPort.save(existingUser) } returns existingUser
+        every {
+            tokenProviderPort.createAccessToken(
+                id = "10",
+                roles = listOf(RoleType.USER.role),
+                name = "기존애플유저",
+                providerType = ProviderType.APPLE,
+            )
+        } returns "at"
+        every {
+            tokenProviderPort.createRefreshToken(
+                id = "10",
+                roles = listOf(RoleType.USER.role),
+                name = "기존애플유저",
+                providerType = ProviderType.APPLE,
+            )
+        } returns "rt"
+
+        // When
+        val result = useCase.execute(command)
+
+        // Then
+        result.accessToken shouldBe "at"
+        existingUser.oid shouldBe newSub
+        verify(exactly = 1) { userRepositoryPort.save(existingUser) }
+        verify(exactly = 0) { nicknameGenerator.generateUniqueNickname() }
+    }
+
+    @Test
+    @DisplayName("Apple 로그인 - new sub/매핑 모두 미매칭 시 신규 가입")
+    fun `Apple new_sub 매핑이 없으면 신규 가입한다`() {
+        // Given
+        val idToken = "apple-id-token"
+        val payload = OauthInfoPayload(
+            providerType = ProviderType.APPLE,
+            oid = "apple-brand-new",
+            email = "new@privaterelay.appleid.com",
+            name = "new",
+            imageUrl = null,
+        )
+        val command = RegisterOauthUserCommand(idToken, ProviderType.APPLE, Platform.IOS)
+        val savedUser = aUser(id = 20L, name = "랜덤", roles = RoleType.USER.role, providerType = ProviderType.APPLE)
+
+        every { oidcTokenValidatorPort.validateIdToken(idToken, ProviderType.APPLE, Platform.IOS) } returns payload
+        every { userRepositoryPort.findByOid(oid = "apple-brand-new", provider = ProviderType.APPLE) } returns null
+        every { appleUserTransferRepositoryPort.findByNewSub("apple-brand-new") } returns null
+        every { nicknameGenerator.generateUniqueNickname() } returns "랜덤"
+        every { userRepositoryPort.save(any<User>()) } returns savedUser
+        every { userRepositoryPort.countByOidIsNotNull() } returns 1L
+        every { userEventPublisher.publish(any()) } returns Unit
+        every {
+            tokenProviderPort.createAccessToken(
+                id = "20",
+                roles = listOf(RoleType.USER.role),
+                name = "랜덤",
+                providerType = ProviderType.APPLE,
+            )
+        } returns "at"
+        every {
+            tokenProviderPort.createRefreshToken(
+                id = "20",
+                roles = listOf(RoleType.USER.role),
+                name = "랜덤",
+                providerType = ProviderType.APPLE,
+            )
+        } returns "rt"
+
+        // When
+        useCase.execute(command)
+
+        // Then
         verify(exactly = 1) { nicknameGenerator.generateUniqueNickname() }
         verify(exactly = 1) { userRepositoryPort.save(any()) }
     }

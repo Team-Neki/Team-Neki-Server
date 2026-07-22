@@ -8,6 +8,7 @@ import com.neki.common.transaction.TransactionRunner
 import com.neki.user.application.command.RegisterOauthUserCommand
 import com.neki.user.application.contract.KakaoTokenPayload
 import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.application.port.AppleUserTransferRepositoryPort
 import com.neki.user.application.port.AuthTokenProviderPort
 import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
@@ -15,6 +16,7 @@ import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.application.result.GetAuthResult
 import com.neki.user.domain.entity.User
+import com.neki.user.domain.enums.ProviderType
 import com.neki.user.domain.enums.RoleType
 import com.neki.user.event.UserRegisteredEvent
 import com.neki.user.infra.security.config.OauthProperties
@@ -37,6 +39,7 @@ class OauthLoginUseCase(
     private val restClient: RestClient,
     private val tokenProviderPort: AuthTokenProviderPort,
     private val userRepositoryPort: UserRepositoryPort,
+    private val appleUserTransferRepositoryPort: AppleUserTransferRepositoryPort,
     private val nicknameGenerator: NicknameGeneratorPort,
     private val userEventPublisher: UserEventPublisherPort,
 
@@ -97,27 +100,60 @@ class OauthLoginUseCase(
     }
 
     private fun registerOauthUserIfEmpty(oauthInfoPayload: OauthInfoPayload): Pair<User, Boolean> {
-        val existingUser: User? = userRepositoryPort.findByOid(
+        // 1. oid(신규 sub 포함)로 조회 — 이미 이전됐거나 순수 신규 sub
+        val userByOid: User? = userRepositoryPort.findByOid(
             oid = oauthInfoPayload.oid,
             provider = oauthInfoPayload.providerType,
         )
-
-        return if (existingUser != null) {
-            Pair(existingUser, false)
-        } else {
-            val nickname: String = nicknameGenerator.generateUniqueNickname()
-            val newUser: User = userRepositoryPort.save(
-                User(
-                    email = oauthInfoPayload.email,
-                    oid = oauthInfoPayload.oid,
-                    name = nickname,
-                    roles = RoleType.USER.role,
-                    providerType = oauthInfoPayload.providerType,
-                    profileImageId = null,
-                ),
-            )
-            Pair(newUser, true)
+        if (userByOid != null) {
+            return Pair(userByOid, false)
         }
+
+        // 2. Apple App Transfer 방어: 매핑 테이블의 new_sub 에 있으면 기존 사용자로 인식하고 oid 갱신
+        val migratedUser: User? = findExistingByAppleNewSub(oauthInfoPayload)
+        if (migratedUser != null) {
+            return Pair(migratedUser, false)
+        }
+
+        // 3. 진짜 신규 사용자
+        val nickname: String = nicknameGenerator.generateUniqueNickname()
+        val newUser: User = userRepositoryPort.save(
+            User(
+                email = oauthInfoPayload.email,
+                oid = oauthInfoPayload.oid,
+                name = nickname,
+                roles = RoleType.USER.role,
+                providerType = oauthInfoPayload.providerType,
+                profileImageId = null,
+            ),
+        )
+        return Pair(newUser, true)
+    }
+
+    /**
+     * Apple App Transfer 방어 로직.
+     *
+     * 운영자가 사전 적재한 매핑 테이블(TB_APPLE_USER_TRANSFER)을 이용한다.
+     * 로그인 토큰의 sub(=신규 B sub)가 매핑의 new_sub 에 있으면 기존 사용자로 간주하고,
+     * 해당 사용자의 oid 를 신규 sub 로 갱신한다(멱등). 매핑에 없으면 진짜 신규 사용자이므로 null.
+     */
+    private fun findExistingByAppleNewSub(oauthInfoPayload: OauthInfoPayload): User? {
+        if (oauthInfoPayload.providerType != ProviderType.APPLE) {
+            return null
+        }
+
+        val mapping = appleUserTransferRepositoryPort.findByNewSub(oauthInfoPayload.oid) ?: return null
+        val user: User = userRepositoryPort.findById(mapping.userId) ?: return null
+
+        user.migrateOid(oauthInfoPayload.oid)
+        val savedUser: User = userRepositoryPort.save(user)
+        log.info(
+            "Apple new_sub 매칭으로 기존 사용자 oid 갱신 (userId={}, oldSub={}, newSub={})",
+            savedUser.id,
+            mapping.oldSub,
+            oauthInfoPayload.oid,
+        )
+        return savedUser
     }
 
     /**
