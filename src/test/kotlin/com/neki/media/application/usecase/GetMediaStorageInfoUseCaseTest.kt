@@ -2,7 +2,7 @@ package com.neki.media.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.media.application.command.GetMediaStorageInfoCommand
+import com.neki.media.application.dto.MediaQuery
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.testfixture.aMedia
 import io.kotest.assertions.throwables.shouldThrow
@@ -40,8 +40,8 @@ class GetMediaStorageInfoUseCaseTest {
         every { mediaRepository.getActiveMedia(ownerId, mediaId) } returns media
 
         // When
-        val command = GetMediaStorageInfoCommand(ownerId = ownerId, mediaId = mediaId)
-        val result = useCase.execute(command)
+        val query = MediaQuery.GetMediaStorageInfo(ownerId = ownerId, mediaId = mediaId)
+        val result = useCase.execute(query)
 
         // Then
         result.mediaId shouldBe mediaId
@@ -60,8 +60,8 @@ class GetMediaStorageInfoUseCaseTest {
         every { mediaRepository.getActiveMedia(mediaId) } returns media
 
         // When
-        val command = GetMediaStorageInfoCommand(ownerId = null, mediaId = mediaId)
-        val result = useCase.execute(command)
+        val query = MediaQuery.GetMediaStorageInfo(ownerId = null, mediaId = mediaId)
+        val result = useCase.execute(query)
 
         // Then
         result.mediaId shouldBe mediaId
@@ -79,9 +79,9 @@ class GetMediaStorageInfoUseCaseTest {
         every { mediaRepository.getActiveMedia(mediaId) } returns null
 
         // When & Then
-        val command = GetMediaStorageInfoCommand(ownerId = null, mediaId = mediaId)
+        val query = MediaQuery.GetMediaStorageInfo(ownerId = null, mediaId = mediaId)
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(command)
+            useCase.execute(query)
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND
     }

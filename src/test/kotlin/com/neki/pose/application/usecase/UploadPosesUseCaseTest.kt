@@ -2,10 +2,10 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.command.UploadPosesCommand
-import com.neki.pose.application.contract.MediaAvailability
+import com.neki.pose.application.dto.PoseCommand
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
 import com.neki.pose.domain.HeadCount
 import com.neki.testfixture.FakeTransactionRunner
 import io.kotest.assertions.throwables.shouldThrow
@@ -34,11 +34,11 @@ class UploadPosesUseCaseTest {
         useCase = UploadPosesUseCase(mediaClient, transactionRunner, poseRepository)
     }
 
-    private fun makeUploadItem(mediaId: Long, headCount: HeadCount = HeadCount.TWO): UploadPosesCommand.UploadItem =
-        UploadPosesCommand.UploadItem(mediaId = mediaId, headCount = headCount, memo = null)
+    private fun makeUploadItem(mediaId: Long, headCount: HeadCount = HeadCount.TWO): PoseCommand.UploadPoses.Item =
+        PoseCommand.UploadPoses.Item(mediaId = mediaId, headCount = headCount, memo = null)
 
-    private fun makeCommand(userId: Long = 1L, uploads: List<UploadPosesCommand.UploadItem>): UploadPosesCommand =
-        UploadPosesCommand(userId = userId, uploads = uploads)
+    private fun makeCommand(userId: Long = 1L, uploads: List<PoseCommand.UploadPoses.Item>): PoseCommand.UploadPoses =
+        PoseCommand.UploadPoses(userId = userId, uploads = uploads)
 
     @Test
     @DisplayName("정상 업로드 - 미디어 검증 → pose 저장")
@@ -49,7 +49,7 @@ class UploadPosesUseCaseTest {
 
         every {
             mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L, 102L))
-        } returns mapOf(101L to MediaAvailability.AVAILABLE, 102L to MediaAvailability.AVAILABLE)
+        } returns mapOf(101L to MediaContract.Availability.AVAILABLE, 102L to MediaContract.Availability.AVAILABLE)
 
         every { poseRepository.saveAll(any()) } answers { firstArg() }
 
@@ -86,9 +86,9 @@ class UploadPosesUseCaseTest {
         every {
             mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L, 102L, 103L))
         } returns mapOf(
-            101L to MediaAvailability.AVAILABLE,
-            102L to MediaAvailability.UNAVAILABLE,
-            103L to MediaAvailability.AVAILABLE,
+            101L to MediaContract.Availability.AVAILABLE,
+            102L to MediaContract.Availability.UNAVAILABLE,
+            103L to MediaContract.Availability.AVAILABLE,
         )
         every { mediaClient.rollbackMediasUploaded(1L, any()) } just Runs
 
@@ -111,7 +111,7 @@ class UploadPosesUseCaseTest {
 
         every {
             mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L, 102L))
-        } returns mapOf(101L to MediaAvailability.AVAILABLE, 102L to MediaAvailability.AVAILABLE)
+        } returns mapOf(101L to MediaContract.Availability.AVAILABLE, 102L to MediaContract.Availability.AVAILABLE)
 
         every { poseRepository.saveAll(any()) } throws RuntimeException("DB 저장 실패")
         every { mediaClient.rollbackMediasUploaded(1L, listOf(101L, 102L)) } just Runs
@@ -134,7 +134,7 @@ class UploadPosesUseCaseTest {
 
         every {
             mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L))
-        } returns mapOf(101L to MediaAvailability.AVAILABLE)
+        } returns mapOf(101L to MediaContract.Availability.AVAILABLE)
 
         every { poseRepository.saveAll(any()) } throws originalException
         every { mediaClient.rollbackMediasUploaded(1L, listOf(101L)) } throws rollbackException

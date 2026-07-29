@@ -3,7 +3,7 @@ package com.neki.photo.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.PutPhotoCommand
+import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.PhotoImageRepositoryPort
 import com.neki.photo.domain.entity.PhotoImage
 import org.springframework.transaction.annotation.Transactional
@@ -22,7 +22,7 @@ class PutPhotoUseCase(private val photoImageRepository: PhotoImageRepositoryPort
      * 스펙 변경에 따라 동시성 고려가 필요할 수 있습니다. (e.g. 여러 기기 로그인..)
      */
     @Transactional
-    fun execute(command: PutPhotoCommand) {
+    fun execute(command: PhotoImageCommand.PutPhoto) {
         val photo: PhotoImage = (
             photoImageRepository.getOwnedPhoto(command.userId, command.photoId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND)

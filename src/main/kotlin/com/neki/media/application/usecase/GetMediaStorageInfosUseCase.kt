@@ -1,9 +1,9 @@
 package com.neki.media.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.media.application.command.GetMediaStorageInfosCommand
+import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.application.result.GetMediaStorageInfosResult
 import com.neki.media.domain.entity.Media
 
 /**
@@ -15,13 +15,13 @@ import com.neki.media.domain.entity.Media
 @UseCase
 class GetMediaStorageInfosUseCase(private val mediaRepository: MediaRepositoryPort) {
 
-    fun execute(command: GetMediaStorageInfosCommand): GetMediaStorageInfosResult {
-        val medias: List<Media> = command.ownerId?.let {
-            mediaRepository.getActiveMedias(it, command.mediaIds)
-        } ?: mediaRepository.getActiveMedias(command.mediaIds)
+    fun execute(query: MediaQuery.GetMediaStorageInfos): MediaResult.GetMediaStorageInfos {
+        val medias: List<Media> = query.ownerId?.let {
+            mediaRepository.getActiveMedias(it, query.mediaIds)
+        } ?: mediaRepository.getActiveMedias(query.mediaIds)
 
-        val storageInfos: List<GetMediaStorageInfosResult.StorageInfo> = medias.map {
-            GetMediaStorageInfosResult.StorageInfo(
+        val storageInfos: List<MediaResult.GetMediaStorageInfos.Item> = medias.map {
+            MediaResult.GetMediaStorageInfos.Item(
                 mediaId = it.id!!,
                 storageKey = it.storageKey,
                 contentType = it.contentType,
@@ -30,6 +30,6 @@ class GetMediaStorageInfosUseCase(private val mediaRepository: MediaRepositoryPo
             )
         }
 
-        return GetMediaStorageInfosResult(storageInfos)
+        return MediaResult.GetMediaStorageInfos(storageInfos)
     }
 }

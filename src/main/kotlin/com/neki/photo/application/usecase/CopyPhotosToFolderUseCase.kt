@@ -3,7 +3,7 @@ package com.neki.photo.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.CopyPhotosToFolderCommand
+import com.neki.photo.application.dto.FolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
@@ -19,7 +19,7 @@ class CopyPhotosToFolderUseCase(
 ) {
 
     @Transactional
-    fun execute(command: CopyPhotosToFolderCommand) {
+    fun execute(command: FolderCommand.CopyPhotosToFolder) {
         // target 폴더 소유권 확인
         val ownedFolders: List<Folder> = folderRepository.getOwnedFolders(command.userId, command.targetFolderIds)
 

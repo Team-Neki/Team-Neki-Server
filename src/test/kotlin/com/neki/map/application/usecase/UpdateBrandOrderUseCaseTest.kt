@@ -2,7 +2,7 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.command.UpdateBrandOrderCommand
+import com.neki.map.application.dto.MapCommand
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.UserBrandOrderRepositoryPort
 import com.neki.map.domain.entity.UserBrandOrder
@@ -44,7 +44,7 @@ class UpdateBrandOrderUseCaseTest :
                 aBrand(id = 3L, name = "포토이즘", code = "photoism"),
             )
             val requestedBrandIds = listOf(3L, 1L, 2L)
-            val command = UpdateBrandOrderCommand(userId = userId, brandIds = requestedBrandIds)
+            val command = MapCommand.UpdateBrandOrder(userId = userId, brandIds = requestedBrandIds)
 
             every { brandRepository.findAll() } returns brands
 
@@ -74,7 +74,7 @@ class UpdateBrandOrderUseCaseTest :
                 aBrand(id = 2L, name = "하루필름", code = "harufilm"),
             )
             // 999L 은 findAll 결과에 존재하지 않음
-            val command = UpdateBrandOrderCommand(userId = userId, brandIds = listOf(1L, 999L))
+            val command = MapCommand.UpdateBrandOrder(userId = userId, brandIds = listOf(1L, 999L))
 
             every { brandRepository.findAll() } returns brands
 
@@ -95,7 +95,7 @@ class UpdateBrandOrderUseCaseTest :
             val brands = listOf(
                 aBrand(id = 1L, name = "인생네컷", code = "lifefour"),
             )
-            val command = UpdateBrandOrderCommand(userId = userId, brandIds = emptyList())
+            val command = MapCommand.UpdateBrandOrder(userId = userId, brandIds = emptyList())
 
             every { brandRepository.findAll() } returns brands
 

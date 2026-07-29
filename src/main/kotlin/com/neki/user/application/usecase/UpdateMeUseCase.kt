@@ -3,7 +3,7 @@ package com.neki.user.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.application.command.UpdateUserInfoCommand
+import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.port.UserRepositoryPort
 import com.neki.user.domain.entity.User
 import org.springframework.transaction.annotation.Transactional
@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 class UpdateMeUseCase(private val userRepository: UserRepositoryPort) {
 
     @Transactional
-    fun execute(command: UpdateUserInfoCommand) {
+    fun execute(command: UserCommand.UpdateUserInfo) {
         val user: User = (
             userRepository.findById(command.userId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND_USER)

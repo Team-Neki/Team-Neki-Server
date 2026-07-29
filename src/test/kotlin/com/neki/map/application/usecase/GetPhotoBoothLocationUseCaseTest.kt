@@ -1,11 +1,9 @@
 package com.neki.map.application.usecase
 
-import com.neki.map.application.command.GetPointLocationCommand
-import com.neki.map.application.command.GetPolygonLocationCommand
-import com.neki.map.application.contract.PhotoBoothLocationDto
-import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.application.dto.MapQuery
 import com.neki.map.application.port.FavoriteMapRepositoryPort
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
+import com.neki.map.application.port.dto.MapContract
 import com.neki.testfixture.FakeTransactionRunner
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -54,19 +52,19 @@ class GetPhotoBoothLocationUseCaseTest :
                 Coordinate(127.0, 37.5),
                 Coordinate(127.0, 37.0),
             )
-            val command = GetPolygonLocationCommand(userId = userId, coordinates = coordinates, brandIds = null)
+            val query = MapQuery.GetPolygonLocation(userId = userId, coordinates = coordinates, brandIds = null)
 
             val point1 = geometryFactory.createPoint(Coordinate(127.02, 37.49))
             val point2 = geometryFactory.createPoint(Coordinate(127.03, 37.50))
             val locationDtos = listOf(
-                PhotoBoothLocationDto(
+                MapContract.PhotoBoothLocation(
                     id = 1L,
                     brandName = "인생네컷",
                     branchName = "강남점",
                     address = "서울 강남구",
                     location = point1,
                 ),
-                PhotoBoothLocationDto(
+                MapContract.PhotoBoothLocation(
                     id = 2L,
                     brandName = "하루필름",
                     branchName = "홍대점",
@@ -85,7 +83,7 @@ class GetPhotoBoothLocationUseCaseTest :
             every { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L, 2L)) } returns setOf(1L)
 
             // When
-            val result = useCase.execute(command)
+            val result = useCase.execute(query)
 
             // Then
             result.locations shouldHaveSize 2
@@ -111,8 +109,8 @@ class GetPhotoBoothLocationUseCaseTest :
                 Coordinate(126.0, 36.5),
                 Coordinate(126.0, 36.0),
             )
-            val command =
-                GetPolygonLocationCommand(userId = userId, coordinates = coordinates, brandIds = listOf(1L, 2L))
+            val query =
+                MapQuery.GetPolygonLocation(userId = userId, coordinates = coordinates, brandIds = listOf(1L, 2L))
 
             every {
                 photoBoothLocationRepository.listPolygonLocations(
@@ -122,7 +120,7 @@ class GetPhotoBoothLocationUseCaseTest :
             } returns emptyList()
 
             // When
-            val result = useCase.execute(command)
+            val result = useCase.execute(query)
 
             // Then
             result.locations.shouldBeEmpty()
@@ -135,7 +133,7 @@ class GetPhotoBoothLocationUseCaseTest :
         test("Point 검색 - 결과가 있으면 거리 정보와 즐겨찾기 여부를 반환한다") {
             // Given
             val coordinate = Coordinate(127.0276, 37.4979)
-            val command = GetPointLocationCommand(
+            val query = MapQuery.GetPointLocation(
                 userId = userId,
                 coordinate = coordinate,
                 radiusInMeters = 1000,
@@ -144,7 +142,7 @@ class GetPhotoBoothLocationUseCaseTest :
 
             val point = geometryFactory.createPoint(Coordinate(127.0280, 37.4985))
             val locationDtos = listOf(
-                PhotoBoothLocationWithDistanceDto(
+                MapContract.PhotoBoothLocationWithDistance(
                     id = 1L,
                     brandName = "인생네컷",
                     branchName = "강남점",
@@ -164,7 +162,7 @@ class GetPhotoBoothLocationUseCaseTest :
             every { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L)) } returns setOf(1L)
 
             // When
-            val result = useCase.execute(command)
+            val result = useCase.execute(query)
 
             // Then
             result.locations shouldHaveSize 1
@@ -185,7 +183,7 @@ class GetPhotoBoothLocationUseCaseTest :
         test("Point 검색 - 결과가 없으면 빈 리스트를 반환하고 즐겨찾기를 조회하지 않는다") {
             // Given
             val coordinate = Coordinate(126.0, 33.0)
-            val command = GetPointLocationCommand(
+            val query = MapQuery.GetPointLocation(
                 userId = userId,
                 coordinate = coordinate,
                 radiusInMeters = 500,
@@ -201,7 +199,7 @@ class GetPhotoBoothLocationUseCaseTest :
             } returns emptyList()
 
             // When
-            val result = useCase.execute(command)
+            val result = useCase.execute(query)
 
             // Then
             result.locations.shouldBeEmpty()

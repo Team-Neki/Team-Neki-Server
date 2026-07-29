@@ -2,24 +2,12 @@ package com.neki.map.api.controller
 
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
-import com.neki.map.api.converter.MapCommandConverter
-import com.neki.map.api.converter.MapResultConverter
-import com.neki.map.api.dto.CollectPhotoBoothRequest
-import com.neki.map.api.dto.CollectPhotoBoothResponse
-import com.neki.map.api.dto.GetBrandResponse
-import com.neki.map.api.dto.GetPointLocationRequest
-import com.neki.map.api.dto.GetPointLocationResponse
-import com.neki.map.api.dto.GetPolygonLocationRequest
-import com.neki.map.api.dto.GetPolygonLocationResponse
-import com.neki.map.api.dto.UpdateBrandOrderRequest
-import com.neki.map.application.command.CollectPhotoBoothCommand
-import com.neki.map.application.command.GetPointLocationCommand
-import com.neki.map.application.command.GetPolygonLocationCommand
-import com.neki.map.application.command.UpdateBrandOrderCommand
-import com.neki.map.application.result.CollectPhotoBoothResult
-import com.neki.map.application.result.GetBrandResult
-import com.neki.map.application.result.GetPointLocationResult
-import com.neki.map.application.result.GetPolygonLocationResult
+import com.neki.map.api.dto.MapConverter
+import com.neki.map.api.dto.MapRequest
+import com.neki.map.api.dto.MapResponse
+import com.neki.map.application.dto.MapCommand
+import com.neki.map.application.dto.MapQuery
+import com.neki.map.application.dto.MapResult
 import com.neki.map.application.usecase.CollectPhotoBoothLocationUseCase
 import com.neki.map.application.usecase.GetBrandUseCase
 import com.neki.map.application.usecase.GetPhotoBoothLocationUseCase
@@ -51,8 +39,8 @@ class MapController(
     private val updateBrandOrderUseCase: UpdateBrandOrderUseCase,
     private val collectPhotoBoothLocationUseCase: CollectPhotoBoothLocationUseCase,
     private val getPhotoBoothLocationUseCase: GetPhotoBoothLocationUseCase,
-    private val commandConverter: MapCommandConverter,
-    private val resultConverter: MapResultConverter,
+    private val requestConverter: MapConverter.RequestConverter,
+    private val responseConverter: MapConverter.ResponseConverter,
 ) {
 
     @Operation(
@@ -64,10 +52,10 @@ class MapController(
             """,
     )
     @GetMapping("/brand")
-    fun getBrand(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<List<GetBrandResponse>> {
-        val result: List<GetBrandResult> = getBrandUseCase.execute(userId)
+    fun getBrand(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<List<MapResponse.GetBrand>> {
+        val result: List<MapResult.GetBrand> = getBrandUseCase.execute(userId)
 
-        val response: List<GetBrandResponse> = resultConverter.toGetBrandResponse(result)
+        val response: List<MapResponse.GetBrand> = responseConverter.toGetBrandResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -83,9 +71,9 @@ class MapController(
     @PutMapping("/brand/order")
     fun updateBrandOrder(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: UpdateBrandOrderRequest,
+        @Valid @RequestBody request: MapRequest.UpdateBrandOrder,
     ): BaseResponse<Any> {
-        val command: UpdateBrandOrderCommand = commandConverter.toUpdateBrandOrderCommand(userId, request)
+        val command: MapCommand.UpdateBrandOrder = requestConverter.toUpdateBrandOrderCommand(userId, request)
 
         updateBrandOrderUseCase.execute(command)
 
@@ -102,13 +90,13 @@ class MapController(
     @Hidden
     @PostMapping("/collect")
     fun collectPhotoBooths(
-        @Valid @RequestBody request: CollectPhotoBoothRequest,
-    ): BaseResponse<CollectPhotoBoothResponse> {
-        val command: CollectPhotoBoothCommand = commandConverter.toCollectPhotoBoothCommand(request)
+        @Valid @RequestBody request: MapRequest.CollectPhotoBooth,
+    ): BaseResponse<MapResponse.CollectPhotoBooth> {
+        val command: MapCommand.CollectPhotoBooth = requestConverter.toCollectPhotoBoothCommand(request)
 
-        val result: CollectPhotoBoothResult = collectPhotoBoothLocationUseCase.execute(command)
+        val result: MapResult.CollectPhotoBooth = collectPhotoBoothLocationUseCase.execute(command)
 
-        val response: CollectPhotoBoothResponse = resultConverter.toCollectPhotoBoothResponse(result)
+        val response: MapResponse.CollectPhotoBooth = responseConverter.toCollectPhotoBoothResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -125,13 +113,13 @@ class MapController(
     @PostMapping("/polygon")
     fun getPhotoBoothsByPolygon(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: GetPolygonLocationRequest,
-    ): BaseResponse<GetPolygonLocationResponse> {
-        val command: GetPolygonLocationCommand = commandConverter.toGetPolygonLocationCommand(userId, request)
+        @Valid @RequestBody request: MapRequest.GetPolygonLocation,
+    ): BaseResponse<MapResponse.GetPolygonLocation> {
+        val query: MapQuery.GetPolygonLocation = requestConverter.toGetPolygonLocationQuery(userId, request)
 
-        val result: GetPolygonLocationResult = getPhotoBoothLocationUseCase.execute(command)
+        val result: MapResult.GetPolygonLocation = getPhotoBoothLocationUseCase.execute(query)
 
-        val response: GetPolygonLocationResponse = resultConverter.toGetPolygonLocationResponse(result)
+        val response: MapResponse.GetPolygonLocation = responseConverter.toGetPolygonLocationResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -148,13 +136,13 @@ class MapController(
     @PostMapping("/point")
     fun getPhotoBoothsByPoint(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: GetPointLocationRequest,
-    ): BaseResponse<GetPointLocationResponse> {
-        val command: GetPointLocationCommand = commandConverter.toGetPointLocationCommand(userId, request)
+        @Valid @RequestBody request: MapRequest.GetPointLocation,
+    ): BaseResponse<MapResponse.GetPointLocation> {
+        val query: MapQuery.GetPointLocation = requestConverter.toGetPointLocationQuery(userId, request)
 
-        val result: GetPointLocationResult = getPhotoBoothLocationUseCase.execute(command)
+        val result: MapResult.GetPointLocation = getPhotoBoothLocationUseCase.execute(query)
 
-        val response: GetPointLocationResponse = resultConverter.toGetPointLocationResponse(result)
+        val response: MapResponse.GetPointLocation = responseConverter.toGetPointLocationResponse(result)
 
         return BaseResponse(data = response)
     }

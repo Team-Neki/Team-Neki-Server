@@ -2,7 +2,7 @@ package com.neki.e2e.user
 
 import com.neki.common.code.ResultCode
 import com.neki.e2e.media.MediaE2ETestBase
-import com.neki.media.api.dto.UploadTicketRequest
+import com.neki.media.api.dto.MediaRequest
 import com.neki.media.domain.MediaType
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -127,9 +127,9 @@ class UpdateUserProfileImageE2ETest : MediaE2ETestBase() {
      * 업로드 ticket 발급을 통해 UPLOADED 상태의 media를 생성하고 mediaId를 반환
      */
     private fun createUploadedMedia(): Long {
-        val ticketRequest = UploadTicketRequest(
+        val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "profile-${System.currentTimeMillis()}.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.USER_PROFILE,

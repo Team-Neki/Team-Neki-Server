@@ -1,7 +1,7 @@
 package com.neki.notification.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.notification.application.command.DeleteNotificationCommand
+import com.neki.notification.application.dto.NotificationCommand
 import com.neki.notification.application.port.NotificationRepositoryPort
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class DeleteNotificationUseCase(private val notificationRepository: NotificationRepositoryPort) {
 
     @Transactional
-    fun execute(command: DeleteNotificationCommand) {
+    fun execute(command: NotificationCommand.DeleteNotification) {
         notificationRepository.deleteByUserId(command.userId)
     }
 }

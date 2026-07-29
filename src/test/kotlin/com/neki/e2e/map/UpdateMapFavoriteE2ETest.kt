@@ -1,7 +1,7 @@
 package com.neki.e2e.map
 
 import com.neki.common.code.ResultCode
-import com.neki.map.api.dto.UpdateMapFavoriteRequest
+import com.neki.map.api.dto.MapRequest
 import com.neki.map.domain.entity.Brand
 import com.neki.map.domain.entity.FavoriteMapId
 import com.neki.user.domain.entity.User
@@ -63,7 +63,7 @@ class UpdateMapFavoriteE2ETest : MapE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateMapFavoriteRequest(true))
+            .body(MapRequest.UpdateMapFavorite(true))
             .`when`()
             .patch("/api/photo-booths/${location.id}/favorite")
             .then()
@@ -93,7 +93,7 @@ class UpdateMapFavoriteE2ETest : MapE2ETestBase() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
                 .header("Authorization", "Bearer $accessToken")
-                .body(UpdateMapFavoriteRequest(true))
+                .body(MapRequest.UpdateMapFavorite(true))
                 .`when`()
                 .patch("/api/photo-booths/${location.id}/favorite")
                 .then()
@@ -124,7 +124,7 @@ class UpdateMapFavoriteE2ETest : MapE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateMapFavoriteRequest(false))
+            .body(MapRequest.UpdateMapFavorite(false))
             .`when`()
             .patch("/api/photo-booths/${location.id}/favorite")
             .then()
@@ -144,7 +144,7 @@ class UpdateMapFavoriteE2ETest : MapE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateMapFavoriteRequest(true))
+            .body(MapRequest.UpdateMapFavorite(true))
             .`when`()
             .patch("/api/photo-booths/99999/favorite")
             .then()
@@ -168,7 +168,7 @@ class UpdateMapFavoriteE2ETest : MapE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdateMapFavoriteRequest(null))
+            .body(MapRequest.UpdateMapFavorite(null))
             .`when`()
             .patch("/api/photo-booths/${location.id}/favorite")
             .then()

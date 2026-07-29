@@ -49,8 +49,8 @@ tools:
 |---|---------------------------------|----------------------------------------------|
 | 1 | `{Action}{Resource}Request.kt`  | `src/main/kotlin/com/neki/{domain}/api/dto/`                          |
 | 2 | `{Action}{Resource}Response.kt` | `src/main/kotlin/com/neki/{domain}/api/dto/`                          |
-| 3 | `{Action}{Resource}Command.kt`  | `src/main/kotlin/com/neki/{domain}/application/command/`              |
-| 4 | `{Action}{Resource}Result.kt`   | `src/main/kotlin/com/neki/{domain}/application/result/`               |
+| 3 | `{Group}Command.kt` / `{Group}Query.kt` 내 중첩 클래스 | `src/main/kotlin/com/neki/{domain}/application/dto/`                  |
+| 4 | `{Group}Result.kt` 내 중첩 클래스                     | `src/main/kotlin/com/neki/{domain}/application/dto/`                  |
 | 5 | Converter 메서드                   | `src/main/kotlin/com/neki/{domain}/api/converter/` (기존 파일에 추가 또는 신규)  |
 | 6 | `{Action}{Resource}UseCase.kt`  | `src/main/kotlin/com/neki/{domain}/application/usecase/`              |
 | 7 | Controller 메서드                  | `src/main/kotlin/com/neki/{domain}/api/controller/` (기존 파일에 추가 또는 신규) |

@@ -1,7 +1,7 @@
 package com.neki.photo.application.port
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.contract.PhotoWithFavorite
+import com.neki.photo.application.port.dto.PhotoContract
 import com.neki.photo.domain.entity.PhotoImage
 
 /**
@@ -32,7 +32,7 @@ interface PhotoImageRepositoryPort {
 
     fun getLatestFavoritePhoto(userId: Long): PhotoImage?
 
-    fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite?
+    fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoContract.PhotoWithFavorite?
 
     fun listOwnedPhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
 
@@ -42,7 +42,7 @@ interface PhotoImageRepositoryPort {
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-    ): List<PhotoWithFavorite>
+    ): List<PhotoContract.PhotoWithFavorite>
 
     fun listOwnedFavoritePhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage>
 

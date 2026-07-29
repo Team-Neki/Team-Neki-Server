@@ -1,7 +1,7 @@
 package com.neki.map.infra.client.fake
 
-import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.port.MapApiClientPort
+import com.neki.map.application.port.dto.MapContract
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -23,12 +23,12 @@ class FakeMapApiClientConfig {
 
 class FakeMapApiClientAdapter : MapApiClientPort {
 
-    private val searchResults = ConcurrentHashMap<String, LocalSearchResult>()
+    private val searchResults = ConcurrentHashMap<String, MapContract.LocalSearchResult>()
 
-    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): LocalSearchResult =
-        searchResults[query] ?: LocalSearchResult(
+    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): MapContract.LocalSearchResult =
+        searchResults[query] ?: MapContract.LocalSearchResult(
             documents = emptyList(),
-            searchPaginationMeta = LocalSearchResult.SearchPaginationMeta(
+            searchPaginationMeta = MapContract.LocalSearchResult.SearchPaginationMeta(
                 totalCount = 0,
                 pageableCount = 0,
                 isEnd = true,

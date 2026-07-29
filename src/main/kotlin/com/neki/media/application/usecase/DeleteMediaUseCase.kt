@@ -4,8 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.media.application.command.DeleteMediaCommand
-import com.neki.media.application.command.DeleteMediasCommand
+import com.neki.media.application.dto.MediaCommand
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.domain.entity.Media
@@ -32,7 +31,7 @@ class DeleteMediaUseCase(
     /**
      * media 단건 삭제 usecase
      */
-    fun execute(command: DeleteMediaCommand) {
+    fun execute(command: MediaCommand.DeleteMedia) {
         val media: Media = transactionRunner.run {
             val foundMedia: Media = mediaRepository.getActiveMedia(command.ownerId, command.mediaId)
                 ?: throw BusinessException(ResultCode.NOT_FOUND)
@@ -48,7 +47,7 @@ class DeleteMediaUseCase(
     /**
      * media bulk 삭제 usecase
      */
-    fun execute(command: DeleteMediasCommand) {
+    fun execute(command: MediaCommand.DeleteMedias) {
         val medias: List<Media> = transactionRunner.run {
             val foundMedias: List<Media> = mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
             foundMedias.forEach { it.markAsDeleted() }

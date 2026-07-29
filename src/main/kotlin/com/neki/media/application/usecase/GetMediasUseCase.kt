@@ -1,11 +1,11 @@
 package com.neki.media.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.media.application.command.GetMediasCommand
+import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.result.GetMediasResult
 import com.neki.media.domain.entity.Media
 
 /**
@@ -22,10 +22,10 @@ class GetMediasUseCase(
     private val cache: MediaBinaryCachePort,
 ) {
 
-    fun execute(command: GetMediasCommand): GetMediasResult {
-        val medias: List<Media> = mediaRepository.getActiveMedias(command.ownerId, command.mediaIds)
+    fun execute(query: MediaQuery.GetMedias): MediaResult.GetMedias {
+        val medias: List<Media> = mediaRepository.getActiveMedias(query.ownerId, query.mediaIds)
 
-        val mediaInfos: List<GetMediasResult.MediaInfo> = medias.map { it ->
+        val mediaInfos: List<MediaResult.GetMedias.Item> = medias.map { it ->
             val storageKey = it.storageKey
 
             val binaryData = if (it.mediaType.isCacheable) {
@@ -37,13 +37,13 @@ class GetMediasUseCase(
                 mediaStorage.fetchBinaryByKey(storageKey)
             }
 
-            GetMediasResult.MediaInfo(
+            MediaResult.GetMedias.Item(
                 mediaId = it.id!!,
                 binaryData = binaryData,
                 contentType = it.contentType,
             )
         }
 
-        return GetMediasResult(mediaInfos)
+        return MediaResult.GetMedias(mediaInfos)
     }
 }

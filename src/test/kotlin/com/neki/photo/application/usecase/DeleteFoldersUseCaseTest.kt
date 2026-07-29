@@ -2,7 +2,7 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.DeleteFoldersCommand
+import com.neki.photo.application.dto.FolderCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
@@ -53,7 +53,7 @@ class DeleteFoldersUseCaseTest {
         // Given
         val folderIds = listOf(1L)
         val photoIds = listOf(10L, 20L)
-        val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = true)
+        val command = FolderCommand.DeleteFolders(userId = 1L, folderIds = folderIds, deletePhotos = true)
         val deletedPhotos = listOf(
             aPhotoImage(id = 10L, userId = 1L, mediaId = 100L),
             aPhotoImage(id = 20L, userId = 1L, mediaId = 200L),
@@ -79,7 +79,7 @@ class DeleteFoldersUseCaseTest {
     fun `deletePhotos=false이면 폴더만 삭제하고 media 미호출`() {
         // Given
         val folderIds = listOf(1L)
-        val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = false)
+        val command = FolderCommand.DeleteFolders(userId = 1L, folderIds = folderIds, deletePhotos = false)
 
         every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 1
 
@@ -98,7 +98,7 @@ class DeleteFoldersUseCaseTest {
     fun `폴더 카운트 불일치 시 NOT_FOUND 예외 발생`() {
         // Given
         val folderIds = listOf(1L, 2L)
-        val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = false)
+        val command = FolderCommand.DeleteFolders(userId = 1L, folderIds = folderIds, deletePhotos = false)
 
         // 2개를 요청했는데 1개만 삭제됨
         every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 1
@@ -115,7 +115,7 @@ class DeleteFoldersUseCaseTest {
     fun `deletePhotos=true이고 빈 폴더인 경우 photoIds가 비어있어 media cleanup 미호출`() {
         // Given
         val folderIds = listOf(1L)
-        val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = true)
+        val command = FolderCommand.DeleteFolders(userId = 1L, folderIds = folderIds, deletePhotos = true)
 
         every { photoImageFolderRepository.getPhotoImageIdsByFolderIds(folderIds) } returns emptyList()
         every { folderRepository.deleteOwnedFolders(1L, folderIds) } returns 1
@@ -135,7 +135,7 @@ class DeleteFoldersUseCaseTest {
         // Given
         val folderIds = listOf(1L)
         val photoIds = listOf(10L)
-        val command = DeleteFoldersCommand(userId = 1L, folderIds = folderIds, deletePhotos = true)
+        val command = FolderCommand.DeleteFolders(userId = 1L, folderIds = folderIds, deletePhotos = true)
         val deletedPhotos = listOf(aPhotoImage(id = 10L, userId = 1L, mediaId = 100L))
 
         every { photoImageFolderRepository.getPhotoImageIdsByFolderIds(folderIds) } returns photoIds

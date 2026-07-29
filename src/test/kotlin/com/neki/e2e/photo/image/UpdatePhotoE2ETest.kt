@@ -2,7 +2,7 @@ package com.neki.e2e.photo.image
 
 import com.neki.common.code.ResultCode
 import com.neki.media.domain.entity.MediaStatus
-import com.neki.photo.api.dto.UpdatePhotoRequest
+import com.neki.photo.api.dto.PhotoImageRequest
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -52,7 +52,7 @@ class UpdatePhotoE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoRequest("new memo", null))
+            .body(PhotoImageRequest.UpdatePhoto("new memo", null))
             .`when`()
             .patch("/api/photos/${photo.id}")
             .then()
@@ -71,7 +71,7 @@ class UpdatePhotoE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoRequest(null, null))
+            .body(PhotoImageRequest.UpdatePhoto(null, null))
             .`when`()
             .patch("/api/photos/${photo.id}")
             .then()
@@ -90,7 +90,7 @@ class UpdatePhotoE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoRequest("", null))
+            .body(PhotoImageRequest.UpdatePhoto("", null))
             .`when`()
             .patch("/api/photos/${photo.id}")
             .then()

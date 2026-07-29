@@ -2,7 +2,7 @@ package com.neki.e2e.photo.image
 
 import com.neki.common.code.ResultCode
 import com.neki.media.domain.entity.MediaStatus
-import com.neki.photo.api.dto.DeletePhotosRequest
+import com.neki.photo.api.dto.PhotoImageRequest
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -52,7 +52,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(photo.id!!)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(photo.id!!)))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -76,7 +76,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!)))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -91,7 +91,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = emptyList()))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = emptyList()))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -133,7 +133,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(photo.id!!, notExistPhotoId)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(photo.id!!, notExistPhotoId)))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -157,7 +157,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(myPhoto.id!!, otherPhoto.id!!)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(myPhoto.id!!, otherPhoto.id!!)))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -180,7 +180,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(photo1.id!!, photo2.id!!)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(photo1.id!!, photo2.id!!)))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -198,7 +198,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(nonExistentPhotoId)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(nonExistentPhotoId)))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -218,7 +218,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(otherUserPhoto.id!!)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(otherUserPhoto.id!!)))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -238,7 +238,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(photo.id!!)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(photo.id!!)))
             .`when`()
             .delete("/api/photos")
             .then()
@@ -257,7 +257,7 @@ class DeletePhotosE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(DeletePhotosRequest(photoIds = listOf(photo.id!!)))
+            .body(PhotoImageRequest.DeletePhotos(photoIds = listOf(photo.id!!)))
             .`when`()
             .delete("/api/photos")
             .then()

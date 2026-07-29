@@ -1,18 +1,14 @@
 package com.neki.pose.infra.client
 
-import com.neki.media.application.command.ConfirmMediasUploadedCommand
-import com.neki.media.application.command.GetMediaStorageInfoCommand
-import com.neki.media.application.command.GetMediaStorageInfosCommand
-import com.neki.media.application.result.ConfirmMediasUploadedResult
-import com.neki.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
-import com.neki.media.application.result.GetMediaStorageInfoResult
-import com.neki.media.application.result.GetMediaStorageInfosResult
+import com.neki.media.application.dto.MediaCommand
+import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.dto.MediaResult
+import com.neki.media.application.dto.MediaResult.ConfirmMediasUploaded.UploadConfirmStatus
 import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
 import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
-import com.neki.pose.application.contract.MediaAvailability
-import com.neki.pose.application.contract.MediaStorageInfo
 import com.neki.pose.application.port.MediaClientPort
+import com.neki.pose.application.port.dto.MediaContract
 import org.springframework.stereotype.Component
 
 /**
@@ -29,15 +25,15 @@ class PoseMediaClient(
     private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
 ) : MediaClientPort {
 
-    override fun getMediaStorageInfo(mediaId: Long): MediaStorageInfo {
-        val result: GetMediaStorageInfoResult = getMediaStorageInfoUseCase.execute(
-            GetMediaStorageInfoCommand(
+    override fun getMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo {
+        val result: MediaResult.GetMediaStorageInfo = getMediaStorageInfoUseCase.execute(
+            MediaQuery.GetMediaStorageInfo(
                 ownerId = null,
                 mediaId = mediaId,
             ),
         )
 
-        return MediaStorageInfo(
+        return MediaContract.StorageInfo(
             mediaId = result.mediaId,
             storageKey = result.storageKey,
             contentType = result.contentType,
@@ -46,12 +42,12 @@ class PoseMediaClient(
         )
     }
 
-    override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaStorageInfo> {
-        val result: GetMediaStorageInfosResult =
-            getMediaStorageInfosUseCase.execute(GetMediaStorageInfosCommand(null, mediaIds))
+    override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaContract.StorageInfo> {
+        val result: MediaResult.GetMediaStorageInfos =
+            getMediaStorageInfosUseCase.execute(MediaQuery.GetMediaStorageInfos(null, mediaIds))
 
         return result.storageInfos.map {
-            MediaStorageInfo(
+            MediaContract.StorageInfo(
                 mediaId = it.mediaId,
                 storageKey = it.storageKey,
                 contentType = it.contentType,
@@ -61,14 +57,18 @@ class PoseMediaClient(
         }
     }
 
-    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
+    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaContract.Availability> {
         if (mediaIds.isEmpty()) return emptyMap()
 
-        val result: ConfirmMediasUploadedResult = confirmMediaUploadedUseCase.execute(
-            ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = mediaIds),
+        val result: MediaResult.ConfirmMediasUploaded = confirmMediaUploadedUseCase.execute(
+            MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = mediaIds),
         )
         return result.results.mapValues { (_, status) ->
-            if (status == UploadConfirmStatus.CONFIRMED) MediaAvailability.AVAILABLE else MediaAvailability.UNAVAILABLE
+            if (status == UploadConfirmStatus.CONFIRMED) {
+                MediaContract.Availability.AVAILABLE
+            } else {
+                MediaContract.Availability.UNAVAILABLE
+            }
         }
     }
 
@@ -76,7 +76,7 @@ class PoseMediaClient(
         if (mediaIds.isEmpty()) return
 
         confirmMediaUploadedUseCase.rollback(
-            ConfirmMediasUploadedCommand(
+            MediaCommand.ConfirmMediasUploaded(
                 ownerId = ownerId,
                 mediaIds = mediaIds,
             ),

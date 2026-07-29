@@ -4,13 +4,13 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.photo.application.command.UploadPhotoCommand
-import com.neki.photo.application.contract.MediaAvailability
+import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.photo.domain.entity.PhotoImage
 
 /**
@@ -30,16 +30,16 @@ class UploadPhotosUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: UploadPhotoCommand) {
+    fun execute(command: PhotoImageCommand.UploadPhoto) {
         validateNoDuplicateMediaIds(command.uploads)
         validateFolderOwnership(command.userId, command.folderId)
 
-        val newUploads: List<UploadPhotoCommand.UploadItem> = filterNewUploads(command.uploads)
+        val newUploads: List<PhotoImageCommand.UploadPhoto.Item> = filterNewUploads(command.uploads)
         if (newUploads.isEmpty()) return
 
         val newMediaIds: List<Long> = newUploads.map { it.mediaId }
 
-        val availabilities: Map<Long, MediaAvailability> = mediaClient.verifyMediasUploaded(
+        val availabilities: Map<Long, MediaContract.Availability> = mediaClient.verifyMediasUploaded(
             ownerId = command.userId,
             mediaIds = newMediaIds,
         )
@@ -76,13 +76,15 @@ class UploadPhotosUseCase(
         }
     }
 
-    private fun filterNewUploads(uploads: List<UploadPhotoCommand.UploadItem>): List<UploadPhotoCommand.UploadItem> {
+    private fun filterNewUploads(
+        uploads: List<PhotoImageCommand.UploadPhoto.Item>,
+    ): List<PhotoImageCommand.UploadPhoto.Item> {
         val mediaIds: List<Long> = uploads.map { it.mediaId }
         val existingMediaIds: Set<Long> = photoImageRepository.getRegisteredMediaIds(mediaIds)
         return uploads.filter { it.mediaId !in existingMediaIds }
     }
 
-    private fun validateNoDuplicateMediaIds(uploads: List<UploadPhotoCommand.UploadItem>) {
+    private fun validateNoDuplicateMediaIds(uploads: List<PhotoImageCommand.UploadPhoto.Item>) {
         val mediaIds: List<Long> = uploads.map { it.mediaId }
         val duplicates: Set<Long> = mediaIds.groupingBy { it }.eachCount().filter { it.value > 1 }.keys
 
@@ -98,14 +100,14 @@ class UploadPhotosUseCase(
         }
     }
 
-    private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaAvailability>) {
+    private fun rollbackIfFailed(userId: Long, availabilities: Map<Long, MediaContract.Availability>) {
         val unavailableMediaIds: Set<Long> = availabilities
-            .filter { it.value != MediaAvailability.AVAILABLE }
+            .filter { it.value != MediaContract.Availability.AVAILABLE }
             .keys
 
         if (unavailableMediaIds.isNotEmpty()) {
             val successfulMediaIds: List<Long> = availabilities
-                .filter { it.value == MediaAvailability.AVAILABLE }
+                .filter { it.value == MediaContract.Availability.AVAILABLE }
                 .keys
                 .toList()
 

@@ -1,11 +1,11 @@
 package com.neki.pose.application.usecase
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.application.command.GetPosesCommand
-import com.neki.pose.application.contract.MediaStorageInfo
-import com.neki.pose.application.contract.PoseWithScrap
+import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
+import com.neki.pose.application.port.dto.PoseContract
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose
 import io.kotest.matchers.shouldBe
@@ -31,7 +31,7 @@ class GetPosesUseCaseTest {
         useCase = GetPosesUseCase(poseRepository, mediaClient, transactionRunner)
     }
 
-    private fun makeCommand(page: Int = 0, size: Int = 10): GetPosesCommand = GetPosesCommand(
+    private fun makeQuery(page: Int = 0, size: Int = 10): PoseQuery.GetPoses = PoseQuery.GetPoses(
         userId = 1L,
         page = page,
         size = size,
@@ -39,13 +39,13 @@ class GetPosesUseCaseTest {
         sortOrder = SortOrder.DESC,
     )
 
-    private fun makePoseWithScrap(id: Long, mediaId: Long, scrapped: Boolean = false): PoseWithScrap {
+    private fun makePoseWithScrap(id: Long, mediaId: Long, scrapped: Boolean = false): PoseContract.PoseWithScrap {
         val pose = aPose(id = id, mediaId = mediaId)
         pose.createdAt = LocalDateTime.of(2026, 1, 1, 0, 0)
-        return PoseWithScrap(pose = pose, isScraped = scrapped)
+        return PoseContract.PoseWithScrap(pose = pose, isScraped = scrapped)
     }
 
-    private fun makeMediaStorageInfo(mediaId: Long): MediaStorageInfo = MediaStorageInfo(
+    private fun makeMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo = MediaContract.StorageInfo(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",
@@ -57,7 +57,7 @@ class GetPosesUseCaseTest {
     @DisplayName("정상 조회 + 미디어 매핑 - poses + storageInfo 반환")
     fun `정상 조회 + 미디어 매핑 - poses + storageInfo 반환`() {
         // Given
-        val command = makeCommand(size = 2)
+        val query = makeQuery(size = 2)
         val poseList = listOf(
             makePoseWithScrap(id = 1L, mediaId = 101L, scrapped = false),
             makePoseWithScrap(id = 2L, mediaId = 102L, scrapped = true),
@@ -78,7 +78,7 @@ class GetPosesUseCaseTest {
         )
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.poses.size shouldBe 2
@@ -94,7 +94,7 @@ class GetPosesUseCaseTest {
     @DisplayName("hasNext=true - 다음 페이지 존재")
     fun `hasNext=true - 다음 페이지 존재`() {
         // Given
-        val command = makeCommand(size = 2)
+        val query = makeQuery(size = 2)
         // size+1 = 3개 조회됨 → hasNext true
         val poseList = listOf(
             makePoseWithScrap(id = 1L, mediaId = 101L),
@@ -117,7 +117,7 @@ class GetPosesUseCaseTest {
         )
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.hasNext shouldBe true
@@ -128,7 +128,7 @@ class GetPosesUseCaseTest {
     @DisplayName("hasNext=false - 마지막 페이지")
     fun `hasNext=false - 마지막 페이지`() {
         // Given
-        val command = makeCommand(size = 5)
+        val query = makeQuery(size = 5)
         // size+1 = 6개 조회하려 했지만 3개만 있음 → hasNext false
         val poseList = listOf(
             makePoseWithScrap(id = 1L, mediaId = 101L),
@@ -152,7 +152,7 @@ class GetPosesUseCaseTest {
         )
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.hasNext shouldBe false
@@ -163,7 +163,7 @@ class GetPosesUseCaseTest {
     @DisplayName("빈 결과 - 빈 리스트와 hasNext=false 반환")
     fun `빈 결과 - 빈 리스트와 hasNext=false 반환`() {
         // Given
-        val command = makeCommand()
+        val query = makeQuery()
         every {
             poseRepository.listPosesWithScrap(
                 userId = 1L,
@@ -175,7 +175,7 @@ class GetPosesUseCaseTest {
         } returns emptyList()
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.poses shouldBe emptyList()
@@ -186,7 +186,7 @@ class GetPosesUseCaseTest {
     @DisplayName("일부 미디어 미존재 - mapNotNull로 필터링하여 일부만 반환")
     fun `일부 미디어 미존재 - mapNotNull로 필터링하여 일부만 반환`() {
         // Given
-        val command = makeCommand(size = 3)
+        val query = makeQuery(size = 3)
         val poseList = listOf(
             makePoseWithScrap(id = 1L, mediaId = 101L),
             makePoseWithScrap(id = 2L, mediaId = 102L),
@@ -209,7 +209,7 @@ class GetPosesUseCaseTest {
         )
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.poses.size shouldBe 2
@@ -220,7 +220,7 @@ class GetPosesUseCaseTest {
     @DisplayName("전체 미디어 미존재 - 빈 리스트 반환")
     fun `전체 미디어 미존재 - 빈 리스트 반환`() {
         // Given
-        val command = makeCommand(size = 2)
+        val query = makeQuery(size = 2)
         val poseList = listOf(
             makePoseWithScrap(id = 1L, mediaId = 101L),
             makePoseWithScrap(id = 2L, mediaId = 102L),
@@ -238,7 +238,7 @@ class GetPosesUseCaseTest {
         every { mediaClient.getMediaStorageInfos(listOf(101L, 102L)) } returns emptyList()
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.poses shouldBe emptyList()

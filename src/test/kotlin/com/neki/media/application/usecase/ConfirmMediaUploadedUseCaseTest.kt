@@ -1,9 +1,9 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.application.command.ConfirmMediasUploadedCommand
+import com.neki.media.application.dto.MediaCommand
+import com.neki.media.application.dto.MediaResult.ConfirmMediasUploaded.UploadConfirmStatus
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
 import com.neki.media.domain.entity.MediaStatus
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aMedia
@@ -41,7 +41,7 @@ class ConfirmMediaUploadedUseCaseTest {
     @DisplayName("빈 mediaIds - 빈 결과 반환")
     fun `빈 mediaIds - 빈 결과 반환`() {
         // Given
-        val command = ConfirmMediasUploadedCommand(ownerId = 1L, mediaIds = emptyList())
+        val command = MediaCommand.ConfirmMediasUploaded(ownerId = 1L, mediaIds = emptyList())
 
         // When
         val result = useCase.execute(command)
@@ -63,7 +63,7 @@ class ConfirmMediaUploadedUseCaseTest {
             listOf(uploadedMedia)
 
         // When
-        val command = ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = listOf(mediaId))
+        val command = MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = listOf(mediaId))
         val result = useCase.execute(command)
 
         // Then
@@ -86,7 +86,7 @@ class ConfirmMediaUploadedUseCaseTest {
         every { mediaRepository.save(initiatedMedia) } returns initiatedMedia
 
         // When
-        val command = ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = listOf(mediaId))
+        val command = MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = listOf(mediaId))
         val result = useCase.execute(command)
 
         // Then
@@ -114,7 +114,7 @@ class ConfirmMediaUploadedUseCaseTest {
         every { mediaStorage.exists("pose/not-exist.jpg") } returns false
 
         // When
-        val command = ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = listOf(mediaId))
+        val command = MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = listOf(mediaId))
         val result = useCase.execute(command)
 
         // Then
@@ -131,7 +131,7 @@ class ConfirmMediaUploadedUseCaseTest {
         every { mediaRepository.getMediaForUploadConfirmation(ownerId, listOf(mediaId)) } returns emptyList()
 
         // When
-        val command = ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = listOf(mediaId))
+        val command = MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = listOf(mediaId))
         val result = useCase.execute(command)
 
         // Then
@@ -153,7 +153,7 @@ class ConfirmMediaUploadedUseCaseTest {
 
         // When & Then
         shouldThrow<RuntimeException> {
-            useCase.execute(ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = listOf(mediaId)))
+            useCase.execute(MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = listOf(mediaId)))
         }
     }
 
@@ -168,7 +168,7 @@ class ConfirmMediaUploadedUseCaseTest {
         every { mediaRepository.getMediaForUploadConfirmation(ownerId, mediaIds) } returns medias
         medias.forEach { every { mediaRepository.save(it) } returns it }
 
-        val command = ConfirmMediasUploadedCommand(ownerId = ownerId, mediaIds = mediaIds)
+        val command = MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = mediaIds)
 
         // When
         useCase.rollback(command)

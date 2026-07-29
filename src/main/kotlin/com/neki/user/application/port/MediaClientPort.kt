@@ -1,6 +1,6 @@
 package com.neki.user.application.port
 
-import com.neki.user.application.contract.MediaAvailability
+import com.neki.user.application.port.dto.MediaContract
 
 /**
  * fileName       : MediaClientPort
@@ -12,7 +12,7 @@ interface MediaClientPort {
 
     fun deleteMedia(ownerId: Long, mediaIds: Long)
 
-    fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability
+    fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaContract.Availability
 
     /**
      * 보상 트랜잭션: 여러 media 상태를 INITIATED로 롤백

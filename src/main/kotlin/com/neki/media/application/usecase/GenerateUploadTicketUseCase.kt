@@ -4,11 +4,11 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.media.application.command.GenerateUploadTicketCommand
-import com.neki.media.application.contract.UploadTicket
+import com.neki.media.application.dto.MediaCommand
+import com.neki.media.application.dto.MediaResult
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.result.GenerateUploadTicketResult
+import com.neki.media.application.port.dto.MediaStorageContract
 import com.neki.media.domain.MediaKey
 import com.neki.media.domain.entity.Media
 import org.springframework.transaction.annotation.Transactional
@@ -27,7 +27,7 @@ class GenerateUploadTicketUseCase(
 ) {
 
     @Transactional
-    fun execute(command: GenerateUploadTicketCommand): GenerateUploadTicketResult {
+    fun execute(command: MediaCommand.GenerateUploadTicket): MediaResult.GenerateUploadTicket {
         if (command.items.isEmpty()) throw BusinessException(ResultCode.INVALID_PARAMETER)
 
         // 전체 벌크 작업을 단일 트랜잭션으로 처리
@@ -50,7 +50,7 @@ class GenerateUploadTicketUseCase(
             val savedMedia: Media = mediaRepository.save(media)
 
             // Upload Ticket 발급
-            val uploadTicket: UploadTicket = mediaStorage.generateUploadTicket(
+            val uploadTicket: MediaStorageContract.UploadTicket = mediaStorage.generateUploadTicket(
                 key = storageKey,
                 contentType = item.contentType,
             )
@@ -61,14 +61,14 @@ class GenerateUploadTicketUseCase(
                 expiresAt = uploadTicket.expiresAt
             }
 
-            GenerateUploadTicketResult.UploadTicketInfo(
+            MediaResult.GenerateUploadTicket.Item(
                 mediaId = savedMedia.id!!,
                 uploadUrl = uploadTicket.url,
                 contentType = item.contentType,
             )
         }
 
-        return GenerateUploadTicketResult(
+        return MediaResult.GenerateUploadTicket(
             method = method!!,
             expiresAt = expiresAt!!,
             tickets = tickets,

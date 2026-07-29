@@ -2,12 +2,12 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.photo.application.command.GetFavoriteSummaryCommand
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.dto.PhotoImageQuery
+import com.neki.photo.application.dto.PhotoImageResult
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.application.result.GetFavoriteSummaryResult
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.photo.domain.entity.PhotoImage
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -29,35 +29,35 @@ class GetFavoriteSummaryUseCase(
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-    fun execute(command: GetFavoriteSummaryCommand): GetFavoriteSummaryResult {
+    fun execute(query: PhotoImageQuery.GetFavoriteSummary): PhotoImageResult.GetFavoriteSummary {
         val totalCount: Long = transactionRunner.readOnly {
-            favoriteImageRepository.countByUserId(command.userId)
+            favoriteImageRepository.countByUserId(query.userId)
         }
 
         if (totalCount == 0L) {
-            return GetFavoriteSummaryResult(storageKey = null, totalCount = 0)
+            return PhotoImageResult.GetFavoriteSummary(storageKey = null, totalCount = 0)
         }
 
         val latestPhoto: PhotoImage? = transactionRunner.readOnly {
-            photoImageRepository.getLatestFavoritePhoto(command.userId)
+            photoImageRepository.getLatestFavoritePhoto(query.userId)
         }
 
         if (latestPhoto == null) {
             log.warn("Photo not found but count is {}.", totalCount)
-            return GetFavoriteSummaryResult(storageKey = null, totalCount = totalCount)
+            return PhotoImageResult.GetFavoriteSummary(storageKey = null, totalCount = totalCount)
         }
 
-        val mediaStorageInfos: List<MediaStorageInfo> = mediaClient.getMediaStorageInfos(
-            command.userId,
+        val mediaStorageInfos: List<MediaContract.StorageInfo> = mediaClient.getMediaStorageInfos(
+            query.userId,
             listOf(latestPhoto.mediaId),
         )
 
-        val media: MediaStorageInfo? = mediaStorageInfos.firstOrNull()
+        val media: MediaContract.StorageInfo? = mediaStorageInfos.firstOrNull()
         if (media == null) {
             log.info("Media not found yet. photoId=${latestPhoto.id}, mediaId=${latestPhoto.mediaId}")
-            return GetFavoriteSummaryResult(storageKey = null, totalCount = totalCount)
+            return PhotoImageResult.GetFavoriteSummary(storageKey = null, totalCount = totalCount)
         }
 
-        return GetFavoriteSummaryResult(storageKey = media.storageKey, totalCount = totalCount)
+        return PhotoImageResult.GetFavoriteSummary(storageKey = media.storageKey, totalCount = totalCount)
     }
 }

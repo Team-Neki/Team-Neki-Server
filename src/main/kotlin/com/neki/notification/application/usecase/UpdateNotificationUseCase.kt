@@ -2,7 +2,7 @@ package com.neki.notification.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.notification.application.command.UpdateNotificationCommand
+import com.neki.notification.application.dto.NotificationCommand
 import com.neki.notification.application.port.NotificationRepositoryPort
 import com.neki.notification.domain.entity.Notification
 import org.springframework.dao.DataIntegrityViolationException
@@ -19,7 +19,7 @@ class UpdateNotificationUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: UpdateNotificationCommand) {
+    fun execute(command: NotificationCommand.UpdateNotification) {
         try {
             transactionRunner.runNew { saveOrUpdate(command) }
         } catch (_: DataIntegrityViolationException) {
@@ -29,7 +29,7 @@ class UpdateNotificationUseCase(
         }
     }
 
-    private fun saveOrUpdate(command: UpdateNotificationCommand) {
+    private fun saveOrUpdate(command: NotificationCommand.UpdateNotification) {
         val existing: Notification? = notificationRepository.findByUserId(command.userId)
 
         val notification: Notification = existing?.apply {

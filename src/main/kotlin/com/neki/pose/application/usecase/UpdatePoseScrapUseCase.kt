@@ -3,7 +3,7 @@ package com.neki.pose.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.command.UpdatePoseScrapCommand
+import com.neki.pose.application.dto.PoseCommand
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
 import com.neki.pose.domain.entity.ScrapPose
@@ -16,7 +16,7 @@ class UpdatePoseScrapUseCase(
 ) {
 
     @Transactional
-    fun execute(command: UpdatePoseScrapCommand) {
+    fun execute(command: PoseCommand.UpdatePoseScrap) {
         val poseExists: Boolean =
             poseRepository.existsPose(command.poseId)
 

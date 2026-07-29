@@ -2,7 +2,7 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.photo.application.command.DeletePhotosCommand
+import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
@@ -23,7 +23,7 @@ class DeletePhotosUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: DeletePhotosCommand) {
+    fun execute(command: PhotoImageCommand.DeletePhotos) {
         val deletedPhotos: List<PhotoImage> = transactionRunner.run {
             favoriteImageRepository.deleteAll(command.userId, command.photoIds)
 

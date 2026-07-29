@@ -1,8 +1,8 @@
 package com.neki.map.infra.client.kakao
 
-import com.neki.map.application.contract.LocalSearchResult
 import com.neki.map.application.port.MapApiClientPort
 import com.neki.map.application.port.MapSearchPort
+import com.neki.map.application.port.dto.MapContract
 import com.neki.map.domain.vo.GeographicKoreaBounds
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -26,9 +26,9 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
     /**
      * 한국 전역을 그리드로 나누어 검색
      */
-    override fun searchAllKorea(keyword: String): List<LocalSearchResult.Place> {
+    override fun searchAllKorea(keyword: String): List<MapContract.LocalSearchResult.Place> {
         val grids: List<GeographicKoreaBounds> = GeographicKoreaBounds.divideIntoGrids()
-        val allPlaces = mutableMapOf<String, LocalSearchResult.Place>()
+        val allPlaces = mutableMapOf<String, MapContract.LocalSearchResult.Place>()
 
         grids.forEachIndexed { index, grid ->
             if (index > 0) {
@@ -41,7 +41,7 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
 
             log.info("Processing grid {}/{} - rect: {}", index + 1, grids.size, grid.toRectString())
 
-            val gridPlaces: List<LocalSearchResult.Place> = searchInGrid(keyword, grid.toRectString())
+            val gridPlaces: List<MapContract.LocalSearchResult.Place> = searchInGrid(keyword, grid.toRectString())
             gridPlaces.forEach { place ->
                 allPlaces[place.id] = place
             }
@@ -61,13 +61,13 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
     /**
      * 특정 그리드 내에서 검색 (페이징 처리 포함)
      */
-    private fun searchInGrid(keyword: String, rect: String): List<LocalSearchResult.Place> {
+    private fun searchInGrid(keyword: String, rect: String): List<MapContract.LocalSearchResult.Place> {
         // 첫 API 호출 전 딜레이
         Thread.sleep(KakaoApiRateLimitProperties.DEFAULT.initialDelay)
         log.debug("Initial delay {}ms before first API call", KakaoApiRateLimitProperties.DEFAULT.initialDelay)
 
         // 첫 페이지 조회
-        val firstPageResponse: LocalSearchResult = fetchPageWithRetry(keyword, 1, rect, skipDelay = true)
+        val firstPageResponse: MapContract.LocalSearchResult = fetchPageWithRetry(keyword, 1, rect, skipDelay = true)
         val lastPage = firstPageResponse.searchPaginationMeta.pageableCount
 
         log.debug(
@@ -77,7 +77,7 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
             lastPage,
         )
 
-        val allPlaces = mutableListOf<LocalSearchResult.Place>()
+        val allPlaces = mutableListOf<MapContract.LocalSearchResult.Place>()
         var previousPageIds: Set<String>? = null
 
         // 첫 페이지 처리
@@ -87,7 +87,7 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
 
         // 2페이지부터 조회
         for (page in 2..lastPage) {
-            val response: LocalSearchResult = fetchPageWithRetry(keyword, page, rect)
+            val response: MapContract.LocalSearchResult = fetchPageWithRetry(keyword, page, rect)
 
             log.debug("Page {} - Documents: {}", page, response.documents.size)
 
@@ -112,7 +112,7 @@ class KakaoMapSearchAdapter(private val mapApiClient: MapApiClientPort) : MapSea
         page: Int,
         rect: String,
         skipDelay: Boolean = false,
-    ): LocalSearchResult {
+    ): MapContract.LocalSearchResult {
         repeat(MAX_RETRIES) { attempt ->
             try {
                 // 페이지 간 딜레이

@@ -2,7 +2,7 @@ package com.neki.e2e.photo.image
 
 import com.neki.common.code.ResultCode
 import com.neki.media.domain.entity.MediaStatus
-import com.neki.photo.api.dto.UpdatePhotoFavoriteRequest
+import com.neki.photo.api.dto.PhotoImageRequest
 import com.neki.photo.domain.entity.FavoritePhotoId
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -55,7 +55,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(true))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(true))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()
@@ -81,7 +81,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(true))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(true))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()
@@ -91,7 +91,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(true))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(true))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()
@@ -117,7 +117,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(false))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(false))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()
@@ -142,7 +142,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(true))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(true))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()
@@ -153,7 +153,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(false))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(false))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()
@@ -178,7 +178,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(true))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(true))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()
@@ -189,7 +189,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(false))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(false))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()
@@ -199,7 +199,7 @@ class UpdatePhotoFavoriteE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(UpdatePhotoFavoriteRequest(false))
+            .body(PhotoImageRequest.UpdatePhotoFavorite(false))
             .`when`()
             .patch("/api/photos/${photo.id}/favorite")
             .then()

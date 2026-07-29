@@ -2,7 +2,7 @@ package com.neki.support.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.application.command.UpdateAppVersionCommand
+import com.neki.support.application.dto.AppVersionCommand
 import com.neki.support.application.port.AppVersionRepositoryPort
 import com.neki.support.domain.entity.AppVersion
 import com.neki.support.domain.enums.Platform
@@ -41,7 +41,7 @@ class UpdateAppVersionUseCaseTest {
 
         // When
         useCase.execute(
-            UpdateAppVersionCommand(platform = platform, minVersion = "1.1.0", currentVersion = "2.0.0"),
+            AppVersionCommand.UpdateAppVersion(platform = platform, minVersion = "1.1.0", currentVersion = "2.0.0"),
         )
 
         // Then
@@ -60,7 +60,7 @@ class UpdateAppVersionUseCaseTest {
         // When & Then
         val exception = shouldThrow<BusinessException> {
             useCase.execute(
-                UpdateAppVersionCommand(platform = platform, minVersion = "1.0.0", currentVersion = "2.0.0"),
+                AppVersionCommand.UpdateAppVersion(platform = platform, minVersion = "1.0.0", currentVersion = "2.0.0"),
             )
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND

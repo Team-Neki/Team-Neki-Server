@@ -2,7 +2,7 @@ package com.neki.e2e.map
 
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.code.ResultCode
-import com.neki.map.api.dto.GetPointLocationRequest
+import com.neki.map.api.dto.MapRequest
 import com.neki.map.domain.entity.Brand
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -55,7 +55,7 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
     @DisplayName("반경 내에 포토부스가 없을 때 빈 목록을 반환한다")
     fun givenNoPhotoBooths_whenGetByPoint_thenReturnsEmptyList() {
         // Given: 포토부스가 없는 상태
-        val request = GetPointLocationRequest(
+        val request = MapRequest.GetPointLocation(
             longitude = gangnamLongitude,
             latitude = gangnamLatitude,
             radiusInMeters = 1000,
@@ -98,7 +98,7 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = 37.499123,
         )
 
-        val request = GetPointLocationRequest(
+        val request = MapRequest.GetPointLocation(
             longitude = gangnamLongitude,
             latitude = gangnamLatitude,
             radiusInMeters = 1000,
@@ -143,7 +143,7 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = 37.498000,
         )
 
-        val request = GetPointLocationRequest(
+        val request = MapRequest.GetPointLocation(
             longitude = gangnamLongitude,
             latitude = gangnamLatitude,
             radiusInMeters = 1000,
@@ -179,7 +179,7 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = 35.163574,
         )
 
-        val request = GetPointLocationRequest(
+        val request = MapRequest.GetPointLocation(
             longitude = gangnamLongitude,
             latitude = gangnamLatitude,
             radiusInMeters = 1000,
@@ -215,7 +215,7 @@ class GetPhotoBoothsByPointE2ETest : MapE2ETestBase() {
             latitude = 37.497946,
         )
 
-        val request = GetPointLocationRequest(
+        val request = MapRequest.GetPointLocation(
             longitude = gangnamLongitude,
             latitude = gangnamLatitude,
             radiusInMeters = 500,

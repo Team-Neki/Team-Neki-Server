@@ -1,7 +1,7 @@
 package com.neki.photo.infra.persist.jpa
 
 import com.neki.media.domain.entity.QMedia.media
-import com.neki.photo.application.contract.FolderWithStats
+import com.neki.photo.application.port.dto.PhotoContract
 import com.neki.photo.domain.entity.QFolder.folder
 import com.neki.photo.domain.entity.QPhotoImage
 import com.neki.photo.domain.entity.QPhotoImage.photoImage
@@ -29,7 +29,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
             .execute().toInt()
     }
 
-    fun findOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderWithStats> {
+    fun findOwnedFoldersWithStats(userId: Long, limit: Int?): List<PhotoContract.FolderWithStats> {
         val latestPhotoDate = photoImage.createdAt.max()
 
         val folderStats = queryFactory
@@ -85,7 +85,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
 
         return folderStats.map { tuple ->
             val folderId = tuple.get(folder.id)!!
-            FolderWithStats(
+            PhotoContract.FolderWithStats(
                 folderId = folderId,
                 name = tuple.get(folder.name)!!,
                 coverImageStorageKey = coverMap[folderId],

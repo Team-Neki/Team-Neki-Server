@@ -2,8 +2,7 @@ package com.neki.media.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.media.application.command.DeleteMediaCommand
-import com.neki.media.application.command.DeleteMediasCommand
+import com.neki.media.application.dto.MediaCommand
 import com.neki.media.application.port.MediaBinaryCachePort
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.domain.entity.MediaStatus
@@ -54,7 +53,7 @@ class DeleteMediaUseCaseTest {
         every { cache.evict("pose/test.jpg") } just Runs
 
         // When
-        useCase.execute(DeleteMediaCommand(ownerId = ownerId, mediaId = mediaId))
+        useCase.execute(MediaCommand.DeleteMedia(ownerId = ownerId, mediaId = mediaId))
 
         // Then
         media.status shouldBe MediaStatus.DELETED
@@ -73,7 +72,7 @@ class DeleteMediaUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(DeleteMediaCommand(ownerId = ownerId, mediaId = mediaId))
+            useCase.execute(MediaCommand.DeleteMedia(ownerId = ownerId, mediaId = mediaId))
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND
         verify(exactly = 0) { cache.evict(any()) }
@@ -92,7 +91,7 @@ class DeleteMediaUseCaseTest {
         medias.forEach { every { cache.evict(it.storageKey) } just Runs }
 
         // When
-        useCase.execute(DeleteMediasCommand(ownerId = ownerId, mediaIds = mediaIds))
+        useCase.execute(MediaCommand.DeleteMedias(ownerId = ownerId, mediaIds = mediaIds))
 
         // Then
         medias.forEach { it.status shouldBe MediaStatus.DELETED }
@@ -115,7 +114,7 @@ class DeleteMediaUseCaseTest {
 
         // When & Then
         shouldThrow<RuntimeException> {
-            useCase.execute(DeleteMediasCommand(ownerId = ownerId, mediaIds = mediaIds))
+            useCase.execute(MediaCommand.DeleteMedias(ownerId = ownerId, mediaIds = mediaIds))
         }
     }
 
@@ -130,7 +129,7 @@ class DeleteMediaUseCaseTest {
         every { mediaRepository.saveAll(emptyList()) } returns emptyList()
 
         // When
-        useCase.execute(DeleteMediasCommand(ownerId = ownerId, mediaIds = mediaIds))
+        useCase.execute(MediaCommand.DeleteMedias(ownerId = ownerId, mediaIds = mediaIds))
 
         // Then
         verify(exactly = 0) { cache.evict(any()) }

@@ -3,7 +3,7 @@ package com.neki.user.application.usecase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
-import com.neki.user.application.command.GetUserCommand
+import com.neki.user.application.dto.UserQuery
 import com.neki.user.application.port.MediaClientPort
 import com.neki.user.application.port.NotificationClientPort
 import com.neki.user.application.port.TermClientPort
@@ -62,7 +62,7 @@ class GetUserInfoUseCaseTest {
         every { notificationClient.isPushAgreed(userId) } returns true
 
         // When
-        val result = useCase.execute(GetUserCommand(userId = userId))
+        val result = useCase.execute(UserQuery.GetUser(userId = userId))
 
         // Then
         result.userId shouldBe userId
@@ -88,7 +88,7 @@ class GetUserInfoUseCaseTest {
         every { notificationClient.isPushAgreed(userId) } returns false
 
         // When
-        val result = useCase.execute(GetUserCommand(userId = userId))
+        val result = useCase.execute(UserQuery.GetUser(userId = userId))
 
         // Then
         result.objectKey shouldBe null
@@ -103,7 +103,7 @@ class GetUserInfoUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(GetUserCommand(userId = 999L))
+            useCase.execute(UserQuery.GetUser(userId = 999L))
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
         verify(exactly = 0) { mediaClient.getStorageKey(any(), any()) }
@@ -126,7 +126,7 @@ class GetUserInfoUseCaseTest {
 
         // When & Then
         shouldThrow<RuntimeException> {
-            useCase.execute(GetUserCommand(userId = userId))
+            useCase.execute(UserQuery.GetUser(userId = userId))
         }
     }
 
@@ -144,7 +144,7 @@ class GetUserInfoUseCaseTest {
 
         // When & Then
         shouldThrow<RuntimeException> {
-            useCase.execute(GetUserCommand(userId = userId))
+            useCase.execute(UserQuery.GetUser(userId = userId))
         }
     }
 
@@ -161,7 +161,7 @@ class GetUserInfoUseCaseTest {
         every { notificationClient.isPushAgreed(userId) } returns false
 
         // When
-        val result = useCase.execute(GetUserCommand(userId = userId))
+        val result = useCase.execute(UserQuery.GetUser(userId = userId))
 
         // Then
         result.marketingTerm shouldBe true
@@ -180,7 +180,7 @@ class GetUserInfoUseCaseTest {
         every { notificationClient.isPushAgreed(userId) } returns false
 
         // When
-        val result = useCase.execute(GetUserCommand(userId = userId))
+        val result = useCase.execute(UserQuery.GetUser(userId = userId))
 
         // Then
         result.marketingTerm shouldBe false
@@ -201,7 +201,7 @@ class GetUserInfoUseCaseTest {
 
         // When & Then
         shouldThrow<RuntimeException> {
-            useCase.execute(GetUserCommand(userId = userId))
+            useCase.execute(UserQuery.GetUser(userId = userId))
         }
     }
 }

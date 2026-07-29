@@ -1,16 +1,12 @@
 package com.neki.user.api.controller
 
 import com.neki.common.api.dto.BaseResponse
-import com.neki.user.api.converter.AuthCommandConverter
-import com.neki.user.api.converter.AuthResultConverter
-import com.neki.user.api.dto.CreateAuthRequest
-import com.neki.user.api.dto.GetAuthResponse
-import com.neki.user.api.dto.GetKakaoTokenResponse
-import com.neki.user.api.dto.RefreshTokenRequest
-import com.neki.user.application.command.RefreshTokenCommand
-import com.neki.user.application.command.RegisterOauthUserCommand
-import com.neki.user.application.contract.KakaoTokenPayload
-import com.neki.user.application.result.GetAuthResult
+import com.neki.user.api.dto.AuthConverter
+import com.neki.user.api.dto.AuthRequest
+import com.neki.user.api.dto.AuthResponse
+import com.neki.user.application.dto.AuthCommand
+import com.neki.user.application.dto.AuthResult
+import com.neki.user.application.port.dto.AuthContract
 import com.neki.user.application.usecase.OauthLoginUseCase
 import com.neki.user.application.usecase.RefreshTokenUseCase
 import io.swagger.v3.oas.annotations.Hidden
@@ -40,8 +36,8 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(
     private val oauthLoginUseCase: OauthLoginUseCase,
     private val refreshTokenUseCase: RefreshTokenUseCase,
-    private val commandConverter: AuthCommandConverter,
-    private val resultConverter: AuthResultConverter,
+    private val requestConverter: AuthConverter.RequestConverter,
+    private val responseConverter: AuthConverter.ResponseConverter,
 ) {
 
     /**
@@ -116,13 +112,13 @@ class AuthController(
     fun oauthLogin(
         @Parameter(description = "로그인 제공자 타입 (kakao, apple)", example = "kakao")
         @PathVariable(name = "providerType") providerType: String,
-        @RequestBody @Valid request: CreateAuthRequest,
-    ): BaseResponse<GetAuthResponse> {
-        val command: RegisterOauthUserCommand = commandConverter.toCreateAuthCommand(request, providerType)
+        @RequestBody @Valid request: AuthRequest.CreateAuth,
+    ): BaseResponse<AuthResponse.GetAuth> {
+        val command: AuthCommand.RegisterOauthUser = requestConverter.toCreateAuthCommand(request, providerType)
 
-        val result: GetAuthResult = oauthLoginUseCase.execute(command)
+        val result: AuthResult.GetAuth = oauthLoginUseCase.execute(command)
 
-        val response: GetAuthResponse = resultConverter.toCreateAuthResponse(result)
+        val response: AuthResponse.GetAuth = responseConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -158,12 +154,12 @@ class AuthController(
         ),
     )
     @PostMapping("/refresh")
-    fun refreshToken(@RequestBody @Valid request: RefreshTokenRequest): BaseResponse<GetAuthResponse> {
-        val command: RefreshTokenCommand = commandConverter.toRefreshTokenCommand(request)
+    fun refreshToken(@RequestBody @Valid request: AuthRequest.RefreshToken): BaseResponse<AuthResponse.GetAuth> {
+        val command: AuthCommand.RefreshToken = requestConverter.toRefreshTokenCommand(request)
 
-        val result: GetAuthResult = refreshTokenUseCase.execute(command)
+        val result: AuthResult.GetAuth = refreshTokenUseCase.execute(command)
 
-        val response: GetAuthResponse = resultConverter.toCreateAuthResponse(result)
+        val response: AuthResponse.GetAuth = responseConverter.toCreateAuthResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -175,10 +171,10 @@ class AuthController(
      */
     @Hidden
     @GetMapping("/test/kakao/redirect")
-    fun kakaoTestRedirect(@RequestParam code: String): BaseResponse<GetKakaoTokenResponse> {
-        val tokenResponse: KakaoTokenPayload = oauthLoginUseCase.getAccessTokenByCode(code)
+    fun kakaoTestRedirect(@RequestParam code: String): BaseResponse<AuthResponse.GetKakaoToken> {
+        val tokenResponse: AuthContract.KakaoTokenPayload = oauthLoginUseCase.getAccessTokenByCode(code)
         return BaseResponse(
-            data = GetKakaoTokenResponse(
+            data = AuthResponse.GetKakaoToken(
                 accessToken = tokenResponse.accessToken,
                 tokenType = tokenResponse.tokenType,
                 refreshToken = tokenResponse.refreshToken,

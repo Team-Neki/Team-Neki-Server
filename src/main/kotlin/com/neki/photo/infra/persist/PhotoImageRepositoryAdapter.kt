@@ -3,9 +3,9 @@ package com.neki.photo.infra.persist
 import com.neki.common.code.ResultCode
 import com.neki.common.domain.vo.SortOrder
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.contract.PhotoWithFavorite
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.PhotoContract
 import com.neki.photo.domain.entity.PhotoImage
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
 import com.neki.photo.infra.persist.jpa.PhotoImageQueryRepository
@@ -25,7 +25,7 @@ class PhotoImageRepositoryAdapter(
     private val photoImageFolderRepository: PhotoImageFolderRepositoryPort,
 ) : PhotoImageRepositoryPort {
 
-    override fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite? =
+    override fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoContract.PhotoWithFavorite? =
         queryRepository.findOwnedPhotoWithFavorite(userId, photoId)
 
     override fun save(photoImage: PhotoImage): PhotoImage = jpaRepository.save(photoImage)
@@ -47,7 +47,8 @@ class PhotoImageRepositoryAdapter(
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-    ): List<PhotoWithFavorite> = queryRepository.findOwnedPhotosWithFavorite(userId, folderId, offset, limit, sortOrder)
+    ): List<PhotoContract.PhotoWithFavorite> =
+        queryRepository.findOwnedPhotosWithFavorite(userId, folderId, offset, limit, sortOrder)
 
     override fun listOwnedFavoritePhotos(
         userId: Long,

@@ -3,13 +3,13 @@ package com.neki.user.application.usecase
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aUser
-import com.neki.user.application.command.RegisterOauthUserCommand
-import com.neki.user.application.contract.OauthInfoPayload
+import com.neki.user.application.dto.AuthCommand
 import com.neki.user.application.port.AuthTokenProviderPort
 import com.neki.user.application.port.NicknameGeneratorPort
 import com.neki.user.application.port.OidcTokenValidatorPort
 import com.neki.user.application.port.UserEventPublisherPort
 import com.neki.user.application.port.UserRepositoryPort
+import com.neki.user.application.port.dto.AuthContract
 import com.neki.user.domain.entity.User
 import com.neki.user.domain.enums.Platform
 import com.neki.user.domain.enums.ProviderType
@@ -67,14 +67,14 @@ class OauthLoginUseCaseTest {
         val idToken = "valid-id-token"
         val existingUser =
             aUser(id = 1L, name = "기존유저", roles = RoleType.USER.role, providerType = ProviderType.KAKAO)
-        val oauthInfoPayload = OauthInfoPayload(
+        val oauthInfoPayload = AuthContract.OauthInfoPayload(
             providerType = ProviderType.KAKAO,
             oid = "kakao-oid-123",
             email = "existing@example.com",
             name = "기존유저",
             imageUrl = null,
         )
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,
@@ -118,14 +118,14 @@ class OauthLoginUseCaseTest {
     fun `신규 유저 가입 - 미존재 유저 감지 후 닉네임 생성 및 저장 후 토큰 생성`() {
         // Given
         val idToken = "valid-id-token"
-        val oauthInfoPayload = OauthInfoPayload(
+        val oauthInfoPayload = AuthContract.OauthInfoPayload(
             providerType = ProviderType.KAKAO,
             oid = "kakao-oid-new",
             email = "new@example.com",
             name = null,
             imageUrl = null,
         )
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,
@@ -175,7 +175,7 @@ class OauthLoginUseCaseTest {
     fun `ID token 검증 실패 - oidcTokenValidatorPort 예외 전파 확인`() {
         // Given
         val idToken = "invalid-id-token"
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,
@@ -197,14 +197,14 @@ class OauthLoginUseCaseTest {
     fun `유저 저장 후 토큰 생성 실패 - createAccessToken 예외 전파 확인`() {
         // Given
         val idToken = "valid-id-token"
-        val oauthInfoPayload = OauthInfoPayload(
+        val oauthInfoPayload = AuthContract.OauthInfoPayload(
             providerType = ProviderType.KAKAO,
             oid = "kakao-oid-new",
             email = "new@example.com",
             name = null,
             imageUrl = null,
         )
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,
@@ -244,14 +244,14 @@ class OauthLoginUseCaseTest {
         val idToken = "valid-id-token"
         val userWithMultipleRoles =
             aUser(id = 4L, name = "관리자", roles = "USER,ADMIN", providerType = ProviderType.KAKAO)
-        val oauthInfoPayload = OauthInfoPayload(
+        val oauthInfoPayload = AuthContract.OauthInfoPayload(
             providerType = ProviderType.KAKAO,
             oid = "kakao-oid-admin",
             email = "admin@example.com",
             name = "관리자",
             imageUrl = null,
         )
-        val command = RegisterOauthUserCommand(
+        val command = AuthCommand.RegisterOauthUser(
             idToken = idToken,
             providerType = ProviderType.KAKAO,
             platform = Platform.IOS,

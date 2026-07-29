@@ -1,8 +1,8 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.application.command.GetFoldersCommand
-import com.neki.photo.application.contract.FolderWithStats
+import com.neki.photo.application.dto.FolderQuery
 import com.neki.photo.application.port.FolderRepositoryPort
+import com.neki.photo.application.port.dto.PhotoContract
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -27,16 +27,26 @@ class GetFoldersUseCaseTest {
     @DisplayName("폴더 목록 정상 조회 시 FolderInfo 목록 반환")
     fun `폴더 목록 정상 조회 시 FolderInfo 목록 반환`() {
         // Given
-        val command = GetFoldersCommand(userId = 1L, limit = 10)
+        val query = FolderQuery.GetFolders(userId = 1L, limit = 10)
         val foldersWithStats = listOf(
-            FolderWithStats(folderId = 1L, name = "폴더1", coverImageStorageKey = "key/image1.jpg", photoCount = 5L),
-            FolderWithStats(folderId = 2L, name = "폴더2", coverImageStorageKey = "key/image2.jpg", photoCount = 3L),
+            PhotoContract.FolderWithStats(
+                folderId = 1L,
+                name = "폴더1",
+                coverImageStorageKey = "key/image1.jpg",
+                photoCount = 5L,
+            ),
+            PhotoContract.FolderWithStats(
+                folderId = 2L,
+                name = "폴더2",
+                coverImageStorageKey = "key/image2.jpg",
+                photoCount = 3L,
+            ),
         )
 
         every { folderRepository.listOwnedFoldersWithStats(1L, 10) } returns foldersWithStats
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.items shouldHaveSize 2
@@ -50,12 +60,12 @@ class GetFoldersUseCaseTest {
     @DisplayName("폴더가 없는 경우 빈 목록 반환")
     fun `폴더가 없는 경우 빈 목록 반환`() {
         // Given
-        val command = GetFoldersCommand(userId = 1L, limit = null)
+        val query = FolderQuery.GetFolders(userId = 1L, limit = null)
 
         every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns emptyList()
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.items.shouldBeEmpty()
@@ -65,15 +75,15 @@ class GetFoldersUseCaseTest {
     @DisplayName("coverImageStorageKey가 null인 폴더는 storageKey에 null 반환")
     fun `coverImageStorageKey가 null인 폴더는 storageKey에 null 반환`() {
         // Given
-        val command = GetFoldersCommand(userId = 1L, limit = null)
+        val query = FolderQuery.GetFolders(userId = 1L, limit = null)
         val foldersWithStats = listOf(
-            FolderWithStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
+            PhotoContract.FolderWithStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
         )
 
         every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns foldersWithStats
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.items shouldHaveSize 1

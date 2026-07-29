@@ -2,7 +2,7 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.command.UpdatePoseScrapCommand
+import com.neki.pose.application.dto.PoseCommand
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
 import com.neki.pose.domain.entity.ScrapPose
@@ -35,7 +35,7 @@ class UpdatePoseScrapUseCaseTest {
     @DisplayName("스크랩 추가 (scrap=true) - add() 호출 확인")
     fun `스크랩 추가 (scrap=true) - add() 호출 확인`() {
         // Given
-        val command = UpdatePoseScrapCommand(userId = 1L, poseId = 10L, scrap = true)
+        val command = PoseCommand.UpdatePoseScrap(userId = 1L, poseId = 10L, scrap = true)
         val scrapPoseSlot = slot<ScrapPose>()
         every { poseRepository.existsPose(10L) } returns true
         every { scrapPoseRepository.add(capture(scrapPoseSlot)) } just Runs
@@ -54,7 +54,7 @@ class UpdatePoseScrapUseCaseTest {
     @DisplayName("스크랩 해제 (scrap=false) - delete() 호출 확인")
     fun `스크랩 해제 (scrap=false) - delete() 호출 확인`() {
         // Given
-        val command = UpdatePoseScrapCommand(userId = 1L, poseId = 10L, scrap = false)
+        val command = PoseCommand.UpdatePoseScrap(userId = 1L, poseId = 10L, scrap = false)
         val scrapPoseSlot = slot<ScrapPose>()
         every { poseRepository.existsPose(10L) } returns true
         every { scrapPoseRepository.delete(capture(scrapPoseSlot)) } just Runs
@@ -73,7 +73,7 @@ class UpdatePoseScrapUseCaseTest {
     @DisplayName("포즈 미존재 → BusinessException(NOT_FOUND)")
     fun `포즈 미존재 → BusinessException(NOT_FOUND)`() {
         // Given
-        val command = UpdatePoseScrapCommand(userId = 1L, poseId = 999L, scrap = true)
+        val command = PoseCommand.UpdatePoseScrap(userId = 1L, poseId = 999L, scrap = true)
         every { poseRepository.existsPose(999L) } returns false
 
         // When / Then
@@ -89,7 +89,7 @@ class UpdatePoseScrapUseCaseTest {
     @DisplayName("이미 스크랩된 포즈에 add - 멱등성 (예외 없이 add 호출)")
     fun `이미 스크랩된 포즈에 add - 멱등성 (예외 없이 add 호출)`() {
         // Given
-        val command = UpdatePoseScrapCommand(userId = 1L, poseId = 10L, scrap = true)
+        val command = PoseCommand.UpdatePoseScrap(userId = 1L, poseId = 10L, scrap = true)
         every { poseRepository.existsPose(10L) } returns true
         every { scrapPoseRepository.add(any()) } just Runs
 
@@ -104,7 +104,7 @@ class UpdatePoseScrapUseCaseTest {
     @DisplayName("스크랩 안 된 포즈에 delete - 멱등성 (예외 없이 delete 호출)")
     fun `스크랩 안 된 포즈에 delete - 멱등성 (예외 없이 delete 호출)`() {
         // Given
-        val command = UpdatePoseScrapCommand(userId = 1L, poseId = 10L, scrap = false)
+        val command = PoseCommand.UpdatePoseScrap(userId = 1L, poseId = 10L, scrap = false)
         every { poseRepository.existsPose(10L) } returns true
         every { scrapPoseRepository.delete(any()) } just Runs
 

@@ -3,7 +3,7 @@ package com.neki.e2e.photo.folder
 import com.neki.common.code.ResultCode
 import com.neki.e2e.photo.image.PhotoImageE2ETestBase
 import com.neki.media.domain.entity.MediaStatus
-import com.neki.photo.api.dto.RemovePhotosFromFolderRequest
+import com.neki.photo.api.dto.FolderRequest
 import com.neki.photo.domain.entity.Folder
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -56,7 +56,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(photo.id!!)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(photo.id!!)))
             .`when`()
             .delete("/api/folders/${folder.id}/photos")
             .then()
@@ -86,7 +86,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(photo1.id!!, photo2.id!!, photo3.id!!)))
             .`when`()
             .delete("/api/folders/${folder.id}/photos")
             .then()
@@ -110,7 +110,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(photo.id!!)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(photo.id!!)))
             .`when`()
             .delete("/api/folders/$nonExistentFolderId/photos")
             .then()
@@ -131,7 +131,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(photo.id!!)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(photo.id!!)))
             .`when`()
             .delete("/api/folders/${otherFolder.id}/photos")
             .then()
@@ -149,7 +149,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = emptyList()))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = emptyList()))
             .`when`()
             .delete("/api/folders/${folder.id}/photos")
             .then()
@@ -169,7 +169,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(photoNotInFolder.id!!)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(photoNotInFolder.id!!)))
             .`when`()
             .delete("/api/folders/${folder.id}/photos")
             .then()
@@ -190,7 +190,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(photoInFolder2.id!!)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(photoInFolder2.id!!)))
             .`when`()
             .delete("/api/folders/${folder1.id}/photos")
             .then()
@@ -222,7 +222,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(photo2.id!!)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(photo2.id!!)))
             .`when`()
             .delete("/api/folders/${folder.id}/photos")
             .then()
@@ -247,7 +247,7 @@ class RemovePhotosFromFolderE2ETest : PhotoImageE2ETestBase() {
         RestAssured.given()
             .contentType(ContentType.JSON)
             .header("Authorization", "Bearer $accessToken")
-            .body(RemovePhotosFromFolderRequest(photoIds = listOf(photo.id!!)))
+            .body(FolderRequest.RemovePhotosFromFolder(photoIds = listOf(photo.id!!)))
             .`when`()
             .delete("/api/folders/${folder.id}/photos")
             .then()

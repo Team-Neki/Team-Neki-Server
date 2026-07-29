@@ -3,7 +3,7 @@ package com.neki.map.application.usecase
 import com.neki.map.application.port.BrandRepositoryPort
 import com.neki.map.application.port.MediaClientPort
 import com.neki.map.application.port.UserBrandOrderRepositoryPort
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.testfixture.aBrand
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -43,9 +43,9 @@ class GetBrandUseCaseTest :
             val brands = listOf(brand1, brand2)
 
             val storageInfo1 =
-                MediaStorageInfo(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg")
+                MediaContract.StorageInfo(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg")
             val storageInfo2 =
-                MediaStorageInfo(mediaId = 20L, storageKey = "brand/harufilm.jpg", contentType = "image/jpeg")
+                MediaContract.StorageInfo(mediaId = 20L, storageKey = "brand/harufilm.jpg", contentType = "image/jpeg")
 
             every { brandRepository.findAll() } returns brands
             every { mediaClient.getMediaStorageInfos(listOf(10L, 20L)) } returns listOf(storageInfo1, storageInfo2)
@@ -75,7 +75,7 @@ class GetBrandUseCaseTest :
 
             every { brandRepository.findAll() } returns listOf(brandWithMedia, brandWithoutMedia)
             every { mediaClient.getMediaStorageInfos(listOf(10L)) } returns listOf(
-                MediaStorageInfo(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg"),
+                MediaContract.StorageInfo(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg"),
             )
 
             // When
@@ -115,9 +115,9 @@ class GetBrandUseCaseTest :
 
             // 3개만 storageInfo 반환 (40L, 50L은 미존재)
             val availableStorageInfos = listOf(
-                MediaStorageInfo(mediaId = 10L, storageKey = "brand/brand1.jpg", contentType = "image/jpeg"),
-                MediaStorageInfo(mediaId = 20L, storageKey = "brand/brand2.jpg", contentType = "image/jpeg"),
-                MediaStorageInfo(mediaId = 30L, storageKey = "brand/brand3.jpg", contentType = "image/jpeg"),
+                MediaContract.StorageInfo(mediaId = 10L, storageKey = "brand/brand1.jpg", contentType = "image/jpeg"),
+                MediaContract.StorageInfo(mediaId = 20L, storageKey = "brand/brand2.jpg", contentType = "image/jpeg"),
+                MediaContract.StorageInfo(mediaId = 30L, storageKey = "brand/brand3.jpg", contentType = "image/jpeg"),
             )
 
             every { brandRepository.findAll() } returns brands

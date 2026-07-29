@@ -2,12 +2,12 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.command.GetRandomPoseCommand
-import com.neki.pose.application.contract.MediaStorageInfo
+import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.port.MediaClientPort
 import com.neki.pose.application.port.PoseRepositoryPort
 import com.neki.pose.application.port.RandomGeneratorPort
 import com.neki.pose.application.port.ScrapPoseRepositoryPort
+import com.neki.pose.application.port.dto.MediaContract
 import com.neki.pose.domain.HeadCount
 import com.neki.pose.domain.entity.ScrapPoseId
 import com.neki.testfixture.aPose
@@ -37,13 +37,14 @@ class RandomPoseUseCaseTest {
         useCase = RandomPoseUseCase(poseRepository, scrapPoseRepository, mediaClient, randomGenerator)
     }
 
-    private fun makeCommand(
+    private fun makeQuery(
         userId: Long = 1L,
         headCount: HeadCount = HeadCount.TWO,
         excludeIds: List<Long> = emptyList(),
-    ): GetRandomPoseCommand = GetRandomPoseCommand(userId = userId, headCount = headCount, excludeIds = excludeIds)
+    ): PoseQuery.GetRandomPose =
+        PoseQuery.GetRandomPose(userId = userId, headCount = headCount, excludeIds = excludeIds)
 
-    private fun makeMediaStorageInfo(mediaId: Long): MediaStorageInfo = MediaStorageInfo(
+    private fun makeMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo = MediaContract.StorageInfo(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",
@@ -55,7 +56,7 @@ class RandomPoseUseCaseTest {
     @DisplayName("정상 - 랜덤 포즈 반환")
     fun `정상 - 랜덤 포즈 반환`() {
         // Given
-        val command = makeCommand()
+        val query = makeQuery()
         val pose = aPose(id = 10L, mediaId = 101L, headCount = HeadCount.TWO)
         pose.createdAt = LocalDateTime.of(2026, 1, 1, 0, 0)
 
@@ -66,7 +67,7 @@ class RandomPoseUseCaseTest {
         every { mediaClient.getMediaStorageInfo(101L) } returns makeMediaStorageInfo(101L)
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.poseId shouldBe 10L
@@ -79,12 +80,12 @@ class RandomPoseUseCaseTest {
     @DisplayName("포즈 없음 → BusinessException(NO_MORE_RANDOM_POSE)")
     fun `포즈 없음 → BusinessException(NO_MORE_RANDOM_POSE)`() {
         // Given
-        val command = makeCommand()
+        val query = makeQuery()
         every { poseRepository.countPoses(HeadCount.TWO, emptyList()) } returns 0L
 
         // When / Then
         val ex = shouldThrow<BusinessException> {
-            useCase.execute(command)
+            useCase.execute(query)
         }
         ex.resultCode shouldBe ResultCode.NO_MORE_RANDOM_POSE
     }
@@ -93,14 +94,14 @@ class RandomPoseUseCaseTest {
     @DisplayName("offset 포즈 미존재 (race condition) - findPoseByOffset null → BusinessException(NO_MORE_RANDOM_POSE)")
     fun `offset 포즈 미존재 (race condition) - findPoseByOffset null → BusinessException(NO_MORE_RANDOM_POSE)`() {
         // Given
-        val command = makeCommand()
+        val query = makeQuery()
         every { poseRepository.countPoses(HeadCount.TWO, emptyList()) } returns 3L
         every { randomGenerator.nextLong(3L) } returns 1L
         every { poseRepository.findPoseByOffset(1L, HeadCount.TWO, emptyList()) } returns null
 
         // When / Then
         val ex = shouldThrow<BusinessException> {
-            useCase.execute(command)
+            useCase.execute(query)
         }
         ex.resultCode shouldBe ResultCode.NO_MORE_RANDOM_POSE
     }
@@ -109,7 +110,7 @@ class RandomPoseUseCaseTest {
     @DisplayName("count=1 - nextLong(1) → offset=0 → 하나의 포즈 반환")
     fun `count=1 - nextLong(1) → offset=0 → 하나의 포즈 반환`() {
         // Given
-        val command = makeCommand()
+        val query = makeQuery()
         val pose = aPose(id = 5L, mediaId = 201L, headCount = HeadCount.TWO)
         pose.createdAt = LocalDateTime.of(2026, 1, 1, 0, 0)
 
@@ -120,7 +121,7 @@ class RandomPoseUseCaseTest {
         every { mediaClient.getMediaStorageInfo(201L) } returns makeMediaStorageInfo(201L)
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.poseId shouldBe 5L
@@ -131,7 +132,7 @@ class RandomPoseUseCaseTest {
     @DisplayName("mediaClient 예외 - 포즈 선택 후 미디어 조회 실패")
     fun `mediaClient 예외 - 포즈 선택 후 미디어 조회 실패`() {
         // Given
-        val command = makeCommand()
+        val query = makeQuery()
         val pose = aPose(id = 10L, mediaId = 101L, headCount = HeadCount.TWO)
         pose.createdAt = LocalDateTime.of(2026, 1, 1, 0, 0)
 
@@ -143,7 +144,7 @@ class RandomPoseUseCaseTest {
 
         // When / Then
         shouldThrow<RuntimeException> {
-            useCase.execute(command)
+            useCase.execute(query)
         }
     }
 }

@@ -2,11 +2,11 @@ package com.neki.media.application.usecase
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.media.application.command.ConfirmMediasUploadedCommand
+import com.neki.media.application.dto.MediaCommand
+import com.neki.media.application.dto.MediaResult
+import com.neki.media.application.dto.MediaResult.ConfirmMediasUploaded.UploadConfirmStatus
 import com.neki.media.application.port.MediaRepositoryPort
 import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.result.ConfirmMediasUploadedResult
-import com.neki.media.application.result.ConfirmMediasUploadedResult.UploadConfirmStatus
 import com.neki.media.domain.entity.Media
 
 /**
@@ -22,8 +22,8 @@ class ConfirmMediaUploadedUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: ConfirmMediasUploadedCommand): ConfirmMediasUploadedResult {
-        if (command.mediaIds.isEmpty()) return ConfirmMediasUploadedResult(emptyMap())
+    fun execute(command: MediaCommand.ConfirmMediasUploaded): MediaResult.ConfirmMediasUploaded {
+        if (command.mediaIds.isEmpty()) return MediaResult.ConfirmMediasUploaded(emptyMap())
 
         val medias: List<Media> = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
 
@@ -52,7 +52,7 @@ class ConfirmMediaUploadedUseCase(
                     else -> UploadConfirmStatus.NOT_UPLOADED
                 }
             }
-            ConfirmMediasUploadedResult(results)
+            MediaResult.ConfirmMediasUploaded(results)
         }
     }
 
@@ -60,7 +60,7 @@ class ConfirmMediaUploadedUseCase(
      * 보상 트랜잭션: media 상태를 INITIATED로 롤백
      * PhotoImage 저장 실패 시 호출
      */
-    fun rollback(command: ConfirmMediasUploadedCommand) {
+    fun rollback(command: MediaCommand.ConfirmMediasUploaded) {
         if (command.mediaIds.isEmpty()) return
 
         transactionRunner.runNew {

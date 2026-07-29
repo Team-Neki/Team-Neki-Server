@@ -1,10 +1,10 @@
 package com.neki.photo.application.usecase
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.command.GetFavoritePhotosCommand
-import com.neki.photo.application.contract.MediaStorageInfo
+import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.application.port.dto.MediaContract
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPhotoImage
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -35,10 +35,10 @@ class GetFavoritePhotosUseCaseTest {
         useCase = GetFavoritePhotosUseCase(photoImageRepository, mediaClient, FakeTransactionRunner())
     }
 
-    private fun makeCommand(page: Int = 0, size: Int = 10) =
-        GetFavoritePhotosCommand(userId = 1L, page = page, size = size, sortOrder = SortOrder.DESC)
+    private fun makeQuery(page: Int = 0, size: Int = 10) =
+        PhotoImageQuery.GetFavoritePhotos(userId = 1L, page = page, size = size, sortOrder = SortOrder.DESC)
 
-    private fun makeMediaInfo(mediaId: Long) = MediaStorageInfo(
+    private fun makeMediaInfo(mediaId: Long) = MediaContract.StorageInfo(
         mediaId = mediaId,
         storageKey = "key/$mediaId.jpg",
         contentType = "image/jpeg",
@@ -50,7 +50,7 @@ class GetFavoritePhotosUseCaseTest {
     @DisplayName("즐겨찾기 사진 정상 조회 시 목록 반환")
     fun `즐겨찾기 사진 정상 조회 시 목록 반환`() {
         // Given
-        val command = makeCommand(size = 10)
+        val query = makeQuery(size = 10)
         val photo1 = favoritePhotoWithCreatedAt(id = 1L, mediaId = 10L)
         val photo2 = favoritePhotoWithCreatedAt(id = 2L, mediaId = 20L)
 
@@ -61,7 +61,7 @@ class GetFavoritePhotosUseCaseTest {
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.photos shouldHaveSize 2
@@ -75,7 +75,7 @@ class GetFavoritePhotosUseCaseTest {
     @DisplayName("size+1개 조회 시 hasNext=true 반환")
     fun `size+1개 조회 시 hasNext=true 반환`() {
         // Given
-        val command = makeCommand(size = 2)
+        val query = makeQuery(size = 2)
         val photos = (1L..3L).map { favoritePhotoWithCreatedAt(id = it, mediaId = it * 10) }
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
@@ -84,7 +84,7 @@ class GetFavoritePhotosUseCaseTest {
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.hasNext shouldBe true
@@ -96,7 +96,7 @@ class GetFavoritePhotosUseCaseTest {
     @DisplayName("정확히 size개 조회 시 hasNext=false 반환")
     fun `정확히 size개 조회 시 hasNext=false 반환`() {
         // Given
-        val command = makeCommand(size = 2)
+        val query = makeQuery(size = 2)
         val photos = (1L..2L).map { favoritePhotoWithCreatedAt(id = it, mediaId = it * 10) }
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
@@ -105,7 +105,7 @@ class GetFavoritePhotosUseCaseTest {
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.hasNext shouldBe false
@@ -117,13 +117,13 @@ class GetFavoritePhotosUseCaseTest {
     @DisplayName("즐겨찾기 사진이 없는 경우 빈 결과와 hasNext=false 반환")
     fun `즐겨찾기 사진이 없는 경우 빈 결과와 hasNext=false 반환`() {
         // Given
-        val command = makeCommand()
+        val query = makeQuery()
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns emptyList()
         every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 0L
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.photos.shouldBeEmpty()
@@ -135,7 +135,7 @@ class GetFavoritePhotosUseCaseTest {
     @DisplayName("모든 사진의 미디어가 없는 경우 빈 결과 반환")
     fun `모든 사진의 미디어가 없는 경우 빈 결과 반환`() {
         // Given
-        val command = makeCommand(size = 10)
+        val query = makeQuery(size = 10)
         val photo1 = favoritePhotoWithCreatedAt(id = 1L, mediaId = 10L)
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns listOf(photo1)
@@ -143,7 +143,7 @@ class GetFavoritePhotosUseCaseTest {
         every { mediaClient.getMediaStorageInfos(1L, listOf(10L)) } returns emptyList()
 
         // When
-        val result = useCase.execute(command)
+        val result = useCase.execute(query)
 
         // Then
         result.photos.shouldBeEmpty()

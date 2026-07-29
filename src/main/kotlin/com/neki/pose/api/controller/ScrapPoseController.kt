@@ -3,13 +3,12 @@ package com.neki.pose.api.controller
 import com.neki.common.api.document.RequiresSecurity
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.api.converter.ScrapPoseCommandConverter
-import com.neki.pose.api.converter.ScrapPoseResultConverter
-import com.neki.pose.api.dto.GetPosesResponse
-import com.neki.pose.api.dto.UpdatePoseScarpRequest
-import com.neki.pose.application.command.GetScrapPosesCommand
-import com.neki.pose.application.command.UpdatePoseScrapCommand
-import com.neki.pose.application.result.GetPosesResult
+import com.neki.pose.api.dto.PoseRequest
+import com.neki.pose.api.dto.PoseResponse
+import com.neki.pose.api.dto.ScrapPoseConverter
+import com.neki.pose.application.dto.PoseCommand
+import com.neki.pose.application.dto.PoseQuery
+import com.neki.pose.application.dto.PoseResult
 import com.neki.pose.application.usecase.GetScrapPosesUseCase
 import com.neki.pose.application.usecase.UpdatePoseScrapUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -40,8 +39,8 @@ class ScrapPoseController(
     private val updatePoseScrapUseCase: UpdatePoseScrapUseCase,
     private val getScrapPosesUseCase: GetScrapPosesUseCase,
 
-    private val commandConverter: ScrapPoseCommandConverter,
-    private val resultConverter: ScrapPoseResultConverter,
+    private val requestConverter: ScrapPoseConverter.RequestConverter,
+    private val responseConverter: ScrapPoseConverter.ResponseConverter,
 ) {
 
     @Operation(
@@ -52,9 +51,9 @@ class ScrapPoseController(
     fun scrapPose(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @PathVariable poseId: Long,
-        @Valid @RequestBody request: UpdatePoseScarpRequest,
+        @Valid @RequestBody request: PoseRequest.UpdatePoseScarp,
     ): BaseResponse<Any> {
-        val command: UpdatePoseScrapCommand = commandConverter.toUpdatePoseScrapCommand(
+        val command: PoseCommand.UpdatePoseScrap = requestConverter.toUpdatePoseScrapCommand(
             userId = userId,
             poseId = poseId,
             request = request,
@@ -75,17 +74,17 @@ class ScrapPoseController(
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
-    ): BaseResponse<GetPosesResponse> {
-        val command: GetScrapPosesCommand = commandConverter.toGetPoseScrapCommand(
+    ): BaseResponse<PoseResponse.GetPoses> {
+        val command: PoseQuery.GetScrapPoses = requestConverter.toGetPoseScrapCommand(
             userId = userId,
             page = page,
             size = size,
             sortOrder = sortOrder,
         )
 
-        val result: GetPosesResult = getScrapPosesUseCase.execute(command)
+        val result: PoseResult.GetPoses = getScrapPosesUseCase.execute(command)
 
-        val response: GetPosesResponse = resultConverter.toGetPosesResponse(result)
+        val response: PoseResponse.GetPoses = responseConverter.toGetPosesResponse(result)
 
         return BaseResponse(data = response)
     }

@@ -1,7 +1,6 @@
 package com.neki.map.application.port
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
-import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
+import com.neki.map.application.port.dto.MapContract
 import com.neki.map.domain.entity.PhotoBoothLocation
 import org.locationtech.jts.geom.Coordinate
 
@@ -21,11 +20,11 @@ interface PhotoBoothLocationRepositoryPort {
 
     fun existsById(locationId: Long): Boolean
 
-    fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationDto>
+    fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<MapContract.PhotoBoothLocation>
 
     fun listPointLocations(
         coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
-    ): List<PhotoBoothLocationWithDistanceDto>
+    ): List<MapContract.PhotoBoothLocationWithDistance>
 }

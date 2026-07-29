@@ -1,9 +1,9 @@
 package com.neki.e2e.photo.image
 
 import com.neki.common.code.ResultCode
-import com.neki.media.api.dto.UploadTicketRequest
+import com.neki.media.api.dto.MediaRequest
 import com.neki.media.domain.MediaType
-import com.neki.photo.api.dto.UploadPhotoRequest
+import com.neki.photo.api.dto.PhotoImageRequest
 import com.neki.photo.domain.enums.UploadMethod
 import com.neki.photo.infra.persist.jpa.PhotoImageQueryRepository
 import com.neki.user.domain.entity.User
@@ -54,9 +54,9 @@ class UploadPhotosIdempotencyE2ETest : PhotoImageE2ETestBase() {
     // ===================
 
     private fun createMediaIds(count: Int): List<Long> {
-        val ticketRequest = UploadTicketRequest(
+        val ticketRequest = MediaRequest.UploadTicket(
             items = (1..count).map {
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo$it.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -79,10 +79,10 @@ class UploadPhotosIdempotencyE2ETest : PhotoImageE2ETestBase() {
     }
 
     private fun uploadPhotos(folderId: Long?, mediaIds: List<Long>) {
-        val uploadRequest = UploadPhotoRequest(
+        val uploadRequest = PhotoImageRequest.UploadPhoto(
             folderId = folderId,
             uploads = mediaIds.map {
-                UploadPhotoRequest.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,

@@ -2,7 +2,7 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.command.RemovePhotosFromFolderCommand
+import com.neki.photo.application.dto.FolderCommand
 import com.neki.photo.application.port.FolderRepositoryPort
 import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
 import com.neki.testfixture.aFolder
@@ -34,7 +34,7 @@ class RemovePhotosFromFolderUseCaseTest {
         // Given
         val folder = aFolder(id = 1L, userId = 1L)
         val photoIds = listOf(10L, 20L)
-        val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 1L, photoIds = photoIds)
+        val command = FolderCommand.RemovePhotosFromFolder(userId = 1L, folderId = 1L, photoIds = photoIds)
 
         every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
         every { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(photoIds, 1L) } returns Unit
@@ -50,7 +50,7 @@ class RemovePhotosFromFolderUseCaseTest {
     @DisplayName("폴더 소유권이 없는 경우 NOT_FOUND 예외 발생")
     fun `폴더 소유권이 없는 경우 NOT_FOUND 예외 발생`() {
         // Given
-        val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 99L, photoIds = listOf(10L))
+        val command = FolderCommand.RemovePhotosFromFolder(userId = 1L, folderId = 99L, photoIds = listOf(10L))
 
         every { folderRepository.getOwnedFolder(1L, 99L) } returns null
 
@@ -68,7 +68,7 @@ class RemovePhotosFromFolderUseCaseTest {
         // Given
         val folder = aFolder(id = 1L, userId = 1L)
         val emptyPhotoIds = emptyList<Long>()
-        val command = RemovePhotosFromFolderCommand(userId = 1L, folderId = 1L, photoIds = emptyPhotoIds)
+        val command = FolderCommand.RemovePhotosFromFolder(userId = 1L, folderId = 1L, photoIds = emptyPhotoIds)
 
         every { folderRepository.getOwnedFolder(1L, 1L) } returns folder
         every { photoImageFolderRepository.deleteByPhotoImageIdsAndFolderId(emptyPhotoIds, 1L) } returns Unit

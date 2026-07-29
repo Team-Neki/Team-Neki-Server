@@ -1,10 +1,10 @@
 package com.neki.notification.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.notification.application.command.SendPushCommand
+import com.neki.notification.application.dto.NotificationCommand
+import com.neki.notification.application.dto.NotificationResult
 import com.neki.notification.application.port.NotificationHistRepositoryPort
 import com.neki.notification.application.port.PushNotificationPort
-import com.neki.notification.application.result.SendPushResult
 import com.neki.notification.domain.entity.NotificationHist
 
 /**
@@ -19,7 +19,7 @@ class SendPushUseCase(
     private val notificationHistRepository: NotificationHistRepositoryPort,
 ) {
 
-    fun execute(command: SendPushCommand): SendPushResult {
+    fun execute(command: NotificationCommand.SendPush): NotificationResult.SendPush {
         val messageId: String =
             pushNotificationPort.send(command.token, command.title, command.body, command.link)
 
@@ -34,6 +34,6 @@ class SendPushUseCase(
             ),
         )
 
-        return SendPushResult(messageId = messageId)
+        return NotificationResult.SendPush(messageId = messageId)
     }
 }

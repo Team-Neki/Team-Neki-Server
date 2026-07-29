@@ -1,7 +1,7 @@
 package com.neki.user.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.user.application.command.LogoutCommand
+import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.port.NotificationClientPort
 
 /**
@@ -13,7 +13,7 @@ import com.neki.user.application.port.NotificationClientPort
 @UseCase
 class LogoutUseCase(private val notificationClient: NotificationClientPort) {
 
-    fun execute(command: LogoutCommand) {
+    fun execute(command: UserCommand.Logout) {
         notificationClient.deleteFcmToken(command.userId)
     }
 }

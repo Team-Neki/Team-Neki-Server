@@ -1,6 +1,6 @@
 package com.neki.support.application.usecase
 
-import com.neki.support.application.command.CheckRequiredTermsAgreementCommand
+import com.neki.support.application.dto.TermQuery
 import com.neki.support.application.port.TermRepositoryPort
 import com.neki.support.application.port.UserTermAgreementRepositoryPort
 import com.neki.testfixture.aTerm
@@ -39,7 +39,7 @@ class CheckRequiredTermsAgreementUseCaseTest {
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1, agreement2)
 
         // When
-        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(TermQuery.CheckRequiredTermsAgreement(userId = userId))
 
         // Then
         result.agreed shouldBe true
@@ -58,7 +58,7 @@ class CheckRequiredTermsAgreementUseCaseTest {
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement1)
 
         // When
-        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(TermQuery.CheckRequiredTermsAgreement(userId = userId))
 
         // Then
         result.agreed shouldBe false
@@ -74,7 +74,7 @@ class CheckRequiredTermsAgreementUseCaseTest {
         every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
         // When
-        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(TermQuery.CheckRequiredTermsAgreement(userId = userId))
 
         // Then
         result.agreed shouldBe true
@@ -92,7 +92,7 @@ class CheckRequiredTermsAgreementUseCaseTest {
         every { userTermAgreementRepository.findByUserId(userId) } returns listOf(agreement)
 
         // When
-        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(TermQuery.CheckRequiredTermsAgreement(userId = userId))
 
         // Then
         result.agreed shouldBe false
@@ -109,7 +109,7 @@ class CheckRequiredTermsAgreementUseCaseTest {
         every { userTermAgreementRepository.findByUserId(userId) } returns emptyList()
 
         // When
-        val result = useCase.execute(CheckRequiredTermsAgreementCommand(userId = userId))
+        val result = useCase.execute(TermQuery.CheckRequiredTermsAgreement(userId = userId))
 
         // Then
         result.agreed shouldBe false

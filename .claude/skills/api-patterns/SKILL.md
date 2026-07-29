@@ -204,8 +204,8 @@ fun createFolder(
 
 - [ ] Use `BaseResponse<T>` wrapper
 - [ ] Create Request/Response DTOs in `api/dto/`
-- [ ] Create Command in `application/command/`
-- [ ] Create Result in `application/result/`
+- [ ] Create Command(쓰기) / Query(조회) in `application/dto/` (도메인별 `XxxCommand` · `XxxQuery` object 하위 중첩 클래스)
+- [ ] Create Result in `application/dto/` (도메인별 `XxxResult` object 하위 중첩 클래스)
 - [ ] Create Converters in `api/converter/`
 - [ ] Add `@Operation` with summary and description
 - [ ] Add `@RequiresSecurity` if authentication required

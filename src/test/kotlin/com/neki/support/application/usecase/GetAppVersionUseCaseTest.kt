@@ -2,7 +2,7 @@ package com.neki.support.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.application.command.GetAppVersionCommand
+import com.neki.support.application.dto.AppVersionQuery
 import com.neki.support.application.port.AppVersionRepositoryPort
 import com.neki.support.domain.enums.Platform
 import com.neki.testfixture.anAppVersion
@@ -34,7 +34,7 @@ class GetAppVersionUseCaseTest {
         every { appVersionRepository.findByPlatform(platform) } returns appVersion
 
         // When
-        val result = useCase.execute(GetAppVersionCommand(platform = platform))
+        val result = useCase.execute(AppVersionQuery.GetAppVersion(platform = platform))
 
         // Then
         result.platform shouldBe platform
@@ -51,7 +51,7 @@ class GetAppVersionUseCaseTest {
 
         // When & Then
         val exception = shouldThrow<BusinessException> {
-            useCase.execute(GetAppVersionCommand(platform = platform))
+            useCase.execute(AppVersionQuery.GetAppVersion(platform = platform))
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND
     }

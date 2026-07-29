@@ -1,10 +1,10 @@
 package com.neki.photo.application.usecase
 
 import com.neki.common.annotation.UseCase
-import com.neki.photo.application.command.GetFoldersCommand
-import com.neki.photo.application.contract.FolderWithStats
+import com.neki.photo.application.dto.FolderQuery
+import com.neki.photo.application.dto.FolderResult
 import com.neki.photo.application.port.FolderRepositoryPort
-import com.neki.photo.application.result.GetFoldersResult
+import com.neki.photo.application.port.dto.PhotoContract
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -17,14 +17,14 @@ import org.springframework.transaction.annotation.Transactional
 class GetFoldersUseCase(private val folderRepository: FolderRepositoryPort) {
 
     @Transactional(readOnly = true)
-    fun execute(command: GetFoldersCommand): GetFoldersResult {
-        val foldersWithStats: List<FolderWithStats> = folderRepository.listOwnedFoldersWithStats(
-            command.userId,
-            command.limit,
+    fun execute(query: FolderQuery.GetFolders): FolderResult.GetFolders {
+        val foldersWithStats: List<PhotoContract.FolderWithStats> = folderRepository.listOwnedFoldersWithStats(
+            query.userId,
+            query.limit,
         )
 
-        val items: List<GetFoldersResult.FolderInfo> = foldersWithStats.map { folder ->
-            GetFoldersResult.FolderInfo(
+        val items: List<FolderResult.GetFolders.Item> = foldersWithStats.map { folder ->
+            FolderResult.GetFolders.Item(
                 folderId = folder.folderId,
                 name = folder.name,
                 storageKey = folder.coverImageStorageKey,
@@ -32,6 +32,6 @@ class GetFoldersUseCase(private val folderRepository: FolderRepositoryPort) {
             )
         }
 
-        return GetFoldersResult(items = items)
+        return FolderResult.GetFolders(items = items)
     }
 }

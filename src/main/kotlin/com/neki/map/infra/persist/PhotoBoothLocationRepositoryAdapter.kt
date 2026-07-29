@@ -1,8 +1,7 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.application.contract.PhotoBoothLocationDto
-import com.neki.map.application.contract.PhotoBoothLocationWithDistanceDto
 import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
+import com.neki.map.application.port.dto.MapContract
 import com.neki.map.domain.entity.PhotoBoothLocation
 import com.neki.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Repository
  * fileName       : PhotoBoothLocationAdapter
  * author         : darren
  * date           : 2026. 1. 16. 11:25
- * description    : PhotoBoothLocation 영속성에 대한 Adapter (command + query)
+ * description    : PhotoBoothLocation 영속성에 대한 Adapter (query + query)
  */
 @Repository
 class PhotoBoothLocationRepositoryAdapter(
@@ -35,12 +34,12 @@ class PhotoBoothLocationRepositoryAdapter(
     override fun listPolygonLocations(
         coordinates: List<Coordinate>,
         brandIds: List<Long>?,
-    ): List<PhotoBoothLocationDto> = queryRepository.findByPolygon(coordinates, brandIds)
+    ): List<MapContract.PhotoBoothLocation> = queryRepository.findByPolygon(coordinates, brandIds)
 
     override fun listPointLocations(
         coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
-    ): List<PhotoBoothLocationWithDistanceDto> =
+    ): List<MapContract.PhotoBoothLocationWithDistance> =
         queryRepository.findByDistanceFromPoint(coordinate, radiusInMeters, brandIds)
 }

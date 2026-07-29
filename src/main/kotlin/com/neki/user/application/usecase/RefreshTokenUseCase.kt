@@ -3,9 +3,9 @@ package com.neki.user.application.usecase
 import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.application.command.RefreshTokenCommand
+import com.neki.user.application.dto.AuthCommand
+import com.neki.user.application.dto.AuthResult
 import com.neki.user.application.port.AuthTokenProviderPort
-import com.neki.user.application.result.GetAuthResult
 import com.neki.user.infra.security.token.UserPrincipal
 import org.springframework.security.core.Authentication
 
@@ -18,7 +18,7 @@ import org.springframework.security.core.Authentication
 @UseCase
 class RefreshTokenUseCase(private val tokenProviderPort: AuthTokenProviderPort) {
 
-    fun execute(command: RefreshTokenCommand): GetAuthResult {
+    fun execute(command: AuthCommand.RefreshToken): AuthResult.GetAuth {
         // 1. RefreshToken 유효성 검증
         if (!tokenProviderPort.validateRefreshToken(command.refreshToken)) {
             throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
@@ -44,7 +44,7 @@ class RefreshTokenUseCase(private val tokenProviderPort: AuthTokenProviderPort) 
             providerType = userPrincipal.providerType,
         )
 
-        return GetAuthResult(
+        return AuthResult.GetAuth(
             accessToken = newAccessToken,
             refreshToken = newRefreshToken,
         )

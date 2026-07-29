@@ -1,10 +1,10 @@
 package com.neki.e2e.media
 
 import com.neki.common.code.ResultCode
-import com.neki.media.api.dto.UploadTicketRequest
+import com.neki.media.api.dto.MediaRequest
 import com.neki.media.domain.MediaType
 import com.neki.media.domain.entity.MediaStatus
-import com.neki.photo.api.dto.UploadPhotoRequest
+import com.neki.photo.api.dto.PhotoImageRequest
 import com.neki.photo.domain.entity.Folder
 import com.neki.photo.domain.enums.UploadMethod
 import com.neki.user.domain.entity.User
@@ -51,19 +51,19 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
     @DisplayName("전체 워크플로우 테스트 - 벌크 ticket 발급 → S3 업로드 시뮬레이션 → 벌크 photo 등록")
     fun givenCompleteWorkflow_whenUploadTicketAndUploadPhoto_thenPhotosCreatedAndMediaStatusUpdated() {
         // Step 1: POST /api/media → mediaIds와 uploadTickets 받기
-        val ticketRequest = UploadTicketRequest(
+        val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo2.png",
                     contentType = "image/png",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo3.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -90,10 +90,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         // 이는 테스트 환경에서 S3를 사용하지 않고도 검증할 수 있게 함
 
         // Step 3: POST /api/photos/bulk 호출하여 메타데이터 등록
-        val uploadPhotoRequest = UploadPhotoRequest(
+        val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = null,
             uploads = mediaIds.map {
-                UploadPhotoRequest.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
@@ -130,14 +130,14 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         val folder = createFolder(testUser.id!!, "테스트 폴더")
 
         // Step 1: POST /api/media → mediaIds 받기
-        val ticketRequest = UploadTicketRequest(
+        val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo2.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -159,10 +159,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             .map { it.toLong() }
 
         // Step 2: POST /api/photos/bulk 호출하여 folderId와 함께 메타데이터 등록
-        val uploadPhotoRequest = UploadPhotoRequest(
+        val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = folder.id,
             uploads = mediaIds.map {
-                UploadPhotoRequest.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = "테스트 메모",
@@ -203,14 +203,14 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
     @DisplayName("혼합 mediaType 테스트 - 서로 다른 mediaType으로 ticket 발급 후 photo 등록")
     fun givenMixedMediaTypes_whenUploadTicketAndUploadPhoto_thenPhotosCreatedWithDifferentMediaTypes() {
         // Step 1: 서로 다른 mediaType으로 ticket 발급
-        val ticketRequest = UploadTicketRequest(
+        val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
                 ),
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "attachment1.png",
                     contentType = "image/png",
                     mediaType = MediaType.ATTACHMENT,
@@ -232,10 +232,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             .map { it.toLong() }
 
         // Step 2: photo 등록
-        val uploadPhotoRequest = UploadPhotoRequest(
+        val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = null,
             uploads = mediaIds.map {
-                UploadPhotoRequest.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
@@ -269,9 +269,9 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
         val otherUsersFolder = createFolder(otherUser.id!!, "다른 사용자의 폴더")
 
         // ticket 발급
-        val ticketRequest = UploadTicketRequest(
+        val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -293,10 +293,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             .map { it.toLong() }
 
         // when
-        val uploadPhotoRequest = UploadPhotoRequest(
+        val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = otherUsersFolder.id,
             uploads = mediaIds.map {
-                UploadPhotoRequest.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,
@@ -321,9 +321,9 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
     @DisplayName("존재하지 않는 폴더에 업로드 시도 시 NOT_FOUND 반환")
     fun givenNonExistentFolder_whenUploadPhoto_thenNotFound() {
         // given
-        val ticketRequest = UploadTicketRequest(
+        val ticketRequest = MediaRequest.UploadTicket(
             items = listOf(
-                UploadTicketRequest.UploadTicketItem(
+                MediaRequest.UploadTicket.Item(
                     filename = "photo1.jpg",
                     contentType = "image/jpeg",
                     mediaType = MediaType.PHOTO_BOOTH,
@@ -345,10 +345,10 @@ class MediaToPhotoIntegrationE2ETest : MediaE2ETestBase() {
             .map { it.toLong() }
 
         // when
-        val uploadPhotoRequest = UploadPhotoRequest(
+        val uploadPhotoRequest = PhotoImageRequest.UploadPhoto(
             folderId = 999999L,
             uploads = mediaIds.map {
-                UploadPhotoRequest.UploadPhotoItem(
+                PhotoImageRequest.UploadPhoto.Item(
                     mediaId = it,
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = null,

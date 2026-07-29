@@ -2,7 +2,7 @@ package com.neki.e2e.map
 
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.code.ResultCode
-import com.neki.map.api.dto.GetPolygonLocationRequest
+import com.neki.map.api.dto.MapRequest
 import com.neki.map.domain.entity.Brand
 import com.neki.user.domain.entity.User
 import io.restassured.RestAssured
@@ -37,11 +37,11 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
 
     // 강남역 기준 다각형 좌표
     private val gangnamPolygonCoordinates = listOf(
-        GetPolygonLocationRequest.Coordinate(127.019128, 37.502456),
-        GetPolygonLocationRequest.Coordinate(127.035359, 37.502853),
-        GetPolygonLocationRequest.Coordinate(127.035663, 37.494395),
-        GetPolygonLocationRequest.Coordinate(127.023675, 37.494257),
-        GetPolygonLocationRequest.Coordinate(127.019128, 37.502456),
+        MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
+        MapRequest.GetPolygonLocation.Coordinate(127.035359, 37.502853),
+        MapRequest.GetPolygonLocation.Coordinate(127.035663, 37.494395),
+        MapRequest.GetPolygonLocation.Coordinate(127.023675, 37.494257),
+        MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
     )
 
     @BeforeEach
@@ -60,7 +60,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
     @DisplayName("다각형 영역 내에 포토부스가 없을 때 빈 목록을 반환한다")
     fun givenNoPhotoBooths_whenGetByPolygon_thenReturnsEmptyList() {
         // Given: 포토부스가 없는 상태
-        val request = GetPolygonLocationRequest(
+        val request = MapRequest.GetPolygonLocation(
             coordinates = gangnamPolygonCoordinates,
             brandIds = null,
         )
@@ -101,7 +101,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
             latitude = 37.499123,
         )
 
-        val request = GetPolygonLocationRequest(
+        val request = MapRequest.GetPolygonLocation(
             coordinates = gangnamPolygonCoordinates,
             brandIds = null,
         )
@@ -144,7 +144,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
             latitude = 37.498000,
         )
 
-        val request = GetPolygonLocationRequest(
+        val request = MapRequest.GetPolygonLocation(
             coordinates = gangnamPolygonCoordinates,
             brandIds = listOf(testBrand.id!!),
         )
@@ -178,7 +178,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
             latitude = 35.163574,
         )
 
-        val request = GetPolygonLocationRequest(
+        val request = MapRequest.GetPolygonLocation(
             coordinates = gangnamPolygonCoordinates,
             brandIds = null,
         )

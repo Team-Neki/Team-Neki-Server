@@ -1,6 +1,6 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.application.command.DeletePhotosCommand
+import com.neki.photo.application.dto.PhotoImageCommand
 import com.neki.photo.application.port.FavoriteImageRepositoryPort
 import com.neki.photo.application.port.MediaClientPort
 import com.neki.photo.application.port.PhotoImageRepositoryPort
@@ -41,7 +41,7 @@ class DeletePhotosUseCaseTest {
     fun `정상 삭제 - 즐겨찾기 삭제 후 사진 삭제 후 media cleanup 호출`() {
         // Given
         val photoIds = listOf(1L, 2L)
-        val command = DeletePhotosCommand(userId = 1L, photoIds = photoIds)
+        val command = PhotoImageCommand.DeletePhotos(userId = 1L, photoIds = photoIds)
         val deletedPhotos = listOf(
             aPhotoImage(id = 1L, userId = 1L, mediaId = 10L),
             aPhotoImage(id = 2L, userId = 1L, mediaId = 20L),
@@ -64,7 +64,7 @@ class DeletePhotosUseCaseTest {
     @DisplayName("빈 photoIds 리스트인 경우 media cleanup은 빈 리스트로 호출됨")
     fun `빈 photoIds 리스트인 경우 media cleanup은 빈 리스트로 호출됨`() {
         // Given
-        val command = DeletePhotosCommand(userId = 1L, photoIds = emptyList())
+        val command = PhotoImageCommand.DeletePhotos(userId = 1L, photoIds = emptyList())
 
         every { favoriteImageRepository.deleteAll(1L, emptyList()) } just Runs
         every { photoImageRepository.deleteOwnedPhotos(1L, emptyList()) } returns emptyList()
@@ -82,7 +82,7 @@ class DeletePhotosUseCaseTest {
     fun `media cleanup 실패 시 DB 삭제는 성공 후 예외 전파`() {
         // Given
         val photoIds = listOf(1L)
-        val command = DeletePhotosCommand(userId = 1L, photoIds = photoIds)
+        val command = PhotoImageCommand.DeletePhotos(userId = 1L, photoIds = photoIds)
         val deletedPhotos = listOf(aPhotoImage(id = 1L, userId = 1L, mediaId = 10L))
 
         every { favoriteImageRepository.deleteAll(1L, photoIds) } just Runs

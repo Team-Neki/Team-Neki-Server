@@ -4,10 +4,10 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.user.application.command.UpdateUserProfileImageCommand
-import com.neki.user.application.contract.MediaAvailability
+import com.neki.user.application.dto.UserCommand
 import com.neki.user.application.port.MediaClientPort
 import com.neki.user.application.port.UserRepositoryPort
+import com.neki.user.application.port.dto.MediaContract
 import com.neki.user.domain.entity.User
 
 /**
@@ -24,7 +24,7 @@ class UpdateUserProfileImageUseCase(
     private val transactionRunner: TransactionRunner,
 ) {
 
-    fun execute(command: UpdateUserProfileImageCommand) {
+    fun execute(command: UserCommand.UpdateUserProfileImage) {
         val newMediaId = command.mediaId
 
         if (newMediaId != null) {
@@ -39,12 +39,12 @@ class UpdateUserProfileImageUseCase(
      * mediaId가 null이 아닌 경우: media 업로드 검증 후 프로필 이미지 변경
      */
     private fun verifyAndUpdateProfileImage(userId: Long, newMediaId: Long) {
-        val isAvailable: MediaAvailability = mediaClient.verifyMediaUploaded(
+        val isAvailable: MediaContract.Availability = mediaClient.verifyMediaUploaded(
             ownerId = userId,
             mediaId = newMediaId,
         )
 
-        if (isAvailable != MediaAvailability.AVAILABLE) {
+        if (isAvailable != MediaContract.Availability.AVAILABLE) {
             throw BusinessException(ResultCode.NOT_FOUND)
         }
 
