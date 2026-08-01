@@ -25,10 +25,11 @@ class ArchitectureRulesTest {
             "com.neki.pose",
             "com.neki.map",
             "com.neki.support",
+            "com.neki.notification",
         )
 
         /** 격리 검증 대상 도메인 (user, map은 알려진 예외로 제외) */
-        private val ISOLATED_DOMAINS = listOf("photo", "media", "pose", "support")
+        private val ISOLATED_DOMAINS = listOf("photo", "media", "pose", "support", "notification")
 
         private fun domainApiPackages(): Array<String> = ALL_DOMAIN_PACKAGES.map { "$it.api.." }.toTypedArray()
 
@@ -39,6 +40,9 @@ class ArchitectureRulesTest {
 
         @JvmStatic
         fun isolatedDomains(): List<String> = ISOLATED_DOMAINS
+
+        @JvmStatic
+        fun allDomains(): List<String> = ALL_DOMAIN_PACKAGES.map { it.substringAfterLast('.') }
     }
 
     private lateinit var importedClasses: JavaClasses
@@ -54,32 +58,9 @@ class ArchitectureRulesTest {
     @DisplayName("레이어 의존성 규칙")
     inner class LayerDependencies {
 
-        @Test
-        fun `Domain 계층은 Application 계층을 의존할 수 없다`() {
-            noClasses()
-                .that().resideInAnyPackage("..domain..")
-                .should().dependOnClassesThat().resideInAnyPackage("..application..")
-                .because("Domain layer must not depend on Application layer (Clean Architecture)")
-                .check(importedClasses)
-        }
-
-        @Test
-        fun `Domain 계층은 도메인별 API 계층을 의존할 수 없다`() {
-            noClasses()
-                .that().resideInAnyPackage("..domain..")
-                .should().dependOnClassesThat().resideInAnyPackage(*domainApiPackages())
-                .because("Domain layer must not depend on API layer (common.api is allowed)")
-                .check(importedClasses)
-        }
-
-        @Test
-        fun `Domain 계층은 Infra 계층을 의존할 수 없다`() {
-            noClasses()
-                .that().resideInAnyPackage("..domain..")
-                .should().dependOnClassesThat().resideInAnyPackage("..infra..")
-                .because("Domain layer must not depend on Infrastructure layer (Clean Architecture)")
-                .check(importedClasses)
-        }
+        // Domain 계층(:domain 의 entity/enums/vo)의 바깥 레이어(application/api/infra) 의존 금지는
+        // Gradle 모듈 그래프가 보장한다 (:domain 은 :core 만 의존하므로 컴파일 자체가 불가능).
+        // 같은 모듈 안에서 발생할 수 있는 도메인 간 엔티티 의존은 "도메인 격리 규칙"에서 검증한다.
 
         @Test
         fun `Application 계층은 도메인별 API 계층을 의존할 수 없다`() {
@@ -142,9 +123,25 @@ class ArchitectureRulesTest {
                 .that().resideInAnyPackage(
                     "com.neki.$domain.api..",
                     "com.neki.$domain.application..",
-                    "com.neki.$domain.domain..",
                 ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages(domain))
-                .because("$domain domain (api/application/domain) must not depend on other domains")
+                .because("$domain domain (api/application) must not depend on other domains")
+                .check(importedClasses)
+        }
+
+        // 엔티티 계층은 :domain 한 모듈에 모여 있어 Gradle이 도메인 간 의존을 막지 못한다.
+        // user, map 의 알려진 예외는 application 계층 문제이므로 엔티티 계층은 전 도메인을 검증한다.
+        // 루트 패키지(com.neki.<domain>)는 MediaType, HeadCount 등 엔티티 부속 클래스를 포함한다.
+        @ParameterizedTest(name = "{0} 도메인 엔티티 계층은 다른 도메인에 의존할 수 없다")
+        @MethodSource("com.neki.rule.ArchitectureRulesTest#allDomains")
+        fun `엔티티 계층은 다른 도메인에 의존할 수 없다`(domain: String) {
+            noClasses()
+                .that().resideInAnyPackage(
+                    "com.neki.$domain",
+                    "com.neki.$domain.entity..",
+                    "com.neki.$domain.enums..",
+                    "com.neki.$domain.vo..",
+                ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages(domain))
+                .because("$domain entity layer must not depend on other domains")
                 .check(importedClasses)
         }
     }
