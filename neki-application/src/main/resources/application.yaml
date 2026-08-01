@@ -60,14 +60,6 @@ management:
   metrics:
     tags:
       application: neki
-
-
-aws:
-  s3:
-    access-key: ${AWS_S3_ACCESS_KEY:}
-    secret-key: ${AWS_S3_SECRET_KEY:}
-    bucket: ${AWS_S3_BUCKET:}
-    base-url: ${AWS_S3_BASE_URL:}
 ---
 spring:
   config:

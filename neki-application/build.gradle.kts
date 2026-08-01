@@ -1,5 +1,4 @@
 plugins {
-    kotlin("plugin.jpa")
     id("org.springframework.boot")
 }
 
@@ -24,17 +23,18 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:$jwtVersion")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
     implementation("org.springframework:spring-web")
-    implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus")
+
+    // 컴파일 참조 없이 설정(management.*)과 logback-spring.xml 로만 활성화된다
+    runtimeOnly("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+    runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
 
     testRuntimeOnly("com.h2database:h2")
     testImplementation("io.rest-assured:rest-assured")
