@@ -34,11 +34,11 @@ tools:
 1. **Controller 읽기**: 대상 엔드포인트의 HTTP 메서드, 경로, 파라미터, 응답 타입을 파악한다.
 2. **UseCase 읽기**: 비즈니스 로직과 `BusinessException` throw 지점을 파악하여 에러 케이스를 식별한다.
 3. **Request DTO 읽기**: `@NotBlank`, `@Size`, `@Min` 등 validation 제약조건을 파악한다.
-4. **도메인 TestBase 확인**: `neki-application/src/test/kotlin/com/neki/e2e/{domain}/` 에 `*TestBase.kt`가 있는지 확인한다.
+4. **도메인 TestBase 확인**: `apps/api/src/test/kotlin/com/neki/e2e/{domain}/` 에 `*TestBase.kt`가 있는지 확인한다.
 
 ### 2. 테스트 클래스 구조
 
-- **위치**: `neki-application/src/test/kotlin/com/neki/e2e/{domain}/`
+- **위치**: `apps/api/src/test/kotlin/com/neki/e2e/{domain}/`
 - **클래스명**: `{Action}{Resource}E2ETest`
 - **어노테이션**:
   ```kotlin

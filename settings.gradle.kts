@@ -1,9 +1,9 @@
 rootProject.name = "Neki"
 
 include(
-    ":neki-core",
-    ":neki-domain",
-    ":neki-application",
+    ":core",
+    ":domain",
+    ":apps:api",
     ":modules:postgres",
     ":modules:redis",
     ":modules:aws",

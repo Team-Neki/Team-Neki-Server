@@ -48,7 +48,7 @@ abstract class E2ETestBase {
 }
 ```
 
-Reference: `neki-application/src/test/kotlin/com/neki/e2e/E2ETestBase.kt`
+Reference: `apps/api/src/test/kotlin/com/neki/e2e/E2ETestBase.kt`
 
 ### Domain-Specific Base Classes
 
@@ -67,7 +67,7 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
 ## Test Directory Structure
 
 ```
-neki-application/src/test/kotlin/com/neki/
+apps/api/src/test/kotlin/com/neki/
 ├── e2e/                          # E2E tests (organized by domain)
 │   ├── E2ETestBase.kt           # Base class for all E2E tests
 │   ├── photo/
@@ -92,8 +92,8 @@ neki-application/src/test/kotlin/com/neki/
 └── JasyptTest.kt                # Utility tests
 ```
 
-도메인 엔티티는 `:neki-domain` 에 있지만 엔티티 단위 테스트는 `:neki-application` 의
-`map/entity/` 처럼 실행 모듈 쪽에 둔다 (`:neki-domain` 은 테스트 소스를 갖지 않는다).
+도메인 엔티티는 `:domain` 에 있지만 엔티티 단위 테스트는 `:apps:api` 의
+`map/entity/` 처럼 실행 모듈 쪽에 둔다 (`:domain` 은 테스트 소스를 갖지 않는다).
 
 ---
 
@@ -176,7 +176,7 @@ class MyE2ETest : E2ETestBase() {
 Encrypt sensitive values for configuration:
 
 ```kotlin
-// neki-application/src/test/kotlin/com/neki/JasyptTest.kt
+// apps/api/src/test/kotlin/com/neki/JasyptTest.kt
 @Test
 fun jasyptGeneratTest() {
     val text = "value_to_encrypt"

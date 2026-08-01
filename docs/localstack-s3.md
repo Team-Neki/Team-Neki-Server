@@ -13,13 +13,13 @@ infra/localstack/init-s3.sh  컨테이너 기동 후 yapp-local 버킷 생성
 
 modules/aws/.../application-s3.yaml   local 프로파일 접속 정보
 modules/aws/.../S3MediaStorageConfig  endpoint override + path-style 적용
-neki-application/.../S3InMemoryBucketInitializer   버킷 확인 및 CORS 설정
-neki-application/.../MediaTestController           수동 테스트용 엔드포인트
+apps/api/.../S3InMemoryBucketInitializer   버킷 확인 및 CORS 설정
+apps/api/.../MediaTestController           수동 테스트용 엔드포인트
 ```
 
 ## 설정값
 
-멀티모듈 전환 이후 S3 설정은 `modules/aws/src/main/resources/application-s3.yaml` 한 곳에서만 관리합니다. `neki-application/src/main/resources/application.yaml` 에도 `aws.s3` 블록이 있었으나, 프로파일 문서가 항상 이겨서 실제로는 읽히지 않는 죽은 설정이었기 때문에 제거했습니다.
+멀티모듈 전환 이후 S3 설정은 `modules/aws/src/main/resources/application-s3.yaml` 한 곳에서만 관리합니다. `apps/api/src/main/resources/application.yaml` 에도 `aws.s3` 블록이 있었으나, 프로파일 문서가 항상 이겨서 실제로는 읽히지 않는 죽은 설정이었기 때문에 제거했습니다.
 
 local 프로파일의 값은 docker-compose 및 초기화 스크립트와 짝을 이룹니다.
 
@@ -84,7 +84,7 @@ presigned URL 로 업로드할 때 CORS 가 걸리면 `app.cors.allowed-origins`
 
 `test` 프로파일에서는 LocalStack 을 쓰지 않습니다. `S3MediaStorageConfig` 가 `@Profile("!test")` 라 S3 관련 빈이 아예 만들어지지 않고, 대신 `FakeMediaStorageConfig` 의 인메모리 구현이 `MediaStoragePort` 를 대신합니다. 따라서 E2E 테스트를 돌릴 때 docker compose 가 떠 있을 필요가 없습니다.
 
-`neki-application/src/test/resources/application-test.yml` 에도 `aws.s3` 블록이 있지만, 이는 `S3Properties` 바인딩을 통과시키기 위한 더미값입니다.
+`apps/api/src/test/resources/application-test.yml` 에도 `aws.s3` 블록이 있지만, 이는 `S3Properties` 바인딩을 통과시키기 위한 더미값입니다.
 
 ## 정리
 

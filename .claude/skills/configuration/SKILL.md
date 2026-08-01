@@ -47,7 +47,7 @@ spring:
 Use the test utility:
 
 ```kotlin
-// neki-application/src/test/kotlin/com/neki/JasyptTest.kt
+// apps/api/src/test/kotlin/com/neki/JasyptTest.kt
 @Test
 fun jasyptGeneratTest() {
     val text = "my_secret_value"
@@ -74,11 +74,11 @@ class JasyptConfig {
 
 | Type                   | Location                                                        |
 |------------------------|-----------------------------------------------------------------|
-| Application settings   | `neki-application/src/main/resources/application.yaml`          |
+| Application settings   | `apps/api/src/main/resources/application.yaml`          |
 | Dependency settings    | `modules/{module}/src/main/resources/application-{module}.yaml` |
 | Infrastructure configs | `modules/{module}/src/main/kotlin/com/neki/config/{module}/`    |
-| Security configs       | `neki-application/src/main/kotlin/com/neki/user/infra/security/`                 |
-| Swagger config         | `neki-application/src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt` |
+| Security configs       | `apps/api/src/main/kotlin/com/neki/user/infra/security/`                 |
+| Swagger config         | `apps/api/src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt` |
 
 ---
 
@@ -115,7 +115,7 @@ class RedisCacheConfig {
 ### REST Client
 
 ```kotlin
-// neki-application/src/main/kotlin/com/neki/common/infra/config/RestClientConfig.kt
+// apps/api/src/main/kotlin/com/neki/common/infra/config/RestClientConfig.kt
 @Configuration
 class RestClientConfig {
     // HTTP client for external APIs
@@ -153,7 +153,7 @@ class S3MediaStorageConfig {
 ### OAuth Properties
 
 ```kotlin
-// neki-application/src/main/kotlin/com/neki/user/infra/security/config/OauthProperties.kt
+// apps/api/src/main/kotlin/com/neki/user/infra/security/config/OauthProperties.kt
 @ConfigurationProperties(prefix = "oauth")
 data class OauthProperties(
     val kakao: KakaoProperties,
@@ -164,7 +164,7 @@ data class OauthProperties(
 ### JWT Settings
 
 ```kotlin
-// neki-application/src/main/kotlin/com/neki/common/properties/AppProperties.kt
+// apps/api/src/main/kotlin/com/neki/common/properties/AppProperties.kt
 @ConfigurationProperties(prefix = "app")
 class AppProperties(
     var version: String = "",
@@ -206,7 +206,7 @@ Reference: `infra/terraform/CICD_SETUP.md` for CI/CD setup guide.
 
 ## Adding New Configuration
 
-1. 외부 의존성 설정이면 `modules/{module}/src/main/resources/application-{module}.yaml`, 애플리케이션 설정이면 `neki-application/src/main/resources/application.yaml` 에 추가 (민감값은 Jasypt 암호화)
+1. 외부 의존성 설정이면 `modules/{module}/src/main/resources/application-{module}.yaml`, 애플리케이션 설정이면 `apps/api/src/main/resources/application.yaml` 에 추가 (민감값은 Jasypt 암호화)
 2. Create `@ConfigurationProperties` class if complex
 3. Inject via constructor in components
 4. Document in this file

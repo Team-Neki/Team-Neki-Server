@@ -25,8 +25,8 @@ tools:
 
 아래 파일들을 읽고 컨벤션을 숙지하라:
 
-- `neki-application/src/test/kotlin/com/neki/testfixture/EntityFixtures.kt` — 사용 가능한 픽스처 팩토리 함수 목록
-- `neki-application/src/test/kotlin/com/neki/testfixture/FakeTransactionRunner.kt` — 트랜잭션 테스트용 Fake
+- `apps/api/src/test/kotlin/com/neki/testfixture/EntityFixtures.kt` — 사용 가능한 픽스처 팩토리 함수 목록
+- `apps/api/src/test/kotlin/com/neki/testfixture/FakeTransactionRunner.kt` — 트랜잭션 테스트용 Fake
 
 ## 작업 절차
 
@@ -38,7 +38,7 @@ tools:
 
 ### 2. 테스트 클래스 구조
 
-- **위치**: `neki-application/src/test/kotlin/com/neki/{domain}/application/usecase/`
+- **위치**: `apps/api/src/test/kotlin/com/neki/{domain}/application/usecase/`
 - **파일명**: `{UseCase}Test.kt`
 - **부모 클래스 없음** — 순수 JUnit5 클래스
 

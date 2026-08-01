@@ -54,14 +54,14 @@ application  비즈니스 로직 (UseCase, Port, Command/Query, Result)
 infra        외부 의존성 구현체 (JPA, Redis, S3, 외부 API 등)
 ```
 
-핵심 엔티티와 도메인 규칙은 별도 모듈 `neki-domain`으로 분리되어 있습니다. 의존성 방향은 항상 `api → application → domain` 단방향이며, `infra`는 `application`의 Port 인터페이스를 구현합니다. 도메인 간 직접 import는 금지하고, 필요한 경우 Port를 통해 통신합니다.
+핵심 엔티티와 도메인 규칙은 별도 모듈 `domain`으로 분리되어 있습니다. 의존성 방향은 항상 `api → application → domain` 단방향이며, `infra`는 `application`의 Port 인터페이스를 구현합니다. 도메인 간 직접 import는 금지하고, 필요한 경우 Port를 통해 통신합니다.
 
-Gradle 멀티 모듈로 구성되어 있습니다. `neki-core`는 공유 커널, `neki-domain`은 JPA 엔티티,
-`neki-application`은 api·application·infra 어댑터를 담는 실행 모듈이며,
+Gradle 멀티 모듈로 구성되어 있습니다. `core`는 공유 커널, `domain`은 JPA 엔티티,
+`apps/api`은 api·application·infra 어댑터를 담는 실행 모듈이며,
 `modules/*`는 외부 의존성의 연결 설정만 관리합니다.
 
 ```
-neki-application/src/main/kotlin/com/neki/
+apps/api/src/main/kotlin/com/neki/
 ├── common/          공통 예외 처리, BaseResponse, JWT 필터, 설정 등
 ├── user/            회원가입, 로그인, 프로필, 탈퇴
 ├── photo/           사진 업로드, 폴더 관리, 즐겨찾기

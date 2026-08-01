@@ -20,7 +20,7 @@ tools:
    Glob: modules/postgres/src/main/resources/db/migration/V*.sql
    ```
 2. 최근 2~3개의 migration 파일을 읽어 작성 패턴을 파악한다.
-3. 대상 도메인의 JPA entity 파일(`neki-domain/src/main/kotlin/com/neki/{domain}/entity/*.kt`)을 읽어 `@Table`, `@Column`, `@JoinColumn` 등 JPA 어노테이션에서 현재 스키마를 파악한다.
+3. 대상 도메인의 JPA entity 파일(`domain/src/main/kotlin/com/neki/{domain}/entity/*.kt`)을 읽어 `@Table`, `@Column`, `@JoinColumn` 등 JPA 어노테이션에서 현재 스키마를 파악한다.
 
 ### 2. SQL 생성
 

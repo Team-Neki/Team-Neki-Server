@@ -32,7 +32,7 @@ fun getAllFolders(): BaseResponse<GetAllFolderResponse> {
 }
 ```
 
-Reference: `neki-core/src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`
+Reference: `core/src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`
 
 ---
 
@@ -103,9 +103,9 @@ enum class ResultCode(val code: String, val message: String) {
 
 Key files:
 
-- `neki-core/src/main/kotlin/com/neki/common/exception/BusinessException.kt`
-- `neki-core/src/main/kotlin/com/neki/common/code/ResultCode.kt`
-- `neki-application/src/main/kotlin/com/neki/common/exception/handler/ExceptionHandler.kt`
+- `core/src/main/kotlin/com/neki/common/exception/BusinessException.kt`
+- `core/src/main/kotlin/com/neki/common/code/ResultCode.kt`
+- `apps/api/src/main/kotlin/com/neki/common/exception/handler/ExceptionHandler.kt`
 
 ---
 
@@ -152,7 +152,7 @@ Protected endpoints use `@RequiresSecurity`:
 class FolderController
 ```
 
-Reference: `neki-application/src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt`
+Reference: `apps/api/src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt`
 
 ---
 

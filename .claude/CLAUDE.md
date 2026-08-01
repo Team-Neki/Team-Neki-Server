@@ -156,8 +156,8 @@ SPEC_MISMATCH → 요구사항 재확인
 
 | Component          | Location                                                         |
 |--------------------|------------------------------------------------------------------|
-| UseCase annotation | `neki-core/src/main/kotlin/com/neki/common/annotation/UseCase.kt`          |
-| Base response      | `neki-core/src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`        |
-| Result codes       | `neki-core/src/main/kotlin/com/neki/common/code/ResultCode.kt`             |
-| Business exception | `neki-core/src/main/kotlin/com/neki/common/exception/BusinessException.kt` |
-| E2E test base      | `neki-application/src/test/kotlin/com/neki/e2e/E2ETestBase.kt`                    |
+| UseCase annotation | `core/src/main/kotlin/com/neki/common/annotation/UseCase.kt`          |
+| Base response      | `core/src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`        |
+| Result codes       | `core/src/main/kotlin/com/neki/common/code/ResultCode.kt`             |
+| Business exception | `core/src/main/kotlin/com/neki/common/exception/BusinessException.kt` |
+| E2E test base      | `apps/api/src/test/kotlin/com/neki/e2e/E2ETestBase.kt`                    |

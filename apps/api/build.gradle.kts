@@ -8,8 +8,8 @@ val jtsVersion = "1.19.0"
 val logstashEncoderVersion = "8.0"
 
 dependencies {
-    implementation(project(":neki-core"))
-    implementation(project(":neki-domain"))
+    implementation(project(":core"))
+    implementation(project(":domain"))
     implementation(project(":modules:discord"))
     implementation(project(":modules:aws"))
     implementation(project(":modules:redis"))
