@@ -14,7 +14,7 @@ tools:
 
 ## ❌ 절대 금지
 
-**`src/main/` 하위 파일은 절대 수정하지 않는다.**
+**모든 모듈(`neki-*`, `modules/*`)의 `src/main/` 하위 파일은 절대 수정하지 않는다.**
 
 테스트를 작성하다가 Controller / UseCase / 비즈니스 로직에 문제를 발견하면:
 - 코드를 임의로 수정하지 말고 **즉시 중단**한다.
@@ -34,11 +34,11 @@ tools:
 1. **Controller 읽기**: 대상 엔드포인트의 HTTP 메서드, 경로, 파라미터, 응답 타입을 파악한다.
 2. **UseCase 읽기**: 비즈니스 로직과 `BusinessException` throw 지점을 파악하여 에러 케이스를 식별한다.
 3. **Request DTO 읽기**: `@NotBlank`, `@Size`, `@Min` 등 validation 제약조건을 파악한다.
-4. **도메인 TestBase 확인**: `src/test/kotlin/com/neki/e2e/{domain}/` 에 `*TestBase.kt`가 있는지 확인한다.
+4. **도메인 TestBase 확인**: `neki-application/src/test/kotlin/com/neki/e2e/{domain}/` 에 `*TestBase.kt`가 있는지 확인한다.
 
 ### 2. 테스트 클래스 구조
 
-- **위치**: `src/test/kotlin/com/neki/e2e/{domain}/`
+- **위치**: `neki-application/src/test/kotlin/com/neki/e2e/{domain}/`
 - **클래스명**: `{Action}{Resource}E2ETest`
 - **어노테이션**:
   ```kotlin

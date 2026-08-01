@@ -48,7 +48,7 @@ abstract class E2ETestBase {
 }
 ```
 
-Reference: `src/test/kotlin/com/neki/e2e/E2ETestBase.kt`
+Reference: `neki-application/src/test/kotlin/com/neki/e2e/E2ETestBase.kt`
 
 ### Domain-Specific Base Classes
 
@@ -67,28 +67,33 @@ class CreateFolderE2ETest : FolderE2ETestBase() {
 ## Test Directory Structure
 
 ```
-src/test/kotlin/com/neki/
+neki-application/src/test/kotlin/com/neki/
 ├── e2e/                          # E2E tests (organized by domain)
 │   ├── E2ETestBase.kt           # Base class for all E2E tests
-│   ├── auth/
-│   │   └── AuthE2ETest.kt
 │   ├── photo/
 │   │   └── folder/
 │   │       ├── FolderE2ETestBase.kt
 │   │       ├── CreateFolderE2ETest.kt
-│   │       ├── DeleteFolderE2ETest.kt
+│   │       ├── DeleteFoldersE2ETest.kt
 │   │       ├── GetAllFolderE2ETest.kt
 │   │       └── UpdateFolderE2ETest.kt
+│   ├── map/  media/  notification/  pose/  file/
 │   └── user/
 │       └── UserE2ETest.kt
-├── auth/                         # Unit tests (next to domain)
+├── user/                         # Unit tests (next to production package)
 │   └── infra/security/filter/
 │       └── AuthMdcFilterTest.kt
 ├── common/
 │   └── filter/
 │       └── RequestMdcFilterTest.kt
+├── rule/
+│   └── ArchitectureRulesTest.kt # ArchUnit 계층·모듈 의존 규칙
+├── testfixture/                  # EntityFixtures, FakeTransactionRunner
 └── JasyptTest.kt                # Utility tests
 ```
+
+도메인 엔티티는 `:neki-domain` 에 있지만 엔티티 단위 테스트는 `:neki-application` 의
+`map/entity/` 처럼 실행 모듈 쪽에 둔다 (`:neki-domain` 은 테스트 소스를 갖지 않는다).
 
 ---
 
@@ -171,7 +176,7 @@ class MyE2ETest : E2ETestBase() {
 Encrypt sensitive values for configuration:
 
 ```kotlin
-// src/test/kotlin/com/neki/JasyptTest.kt
+// neki-application/src/test/kotlin/com/neki/JasyptTest.kt
 @Test
 fun jasyptGeneratTest() {
     val text = "value_to_encrypt"

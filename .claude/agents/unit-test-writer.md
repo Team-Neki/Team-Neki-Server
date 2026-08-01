@@ -14,7 +14,7 @@ tools:
 
 ## ❌ 절대 금지
 
-**`src/main/` 하위 파일은 절대 수정하지 않는다.**
+**모든 모듈(`neki-*`, `modules/*`)의 `src/main/` 하위 파일은 절대 수정하지 않는다.**
 
 테스트를 작성하다가 비즈니스 로직이 잘못되었거나 미구현된 것을 발견하면:
 - 코드를 임의로 수정하지 말고 **즉시 중단**한다.
@@ -25,8 +25,8 @@ tools:
 
 아래 파일들을 읽고 컨벤션을 숙지하라:
 
-- `src/test/kotlin/com/neki/testfixture/EntityFixtures.kt` — 사용 가능한 픽스처 팩토리 함수 목록
-- `src/test/kotlin/com/neki/testfixture/FakeTransactionRunner.kt` — 트랜잭션 테스트용 Fake
+- `neki-application/src/test/kotlin/com/neki/testfixture/EntityFixtures.kt` — 사용 가능한 픽스처 팩토리 함수 목록
+- `neki-application/src/test/kotlin/com/neki/testfixture/FakeTransactionRunner.kt` — 트랜잭션 테스트용 Fake
 
 ## 작업 절차
 
@@ -38,7 +38,7 @@ tools:
 
 ### 2. 테스트 클래스 구조
 
-- **위치**: `src/test/kotlin/com/neki/{domain}/application/usecase/`
+- **위치**: `neki-application/src/test/kotlin/com/neki/{domain}/application/usecase/`
 - **파일명**: `{UseCase}Test.kt`
 - **부모 클래스 없음** — 순수 JUnit5 클래스
 

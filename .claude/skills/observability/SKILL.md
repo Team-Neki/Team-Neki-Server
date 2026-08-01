@@ -16,7 +16,7 @@ Load this context when adding logging, metrics, or monitoring.
 Request tracking with correlation IDs:
 
 ```kotlin
-// src/main/kotlin/com/neki/common/filter/RequestMdcFilter.kt
+// neki-application/src/main/kotlin/com/neki/common/filter/RequestMdcFilter.kt
 class RequestMdcFilter : OncePerRequestFilter() {
     override fun doFilterInternal(...) {
         MDC.put("requestId", UUID.randomUUID().toString())
@@ -31,7 +31,7 @@ class RequestMdcFilter : OncePerRequestFilter() {
 User context in logs:
 
 ```kotlin
-// src/main/kotlin/com/neki/auth/infra/security/filter/AuthMdcFilter.kt
+// neki-application/src/main/kotlin/com/neki/user/infra/security/filter/AuthMdcFilter.kt
 class AuthMdcFilter : OncePerRequestFilter() {
     override fun doFilterInternal(...) {
         MDC.put("userId", authentication.id)

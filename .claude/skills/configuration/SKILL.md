@@ -20,8 +20,8 @@ Load this context when setting up environments, managing secrets, or modifying i
 ### Local Development Setup
 
 ```bash
-# Start databases
-docker compose up -d    # PostgreSQL + Redis
+# Start infrastructure
+docker compose up -d    # PostgreSQL + Redis + LocalStack S3
 
 # Run application
 ./gradlew bootRun
@@ -34,7 +34,7 @@ docker compose down
 
 ## Jasypt Encryption
 
-Sensitive values are encrypted with Jasypt in `application.yml`:
+Sensitive values are encrypted with Jasypt in 각 모듈의 `application-{module}.yaml`:
 
 ```yaml
 spring:
@@ -47,7 +47,7 @@ spring:
 Use the test utility:
 
 ```kotlin
-// src/test/kotlin/com/neki/JasyptTest.kt
+// neki-application/src/test/kotlin/com/neki/JasyptTest.kt
 @Test
 fun jasyptGeneratTest() {
     val text = "my_secret_value"
@@ -59,7 +59,7 @@ fun jasyptGeneratTest() {
 ### Jasypt Configuration
 
 ```kotlin
-// src/main/kotlin/com/neki/common/config/JasyptConfig.kt
+// modules/jasypt/src/main/kotlin/com/neki/config/jasypt/JasyptConfig.kt
 @Configuration
 class JasyptConfig {
     // Encryption settings:
@@ -74,11 +74,11 @@ class JasyptConfig {
 
 | Type                   | Location                                                        |
 |------------------------|-----------------------------------------------------------------|
-| Application settings   | `src/main/resources/application.yml`                            |
-| Profile-specific       | `src/main/resources/application-{profile}.yml`                  |
-| Infrastructure configs | `src/main/kotlin/com/neki/common/infra/config/`                 |
-| Security configs       | `src/main/kotlin/com/neki/auth/infra/security/`                 |
-| Swagger config         | `src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt` |
+| Application settings   | `neki-application/src/main/resources/application.yaml`          |
+| Dependency settings    | `modules/{module}/src/main/resources/application-{module}.yaml` |
+| Infrastructure configs | `modules/{module}/src/main/kotlin/com/neki/config/{module}/`    |
+| Security configs       | `neki-application/src/main/kotlin/com/neki/user/infra/security/`                 |
+| Swagger config         | `neki-application/src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt` |
 
 ---
 
@@ -87,12 +87,12 @@ class JasyptConfig {
 ### JPA & QueryDSL
 
 ```kotlin
-// src/main/kotlin/com/neki/common/infra/config/JpaAuditingConfig.kt
+// modules/postgres/src/main/kotlin/com/neki/config/postgres/JpaAuditingConfig.kt
 @Configuration
 @EnableJpaAuditing
 class JpaAuditingConfig
 
-// src/main/kotlin/com/neki/common/infra/config/QueryDslConfig.kt
+// modules/postgres/src/main/kotlin/com/neki/config/postgres/QueryDslConfig.kt
 @Configuration
 class QueryDslConfig {
     @Bean
@@ -103,7 +103,7 @@ class QueryDslConfig {
 ### Redis Cache
 
 ```kotlin
-// src/main/kotlin/com/neki/common/config/RedisCacheConfig.kt
+// modules/redis/src/main/kotlin/com/neki/config/redis/RedisCacheConfig.kt
 @Configuration
 @EnableCaching
 class RedisCacheConfig {
@@ -115,7 +115,7 @@ class RedisCacheConfig {
 ### REST Client
 
 ```kotlin
-// src/main/kotlin/com/neki/common/infra/config/RestClientConfig.kt
+// neki-application/src/main/kotlin/com/neki/common/infra/config/RestClientConfig.kt
 @Configuration
 class RestClientConfig {
     // HTTP client for external APIs
@@ -127,14 +127,19 @@ class RestClientConfig {
 ## S3 Configuration
 
 ```kotlin
-// src/main/kotlin/com/neki/media/infra/s3/S3Properties.kt
-@ConfigurationProperties(prefix = "cloud.aws.s3")
+// modules/aws/src/main/kotlin/com/neki/config/aws/S3Properties.kt
+@ConfigurationProperties(prefix = "aws.s3")
 data class S3Properties(
-    val bucket: String,
+    val accessKey: String,
+    val secretKey: String,
     val region: String,
+    val bucket: String,
+    val endpoint: String? = null,  // LocalStack 여부를 가르는 신호. staging/prod 는 null
+    val baseUrl: String = "",      // local 전용 (MediaTestController)
+    val presignedUrlExpiration: Duration,
 )
 
-// src/main/kotlin/com/neki/media/infra/s3/S3MediaStorageConfig.kt
+// modules/aws/src/main/kotlin/com/neki/config/aws/S3MediaStorageConfig.kt
 @Configuration
 class S3MediaStorageConfig {
     // S3 client bean configuration
@@ -148,7 +153,7 @@ class S3MediaStorageConfig {
 ### OAuth Properties
 
 ```kotlin
-// src/main/kotlin/com/neki/auth/infra/security/properties/OauthProperties.kt
+// neki-application/src/main/kotlin/com/neki/user/infra/security/config/OauthProperties.kt
 @ConfigurationProperties(prefix = "oauth")
 data class OauthProperties(
     val kakao: KakaoProperties,
@@ -159,16 +164,20 @@ data class OauthProperties(
 ### JWT Settings
 
 ```kotlin
-// src/main/kotlin/com/neki/auth/infra/security/properties/AppProperties.kt
+// neki-application/src/main/kotlin/com/neki/common/properties/AppProperties.kt
 @ConfigurationProperties(prefix = "app")
-data class AppProperties(
-    val auth: AuthProperties,
+class AppProperties(
+    var version: String = "",
+    var server: Server = Server(),
+    var auth: Auth = Auth(),
+    var cors: Cors = Cors(),   // S3 버킷 CORS 설정의 SSOT
 )
 
-data class AuthProperties(
-    val tokenSecret: String,
-    val tokenExpiry: Long,
-    val refreshTokenExpiry: Long,
+class Auth(
+    var accessTokenSecret: String? = null,
+    var accessTokenExpiry: Long = 0,
+    var refreshTokenSecret: String? = null,
+    var refreshTokenExpiry: Long = 0,
 )
 ```
 
@@ -197,7 +206,7 @@ Reference: `infra/terraform/CICD_SETUP.md` for CI/CD setup guide.
 
 ## Adding New Configuration
 
-1. Add property to `application.yml` (encrypt sensitive values)
+1. 외부 의존성 설정이면 `modules/{module}/src/main/resources/application-{module}.yaml`, 애플리케이션 설정이면 `neki-application/src/main/resources/application.yaml` 에 추가 (민감값은 Jasypt 암호화)
 2. Create `@ConfigurationProperties` class if complex
 3. Inject via constructor in components
 4. Document in this file
