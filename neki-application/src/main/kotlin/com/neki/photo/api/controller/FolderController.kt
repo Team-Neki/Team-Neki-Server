@@ -48,6 +48,7 @@ class FolderController(
     private val removePhotosFromFolderUseCase: RemovePhotosFromFolderUseCase,
     private val movePhotosToFolderUseCase: MovePhotosToFolderUseCase,
     private val copyPhotosToFolderUseCase: CopyPhotosToFolderUseCase,
+
     private val requestConverter: FolderConverter.RequestConverter,
     private val responseConverter: FolderConverter.ResponseConverter,
 ) {
