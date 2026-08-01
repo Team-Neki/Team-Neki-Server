@@ -3,8 +3,8 @@ FROM eclipse-temurin:21-jre-alpine AS builder
 
 WORKDIR /app
 
-# GitHub Actions에서 빌드된 JAR 파일 복사
-COPY build/libs/*.jar app.jar
+# GitHub Actions에서 빌드된 JAR 파일 복사 (실행 모듈은 :neki-application)
+COPY neki-application/build/libs/*.jar app.jar
 
 # Spring Boot Layered JAR에서 레이어 추출
 RUN java -Djarmode=layertools -jar app.jar extract
