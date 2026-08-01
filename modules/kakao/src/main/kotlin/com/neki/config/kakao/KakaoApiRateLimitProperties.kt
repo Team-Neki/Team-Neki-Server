@@ -1,4 +1,4 @@
-package com.neki.map.infra.client.kakao
+package com.neki.config.kakao
 
 /**
  * fileName       : KakaoApiRateLimitProperties

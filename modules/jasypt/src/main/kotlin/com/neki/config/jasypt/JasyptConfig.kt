@@ -1,4 +1,4 @@
-package com.neki.common.config
+package com.neki.config.jasypt
 
 import org.jasypt.encryption.StringEncryptor
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor

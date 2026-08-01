@@ -254,7 +254,35 @@ class ArchitectureRulesTest {
                 ).should().dependOnClassesThat().resideInAnyPackage(
                     "..infra..",
                     "..application..",
-                ).because("core shared kernel must not depend on outer layers (infra/application)")
+                    "com.neki.config..",
+                ).because("core shared kernel must not depend on outer layers (infra/application/module config)")
+                .check(importedClasses)
+        }
+
+        /**
+         * :modules:* 의 연결 설정(com.neki.config..)은 infra 어댑터에서만 참조할 수 있다.
+         * api/application 이 모듈 설정을 직접 알면 인프라 교체 시 영향이 계층을 넘어 번진다.
+         * (S3Properties, KakaoApiRateLimitProperties 등은 어댑터 와이어링 용도로만 쓰인다)
+         */
+        @Test
+        fun `api·application 레이어는 모듈 연결설정을 의존할 수 없다`() {
+            noClasses()
+                .that().resideInAnyPackage("..api..", "..application..")
+                .should().dependOnClassesThat().resideInAnyPackage("com.neki.config..")
+                .because("module connection settings must be referenced only by infra adapters")
+                .check(importedClasses)
+        }
+
+        /**
+         * :modules:* 의 연결 설정은 도메인 코드를 몰라야 한다.
+         * 모듈은 의존성과 설정만 관리하므로 도메인 방향 의존이 생기면 안 된다.
+         */
+        @Test
+        fun `모듈 연결설정은 도메인을 의존할 수 없다`() {
+            noClasses()
+                .that().resideInAnyPackage("com.neki.config..")
+                .should().dependOnClassesThat().resideInAnyPackage(*ALL_DOMAIN_PACKAGES.map { "$it.." }.toTypedArray())
+                .because("module config must not depend on domain code")
                 .check(importedClasses)
         }
 

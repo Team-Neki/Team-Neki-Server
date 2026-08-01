@@ -1,4 +1,4 @@
-package com.neki.notification.infra.config
+package com.neki.config.firebase
 
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp

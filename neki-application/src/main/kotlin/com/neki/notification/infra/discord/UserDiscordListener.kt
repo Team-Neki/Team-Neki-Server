@@ -1,6 +1,6 @@
 package com.neki.notification.infra.discord
 
-import com.neki.notification.properties.DiscordProperties
+import com.neki.config.discord.DiscordProperties
 import com.neki.user.event.UserEvent
 import com.neki.user.event.UserRegisteredEvent
 import com.neki.user.event.UserWithdrawnEvent

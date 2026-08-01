@@ -1,5 +1,6 @@
 package com.neki.map.infra.client.kakao
 
+import com.neki.config.kakao.KakaoApiRateLimitProperties
 import com.neki.map.application.port.MapApiClientPort
 import com.neki.map.application.port.MapSearchPort
 import com.neki.map.application.port.dto.MapContract

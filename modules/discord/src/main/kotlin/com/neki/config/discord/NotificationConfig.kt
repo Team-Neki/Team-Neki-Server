@@ -1,4 +1,4 @@
-package com.neki.notification.infra.config
+package com.neki.config.discord
 
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean

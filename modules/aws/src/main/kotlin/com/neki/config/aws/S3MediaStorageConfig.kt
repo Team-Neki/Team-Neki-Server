@@ -1,4 +1,4 @@
-package com.neki.media.infra.storage.s3
+package com.neki.config.aws
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

@@ -1,4 +1,4 @@
-package com.neki.common.infra.config
+package com.neki.config.postgres
 
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager

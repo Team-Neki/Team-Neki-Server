@@ -1,4 +1,4 @@
-package com.neki.common.config
+package com.neki.config.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean

@@ -1,5 +1,6 @@
 package com.neki.media.infra.storage.s3
 
+import com.neki.config.aws.S3Properties
 import com.neki.media.MediaType
 import com.neki.media.application.dto.MediaRef
 import com.neki.media.application.port.MediaStoragePort

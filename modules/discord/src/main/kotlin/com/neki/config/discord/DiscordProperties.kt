@@ -1,4 +1,4 @@
-package com.neki.notification.properties
+package com.neki.config.discord
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Profile

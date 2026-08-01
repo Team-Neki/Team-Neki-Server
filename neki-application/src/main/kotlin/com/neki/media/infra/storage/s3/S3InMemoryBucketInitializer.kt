@@ -1,6 +1,7 @@
 package com.neki.media.infra.storage.s3
 
 import com.neki.common.properties.AppProperties
+import com.neki.config.aws.S3Properties
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
@@ -17,7 +18,7 @@ import software.amazon.awssdk.services.s3.model.PutBucketCorsRequest
  * author         : koo
  * date           : 2025. 12. 22.
  * description    : 로컬 테스트용 S3 버킷 초기화 (CORS 설정 등)
- *                  CORS 허용 origin은 application-local.yaml의 app.cors.allowed-origins에서 관리 (SSOT)
+ *                  CORS 허용 origin은 application.yaml의 app.cors.allowed-origins에서 관리 (SSOT)
  */
 @Component
 @Profile("local") // local 환경에서만 실행

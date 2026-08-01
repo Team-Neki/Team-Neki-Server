@@ -1,4 +1,4 @@
-package com.neki.media.infra.storage.s3
+package com.neki.config.aws
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.time.Duration

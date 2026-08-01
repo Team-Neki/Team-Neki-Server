@@ -1,4 +1,4 @@
-package com.neki.common.infra.config
+package com.neki.config.postgres
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing
