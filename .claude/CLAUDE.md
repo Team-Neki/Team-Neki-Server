@@ -89,7 +89,7 @@ command):
 | Follow existing package structure            | Maintainability                                                                                  |
 | Run `spotlessApply` before commit            | Code style consistency                                                                           |
 | Delete dependent entities first              | Prevents orphan records and FK violations                                                        |
-| Add Flyway migration when changing DB schema | `@Column` length, type, constraint 변경 시 `src/main/resources/db/migration/` 에 다음 버전의 SQL 파일 추가 필수 |
+| Add Flyway migration when changing DB schema | `@Column` length, type, constraint 변경 시 `modules/postgres/src/main/resources/db/migration/` 에 다음 버전의 SQL 파일 추가 필수 |
 
 ---
 
@@ -156,8 +156,8 @@ SPEC_MISMATCH → 요구사항 재확인
 
 | Component          | Location                                                         |
 |--------------------|------------------------------------------------------------------|
-| UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt`          |
-| Base response      | `src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`        |
-| Result codes       | `src/main/kotlin/com/neki/common/code/ResultCode.kt`             |
-| Business exception | `src/main/kotlin/com/neki/common/exception/BusinessException.kt` |
-| E2E test base      | `src/test/kotlin/com/neki/e2e/E2ETestBase.kt`                    |
+| UseCase annotation | `core/src/main/kotlin/com/neki/common/annotation/UseCase.kt`          |
+| Base response      | `core/src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`        |
+| Result codes       | `core/src/main/kotlin/com/neki/common/code/ResultCode.kt`             |
+| Business exception | `core/src/main/kotlin/com/neki/common/exception/BusinessException.kt` |
+| E2E test base      | `apps/api/src/test/kotlin/com/neki/e2e/E2ETestBase.kt`                    |

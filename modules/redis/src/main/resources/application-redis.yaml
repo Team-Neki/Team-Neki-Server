@@ -1,0 +1,30 @@
+spring:
+  data:
+    redis:
+      port: 6379
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    redis:
+      host: localhost
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+  data:
+    redis:
+      host: ENC(RJVGRKgJQdjvDbg/TdCFtG/vJojISi+WwlXIEu8ijVsyi3//bW7/a2nAqe7iFvVA)
+      password: ENC(0ohhdfdfOZN9TS4bQdBZiLsg9gRJtWpDSWEbD5nXgfhPorPeTXAG9MqcRsxJrY5E)
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  data:
+    redis:
+      host: ENC(V8Y989Q4aueyOQE7wSEut8EaGlN4NVjvesp85WmlCj2A9ufFvs0eGko5jR2hKMsX)
+      password: ENC(tQSsJvwUHmc4JBWyc+UaAgxSGle02LPVDPp45BApz5LLwTNuDlguI2zLLIFXW+ot)

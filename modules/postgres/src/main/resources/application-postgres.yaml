@@ -1,0 +1,75 @@
+spring:
+  flyway:
+    locations: classpath:db/migration
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:5432/yapp
+    username: admin
+    password: admin1234
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+  datasource:
+    url: ENC(OA8W/cRV280P7H6aK/vCf1Z7ke2WxuSe66JJwteFTa5CZ36iU2hbsYO6CPY85J6hK3tHWaR/95H81H4KoXdu5UtP1ermoBFr96m3wPrM4mI=)
+    username: ENC(GHv9+T1Adm0ODWPpzcMKjFsI+5R8oTaFwDvHr+VDTfMKZgIxE2RGrSU0zrPOsqRr)
+    password: ENC(XqZB+Lz07/DwQOycAb3RRjhb3kMqBrmNIWFqcT4pfxEmhs3GmJZ/4HubW40i7pP1)
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: false
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ENC(6L4dscI6gdDvPaOeWbdeRxoASDBa1/iRneNln/W5umyHZv8npjPwh+ROkrO2ATZT7e0ymaL4fyjaUmSG1xny/OhQ95SrWvqcU9NnrOrUJ0I=)
+    username: ENC(ckNqwRnQTGzy/R/bFMEEpMkHVxegFfkh60se3lsaCcsmF+YicL5deoidwLWXu77b)
+    password: ENC(O5jXrCBCxZB15KDnjiPpj6bwZUf9PkdfgFpiRvijihT9665rlQwvKv6FWv9xZb6X)
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    out-of-order: false

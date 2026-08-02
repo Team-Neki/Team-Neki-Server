@@ -32,7 +32,7 @@ fun getAllFolders(): BaseResponse<GetAllFolderResponse> {
 }
 ```
 
-Reference: `src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`
+Reference: `core/src/main/kotlin/com/neki/common/api/dto/BaseResponse.kt`
 
 ---
 
@@ -103,9 +103,9 @@ enum class ResultCode(val code: String, val message: String) {
 
 Key files:
 
-- `src/main/kotlin/com/neki/common/exception/BusinessException.kt`
-- `src/main/kotlin/com/neki/common/code/ResultCode.kt`
-- `src/main/kotlin/com/neki/common/exception/handler/ExceptionHandler.kt`
+- `core/src/main/kotlin/com/neki/common/exception/BusinessException.kt`
+- `core/src/main/kotlin/com/neki/common/code/ResultCode.kt`
+- `apps/api/src/main/kotlin/com/neki/common/exception/handler/ExceptionHandler.kt`
 
 ---
 
@@ -152,7 +152,7 @@ Protected endpoints use `@RequiresSecurity`:
 class FolderController
 ```
 
-Reference: `src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt`
+Reference: `apps/api/src/main/kotlin/com/neki/common/api/document/SwaggerConfig.kt`
 
 ---
 
@@ -206,7 +206,7 @@ fun createFolder(
 - [ ] Create Request/Response DTOs in `api/dto/`
 - [ ] Create Command(쓰기) / Query(조회) in `application/dto/` (도메인별 `XxxCommand` · `XxxQuery` object 하위 중첩 클래스)
 - [ ] Create Result in `application/dto/` (도메인별 `XxxResult` object 하위 중첩 클래스)
-- [ ] Create Converters in `api/converter/`
+- [ ] Create Converters in `api/dto/` (도메인별 `XxxConverter` object 하위 `RequestConverter` · `ResponseConverter` 중첩 클래스)
 - [ ] Add `@Operation` with summary and description
 - [ ] Add `@RequiresSecurity` if authentication required
 - [ ] Add validation annotations to request DTOs

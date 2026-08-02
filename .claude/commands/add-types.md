@@ -52,14 +52,15 @@ Add explicit type annotation ONLY when assigning from **method/function call** r
 
 ## Domain Port Locations
 
-| Domain  | Port Path                                                   |
-|---------|-------------------------------------------------------------|
-| term    | `src/main/kotlin/com/neki/domain/term/application/port/`    |
-| version | `src/main/kotlin/com/neki/domain/version/application/port/` |
-| user    | `src/main/kotlin/com/neki/domain/user/application/port/`    |
-| auth    | `src/main/kotlin/com/neki/domain/auth/application/port/`    |
-| map     | `src/main/kotlin/com/neki/domain/map/application/port/`     |
-| pose    | `src/main/kotlin/com/neki/domain/pose/application/port/`    |
-| photo   | `src/main/kotlin/com/neki/domain/photo/application/port/`   |
-| media   | `src/main/kotlin/com/neki/domain/media/application/port/`   |
-| common  | `src/main/kotlin/com/neki/common/`                          |
+Port 인터페이스는 모두 `:apps:api` 모듈에 있다. `support`가 약관·앱버전을, `user`가 인증을 함께 담당한다.
+
+| Domain       | Port Path                                                                     |
+|--------------|-------------------------------------------------------------------------------|
+| map          | `apps/api/src/main/kotlin/com/neki/map/application/port/`             |
+| media        | `apps/api/src/main/kotlin/com/neki/media/application/port/`           |
+| notification | `apps/api/src/main/kotlin/com/neki/notification/application/port/`    |
+| photo        | `apps/api/src/main/kotlin/com/neki/photo/application/port/`           |
+| pose         | `apps/api/src/main/kotlin/com/neki/pose/application/port/`            |
+| support      | `apps/api/src/main/kotlin/com/neki/support/application/port/`         |
+| user         | `apps/api/src/main/kotlin/com/neki/user/application/port/`            |
+| common (공유 커널) | `core/src/main/kotlin/com/neki/common/`                              |

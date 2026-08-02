@@ -44,9 +44,9 @@ start:
 	@echo "$(GREEN)Starting with profile: $(SPRING_PROFILES)$(NC)"
 	@mkdir -p $(LOG_DIR)
 	@$(GRADLE) build
-	@JAR=$$(ls build/libs/*.jar 2>/dev/null | head -n 1); \
+	@JAR=$$(ls apps/api/build/libs/*.jar 2>/dev/null | head -n 1); \
 	if [ -z "$$JAR" ]; then \
-		echo "$(RED)Error: No jar file found in build/libs/$(NC)"; \
+		echo "$(RED)Error: No jar file found in apps/api/build/libs/$(NC)"; \
 		exit 1; \
 	fi; \
 	echo "Starting $$JAR..."; \

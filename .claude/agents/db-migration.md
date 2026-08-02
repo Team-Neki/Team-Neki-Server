@@ -17,17 +17,17 @@ tools:
 
 1. 기존 migration 파일 목록을 확인하여 최신 버전 번호를 파악한다:
    ```
-   Glob: src/main/resources/db/migration/V*.sql
+   Glob: modules/postgres/src/main/resources/db/migration/V*.sql
    ```
 2. 최근 2~3개의 migration 파일을 읽어 작성 패턴을 파악한다.
-3. 대상 도메인의 JPA entity 파일(`src/main/kotlin/com/neki/{domain}/domain/entity/*.kt`)을 읽어 `@Table`, `@Column`, `@JoinColumn` 등 JPA 어노테이션에서 현재 스키마를 파악한다.
+3. 대상 도메인의 JPA entity 파일(`domain/src/main/kotlin/com/neki/{domain}/entity/*.kt`)을 읽어 `@Table`, `@Column`, `@JoinColumn` 등 JPA 어노테이션에서 현재 스키마를 파악한다.
 
 ### 2. SQL 생성
 
 다음 컨벤션을 따른다:
 
 - **파일명**: `V{next}__{snake_case_description}.sql`
-- **위치**: `src/main/resources/db/migration/`
+- **위치**: `modules/postgres/src/main/resources/db/migration/`
 - **테이블명**: `TB_` prefix (예: `TB_USERS`, `TB_PHOTO_IMAGE`)
 - **한국어 주석**: `COMMENT ON TABLE/COLUMN` 사용
 - **제약조건 명명**:

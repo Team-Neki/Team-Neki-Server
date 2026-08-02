@@ -1,0 +1,20 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+firebase:
+  credentials-location: classpath:firebase-service-account.json
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+firebase:
+  credentials-location: file:/etc/firebase/firebase-service-account.json
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+firebase:
+  credentials-location: file:/etc/firebase/firebase-service-account.json

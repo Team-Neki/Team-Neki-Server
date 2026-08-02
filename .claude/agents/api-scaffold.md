@@ -36,10 +36,10 @@ tools:
 
 대상 도메인의 기존 파일을 읽어 컨벤션을 파악한다:
 
-- `src/main/kotlin/com/neki/{domain}/api/controller/` → Controller 스타일
-- `src/main/kotlin/com/neki/{domain}/api/converter/` → Converter 패턴
-- `src/main/kotlin/com/neki/{domain}/application/usecase/` → UseCase 패턴
-- `src/main/kotlin/com/neki/{domain}/api/dto/` → DTO 명명 패턴
+- `apps/api/src/main/kotlin/com/neki/{domain}/api/controller/` → Controller 스타일
+- `apps/api/src/main/kotlin/com/neki/{domain}/api/dto/{Group}Converter.kt` → Converter 패턴
+- `apps/api/src/main/kotlin/com/neki/{domain}/application/usecase/` → UseCase 패턴
+- `apps/api/src/main/kotlin/com/neki/{domain}/api/dto/` → DTO 명명 패턴
 
 ### 2. 파일 생성
 
@@ -47,14 +47,14 @@ tools:
 
 | # | 파일                              | 위치                                           |
 |---|---------------------------------|----------------------------------------------|
-| 1 | `{Action}{Resource}Request.kt`  | `src/main/kotlin/com/neki/{domain}/api/dto/`                          |
-| 2 | `{Action}{Resource}Response.kt` | `src/main/kotlin/com/neki/{domain}/api/dto/`                          |
-| 3 | `{Group}Command.kt` / `{Group}Query.kt` 내 중첩 클래스 | `src/main/kotlin/com/neki/{domain}/application/dto/`                  |
-| 4 | `{Group}Result.kt` 내 중첩 클래스                     | `src/main/kotlin/com/neki/{domain}/application/dto/`                  |
-| 5 | Converter 메서드                   | `src/main/kotlin/com/neki/{domain}/api/converter/` (기존 파일에 추가 또는 신규)  |
-| 6 | `{Action}{Resource}UseCase.kt`  | `src/main/kotlin/com/neki/{domain}/application/usecase/`              |
-| 7 | Controller 메서드                  | `src/main/kotlin/com/neki/{domain}/api/controller/` (기존 파일에 추가 또는 신규) |
-| 8 | `{Action}{Resource}E2ETest.kt`  | `src/test/kotlin/com/neki/e2e/{domain}/`     |
+| 1 | `{Action}{Resource}Request.kt`  | `apps/api/src/main/kotlin/com/neki/{domain}/api/dto/`                          |
+| 2 | `{Action}{Resource}Response.kt` | `apps/api/src/main/kotlin/com/neki/{domain}/api/dto/`                          |
+| 3 | `{Group}Command.kt` / `{Group}Query.kt` 내 중첩 클래스 | `apps/api/src/main/kotlin/com/neki/{domain}/application/dto/`                  |
+| 4 | `{Group}Result.kt` 내 중첩 클래스                     | `apps/api/src/main/kotlin/com/neki/{domain}/application/dto/`                  |
+| 5 | Converter 메서드                   | `apps/api/src/main/kotlin/com/neki/{domain}/api/dto/{Group}Converter.kt` (기존 파일에 추가 또는 신규)  |
+| 6 | `{Action}{Resource}UseCase.kt`  | `apps/api/src/main/kotlin/com/neki/{domain}/application/usecase/`              |
+| 7 | Controller 메서드                  | `apps/api/src/main/kotlin/com/neki/{domain}/api/controller/` (기존 파일에 추가 또는 신규) |
+| 8 | `{Action}{Resource}E2ETest.kt`  | `apps/api/src/test/kotlin/com/neki/e2e/{domain}/`     |
 
 ### 3. 필수 적용 사항
 

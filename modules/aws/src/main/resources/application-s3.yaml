@@ -1,0 +1,36 @@
+aws:
+  s3:
+    region: ap-northeast-2
+    presigned-url-expiration: 10m
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+aws:
+  s3:
+    access-key: test
+    secret-key: test
+    bucket: yapp-local
+    endpoint: http://localhost:4566
+    base-url: http://localhost:4566/yapp-local
+---
+spring:
+  config:
+    activate:
+      on-profile: staging
+aws:
+  s3:
+    access-key: ENC(fXervUuOTP2A4AwymiZDlo3+l5nZjZ5ObhKMMzGXrNEaqo1MTZaHE+bEnMBsooHmjPiUqg5Jc502FETsVGDB5A==)
+    secret-key: ENC(/rlccjRKWaheGJ2eDHBAnTMKu6pWkQ6D4LhrKjniCKMMHH8tkoQ7l0VpZEr9UO8GmiMdmjrcK5pGznCZlzVGSf/9mGAcxa9Ezdoql7A/B2c=)
+    bucket: yapp-neki-staging-ap-northeast-2
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+aws:
+  s3:
+    access-key: ENC(NHdLpPxjsMR1ll/eVnBJYcqrGPn+laUmxU5bCKT2R/EvPLfm0rpq/Y7pd/Kyoh7l9BT6xOm5MuOsLt3K+pdPJA==)
+    secret-key: ENC(fForFnB09QU6M/KucKAYQxA/3uTF6SdbFx0xsXKBu6xIkd4PZczva1cndzOE3tOEY/+7eExzRE8p85q2FYJUTsgtFVo6sHqQ9Tauf8rjI7g=)
+    bucket: yapp-neki-ap-northeast-2

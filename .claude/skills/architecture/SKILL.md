@@ -54,17 +54,27 @@ Load this context when designing features, creating new domains, or refactoring.
 ## Domain Module Structure
 
 ```
-src/main/kotlin/com/neki/
-├── auth/              # Authentication domain
-│   ├── api/          # Controllers, DTOs
-│   ├── application/  # UseCases, Commands, Ports
-│   ├── domain/       # Entities, Enums
-│   └── infra/        # Adapters, Security configs
-├── user/              # User domain
-├── photo/             # Photo archiving domain
-├── media/             # Media storage domain
-└── common/            # Shared utilities
+core/                     # 공유 커널 (annotation, code, domain, exception, transaction)
+domain/                   # JPA 엔티티. com.neki.<context>.entity.*
+apps/api/              # api + application + infra 어댑터. 실행 모듈(bootJar)
+└── src/main/kotlin/com/neki/
+    ├── user/                  # 회원, 인증(OAuth/JWT)
+    │   ├── api/              # Controllers, DTOs, Converters
+    │   ├── application/      # UseCases, dto, Ports
+    │   └── infra/            # Adapters, Security configs
+    ├── photo/                 # 사진 아카이빙
+    ├── pose/                  # 포즈 추천
+    ├── map/                   # 부스 위치 검색
+    ├── media/                 # S3 미디어
+    ├── support/               # 약관, 앱 버전
+    ├── notification/          # 푸시, Discord
+    └── common/                # 필터, 프로퍼티, 예외 핸들러 등 실행 모듈 공통
+modules/                       # 외부 의존성 연결 설정 전용
+├── postgres/  redis/  aws/  kakao/  apple/  discord/  jasypt/  firebase/
 ```
+
+도메인 엔티티는 `:domain` 에 있으므로 도메인별 `domain/` 하위 패키지는 존재하지 않는다.
+`com.neki.<context>.entity.*` 로 바로 접근한다.
 
 ### Per-Domain Structure
 
@@ -97,7 +107,7 @@ src/main/kotlin/com/neki/
 
 ```kotlin
 // In photo domain
-import com.neki.user.domain.entity.User  // Direct import!
+import com.neki.user.entity.User  // Direct import!
 ```
 
 ✅ **Correct** - Use ports for cross-domain communication:
@@ -152,7 +162,7 @@ class CreateFolderUseCase(
 }
 ```
 
-Reference: `src/main/kotlin/com/neki/common/annotation/UseCase.kt`
+Reference: `core/src/main/kotlin/com/neki/common/annotation/UseCase.kt`
 
 ---
 
@@ -161,7 +171,7 @@ Reference: `src/main/kotlin/com/neki/common/annotation/UseCase.kt`
 ### Port (Interface in Application Layer)
 
 ```kotlin
-// src/main/kotlin/com/neki/photo/application/port/FolderRepositoryPort.kt
+// apps/api/src/main/kotlin/com/neki/photo/application/port/FolderRepositoryPort.kt
 interface FolderRepositoryPort {
     fun save(folder: Folder): Folder
     fun findById(id: Long): Folder?
@@ -174,7 +184,7 @@ interface FolderRepositoryPort {
 ### Adapter (Implementation in Infrastructure Layer)
 
 ```kotlin
-// src/main/kotlin/com/neki/photo/infra/persist/FolderRepositoryAdapter.kt
+// apps/api/src/main/kotlin/com/neki/photo/infra/persist/FolderRepositoryAdapter.kt
 @Repository
 class FolderRepositoryAdapter(
     private val jpaRepository: JpaFolderRepository
@@ -195,7 +205,7 @@ class FolderRepositoryAdapter(
 ### JPA Repository
 
 ```kotlin
-// src/main/kotlin/com/neki/photo/infra/persist/jpa/JpaFolderRepository.kt
+// apps/api/src/main/kotlin/com/neki/photo/infra/persist/jpa/JpaFolderRepository.kt
 interface JpaFolderRepository : JpaRepository<Folder, Long> {
     fun findAllByUserId(userId: Long): List<Folder>
     fun existsByUserIdAndName(userId: Long, name: String): Boolean
@@ -226,7 +236,7 @@ application DTO는 모두 `application/dto/` 에 두고, 도메인 그룹별 `ob
 ### Command (쓰기 입력)
 
 ```kotlin
-// src/main/kotlin/com/neki/photo/application/dto/FolderCommand.kt
+// apps/api/src/main/kotlin/com/neki/photo/application/dto/FolderCommand.kt
 object FolderCommand {
     data class CreateFolder(
         val userId: Long,
@@ -243,7 +253,7 @@ object FolderCommand {
 ### Query (조회 입력)
 
 ```kotlin
-// src/main/kotlin/com/neki/photo/application/dto/FolderQuery.kt
+// apps/api/src/main/kotlin/com/neki/photo/application/dto/FolderQuery.kt
 object FolderQuery {
     data class GetFolders(
         val userId: Long,
@@ -255,7 +265,7 @@ object FolderQuery {
 ### Result (출력)
 
 ```kotlin
-// src/main/kotlin/com/neki/photo/application/dto/FolderResult.kt
+// apps/api/src/main/kotlin/com/neki/photo/application/dto/FolderResult.kt
 object FolderResult {
     data class CreateFolder(
         val folderId: Long,
@@ -375,6 +385,6 @@ class DeletePhotoUseCase(
 
 | Component          | Location                                                           |
 |--------------------|--------------------------------------------------------------------|
-| UseCase annotation | `src/main/kotlin/com/neki/common/annotation/UseCase.kt`            |
-| Base entity        | `src/main/kotlin/com/neki/common/domain/BaseTimeEntity.kt`         |
-| Transaction runner | `src/main/kotlin/com/neki/common/transaction/TransactionRunner.kt` |
+| UseCase annotation | `core/src/main/kotlin/com/neki/common/annotation/UseCase.kt`            |
+| Base entity        | `core/src/main/kotlin/com/neki/common/domain/BaseTimeEntity.kt`         |
+| Transaction runner | `core/src/main/kotlin/com/neki/common/transaction/TransactionRunner.kt` |

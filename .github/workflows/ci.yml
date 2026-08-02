@@ -3,8 +3,9 @@ name: CI
 on:
   pull_request:
     paths:
-      - 'src/**/*.kt'
-      - 'build.gradle.kts'
+      - '**/*.kt'
+      - '**/*.gradle.kts'
+      - '**/src/**/resources/**'
       - '.github/workflows/ci.yml'
   push:
     branches:
