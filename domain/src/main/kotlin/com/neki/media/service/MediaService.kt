@@ -74,7 +74,7 @@ class MediaService(private val mediaRepository: MediaRepository, private val med
 
     fun confirmMediasUploaded(
         command: MediaCommand.ConfirmMediasUploaded,
-        s3ExistsMap: Map<Long, Boolean>,
+        storageExistsMap: Map<Long, Boolean>,
     ): Map<Long, UploadConfirmStatus> {
         val freshMedias: List<Media> = mediaRepository.getMediaForUploadConfirmation(
             command.ownerId,
@@ -88,15 +88,15 @@ class MediaService(private val mediaRepository: MediaRepository, private val med
             if (media == null) {
                 UploadConfirmStatus.NOT_FOUND
             } else {
-                confirmUpload(media, s3ExistsMap[mediaId] == true)
+                confirmUpload(media, storageExistsMap[mediaId] == true)
             }
         }
     }
 
-    private fun confirmUpload(media: Media, s3Exists: Boolean): UploadConfirmStatus {
+    private fun confirmUpload(media: Media, storageExists: Boolean): UploadConfirmStatus {
         val wasUploaded: Boolean = media.isUploaded()
 
-        val status: UploadConfirmStatus = media.confirmUpload(s3Exists)
+        val status: UploadConfirmStatus = media.confirmUpload(storageExists)
 
         if (!wasUploaded && status == UploadConfirmStatus.CONFIRMED) {
             mediaRepository.save(media)

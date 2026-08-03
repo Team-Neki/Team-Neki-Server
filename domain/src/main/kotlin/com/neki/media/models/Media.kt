@@ -72,9 +72,9 @@ class Media(
 
     fun isUploaded(): Boolean = status == MediaStatus.UPLOADED
 
-    fun confirmUpload(s3Exists: Boolean): UploadConfirmStatus = when {
+    fun confirmUpload(storageExists: Boolean): UploadConfirmStatus = when {
         isUploaded() -> UploadConfirmStatus.CONFIRMED
-        s3Exists -> {
+        storageExists -> {
             markAsUploaded()
             UploadConfirmStatus.CONFIRMED
         }

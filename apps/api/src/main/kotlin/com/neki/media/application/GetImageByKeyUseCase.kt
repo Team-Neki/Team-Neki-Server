@@ -10,7 +10,7 @@ import com.neki.media.service.MediaBinaryService
  * fileName       : GetImageByKeyUseCase
  * author         : koo
  * date           : 2026. 1. 21.
- * description    : object key로 이미지 바이너리 조회 (캐시 우선, cache miss 시 S3 조회)
+ * description    : object key로 이미지 바이너리 조회 (캐시 우선, cache miss 시 스토리지 조회)
  * - cache stampede 방지 로직은 MediaBinaryService 참고
  */
 @UseCase

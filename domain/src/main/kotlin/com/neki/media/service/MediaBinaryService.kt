@@ -39,10 +39,10 @@ class MediaBinaryService(
         getBinary(query.objectKey, MediaType.fromObjectKey(query.objectKey))
 
     /**
-     * 캐싱 대상이면 cache-aside, cache miss 시 분산 락으로 중복 S3 호출 방지
+     * 캐싱 대상이면 cache-aside, cache miss 시 분산 락으로 중복 스토리지 호출 방지
      */
     private fun getBinary(objectKey: String, mediaType: MediaType?): ByteArray {
-        // 캐싱 대상이 아닌 타입은 S3에서 직접 조회
+        // 캐싱 대상이 아닌 타입은 스토리지에서 직접 조회
         val cacheTtl: Duration = mediaType?.cacheTtl ?: return mediaStorage.fetchBinaryByKey(objectKey)
 
         // cache를 조회하고 있다면 바로 반환
@@ -51,12 +51,12 @@ class MediaBinaryService(
             return it
         }
 
-        // cache가 없다면 lock을 획득하여 S3에서 데이터를 가져오고 캐싱
+        // cache가 없다면 lock을 획득하여 스토리지에서 데이터를 가져오고 캐싱
         return distributedLock.executeWithLock(objectKey) {
             fetchAndCache(objectKey, cacheTtl)
         }
             ?: binaryCache.get(objectKey) // 락 홀더가 채운 캐시 재확인
-            ?: mediaStorage.fetchBinaryByKey(objectKey) // 락 미획득 + 캐시도 비어있으면 S3 직접 조회
+            ?: mediaStorage.fetchBinaryByKey(objectKey) // 락 미획득 + 캐시도 비어있으면 스토리지 직접 조회
     }
 
     private fun fetchAndCache(objectKey: String, cacheTtl: Duration): ByteArray {
@@ -66,8 +66,8 @@ class MediaBinaryService(
             return it
         }
 
-        // S3에서 이미지 바이너리 조회 후 캐싱
-        log.debug("[GetImage] Fetching from S3 for key: $objectKey")
+        // 스토리지에서 이미지 바이너리 조회 후 캐싱
+        log.debug("[GetImage] Fetching from storage for key: $objectKey")
         return mediaStorage.fetchBinaryByKey(objectKey).also {
             binaryCache.put(objectKey, it, cacheTtl)
         }

@@ -22,10 +22,10 @@ class ConfirmMediaUploadedUseCase(
     fun execute(command: MediaCommand.ConfirmMediasUploaded): MediaResult.ConfirmMediasUploaded {
         if (command.mediaIds.isEmpty()) return MediaResult.ConfirmMediasUploaded(emptyMap())
 
-        val s3ExistsMap: Map<Long, Boolean> = mediaService.getExistsMap(command)
+        val storageExistsMap: Map<Long, Boolean> = mediaService.getExistsMap(command)
 
         val statuses: Map<Long, UploadConfirmStatus> =
-            transactionRunner.runNew { mediaService.confirmMediasUploaded(command, s3ExistsMap) }
+            transactionRunner.runNew { mediaService.confirmMediasUploaded(command, storageExistsMap) }
 
         return MediaResult.ConfirmMediasUploaded(statuses)
     }
