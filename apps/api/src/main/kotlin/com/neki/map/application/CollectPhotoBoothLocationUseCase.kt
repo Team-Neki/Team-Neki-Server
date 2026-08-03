@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory
  * date           : 2026. 01. 13.
  * description    : 포토부스 위치 정보 수집 UseCase
  */
+@Deprecated("Prefect 배치로 이관 예정. 이관 완료 후 POST /api/photo-booths/collect 와 함께 제거한다")
 @UseCase
 class CollectPhotoBoothLocationUseCase(
     private val brandRepository: BrandRepository,

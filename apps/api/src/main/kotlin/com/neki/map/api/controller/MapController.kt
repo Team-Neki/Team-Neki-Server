@@ -86,7 +86,9 @@ class MapController(
             Kakao Local API를 통해 포토부스 위치 정보를 수집하여 DB에 저장합니다.
             첫 페이지 조회 후 meta.pageable_count를 기반으로 자동으로 모든 페이지를 순회합니다.
             """,
+        deprecated = true,
     )
+    @Deprecated("Prefect 배치로 이관 예정. 이관 완료 후 제거한다")
     @Hidden
     @PostMapping("/collect")
     fun collectPhotoBooths(
