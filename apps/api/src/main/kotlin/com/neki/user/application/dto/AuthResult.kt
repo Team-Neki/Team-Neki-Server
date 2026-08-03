@@ -7,5 +7,7 @@ package com.neki.user.application.dto
  * description    : 인증/인가 관련 result
  */
 object AuthResult {
-    data class GetAuth(val accessToken: String, val refreshToken: String)
+    data class GetOauthLogin(val accessToken: String, val refreshToken: String, val isNewUser: Boolean)
+
+    data class GetRefreshToken(val accessToken: String, val refreshToken: String)
 }

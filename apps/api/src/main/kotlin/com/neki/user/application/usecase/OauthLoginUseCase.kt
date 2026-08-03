@@ -49,7 +49,7 @@ class OauthLoginUseCase(
      * 3. ID Token 검증 및 Claims 추출
      * 4. oauthInfoResult 값 여부에 따라 회원가입 처리
      */
-    fun execute(command: AuthCommand.RegisterOauthUser): AuthResult.GetAuth {
+    fun execute(command: AuthCommand.RegisterOauthUser): AuthResult.GetOauthLogin {
         val oauthInfoPayload: AuthContract.OauthInfoPayload = oidcTokenValidatorPort.validateIdToken(
             command.idToken,
             command.providerType,
@@ -89,9 +89,10 @@ class OauthLoginUseCase(
             providerType = user.providerType,
         )
 
-        return AuthResult.GetAuth(
+        return AuthResult.GetOauthLogin(
             accessToken = accessToken,
             refreshToken = refreshToken,
+            isNewUser = isNew,
         )
     }
 
