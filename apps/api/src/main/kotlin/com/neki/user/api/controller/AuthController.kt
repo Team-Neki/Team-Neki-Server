@@ -72,6 +72,9 @@ class AuthController(
         ### 성공 응답 (200 OK)
         - **accessToken**: API 요청에 사용할 액세스 토큰 (유효기간: 설정값에 따름)
         - **refreshToken**: 액세스 토큰 갱신에 사용할 리프레시 토큰 (유효기간: 설정값에 따름)
+        - **isNewUser**: 이번 호출로 새로 가입된 신규 유저 여부
+            - `true` -> 이번 로그인에서 회원가입이 발생한 경우 (온보딩/약관 화면 분기 등에 사용)
+            - `false` -> 이미 가입된 유저가 로그인한 경우
 
         ### API 호출 시 토큰 사용법
         ```
@@ -113,12 +116,12 @@ class AuthController(
         @Parameter(description = "로그인 제공자 타입 (kakao, apple)", example = "kakao")
         @PathVariable(name = "providerType") providerType: String,
         @RequestBody @Valid request: AuthRequest.CreateAuth,
-    ): BaseResponse<AuthResponse.GetAuth> {
+    ): BaseResponse<AuthResponse.GetOauthLogin> {
         val command: AuthCommand.RegisterOauthUser = requestConverter.toCreateAuthCommand(request, providerType)
 
-        val result: AuthResult.GetAuth = oauthLoginUseCase.execute(command)
+        val result: AuthResult.GetOauthLogin = oauthLoginUseCase.execute(command)
 
-        val response: AuthResponse.GetAuth = responseConverter.toCreateAuthResponse(result)
+        val response: AuthResponse.GetOauthLogin = responseConverter.toOauthLoginResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -154,12 +157,14 @@ class AuthController(
         ),
     )
     @PostMapping("/refresh")
-    fun refreshToken(@RequestBody @Valid request: AuthRequest.RefreshToken): BaseResponse<AuthResponse.GetAuth> {
+    fun refreshToken(
+        @RequestBody @Valid request: AuthRequest.RefreshToken,
+    ): BaseResponse<AuthResponse.GetRefreshToken> {
         val command: AuthCommand.RefreshToken = requestConverter.toRefreshTokenCommand(request)
 
-        val result: AuthResult.GetAuth = refreshTokenUseCase.execute(command)
+        val result: AuthResult.GetRefreshToken = refreshTokenUseCase.execute(command)
 
-        val response: AuthResponse.GetAuth = responseConverter.toCreateAuthResponse(result)
+        val response: AuthResponse.GetRefreshToken = responseConverter.toRefreshTokenResponse(result)
 
         return BaseResponse(data = response)
     }

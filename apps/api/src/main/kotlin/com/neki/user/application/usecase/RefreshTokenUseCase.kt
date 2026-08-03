@@ -18,7 +18,7 @@ import org.springframework.security.core.Authentication
 @UseCase
 class RefreshTokenUseCase(private val tokenProviderPort: AuthTokenProviderPort) {
 
-    fun execute(command: AuthCommand.RefreshToken): AuthResult.GetAuth {
+    fun execute(command: AuthCommand.RefreshToken): AuthResult.GetRefreshToken {
         // 1. RefreshToken 유효성 검증
         if (!tokenProviderPort.validateRefreshToken(command.refreshToken)) {
             throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
@@ -44,7 +44,7 @@ class RefreshTokenUseCase(private val tokenProviderPort: AuthTokenProviderPort) 
             providerType = userPrincipal.providerType,
         )
 
-        return AuthResult.GetAuth(
+        return AuthResult.GetRefreshToken(
             accessToken = newAccessToken,
             refreshToken = newRefreshToken,
         )
