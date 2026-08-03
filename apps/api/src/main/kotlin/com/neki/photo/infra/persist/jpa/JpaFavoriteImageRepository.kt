@@ -1,7 +1,7 @@
 package com.neki.photo.infra.persist.jpa
 
-import com.neki.photo.entity.FavoritePhoto
-import com.neki.photo.entity.FavoritePhotoId
+import com.neki.photo.models.FavoritePhoto
+import com.neki.photo.models.FavoritePhotoId
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

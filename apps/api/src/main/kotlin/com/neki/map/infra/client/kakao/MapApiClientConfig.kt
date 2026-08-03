@@ -1,6 +1,6 @@
 package com.neki.map.infra.client.kakao
 
-import com.neki.map.application.port.MapApiClientPort
+import com.neki.map.MapApiClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -11,6 +11,6 @@ import org.springframework.web.client.RestClient
 @Configuration
 class MapApiClientConfig {
     @Bean
-    fun mapApiClient(@Value("\${kakao.api.key}") apiKey: String, restClient: RestClient): MapApiClientPort =
+    fun mapApiClient(@Value("\${kakao.api.key}") apiKey: String, restClient: RestClient): MapApiClient =
         MapApiClientAdapter(apiKey, restClient)
 }

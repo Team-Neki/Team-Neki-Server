@@ -1,8 +1,9 @@
 package com.neki.photo.api.dto
 
+import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.dto.PhotoImageCommand
-import com.neki.photo.application.dto.PhotoImageQuery
+import com.neki.photo.dto.PhotoImageCommand
+import com.neki.photo.dto.PhotoImageQuery
 import org.springframework.stereotype.Component
 
 /**
@@ -21,9 +22,7 @@ object FavoritePhotoConverter {
             sortOrder: SortOrder,
         ): PhotoImageQuery.GetFavoritePhotos = PhotoImageQuery.GetFavoritePhotos(
             userId = userId,
-            page = page,
-            size = size,
-            sortOrder = sortOrder,
+            pagination = Pagination(page = page, size = size, sortOrder = sortOrder),
         )
 
         fun toUpdatePhotoFavoriteCommand(userId: Long, photoId: Long, request: PhotoImageRequest.UpdatePhotoFavorite) =

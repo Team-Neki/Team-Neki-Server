@@ -1,12 +1,12 @@
 package com.neki.pose.infra.persist
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.HeadCount
-import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.application.port.dto.PoseContract
-import com.neki.pose.entity.Pose
+import com.neki.pose.PoseRepository
 import com.neki.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.pose.infra.persist.jpa.PosesQueryRepository
+import com.neki.pose.models.HeadCount
+import com.neki.pose.models.Pose
+import com.neki.pose.models.PoseWithScrap
 import org.springframework.stereotype.Repository
 
 /**
@@ -19,9 +19,9 @@ import org.springframework.stereotype.Repository
 class PoseRepositoryAdapter(
     private val jpaRepository: JpaPoseRepository,
     private val queryRepository: PosesQueryRepository,
-) : PoseRepositoryPort {
+) : PoseRepository {
 
-    override fun getOwnedPoseWithScrap(userId: Long, poseId: Long): PoseContract.PoseWithScrap? =
+    override fun getOwnedPoseWithScrap(userId: Long, poseId: Long): PoseWithScrap? =
         queryRepository.findOwnedPoseWithScrap(userId, poseId)
 
     override fun saveAll(poses: List<Pose>): List<Pose> = jpaRepository.saveAll(poses)
@@ -32,8 +32,7 @@ class PoseRepositoryAdapter(
         limit: Int,
         headCount: HeadCount?,
         sortOrder: SortOrder,
-    ): List<PoseContract.PoseWithScrap> =
-        queryRepository.listPosesWithScrap(userId, offset, limit, headCount, sortOrder)
+    ): List<PoseWithScrap> = queryRepository.listPosesWithScrap(userId, offset, limit, headCount, sortOrder)
 
     override fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> =
         queryRepository.findOwnedScrapPoses(userId, offset, limit, sortOrder)

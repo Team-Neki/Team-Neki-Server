@@ -3,9 +3,9 @@ package com.neki.e2e.notification
 import com.neki.common.code.ResultCode
 import com.neki.e2e.E2ETestBase
 import com.neki.notification.api.dto.NotificationRequest
-import com.neki.notification.entity.Notification
 import com.neki.notification.infra.persist.jpa.JpaNotificationRepository
-import com.neki.user.entity.User
+import com.neki.notification.models.Notification
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.hamcrest.CoreMatchers.equalTo

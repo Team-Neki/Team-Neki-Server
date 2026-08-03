@@ -1,9 +1,9 @@
 package com.neki.support.api.dto
 
-import com.neki.support.application.dto.AppVersionCommand
-import com.neki.support.application.dto.AppVersionQuery
 import com.neki.support.application.dto.AppVersionResult
-import com.neki.support.enums.Platform
+import com.neki.support.dto.AppVersionCommand
+import com.neki.support.dto.AppVersionQuery
+import com.neki.support.models.Platform
 import org.springframework.stereotype.Component
 
 /**

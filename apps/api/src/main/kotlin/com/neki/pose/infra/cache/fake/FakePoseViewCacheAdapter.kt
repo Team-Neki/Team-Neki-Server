@@ -1,13 +1,13 @@
 package com.neki.pose.infra.cache.fake
 
-import com.neki.pose.application.port.PoseViewCachePort
+import com.neki.pose.PoseViewCache
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
 @Profile("test")
-class FakePoseViewCacheAdapter : PoseViewCachePort {
+class FakePoseViewCacheAdapter : PoseViewCache {
 
     private val viewers = ConcurrentHashMap<Long, MutableSet<Long>>()
 

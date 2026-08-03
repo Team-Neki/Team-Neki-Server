@@ -1,9 +1,9 @@
 package com.neki.notification.infra.discord
 
 import com.neki.config.discord.DiscordProperties
-import com.neki.user.event.UserEvent
-import com.neki.user.event.UserRegisteredEvent
-import com.neki.user.event.UserWithdrawnEvent
+import com.neki.user.models.UserEvent
+import com.neki.user.models.UserRegisteredEvent
+import com.neki.user.models.UserWithdrawnEvent
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.context.event.EventListener

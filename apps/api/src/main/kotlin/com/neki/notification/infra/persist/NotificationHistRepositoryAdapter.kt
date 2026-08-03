@@ -1,13 +1,13 @@
 package com.neki.notification.infra.persist
 
-import com.neki.notification.application.port.NotificationHistRepositoryPort
-import com.neki.notification.entity.NotificationHist
+import com.neki.notification.NotificationHistRepository
 import com.neki.notification.infra.persist.jpa.JpaNotificationHistRepository
+import com.neki.notification.models.NotificationHist
 import org.springframework.stereotype.Repository
 
 @Repository
 class NotificationHistRepositoryAdapter(private val jpaRepository: JpaNotificationHistRepository) :
-    NotificationHistRepositoryPort {
+    NotificationHistRepository {
 
     override fun save(hist: NotificationHist): NotificationHist = jpaRepository.save(hist)
 

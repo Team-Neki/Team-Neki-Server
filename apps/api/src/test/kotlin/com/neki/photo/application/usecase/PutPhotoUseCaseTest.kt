@@ -2,8 +2,10 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.dto.PhotoImageCommand
-import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.PhotoImageRepository
+import com.neki.photo.application.PutPhotoUseCase
+import com.neki.photo.dto.PhotoImageCommand
+import com.neki.photo.service.PhotoService
 import com.neki.testfixture.aPhotoImage
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -16,13 +18,13 @@ import java.time.LocalDateTime
 
 class PutPhotoUseCaseTest {
 
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
+    lateinit var photoImageRepository: PhotoImageRepository
     lateinit var useCase: PutPhotoUseCase
 
     @BeforeEach
     fun setUp() {
         photoImageRepository = mockk()
-        useCase = PutPhotoUseCase(photoImageRepository)
+        useCase = PutPhotoUseCase(PhotoService(photoImageRepository))
     }
 
     @Test

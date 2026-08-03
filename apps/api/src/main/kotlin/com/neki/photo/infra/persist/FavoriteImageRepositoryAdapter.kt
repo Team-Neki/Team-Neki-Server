@@ -1,10 +1,10 @@
 package com.neki.photo.infra.persist
 
-import com.neki.photo.application.port.FavoriteImageRepositoryPort
-import com.neki.photo.entity.FavoritePhoto
-import com.neki.photo.entity.FavoritePhotoId
+import com.neki.photo.FavoriteImageRepository
 import com.neki.photo.infra.persist.jpa.FavoritePhotoQueryRepository
 import com.neki.photo.infra.persist.jpa.JpaFavoriteImageRepository
+import com.neki.photo.models.FavoritePhoto
+import com.neki.photo.models.FavoritePhotoId
 import org.springframework.stereotype.Repository
 
 /**
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository
 class FavoriteImageRepositoryAdapter(
     private val jpaRepository: JpaFavoriteImageRepository,
     private val queryRepository: FavoritePhotoQueryRepository,
-) : FavoriteImageRepositoryPort {
+) : FavoriteImageRepository {
 
     override fun add(favoritePhoto: FavoritePhoto) {
         jpaRepository.save(favoritePhoto)

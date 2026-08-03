@@ -2,12 +2,13 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.dto.MapCommand
-import com.neki.map.application.port.BrandRepositoryPort
-import com.neki.map.application.port.MapSearchPort
-import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
-import com.neki.map.application.port.dto.MapContract
-import com.neki.map.entity.PhotoBoothLocation
+import com.neki.map.BrandRepository
+import com.neki.map.MapSearch
+import com.neki.map.PhotoBoothLocationRepository
+import com.neki.map.application.CollectPhotoBoothLocationUseCase
+import com.neki.map.dto.MapCommand
+import com.neki.map.models.PhotoBoothLocation
+import com.neki.map.models.SearchedPlace
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aBrand
 import com.neki.testfixture.aPhotoBoothLocation
@@ -26,9 +27,9 @@ import io.mockk.verify
 class CollectPhotoBoothLocationUseCaseTest :
     FunSpec({
 
-        lateinit var brandRepository: BrandRepositoryPort
-        lateinit var photoBoothLocationRepository: PhotoBoothLocationRepositoryPort
-        lateinit var mapSearch: MapSearchPort
+        lateinit var brandRepository: BrandRepository
+        lateinit var photoBoothLocationRepository: PhotoBoothLocationRepository
+        lateinit var mapSearch: MapSearch
         lateinit var useCase: CollectPhotoBoothLocationUseCase
 
         beforeTest {
@@ -51,7 +52,7 @@ class CollectPhotoBoothLocationUseCaseTest :
             roadAddressName: String = "서울특별시 강남구 테헤란로 $id",
             latitude: String = "37.4979", // latitude 파라미터로 전달됨 (-90..90 범위)
             longitude: String = "37.0", // longitude 파라미터로 전달됨 (-180..180 범위)
-        ) = MapContract.LocalSearchResult.Place(
+        ) = SearchedPlace(
             id = id,
             placeName = placeName,
             roadAddressName = roadAddressName,

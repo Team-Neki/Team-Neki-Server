@@ -1,9 +1,9 @@
 package com.neki.media.api.controller
 
 import com.neki.media.api.dto.FileConverter
-import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.GetImageByKeyUseCase
 import com.neki.media.application.dto.MediaResult
-import com.neki.media.application.usecase.GetImageByKeyUseCase
+import com.neki.media.dto.MediaQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest

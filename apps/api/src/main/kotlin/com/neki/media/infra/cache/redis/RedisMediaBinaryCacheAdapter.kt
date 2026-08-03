@@ -1,8 +1,8 @@
 package com.neki.media.infra.cache.redis
 
-import com.neki.media.MediaType
-import com.neki.media.application.port.MediaBinaryCachePort
+import com.neki.media.MediaBinaryCache
 import com.neki.media.infra.cache.MediaRedisCacheKey
+import com.neki.media.models.MediaType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary
@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit
 @Primary
 @Profile("prod")
 class RedisMediaBinaryCacheAdapter(private val binaryRedisTemplate: RedisTemplate<String, ByteArray>) :
-    MediaBinaryCachePort {
+    MediaBinaryCache {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 

@@ -1,7 +1,7 @@
 package com.neki.support.api.dto
 
-import com.neki.support.application.dto.TermCommand
 import com.neki.support.application.dto.TermResult
+import com.neki.support.dto.TermCommand
 import org.springframework.stereotype.Component
 
 /**

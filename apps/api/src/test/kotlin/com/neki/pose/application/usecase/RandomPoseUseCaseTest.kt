@@ -2,14 +2,16 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.HeadCount
-import com.neki.pose.application.dto.PoseQuery
-import com.neki.pose.application.port.MediaClientPort
-import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.application.port.RandomGeneratorPort
-import com.neki.pose.application.port.ScrapPoseRepositoryPort
-import com.neki.pose.application.port.dto.MediaContract
-import com.neki.pose.entity.ScrapPoseId
+import com.neki.pose.MediaClient
+import com.neki.pose.PoseRepository
+import com.neki.pose.RandomGenerator
+import com.neki.pose.ScrapPoseRepository
+import com.neki.pose.application.RandomPoseUseCase
+import com.neki.pose.dto.PoseQuery
+import com.neki.pose.models.HeadCount
+import com.neki.pose.models.MediaMetadata
+import com.neki.pose.models.ScrapPoseId
+import com.neki.pose.service.PoseService
 import com.neki.testfixture.aPose
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -22,10 +24,10 @@ import java.time.LocalDateTime
 
 class RandomPoseUseCaseTest {
 
-    private lateinit var poseRepository: PoseRepositoryPort
-    private lateinit var scrapPoseRepository: ScrapPoseRepositoryPort
-    private lateinit var mediaClient: MediaClientPort
-    private lateinit var randomGenerator: RandomGeneratorPort
+    private lateinit var poseRepository: PoseRepository
+    private lateinit var scrapPoseRepository: ScrapPoseRepository
+    private lateinit var mediaClient: MediaClient
+    private lateinit var randomGenerator: RandomGenerator
     private lateinit var useCase: RandomPoseUseCase
 
     @BeforeEach
@@ -34,7 +36,11 @@ class RandomPoseUseCaseTest {
         scrapPoseRepository = mockk()
         mediaClient = mockk()
         randomGenerator = mockk()
-        useCase = RandomPoseUseCase(poseRepository, scrapPoseRepository, mediaClient, randomGenerator)
+        useCase =
+            RandomPoseUseCase(
+                PoseService(poseRepository, scrapPoseRepository, mockk(), randomGenerator),
+                mediaClient,
+            )
     }
 
     private fun makeQuery(
@@ -44,7 +50,7 @@ class RandomPoseUseCaseTest {
     ): PoseQuery.GetRandomPose =
         PoseQuery.GetRandomPose(userId = userId, headCount = headCount, excludeIds = excludeIds)
 
-    private fun makeMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo = MediaContract.StorageInfo(
+    private fun makeMediaMetadata(mediaId: Long): MediaMetadata = MediaMetadata(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",
@@ -64,7 +70,7 @@ class RandomPoseUseCaseTest {
         every { randomGenerator.nextLong(5L) } returns 2L
         every { poseRepository.findPoseByOffset(2L, HeadCount.TWO, emptyList()) } returns pose
         every { scrapPoseRepository.existsOwnedPoseScrap(match { it.id == ScrapPoseId(1L, 10L) }) } returns false
-        every { mediaClient.getMediaStorageInfo(101L) } returns makeMediaStorageInfo(101L)
+        every { mediaClient.getMediaMetadata(101L) } returns makeMediaMetadata(101L)
 
         // When
         val result = useCase.execute(query)
@@ -118,7 +124,7 @@ class RandomPoseUseCaseTest {
         every { randomGenerator.nextLong(1L) } returns 0L
         every { poseRepository.findPoseByOffset(0L, HeadCount.TWO, emptyList()) } returns pose
         every { scrapPoseRepository.existsOwnedPoseScrap(match { it.id == ScrapPoseId(1L, 5L) }) } returns true
-        every { mediaClient.getMediaStorageInfo(201L) } returns makeMediaStorageInfo(201L)
+        every { mediaClient.getMediaMetadata(201L) } returns makeMediaMetadata(201L)
 
         // When
         val result = useCase.execute(query)
@@ -140,7 +146,7 @@ class RandomPoseUseCaseTest {
         every { randomGenerator.nextLong(5L) } returns 2L
         every { poseRepository.findPoseByOffset(2L, HeadCount.TWO, emptyList()) } returns pose
         every { scrapPoseRepository.existsOwnedPoseScrap(match { it.id == ScrapPoseId(1L, 10L) }) } returns false
-        every { mediaClient.getMediaStorageInfo(101L) } throws RuntimeException("미디어 조회 실패")
+        every { mediaClient.getMediaMetadata(101L) } throws RuntimeException("미디어 조회 실패")
 
         // When / Then
         shouldThrow<RuntimeException> {

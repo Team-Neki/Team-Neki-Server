@@ -1,12 +1,11 @@
 package com.neki.media.application.usecase
 
-import com.neki.common.code.ResultCode
-import com.neki.common.exception.BusinessException
-import com.neki.media.application.dto.MediaQuery
-import com.neki.media.application.port.DistributedLockPort
-import com.neki.media.application.port.MediaBinaryCachePort
-import com.neki.media.application.port.MediaStoragePort
-import io.kotest.assertions.throwables.shouldThrow
+import com.neki.media.DistributedLock
+import com.neki.media.MediaBinaryCache
+import com.neki.media.MediaStorage
+import com.neki.media.application.GetImageByKeyUseCase
+import com.neki.media.dto.MediaQuery
+import com.neki.media.service.MediaBinaryService
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -22,9 +21,9 @@ import java.time.Duration
  */
 class GetImageByKeyUseCaseTest {
 
-    private lateinit var mediaStorage: MediaStoragePort
-    private lateinit var cache: MediaBinaryCachePort
-    private lateinit var distributedLock: DistributedLockPort
+    private lateinit var mediaStorage: MediaStorage
+    private lateinit var cache: MediaBinaryCache
+    private lateinit var distributedLock: DistributedLock
     private lateinit var useCase: GetImageByKeyUseCase
 
     private val imageData = byteArrayOf(1, 2, 3, 4)
@@ -34,11 +33,7 @@ class GetImageByKeyUseCaseTest {
         mediaStorage = mockk()
         cache = mockk()
         distributedLock = mockk()
-        useCase = GetImageByKeyUseCase(
-            mediaStorage = mediaStorage,
-            cache = cache,
-            distributedLock = distributedLock,
-        )
+        useCase = GetImageByKeyUseCase(MediaBinaryService(cache, mediaStorage, distributedLock))
     }
 
     @Test
@@ -56,7 +51,7 @@ class GetImageByKeyUseCaseTest {
         result.binaryData shouldBe imageData
         result.contentType shouldBe "image/jpeg"
         verify(exactly = 0) { cache.get(any()) }
-        verify(exactly = 0) { distributedLock.executeWithLock<Any>(any(), any(), any()) }
+        verify(exactly = 0) { distributedLock.executeWithLock<Any>(any(), any()) }
     }
 
     @Test
@@ -74,7 +69,7 @@ class GetImageByKeyUseCaseTest {
         result.binaryData shouldBe imageData
         result.contentType shouldBe "image/jpeg"
         verify(exactly = 0) { mediaStorage.fetchBinaryByKey(any()) }
-        verify(exactly = 0) { distributedLock.executeWithLock<Any>(any(), any(), any()) }
+        verify(exactly = 0) { distributedLock.executeWithLock<Any>(any(), any()) }
     }
 
     @Test
@@ -87,13 +82,9 @@ class GetImageByKeyUseCaseTest {
         every { mediaStorage.fetchBinaryByKey(objectKey) } returns imageData
         every { cache.put(objectKey, imageData, any<Duration>()) } returns Unit
         every {
-            distributedLock.executeWithLock<ByteArray>(
-                key = objectKey,
-                ttl = Duration.ofSeconds(10),
-                action = any(),
-            )
+            distributedLock.executeWithLock<ByteArray>(objectKey, any())
         } answers {
-            val action = thirdArg<() -> ByteArray>()
+            val action = secondArg<() -> ByteArray>()
             action()
         }
 
@@ -114,11 +105,7 @@ class GetImageByKeyUseCaseTest {
 
         every { cache.get(objectKey) } returnsMany listOf(null, imageData) // 첫 번째 miss, 두 번째 hit
         every {
-            distributedLock.executeWithLock<ByteArray>(
-                key = objectKey,
-                ttl = Duration.ofSeconds(10),
-                action = any(),
-            )
+            distributedLock.executeWithLock<ByteArray>(objectKey, any())
         } returns null // 락 미획득
 
         // When
@@ -130,25 +117,24 @@ class GetImageByKeyUseCaseTest {
     }
 
     @Test
-    @DisplayName("Cache miss + lock 미획득 + 캐시도 비어있음 - BusinessException(ERROR) 발생")
-    fun `Cache miss + lock 미획득 + 캐시도 비어있음 - BusinessException(ERROR) 발생`() {
+    @DisplayName("Cache miss + lock 미획득 + 캐시도 비어있음 - S3 직접 조회로 폴백")
+    fun `Cache miss + lock 미획득 + 캐시도 비어있음 - S3 직접 조회로 폴백`() {
         // Given
         val objectKey = "pose/image.jpg"
 
         every { cache.get(objectKey) } returns null // 항상 miss
+        every { mediaStorage.fetchBinaryByKey(objectKey) } returns imageData
         every {
-            distributedLock.executeWithLock<ByteArray>(
-                key = objectKey,
-                ttl = Duration.ofSeconds(10),
-                action = any(),
-            )
+            distributedLock.executeWithLock<ByteArray>(objectKey, any())
         } returns null // 락 미획득
 
-        // When & Then
-        val exception = shouldThrow<BusinessException> {
-            useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
-        }
-        exception.resultCode shouldBe ResultCode.ERROR
+        // When
+        val result = useCase.execute(MediaQuery.GetImageByKey(objectKey = objectKey))
+
+        // Then: 캐시를 채우지는 않고 S3 결과를 그대로 반환
+        result.binaryData shouldBe imageData
+        verify(exactly = 1) { mediaStorage.fetchBinaryByKey(objectKey) }
+        verify(exactly = 0) { cache.put(any(), any(), any<Duration>()) }
     }
 
     @Test
@@ -178,13 +164,9 @@ class GetImageByKeyUseCaseTest {
 
         every { cache.get(objectKey) } returnsMany listOf(null, imageData) // 첫 번째 miss, lock 내부에서 hit
         every {
-            distributedLock.executeWithLock<ByteArray>(
-                key = objectKey,
-                ttl = Duration.ofSeconds(10),
-                action = any(),
-            )
+            distributedLock.executeWithLock<ByteArray>(objectKey, any())
         } answers {
-            val action = thirdArg<() -> ByteArray>()
+            val action = secondArg<() -> ByteArray>()
             action()
         }
 

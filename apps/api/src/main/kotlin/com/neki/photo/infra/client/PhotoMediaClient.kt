@@ -1,16 +1,16 @@
 package com.neki.photo.infra.client
 
-import com.neki.media.application.dto.MediaCommand
-import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.ConfirmMediaUploadedUseCase
+import com.neki.media.application.DeleteMediaUseCase
+import com.neki.media.application.GetMediaMetadataListUseCase
+import com.neki.media.application.GetMediaMetadataUseCase
 import com.neki.media.application.dto.MediaResult
-import com.neki.media.application.dto.MediaResult.ConfirmMediasUploaded.UploadConfirmStatus
-import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
-import com.neki.media.application.usecase.DeleteMediaUseCase
-import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
-import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
-import com.neki.media.application.usecase.GetMediasUseCase
-import com.neki.photo.application.port.MediaClientPort
-import com.neki.photo.application.port.dto.MediaContract
+import com.neki.media.dto.MediaCommand
+import com.neki.media.dto.MediaQuery
+import com.neki.media.models.UploadConfirmStatus
+import com.neki.photo.MediaClient
+import com.neki.photo.models.MediaAvailability
+import com.neki.photo.models.MediaMetadata
 import org.springframework.stereotype.Component
 
 /**
@@ -23,71 +23,44 @@ import org.springframework.stereotype.Component
 @Component
 class PhotoMediaClient(
     private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
-    private val getMediasUseCase: GetMediasUseCase,
-    private val getMediaStorageInfoUseCase: GetMediaStorageInfoUseCase,
-    private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
+    private val getMediaMetadataUseCase: GetMediaMetadataUseCase,
+    private val getMediaMetadataListUseCase: GetMediaMetadataListUseCase,
     private val deleteMediaUseCase: DeleteMediaUseCase,
-) : MediaClientPort {
+) : MediaClient {
 
-    override fun getMediaBinaries(ownerId: Long, mediaIds: List<Long>): List<MediaContract.Info> {
-        val result = getMediasUseCase.execute(MediaQuery.GetMedias(ownerId, mediaIds))
-
-        return result.medias.map {
-            MediaContract.Info(
-                mediaId = it.mediaId,
-                contentType = it.contentType,
-                binaryData = it.binaryData,
-            )
-        }.toList()
-    }
-
-    override fun getMediaStorageInfo(ownerId: Long, mediaId: Long): MediaContract.StorageInfo {
-        val result: MediaResult.GetMediaStorageInfo = getMediaStorageInfoUseCase.execute(
-            MediaQuery.GetMediaStorageInfo(
+    override fun getMediaMetadata(ownerId: Long, mediaId: Long): MediaMetadata {
+        val result: MediaResult.GetMediaMetadata = getMediaMetadataUseCase.execute(
+            MediaQuery.GetMediaMetadata(
                 ownerId = ownerId,
                 mediaId = mediaId,
             ),
         )
 
-        return MediaContract.StorageInfo(
-            mediaId = result.mediaId,
-            storageKey = result.storageKey,
-            contentType = result.contentType,
-            width = result.width,
-            height = result.height,
-        )
+        return result.media.toMetadata()
     }
 
-    override fun getMediaStorageInfos(ownerId: Long, mediaIds: List<Long>): List<MediaContract.StorageInfo> {
-        val result =
-            getMediaStorageInfosUseCase.execute(MediaQuery.GetMediaStorageInfos(ownerId, mediaIds))
+    override fun getMediaMetadata(ownerId: Long, mediaIds: List<Long>): List<MediaMetadata> {
+        val result: MediaResult.GetMediaMetadataList =
+            getMediaMetadataListUseCase.execute(MediaQuery.GetMediaMetadataList(ownerId, mediaIds))
 
-        return result.storageInfos.map {
-            MediaContract.StorageInfo(
-                mediaId = it.mediaId,
-                storageKey = it.storageKey,
-                contentType = it.contentType,
-                width = it.width,
-                height = it.height,
-            )
-        }
+        return result.medias.map { it.toMetadata() }
     }
 
     override fun deleteMedias(ownerId: Long, mediaIds: List<Long>) {
         deleteMediaUseCase.execute(MediaCommand.DeleteMedias(ownerId, mediaIds))
     }
 
-    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaContract.Availability> {
+    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
         if (mediaIds.isEmpty()) return emptyMap()
 
-        val result = confirmMediaUploadedUseCase.execute(
+        val result: MediaResult.ConfirmMediasUploaded = confirmMediaUploadedUseCase.execute(
             MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = mediaIds),
         )
-        return result.results.mapValues { (_, status) ->
+        return result.statuses.mapValues { (_, status) ->
             if (status == UploadConfirmStatus.CONFIRMED) {
-                MediaContract.Availability.AVAILABLE
+                MediaAvailability.AVAILABLE
             } else {
-                MediaContract.Availability.UNAVAILABLE
+                MediaAvailability.UNAVAILABLE
             }
         }
     }
@@ -102,4 +75,12 @@ class PhotoMediaClient(
             ),
         )
     }
+
+    private fun MediaResult.Metadata.toMetadata(): MediaMetadata = MediaMetadata(
+        mediaId = mediaId,
+        storageKey = storageKey,
+        contentType = contentType,
+        width = width,
+        height = height,
+    )
 }

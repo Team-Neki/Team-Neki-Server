@@ -1,8 +1,8 @@
 package com.neki.pose.infra.persist
 
-import com.neki.pose.application.port.ScrapPoseRepositoryPort
-import com.neki.pose.entity.ScrapPose
+import com.neki.pose.ScrapPoseRepository
 import com.neki.pose.infra.persist.jpa.JpaScrapPoseRepository
+import com.neki.pose.models.ScrapPose
 import org.springframework.stereotype.Repository
 
 /**
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository
  * description    :
  */
 @Repository
-class ScrapPoseRepositoryAdapter(private val jpaRepository: JpaScrapPoseRepository) : ScrapPoseRepositoryPort {
+class ScrapPoseRepositoryAdapter(private val jpaRepository: JpaScrapPoseRepository) : ScrapPoseRepository {
 
     override fun add(scrapPose: ScrapPose) {
         jpaRepository.save(scrapPose)

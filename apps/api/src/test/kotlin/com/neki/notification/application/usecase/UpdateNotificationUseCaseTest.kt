@@ -1,9 +1,11 @@
 package com.neki.notification.application.usecase
 
 import com.neki.common.transaction.TransactionRunner
-import com.neki.notification.application.dto.NotificationCommand
-import com.neki.notification.application.port.NotificationRepositoryPort
-import com.neki.notification.entity.Notification
+import com.neki.notification.NotificationRepository
+import com.neki.notification.application.UpdateNotificationUseCase
+import com.neki.notification.dto.NotificationCommand
+import com.neki.notification.models.Notification
+import com.neki.notification.service.NotificationService
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.every
@@ -17,7 +19,7 @@ import org.springframework.dao.DataIntegrityViolationException
 
 class UpdateNotificationUseCaseTest {
 
-    lateinit var notificationRepository: NotificationRepositoryPort
+    lateinit var notificationRepository: NotificationRepository
     lateinit var transactionRunner: TransactionRunner
     lateinit var useCase: UpdateNotificationUseCase
 
@@ -28,7 +30,7 @@ class UpdateNotificationUseCaseTest {
         // runNew 는 전달받은 람다를 그대로 실행하도록 스텁한다.
         every { transactionRunner.runNew<Unit>(any()) } answers { firstArg<() -> Unit>().invoke() }
         useCase = UpdateNotificationUseCase(
-            notificationRepository = notificationRepository,
+            notificationService = NotificationService(notificationRepository, mockk()),
             transactionRunner = transactionRunner,
         )
     }

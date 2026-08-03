@@ -1,7 +1,8 @@
 package com.neki.map.infra.client.fake
 
-import com.neki.map.application.port.MapApiClientPort
-import com.neki.map.application.port.dto.MapContract
+import com.neki.map.MapApiClient
+import com.neki.map.models.SearchPagination
+import com.neki.map.models.SearchedPlaces
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -18,17 +19,17 @@ import java.util.concurrent.ConcurrentHashMap
 class FakeMapApiClientConfig {
 
     @Bean
-    fun fakeMapApiClient(): MapApiClientPort = FakeMapApiClientAdapter()
+    fun fakeMapApiClient(): MapApiClient = FakeMapApiClientAdapter()
 }
 
-class FakeMapApiClientAdapter : MapApiClientPort {
+class FakeMapApiClientAdapter : MapApiClient {
 
-    private val searchResults = ConcurrentHashMap<String, MapContract.LocalSearchResult>()
+    private val searchResults = ConcurrentHashMap<String, SearchedPlaces>()
 
-    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): MapContract.LocalSearchResult =
-        searchResults[query] ?: MapContract.LocalSearchResult(
-            documents = emptyList(),
-            searchPaginationMeta = MapContract.LocalSearchResult.SearchPaginationMeta(
+    override fun searchByKeyword(query: String, page: Int, size: Int, rect: String?): SearchedPlaces =
+        searchResults[query] ?: SearchedPlaces(
+            places = emptyList(),
+            pagination = SearchPagination(
                 totalCount = 0,
                 pageableCount = 0,
                 isEnd = true,

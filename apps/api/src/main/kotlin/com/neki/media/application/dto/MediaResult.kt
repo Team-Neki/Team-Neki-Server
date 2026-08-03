@@ -1,5 +1,6 @@
 package com.neki.media.application.dto
 
+import com.neki.media.models.UploadConfirmStatus
 import java.time.Instant
 
 /**
@@ -9,11 +10,25 @@ import java.time.Instant
  * description    : Media domain application result
  */
 object MediaResult {
-    /**
-     * 미디어 업로드 확인 결과
-     */
-    data class ConfirmMediasUploaded(val results: Map<Long, UploadConfirmStatus>) {
-        enum class UploadConfirmStatus { CONFIRMED, NOT_FOUND, NOT_UPLOADED }
+    data class Metadata(
+        val mediaId: Long,
+        val storageKey: String,
+        val contentType: String,
+        val width: Int?,
+        val height: Int?,
+    ) {
+        val id: Long
+            get() = mediaId
+    }
+
+    data class Binary(val media: Metadata, val binaryData: ByteArray) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Binary) return false
+            return media == other.media && binaryData.contentEquals(other.binaryData)
+        }
+
+        override fun hashCode(): Int = 31 * media.hashCode() + binaryData.contentHashCode()
     }
 
     /**
@@ -21,21 +36,6 @@ object MediaResult {
      */
     data class GenerateUploadTicket(val method: String, val expiresAt: Instant, val tickets: List<Item>) {
         data class Item(val mediaId: Long, val uploadUrl: String, val contentType: String)
-    }
-
-    /**
-     * 미디어 조회
-     */
-    data class GetMedias(val medias: List<Item>) {
-        data class Item(val mediaId: Long, val binaryData: ByteArray, val contentType: String) {
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other !is Item) return false
-                return mediaId == other.mediaId
-            }
-
-            override fun hashCode(): Int = mediaId.hashCode()
-        }
     }
 
     data class GetImageByKey(val binaryData: ByteArray, val contentType: String) {
@@ -48,21 +48,20 @@ object MediaResult {
         override fun hashCode(): Int = 31 * binaryData.contentHashCode() + contentType.hashCode()
     }
 
-    data class GetMediaStorageInfo(
-        val mediaId: Long,
-        val storageKey: String,
-        val contentType: String,
-        val width: Int? = null,
-        val height: Int? = null,
-    )
+    data class GetMediaMetadata(val media: Metadata) {
+        val id: Long
+            get() = media.id
 
-    data class GetMediaStorageInfos(val storageInfos: List<Item>) {
-        data class Item(
-            val mediaId: Long,
-            val storageKey: String,
-            val contentType: String,
-            val width: Int? = null,
-            val height: Int? = null,
-        )
+        val storageKey: String
+            get() = media.storageKey
     }
+
+    data class GetMediaMetadataList(val medias: List<Metadata>) : List<Metadata> by medias
+
+    data class GetMedias(val medias: List<Binary>) : List<Binary> by medias
+
+    data class ConfirmMediasUploaded(val statuses: Map<Long, UploadConfirmStatus>) :
+        Map<Long, UploadConfirmStatus> by statuses
+
+    data class DeleteMedias(val mediaIds: List<Long>)
 }

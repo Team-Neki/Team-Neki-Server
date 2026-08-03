@@ -1,10 +1,9 @@
 package com.neki.media.infra.lock.fake
 
-import com.neki.media.application.port.DistributedLockPort
+import com.neki.media.DistributedLock
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
-import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 
@@ -15,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock
  */
 @Component
 @Profile("test")
-class FakeDistributedLockAdapter : DistributedLockPort {
+class FakeDistributedLockAdapter : DistributedLock {
     private val log = LoggerFactory.getLogger(javaClass)
 
     // Per-key locks for mutual exclusion
@@ -30,7 +29,7 @@ class FakeDistributedLockAdapter : DistributedLockPort {
      */
     private fun generateLockKey(objectKey: String): String = "lock:media:fetch:$objectKey"
 
-    override fun <T> executeWithLock(key: String, ttl: Duration, action: () -> T): T? {
+    override fun <T> executeWithLock(key: String, action: () -> T): T? {
         val lockKey = generateLockKey(key)
         val lock = keyLocks.computeIfAbsent(lockKey) { ReentrantLock() }
         lock.lock()

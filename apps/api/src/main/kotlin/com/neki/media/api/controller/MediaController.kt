@@ -5,9 +5,9 @@ import com.neki.common.api.dto.BaseResponse
 import com.neki.media.api.dto.MediaConverter
 import com.neki.media.api.dto.MediaRequest
 import com.neki.media.api.dto.MediaResponse
-import com.neki.media.application.dto.MediaCommand
+import com.neki.media.application.GenerateUploadTicketUseCase
 import com.neki.media.application.dto.MediaResult
-import com.neki.media.application.usecase.GenerateUploadTicketUseCase
+import com.neki.media.dto.MediaCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

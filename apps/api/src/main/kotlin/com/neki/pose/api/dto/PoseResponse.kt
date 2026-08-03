@@ -1,6 +1,6 @@
 package com.neki.pose.api.dto
 
-import com.neki.pose.HeadCount
+import com.neki.pose.models.HeadCount
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 

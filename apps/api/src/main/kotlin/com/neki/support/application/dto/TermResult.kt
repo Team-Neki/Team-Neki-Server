@@ -1,6 +1,6 @@
 package com.neki.support.application.dto
 
-import com.neki.support.enums.TermType
+import com.neki.support.models.TermType
 
 /**
  * fileName       : TermResult
@@ -19,5 +19,5 @@ object TermResult {
         val isRequired: Boolean,
     )
 
-    data class TermAgreement(val agreed: Boolean)
+    data class AgreementStatus(val requiredAgreed: Boolean, val marketingAgreed: Boolean)
 }

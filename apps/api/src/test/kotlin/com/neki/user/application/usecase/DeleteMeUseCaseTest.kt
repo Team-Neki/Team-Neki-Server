@@ -3,11 +3,13 @@ package com.neki.user.application.usecase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
-import com.neki.user.application.dto.UserCommand
-import com.neki.user.application.port.NotificationClientPort
-import com.neki.user.application.port.TermClientPort
-import com.neki.user.application.port.UserEventPublisherPort
-import com.neki.user.application.port.UserRepositoryPort
+import com.neki.user.NotificationClient
+import com.neki.user.TermClient
+import com.neki.user.UserEventPublisher
+import com.neki.user.UserRepository
+import com.neki.user.application.DeleteMeUseCase
+import com.neki.user.dto.UserCommand
+import com.neki.user.service.UserService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -19,10 +21,10 @@ import org.junit.jupiter.api.Test
 
 class DeleteMeUseCaseTest {
 
-    lateinit var userRepository: UserRepositoryPort
-    lateinit var userEventPublisher: UserEventPublisherPort
-    lateinit var termClient: TermClientPort
-    lateinit var notificationClient: NotificationClientPort
+    lateinit var userRepository: UserRepository
+    lateinit var userEventPublisher: UserEventPublisher
+    lateinit var termClient: TermClient
+    lateinit var notificationClient: NotificationClient
     lateinit var useCase: DeleteMeUseCase
 
     @BeforeEach
@@ -31,7 +33,8 @@ class DeleteMeUseCaseTest {
         userEventPublisher = mockk()
         termClient = mockk()
         notificationClient = mockk()
-        useCase = DeleteMeUseCase(userRepository, userEventPublisher, termClient, notificationClient)
+        useCase =
+            DeleteMeUseCase(userEventPublisher, termClient, notificationClient, UserService(userRepository, mockk()))
     }
 
     @Test

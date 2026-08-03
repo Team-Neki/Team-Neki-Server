@@ -1,9 +1,9 @@
 package com.neki.e2e.media
 
 import com.neki.common.code.ResultCode
-import com.neki.media.MediaType
 import com.neki.media.api.dto.MediaRequest
-import com.neki.user.entity.User
+import com.neki.media.models.MediaType
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.hamcrest.Matchers.equalTo

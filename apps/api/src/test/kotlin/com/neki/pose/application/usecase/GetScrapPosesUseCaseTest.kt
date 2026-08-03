@@ -1,11 +1,14 @@
 package com.neki.pose.application.usecase
 
+import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.application.dto.PoseQuery
-import com.neki.pose.application.port.MediaClientPort
-import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.application.port.dto.MediaContract
-import com.neki.pose.entity.Pose
+import com.neki.pose.MediaClient
+import com.neki.pose.PoseRepository
+import com.neki.pose.application.GetScrapPosesUseCase
+import com.neki.pose.dto.PoseQuery
+import com.neki.pose.models.MediaMetadata
+import com.neki.pose.models.Pose
+import com.neki.pose.service.PoseService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose
 import io.kotest.matchers.shouldBe
@@ -18,8 +21,8 @@ import java.time.LocalDateTime
 
 class GetScrapPosesUseCaseTest {
 
-    private lateinit var poseRepository: PoseRepositoryPort
-    private lateinit var mediaClient: MediaClientPort
+    private lateinit var poseRepository: PoseRepository
+    private lateinit var mediaClient: MediaClient
     private lateinit var transactionRunner: FakeTransactionRunner
     private lateinit var useCase: GetScrapPosesUseCase
 
@@ -28,15 +31,17 @@ class GetScrapPosesUseCaseTest {
         poseRepository = mockk()
         mediaClient = mockk()
         transactionRunner = FakeTransactionRunner()
-        useCase = GetScrapPosesUseCase(poseRepository, mediaClient, transactionRunner)
+        useCase = GetScrapPosesUseCase(
+            PoseService(poseRepository, mockk(), mockk(), mockk()),
+            mediaClient,
+            transactionRunner,
+        )
     }
 
     private fun makeQuery(page: Int = 0, size: Int = 10): PoseQuery.GetScrapPoses = PoseQuery.GetScrapPoses(
         userId = 1L,
-        page = page,
-        size = size,
         headCount = null,
-        sortOrder = SortOrder.DESC,
+        pagination = Pagination(page = page, size = size, sortOrder = SortOrder.DESC),
     )
 
     private fun makePose(id: Long, mediaId: Long): Pose {
@@ -45,7 +50,7 @@ class GetScrapPosesUseCaseTest {
         return pose
     }
 
-    private fun makeMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo = MediaContract.StorageInfo(
+    private fun makeMediaMetadata(mediaId: Long): MediaMetadata = MediaMetadata(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",
@@ -54,8 +59,8 @@ class GetScrapPosesUseCaseTest {
     )
 
     @Test
-    @DisplayName("정상 조회 + 미디어 매핑 - poses + storageInfo 반환")
-    fun `정상 조회 + 미디어 매핑 - poses + storageInfo 반환`() {
+    @DisplayName("정상 조회 + 미디어 매핑 - poses + metadata 반환")
+    fun `정상 조회 + 미디어 매핑 - poses + metadata 반환`() {
         // Given
         val query = makeQuery(size = 2)
         val poseList = listOf(makePose(1L, 101L), makePose(2L, 102L))
@@ -69,9 +74,9 @@ class GetScrapPosesUseCaseTest {
             )
         } returns poseList
 
-        every { mediaClient.getMediaStorageInfos(listOf(101L, 102L)) } returns listOf(
-            makeMediaStorageInfo(101L),
-            makeMediaStorageInfo(102L),
+        every { mediaClient.getMediaMetadata(listOf(101L, 102L)) } returns listOf(
+            makeMediaMetadata(101L),
+            makeMediaMetadata(102L),
         )
 
         // When
@@ -106,9 +111,9 @@ class GetScrapPosesUseCaseTest {
             )
         } returns poseList
 
-        every { mediaClient.getMediaStorageInfos(listOf(101L, 102L)) } returns listOf(
-            makeMediaStorageInfo(101L),
-            makeMediaStorageInfo(102L),
+        every { mediaClient.getMediaMetadata(listOf(101L, 102L)) } returns listOf(
+            makeMediaMetadata(101L),
+            makeMediaMetadata(102L),
         )
 
         // When
@@ -135,9 +140,9 @@ class GetScrapPosesUseCaseTest {
             )
         } returns poseList
 
-        every { mediaClient.getMediaStorageInfos(listOf(101L, 102L)) } returns listOf(
-            makeMediaStorageInfo(101L),
-            makeMediaStorageInfo(102L),
+        every { mediaClient.getMediaMetadata(listOf(101L, 102L)) } returns listOf(
+            makeMediaMetadata(101L),
+            makeMediaMetadata(102L),
         )
 
         // When

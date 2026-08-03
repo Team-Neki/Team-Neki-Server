@@ -1,7 +1,7 @@
 package com.neki.media.api.dto
 
-import com.neki.media.application.dto.MediaQuery
 import com.neki.media.application.dto.MediaResult
+import com.neki.media.dto.MediaQuery
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType

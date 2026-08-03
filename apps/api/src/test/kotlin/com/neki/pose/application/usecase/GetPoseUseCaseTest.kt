@@ -2,12 +2,14 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.dto.PoseQuery
-import com.neki.pose.application.port.MediaClientPort
-import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.application.port.PoseViewCachePort
-import com.neki.pose.application.port.dto.MediaContract
-import com.neki.pose.application.port.dto.PoseContract
+import com.neki.pose.MediaClient
+import com.neki.pose.PoseRepository
+import com.neki.pose.PoseViewCache
+import com.neki.pose.application.GetPoseUseCase
+import com.neki.pose.dto.PoseQuery
+import com.neki.pose.models.MediaMetadata
+import com.neki.pose.models.PoseWithScrap
+import com.neki.pose.service.PoseService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose
 import io.kotest.assertions.throwables.shouldThrow
@@ -22,9 +24,9 @@ import java.time.LocalDateTime
 
 class GetPoseUseCaseTest {
 
-    private lateinit var poseRepository: PoseRepositoryPort
-    private lateinit var mediaClient: MediaClientPort
-    private lateinit var poseViewCache: PoseViewCachePort
+    private lateinit var poseRepository: PoseRepository
+    private lateinit var mediaClient: MediaClient
+    private lateinit var poseViewCache: PoseViewCache
     private lateinit var transactionRunner: FakeTransactionRunner
     private lateinit var useCase: GetPoseUseCase
 
@@ -34,20 +36,20 @@ class GetPoseUseCaseTest {
         mediaClient = mockk()
         poseViewCache = mockk()
         transactionRunner = FakeTransactionRunner()
-        useCase = GetPoseUseCase(poseRepository, mediaClient, poseViewCache, transactionRunner)
+        useCase = GetPoseUseCase(
+            PoseService(poseRepository, mockk(), poseViewCache, mockk()),
+            mediaClient,
+            transactionRunner,
+        )
     }
 
-    private fun makePoseWithScrap(
-        id: Long = 1L,
-        mediaId: Long = 101L,
-        scraped: Boolean = false,
-    ): PoseContract.PoseWithScrap {
+    private fun makePoseWithScrap(id: Long = 1L, mediaId: Long = 101L, scraped: Boolean = false): PoseWithScrap {
         val pose = aPose(id = id, mediaId = mediaId)
         pose.createdAt = LocalDateTime.of(2026, 1, 1, 0, 0)
-        return PoseContract.PoseWithScrap(pose = pose, isScraped = scraped)
+        return PoseWithScrap(pose = pose, isScraped = scraped)
     }
 
-    private fun makeMediaStorageInfo(mediaId: Long = 101L): MediaContract.StorageInfo = MediaContract.StorageInfo(
+    private fun makeMediaMetadata(mediaId: Long = 101L): MediaMetadata = MediaMetadata(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",
@@ -64,7 +66,7 @@ class GetPoseUseCaseTest {
         every { poseRepository.getOwnedPoseWithScrap(1L, 10L) } returns poseWithScrap
         every { poseViewCache.addViewer(10L, 1L) } returns true // cache miss → 신규 조회자
         every { poseRepository.incrementViewCount(10L) } returns Unit
-        every { mediaClient.getMediaStorageInfo(101L) } returns makeMediaStorageInfo(101L)
+        every { mediaClient.getMediaMetadata(101L) } returns makeMediaMetadata(101L)
 
         // When
         val result = useCase.execute(query)
@@ -84,7 +86,7 @@ class GetPoseUseCaseTest {
         val poseWithScrap = makePoseWithScrap(id = 10L, mediaId = 101L)
         every { poseRepository.getOwnedPoseWithScrap(1L, 10L) } returns poseWithScrap
         every { poseViewCache.addViewer(10L, 1L) } returns false // cache hit → 재방문자
-        every { mediaClient.getMediaStorageInfo(101L) } returns makeMediaStorageInfo(101L)
+        every { mediaClient.getMediaMetadata(101L) } returns makeMediaMetadata(101L)
 
         // When
         val result = useCase.execute(query)
@@ -107,7 +109,7 @@ class GetPoseUseCaseTest {
         }
         ex.resultCode shouldBe ResultCode.NOT_FOUND
         verify(exactly = 0) { poseViewCache.addViewer(any(), any()) }
-        verify(exactly = 0) { mediaClient.getMediaStorageInfo(any()) }
+        verify(exactly = 0) { mediaClient.getMediaMetadata(any<Long>()) }
     }
 
     @Test
@@ -135,7 +137,7 @@ class GetPoseUseCaseTest {
         every { poseRepository.getOwnedPoseWithScrap(1L, 10L) } returns poseWithScrap
         every { poseViewCache.addViewer(10L, 1L) } returns true
         every { poseRepository.incrementViewCount(10L) } returns Unit
-        every { mediaClient.getMediaStorageInfo(101L) } throws RuntimeException("미디어 조회 실패")
+        every { mediaClient.getMediaMetadata(101L) } throws RuntimeException("미디어 조회 실패")
 
         // When / Then
         shouldThrow<RuntimeException> {

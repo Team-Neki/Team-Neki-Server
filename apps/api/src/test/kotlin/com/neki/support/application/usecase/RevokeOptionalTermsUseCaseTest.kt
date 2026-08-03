@@ -1,10 +1,13 @@
 package com.neki.support.application.usecase
 
-import com.neki.support.application.port.TermRepositoryPort
-import com.neki.support.application.port.UserTermAgreementHistRepositoryPort
-import com.neki.support.application.port.UserTermAgreementRepositoryPort
-import com.neki.support.entity.UserTermAgreementHist
-import com.neki.support.enums.TermAgreementAction
+import com.neki.support.TermRepository
+import com.neki.support.UserTermAgreementHistRepository
+import com.neki.support.UserTermAgreementRepository
+import com.neki.support.application.RevokeOptionalTermsUseCase
+import com.neki.support.dto.TermCommand
+import com.neki.support.models.TermAgreementAction
+import com.neki.support.models.UserTermAgreementHist
+import com.neki.support.service.TermService
 import com.neki.testfixture.aTerm
 import com.neki.testfixture.aUserTermAgreement
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -19,9 +22,9 @@ import org.junit.jupiter.api.Test
 
 class RevokeOptionalTermsUseCaseTest {
 
-    private lateinit var termRepository: TermRepositoryPort
-    private lateinit var userTermAgreementRepository: UserTermAgreementRepositoryPort
-    private lateinit var userTermAgreementHistRepository: UserTermAgreementHistRepositoryPort
+    private lateinit var termRepository: TermRepository
+    private lateinit var userTermAgreementRepository: UserTermAgreementRepository
+    private lateinit var userTermAgreementHistRepository: UserTermAgreementHistRepository
     private lateinit var useCase: RevokeOptionalTermsUseCase
 
     @BeforeEach
@@ -30,9 +33,7 @@ class RevokeOptionalTermsUseCaseTest {
         userTermAgreementRepository = mockk()
         userTermAgreementHistRepository = mockk()
         useCase = RevokeOptionalTermsUseCase(
-            termRepository,
-            userTermAgreementRepository,
-            userTermAgreementHistRepository,
+            TermService(termRepository, userTermAgreementRepository, userTermAgreementHistRepository),
         )
     }
 
@@ -57,7 +58,7 @@ class RevokeOptionalTermsUseCaseTest {
         every { userTermAgreementHistRepository.saveAll(capture(savedHists)) } returns Unit
 
         // When
-        useCase.execute(userId)
+        useCase.execute(TermCommand.RevokeOptionalTerms(userId))
 
         // Then - 선택 약관(2)만 철회 대상
         deletedTermIds.captured shouldContainExactlyInAnyOrder listOf(2L)
@@ -87,7 +88,7 @@ class RevokeOptionalTermsUseCaseTest {
         )
 
         // When
-        useCase.execute(userId)
+        useCase.execute(TermCommand.RevokeOptionalTerms(userId))
 
         // Then
         verify(exactly = 0) { userTermAgreementRepository.deleteAllByUserIdAndTermIds(any(), any()) }
@@ -107,7 +108,7 @@ class RevokeOptionalTermsUseCaseTest {
         )
 
         // When
-        useCase.execute(userId)
+        useCase.execute(TermCommand.RevokeOptionalTerms(userId))
 
         // Then
         verify(exactly = 0) { userTermAgreementRepository.deleteAllByUserIdAndTermIds(any(), any()) }

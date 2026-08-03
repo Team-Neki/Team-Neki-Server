@@ -11,7 +11,7 @@ import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.notification.application.port.PushNotificationPort
+import com.neki.notification.PushNotificationSender
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.stereotype.Component
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class FcmPushNotificationAdapter(private val firebaseMessagingProvider: ObjectProvider<FirebaseMessaging>) :
-    PushNotificationPort {
+    PushNotificationSender {
 
     private val log = LoggerFactory.getLogger(javaClass)
 

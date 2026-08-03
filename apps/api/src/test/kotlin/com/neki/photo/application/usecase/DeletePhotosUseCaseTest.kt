@@ -1,9 +1,12 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.application.dto.PhotoImageCommand
-import com.neki.photo.application.port.FavoriteImageRepositoryPort
-import com.neki.photo.application.port.MediaClientPort
-import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.FavoriteImageRepository
+import com.neki.photo.MediaClient
+import com.neki.photo.PhotoImageRepository
+import com.neki.photo.application.DeletePhotosUseCase
+import com.neki.photo.dto.PhotoImageCommand
+import com.neki.photo.service.FavoriteService
+import com.neki.photo.service.PhotoService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPhotoImage
 import io.kotest.assertions.throwables.shouldThrow
@@ -18,9 +21,9 @@ import org.junit.jupiter.api.Test
 
 class DeletePhotosUseCaseTest {
 
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
-    lateinit var favoriteImageRepository: FavoriteImageRepositoryPort
-    lateinit var mediaClient: MediaClientPort
+    lateinit var photoImageRepository: PhotoImageRepository
+    lateinit var favoriteImageRepository: FavoriteImageRepository
+    lateinit var mediaClient: MediaClient
     lateinit var useCase: DeletePhotosUseCase
 
     @BeforeEach
@@ -29,8 +32,8 @@ class DeletePhotosUseCaseTest {
         favoriteImageRepository = mockk()
         mediaClient = mockk()
         useCase = DeletePhotosUseCase(
-            photoImageRepository,
-            favoriteImageRepository,
+            PhotoService(photoImageRepository),
+            FavoriteService(favoriteImageRepository),
             mediaClient,
             FakeTransactionRunner(),
         )

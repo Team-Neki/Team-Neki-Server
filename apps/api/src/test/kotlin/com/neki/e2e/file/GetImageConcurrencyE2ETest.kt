@@ -1,8 +1,8 @@
 package com.neki.e2e.file
 
 import com.neki.e2e.E2ETestBase
-import com.neki.media.application.port.MediaBinaryCachePort
-import com.neki.media.application.port.MediaStoragePort
+import com.neki.media.MediaBinaryCache
+import com.neki.media.MediaStorage
 import com.neki.media.infra.storage.fake.FakeMediaStorageAdapter
 import io.restassured.RestAssured
 import org.junit.jupiter.api.AfterEach
@@ -38,13 +38,13 @@ class GetImageConcurrencyE2ETest : E2ETestBase() {
     private var port: Int = 0
 
     @Autowired
-    private lateinit var mediaStoragePort: MediaStoragePort
+    private lateinit var mediaStorage: MediaStorage
 
     @Autowired
-    private lateinit var cache: MediaBinaryCachePort
+    private lateinit var cache: MediaBinaryCache
 
     private val fakeStorage: FakeMediaStorageAdapter
-        get() = mediaStoragePort as FakeMediaStorageAdapter
+        get() = mediaStorage as FakeMediaStorageAdapter
 
     @BeforeEach
     fun setUp() {

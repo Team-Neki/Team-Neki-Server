@@ -1,6 +1,6 @@
 package com.neki.map.infra.persist.jpa
 
-import com.neki.map.entity.Brand
+import com.neki.map.models.Brand
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

@@ -57,10 +57,10 @@ Port 인터페이스는 모두 `:apps:api` 모듈에 있다. `support`가 약관
 | Domain       | Port Path                                                                     |
 |--------------|-------------------------------------------------------------------------------|
 | map          | `apps/api/src/main/kotlin/com/neki/map/application/port/`             |
-| media        | `apps/api/src/main/kotlin/com/neki/media/application/port/`           |
+| media        | `../../domain/src/main/kotlin/com/neki/media/port/`           |
 | notification | `apps/api/src/main/kotlin/com/neki/notification/application/port/`    |
-| photo        | `apps/api/src/main/kotlin/com/neki/photo/application/port/`           |
+| photo        | `../../domain/src/main/kotlin/com/neki/photo/port/`           |
 | pose         | `apps/api/src/main/kotlin/com/neki/pose/application/port/`            |
 | support      | `apps/api/src/main/kotlin/com/neki/support/application/port/`         |
-| user         | `apps/api/src/main/kotlin/com/neki/user/application/port/`            |
+| user         | `../../domain/src/main/kotlin/com/neki/user/port/`            |
 | common (공유 커널) | `core/src/main/kotlin/com/neki/common/`                              |

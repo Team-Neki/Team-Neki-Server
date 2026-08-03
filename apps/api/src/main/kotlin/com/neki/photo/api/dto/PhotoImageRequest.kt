@@ -1,6 +1,6 @@
 package com.neki.photo.api.dto
 
-import com.neki.photo.enums.UploadMethod
+import com.neki.photo.models.UploadMethod
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.annotation.Nullable
 import jakarta.validation.Valid

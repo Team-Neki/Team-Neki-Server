@@ -1,6 +1,6 @@
 package com.neki.map.infra.persist.jpa
 
-import com.neki.map.entity.PhotoBoothLocation
+import com.neki.map.models.PhotoBoothLocation
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

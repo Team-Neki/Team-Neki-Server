@@ -1,13 +1,14 @@
 package com.neki.user.infra.client
 
-import com.neki.media.application.dto.MediaCommand
-import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.ConfirmMediaUploadedUseCase
+import com.neki.media.application.DeleteMediaUseCase
+import com.neki.media.application.GetMediaMetadataUseCase
 import com.neki.media.application.dto.MediaResult
-import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
-import com.neki.media.application.usecase.DeleteMediaUseCase
-import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
-import com.neki.user.application.port.MediaClientPort
-import com.neki.user.application.port.dto.MediaContract
+import com.neki.media.dto.MediaCommand
+import com.neki.media.dto.MediaQuery
+import com.neki.media.models.UploadConfirmStatus
+import com.neki.user.MediaClient
+import com.neki.user.models.MediaAvailability
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -22,14 +23,14 @@ import org.springframework.stereotype.Component
 class UserMediaClient(
     private val deleteMediaUseCase: DeleteMediaUseCase,
     private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
-    private val getMediaStorageInfoUseCase: GetMediaStorageInfoUseCase,
-) : MediaClientPort {
+    private val getMediaMetadataUseCase: GetMediaMetadataUseCase,
+) : MediaClient {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun deleteMedia(ownerId: Long, mediaId: Long) {
         runCatching {
-            deleteMediaUseCase.execute(MediaCommand.DeleteMedia(ownerId, mediaId))
+            deleteMediaUseCase.execute(MediaCommand.DeleteMedias(ownerId, listOf(mediaId)))
         }.onFailure { e ->
             log.warn(
                 "Failed to request media deletion. Will be cleaned up by batch later. ownerId={}, mediaId={}",
@@ -40,7 +41,7 @@ class UserMediaClient(
         }
     }
 
-    override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaContract.Availability {
+    override fun verifyMediaUploaded(ownerId: Long, mediaId: Long): MediaAvailability {
         val result: MediaResult.ConfirmMediasUploaded = confirmMediaUploadedUseCase.execute(
             MediaCommand.ConfirmMediasUploaded(
                 ownerId = ownerId,
@@ -48,9 +49,9 @@ class UserMediaClient(
             ),
         )
 
-        return when (result.results[mediaId]) {
-            MediaResult.ConfirmMediasUploaded.UploadConfirmStatus.CONFIRMED -> MediaContract.Availability.AVAILABLE
-            else -> MediaContract.Availability.UNAVAILABLE
+        return when (result.statuses[mediaId]) {
+            UploadConfirmStatus.CONFIRMED -> MediaAvailability.AVAILABLE
+            else -> MediaAvailability.UNAVAILABLE
         }
     }
 
@@ -66,8 +67,8 @@ class UserMediaClient(
     }
 
     override fun getStorageKey(ownerId: Long, mediaId: Long): String? = runCatching {
-        getMediaStorageInfoUseCase.execute(
-            MediaQuery.GetMediaStorageInfo(ownerId = ownerId, mediaId = mediaId),
-        ).storageKey
+        getMediaMetadataUseCase.execute(
+            MediaQuery.GetMediaMetadata(ownerId = ownerId, mediaId = mediaId),
+        ).media.storageKey
     }.getOrNull()
 }

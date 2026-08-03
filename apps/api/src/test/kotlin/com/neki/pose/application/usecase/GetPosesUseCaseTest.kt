@@ -1,11 +1,14 @@
 package com.neki.pose.application.usecase
 
+import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.application.dto.PoseQuery
-import com.neki.pose.application.port.MediaClientPort
-import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.application.port.dto.MediaContract
-import com.neki.pose.application.port.dto.PoseContract
+import com.neki.pose.MediaClient
+import com.neki.pose.PoseRepository
+import com.neki.pose.application.GetPosesUseCase
+import com.neki.pose.dto.PoseQuery
+import com.neki.pose.models.MediaMetadata
+import com.neki.pose.models.PoseWithScrap
+import com.neki.pose.service.PoseService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose
 import io.kotest.matchers.shouldBe
@@ -18,8 +21,8 @@ import java.time.LocalDateTime
 
 class GetPosesUseCaseTest {
 
-    private lateinit var poseRepository: PoseRepositoryPort
-    private lateinit var mediaClient: MediaClientPort
+    private lateinit var poseRepository: PoseRepository
+    private lateinit var mediaClient: MediaClient
     private lateinit var transactionRunner: FakeTransactionRunner
     private lateinit var useCase: GetPosesUseCase
 
@@ -28,24 +31,26 @@ class GetPosesUseCaseTest {
         poseRepository = mockk()
         mediaClient = mockk()
         transactionRunner = FakeTransactionRunner()
-        useCase = GetPosesUseCase(poseRepository, mediaClient, transactionRunner)
+        useCase = GetPosesUseCase(
+            PoseService(poseRepository, mockk(), mockk(), mockk()),
+            mediaClient,
+            transactionRunner,
+        )
     }
 
     private fun makeQuery(page: Int = 0, size: Int = 10): PoseQuery.GetPoses = PoseQuery.GetPoses(
         userId = 1L,
-        page = page,
-        size = size,
         headCount = null,
-        sortOrder = SortOrder.DESC,
+        pagination = Pagination(page = page, size = size, sortOrder = SortOrder.DESC),
     )
 
-    private fun makePoseWithScrap(id: Long, mediaId: Long, scrapped: Boolean = false): PoseContract.PoseWithScrap {
+    private fun makePoseWithScrap(id: Long, mediaId: Long, scrapped: Boolean = false): PoseWithScrap {
         val pose = aPose(id = id, mediaId = mediaId)
         pose.createdAt = LocalDateTime.of(2026, 1, 1, 0, 0)
-        return PoseContract.PoseWithScrap(pose = pose, isScraped = scrapped)
+        return PoseWithScrap(pose = pose, isScraped = scrapped)
     }
 
-    private fun makeMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo = MediaContract.StorageInfo(
+    private fun makeMediaMetadata(mediaId: Long): MediaMetadata = MediaMetadata(
         mediaId = mediaId,
         storageKey = "pose/image-$mediaId.jpg",
         contentType = "image/jpeg",
@@ -54,8 +59,8 @@ class GetPosesUseCaseTest {
     )
 
     @Test
-    @DisplayName("정상 조회 + 미디어 매핑 - poses + storageInfo 반환")
-    fun `정상 조회 + 미디어 매핑 - poses + storageInfo 반환`() {
+    @DisplayName("정상 조회 + 미디어 매핑 - poses + metadata 반환")
+    fun `정상 조회 + 미디어 매핑 - poses + metadata 반환`() {
         // Given
         val query = makeQuery(size = 2)
         val poseList = listOf(
@@ -72,9 +77,9 @@ class GetPosesUseCaseTest {
             )
         } returns poseList
 
-        every { mediaClient.getMediaStorageInfos(listOf(101L, 102L)) } returns listOf(
-            makeMediaStorageInfo(101L),
-            makeMediaStorageInfo(102L),
+        every { mediaClient.getMediaMetadata(listOf(101L, 102L)) } returns listOf(
+            makeMediaMetadata(101L),
+            makeMediaMetadata(102L),
         )
 
         // When
@@ -111,9 +116,9 @@ class GetPosesUseCaseTest {
             )
         } returns poseList
 
-        every { mediaClient.getMediaStorageInfos(listOf(101L, 102L)) } returns listOf(
-            makeMediaStorageInfo(101L),
-            makeMediaStorageInfo(102L),
+        every { mediaClient.getMediaMetadata(listOf(101L, 102L)) } returns listOf(
+            makeMediaMetadata(101L),
+            makeMediaMetadata(102L),
         )
 
         // When
@@ -145,10 +150,10 @@ class GetPosesUseCaseTest {
             )
         } returns poseList
 
-        every { mediaClient.getMediaStorageInfos(listOf(101L, 102L, 103L)) } returns listOf(
-            makeMediaStorageInfo(101L),
-            makeMediaStorageInfo(102L),
-            makeMediaStorageInfo(103L),
+        every { mediaClient.getMediaMetadata(listOf(101L, 102L, 103L)) } returns listOf(
+            makeMediaMetadata(101L),
+            makeMediaMetadata(102L),
+            makeMediaMetadata(103L),
         )
 
         // When
@@ -203,9 +208,9 @@ class GetPosesUseCaseTest {
         } returns poseList
 
         // mediaId=102L은 미존재
-        every { mediaClient.getMediaStorageInfos(listOf(101L, 102L, 103L)) } returns listOf(
-            makeMediaStorageInfo(101L),
-            makeMediaStorageInfo(103L),
+        every { mediaClient.getMediaMetadata(listOf(101L, 102L, 103L)) } returns listOf(
+            makeMediaMetadata(101L),
+            makeMediaMetadata(103L),
         )
 
         // When
@@ -235,7 +240,7 @@ class GetPosesUseCaseTest {
             )
         } returns poseList
 
-        every { mediaClient.getMediaStorageInfos(listOf(101L, 102L)) } returns emptyList()
+        every { mediaClient.getMediaMetadata(listOf(101L, 102L)) } returns emptyList()
 
         // When
         val result = useCase.execute(query)

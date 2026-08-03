@@ -1,7 +1,7 @@
 package com.neki.support.infra.persist.jpa
 
-import com.neki.support.entity.Term
-import com.neki.support.enums.TermType
+import com.neki.support.models.Term
+import com.neki.support.models.TermType
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface JpaTermRepository : JpaRepository<Term, Long> {

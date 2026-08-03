@@ -2,7 +2,7 @@ package com.neki.e2e.photo.folder
 
 import com.neki.common.code.ResultCode
 import com.neki.photo.api.dto.FolderRequest
-import com.neki.user.entity.User
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.hamcrest.CoreMatchers.equalTo

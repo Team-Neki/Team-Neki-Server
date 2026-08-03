@@ -1,14 +1,15 @@
 package com.neki.pose.infra.client
 
-import com.neki.media.application.dto.MediaCommand
-import com.neki.media.application.dto.MediaQuery
+import com.neki.media.application.ConfirmMediaUploadedUseCase
+import com.neki.media.application.GetMediaMetadataListUseCase
+import com.neki.media.application.GetMediaMetadataUseCase
 import com.neki.media.application.dto.MediaResult
-import com.neki.media.application.dto.MediaResult.ConfirmMediasUploaded.UploadConfirmStatus
-import com.neki.media.application.usecase.ConfirmMediaUploadedUseCase
-import com.neki.media.application.usecase.GetMediaStorageInfoUseCase
-import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
-import com.neki.pose.application.port.MediaClientPort
-import com.neki.pose.application.port.dto.MediaContract
+import com.neki.media.dto.MediaCommand
+import com.neki.media.dto.MediaQuery
+import com.neki.media.models.UploadConfirmStatus
+import com.neki.pose.MediaClient
+import com.neki.pose.models.MediaAvailability
+import com.neki.pose.models.MediaMetadata
 import org.springframework.stereotype.Component
 
 /**
@@ -21,53 +22,39 @@ import org.springframework.stereotype.Component
 @Component
 class PoseMediaClient(
     private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
-    private val getMediaStorageInfoUseCase: GetMediaStorageInfoUseCase,
-    private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase,
-) : MediaClientPort {
+    private val getMediaMetadataUseCase: GetMediaMetadataUseCase,
+    private val getMediaMetadataListUseCase: GetMediaMetadataListUseCase,
+) : MediaClient {
 
-    override fun getMediaStorageInfo(mediaId: Long): MediaContract.StorageInfo {
-        val result: MediaResult.GetMediaStorageInfo = getMediaStorageInfoUseCase.execute(
-            MediaQuery.GetMediaStorageInfo(
+    override fun getMediaMetadata(mediaId: Long): MediaMetadata {
+        val result: MediaResult.GetMediaMetadata = getMediaMetadataUseCase.execute(
+            MediaQuery.GetMediaMetadata(
                 ownerId = null,
                 mediaId = mediaId,
             ),
         )
 
-        return MediaContract.StorageInfo(
-            mediaId = result.mediaId,
-            storageKey = result.storageKey,
-            contentType = result.contentType,
-            width = result.width,
-            height = result.height,
-        )
+        return result.media.toMetadata()
     }
 
-    override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaContract.StorageInfo> {
-        val result: MediaResult.GetMediaStorageInfos =
-            getMediaStorageInfosUseCase.execute(MediaQuery.GetMediaStorageInfos(null, mediaIds))
+    override fun getMediaMetadata(mediaIds: List<Long>): List<MediaMetadata> {
+        val result: MediaResult.GetMediaMetadataList =
+            getMediaMetadataListUseCase.execute(MediaQuery.GetMediaMetadataList(null, mediaIds))
 
-        return result.storageInfos.map {
-            MediaContract.StorageInfo(
-                mediaId = it.mediaId,
-                storageKey = it.storageKey,
-                contentType = it.contentType,
-                width = it.width,
-                height = it.height,
-            )
-        }
+        return result.medias.map { it.toMetadata() }
     }
 
-    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaContract.Availability> {
+    override fun verifyMediasUploaded(ownerId: Long, mediaIds: List<Long>): Map<Long, MediaAvailability> {
         if (mediaIds.isEmpty()) return emptyMap()
 
         val result: MediaResult.ConfirmMediasUploaded = confirmMediaUploadedUseCase.execute(
             MediaCommand.ConfirmMediasUploaded(ownerId = ownerId, mediaIds = mediaIds),
         )
-        return result.results.mapValues { (_, status) ->
+        return result.statuses.mapValues { (_, status) ->
             if (status == UploadConfirmStatus.CONFIRMED) {
-                MediaContract.Availability.AVAILABLE
+                MediaAvailability.AVAILABLE
             } else {
-                MediaContract.Availability.UNAVAILABLE
+                MediaAvailability.UNAVAILABLE
             }
         }
     }
@@ -82,4 +69,12 @@ class PoseMediaClient(
             ),
         )
     }
+
+    private fun MediaResult.Metadata.toMetadata(): MediaMetadata = MediaMetadata(
+        mediaId = mediaId,
+        storageKey = storageKey,
+        contentType = contentType,
+        width = width,
+        height = height,
+    )
 }

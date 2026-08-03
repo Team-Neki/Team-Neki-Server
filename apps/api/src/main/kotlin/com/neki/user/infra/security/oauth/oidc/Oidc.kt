@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.oauth.oidc
 
-import com.neki.user.application.port.dto.AuthContract
-import com.neki.user.enums.ProviderType
+import com.neki.user.infra.security.oauth.dto.OIDCPublicKeysPayload
+import com.neki.user.models.ProviderType
 
 /**
  * fileName       : Oidc
@@ -18,5 +18,5 @@ interface Oidc {
     /**
      * 카카오 OIDC 공개키 조회
      */
-    fun getOIDCPublicKey(): AuthContract.OIDCPublicKeysPayload
+    fun getOIDCPublicKey(): OIDCPublicKeysPayload
 }

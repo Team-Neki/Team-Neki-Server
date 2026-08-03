@@ -1,17 +1,18 @@
 package com.neki.e2e.photo.image
 
 import com.neki.e2e.E2ETestBase
-import com.neki.media.MediaType
-import com.neki.media.entity.Media
-import com.neki.media.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
-import com.neki.photo.entity.Folder
-import com.neki.photo.entity.PhotoImage
-import com.neki.photo.entity.PhotoImageFolder
+import com.neki.media.models.Media
+import com.neki.media.models.MediaStatus
+import com.neki.media.models.MediaType
 import com.neki.photo.infra.persist.jpa.JpaFavoriteImageRepository
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
+import com.neki.photo.models.FavoritePhoto
+import com.neki.photo.models.Folder
+import com.neki.photo.models.PhotoImage
+import com.neki.photo.models.PhotoImageFolder
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.UUID
@@ -87,7 +88,7 @@ abstract class PhotoImageE2ETestBase : E2ETestBase() {
     protected fun createFavoritePhotoImage(userId: Long, mediaId: Long, folderId: Long? = null): PhotoImage {
         val photo = createPhotoImage(userId, mediaId, folderId)
         favoritePhotoRepository.save(
-            com.neki.photo.entity.FavoritePhoto(
+            FavoritePhoto(
                 userId = userId,
                 imageId = photo.id!!,
             ),

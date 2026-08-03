@@ -1,11 +1,12 @@
 package com.neki.media.application.usecase
 
-import com.neki.common.code.ResultCode
-import com.neki.common.exception.BusinessException
-import com.neki.media.application.dto.MediaCommand
-import com.neki.media.application.port.MediaBinaryCachePort
-import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.entity.MediaStatus
+import com.neki.media.MediaBinaryCache
+import com.neki.media.MediaRepository
+import com.neki.media.application.DeleteMediaUseCase
+import com.neki.media.dto.MediaCommand
+import com.neki.media.models.MediaStatus
+import com.neki.media.service.MediaBinaryService
+import com.neki.media.service.MediaService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aMedia
 import io.kotest.assertions.throwables.shouldThrow
@@ -25,8 +26,8 @@ import org.junit.jupiter.api.Test
  */
 class DeleteMediaUseCaseTest {
 
-    private lateinit var mediaRepository: MediaRepositoryPort
-    private lateinit var cache: MediaBinaryCachePort
+    private lateinit var mediaRepository: MediaRepository
+    private lateinit var cache: MediaBinaryCache
     private lateinit var useCase: DeleteMediaUseCase
 
     @BeforeEach
@@ -34,47 +35,48 @@ class DeleteMediaUseCaseTest {
         mediaRepository = mockk()
         cache = mockk()
         useCase = DeleteMediaUseCase(
-            mediaRepository = mediaRepository,
-            cache = cache,
+            mediaService = MediaService(mediaRepository, mockk()),
+            mediaBinaryService = MediaBinaryService(cache, mockk(), mockk()),
             transactionRunner = FakeTransactionRunner(),
         )
     }
 
     @Test
-    @DisplayName("단건 삭제 - 미디어 존재 시 soft-delete 후 cache evict")
-    fun `단건 삭제 - 미디어 존재 시 soft-delete 후 cache evict`() {
+    @DisplayName("단건 삭제 - 한 건짜리 리스트로 호출하면 soft-delete 후 cache evict")
+    fun `단건 삭제 - 한 건짜리 리스트로 호출하면 soft-delete 후 cache evict`() {
         // Given
         val ownerId = 1L
         val mediaId = 10L
         val media = aMedia(id = mediaId, ownerId = ownerId, storageKey = "pose/test.jpg")
 
-        every { mediaRepository.getActiveMedia(ownerId, mediaId) } returns media
-        every { mediaRepository.save(media) } returns media
+        every { mediaRepository.getActiveMedias(ownerId, listOf(mediaId)) } returns listOf(media)
+        every { mediaRepository.saveAll(listOf(media)) } returns listOf(media)
         every { cache.evict("pose/test.jpg") } just Runs
 
         // When
-        useCase.execute(MediaCommand.DeleteMedia(ownerId = ownerId, mediaId = mediaId))
+        useCase.execute(MediaCommand.DeleteMedias(ownerId = ownerId, mediaIds = listOf(mediaId)))
 
         // Then
         media.status shouldBe MediaStatus.DELETED
-        verify(exactly = 1) { mediaRepository.save(media) }
+        verify(exactly = 1) { mediaRepository.saveAll(listOf(media)) }
         verify(exactly = 1) { cache.evict("pose/test.jpg") }
     }
 
     @Test
-    @DisplayName("단건 삭제 - 미디어 미존재 시 BusinessException(NOT_FOUND) 발생")
-    fun `단건 삭제 - 미디어 미존재 시 BusinessException(NOT_FOUND) 발생`() {
+    @DisplayName("미디어 미존재 - 예외 없이 아무것도 하지 않는다")
+    fun `미디어 미존재 - 예외 없이 아무것도 하지 않는다`() {
         // Given
         val ownerId = 1L
         val mediaId = 999L
 
-        every { mediaRepository.getActiveMedia(ownerId, mediaId) } returns null
+        every { mediaRepository.getActiveMedias(ownerId, listOf(mediaId)) } returns emptyList()
+        every { mediaRepository.saveAll(emptyList()) } returns emptyList()
 
-        // When & Then
-        val exception = shouldThrow<BusinessException> {
-            useCase.execute(MediaCommand.DeleteMedia(ownerId = ownerId, mediaId = mediaId))
-        }
-        exception.resultCode shouldBe ResultCode.NOT_FOUND
+        // When
+        val result = useCase.execute(MediaCommand.DeleteMedias(ownerId = ownerId, mediaIds = listOf(mediaId)))
+
+        // Then
+        result.mediaIds shouldBe emptyList()
         verify(exactly = 0) { cache.evict(any()) }
     }
 

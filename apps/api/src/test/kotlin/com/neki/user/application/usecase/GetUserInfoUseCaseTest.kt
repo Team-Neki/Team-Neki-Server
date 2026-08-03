@@ -3,12 +3,15 @@ package com.neki.user.application.usecase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
-import com.neki.user.application.dto.UserQuery
-import com.neki.user.application.port.MediaClientPort
-import com.neki.user.application.port.NotificationClientPort
-import com.neki.user.application.port.TermClientPort
-import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.enums.ProviderType
+import com.neki.user.MediaClient
+import com.neki.user.NotificationClient
+import com.neki.user.TermClient
+import com.neki.user.UserRepository
+import com.neki.user.application.GetUserInfoUseCase
+import com.neki.user.dto.UserQuery
+import com.neki.user.models.ProviderType
+import com.neki.user.models.TermAgreementStatus
+import com.neki.user.service.UserService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -20,10 +23,10 @@ import org.junit.jupiter.api.Test
 
 class GetUserInfoUseCaseTest {
 
-    lateinit var userRepository: UserRepositoryPort
-    lateinit var mediaClient: MediaClientPort
-    lateinit var termClient: TermClientPort
-    lateinit var notificationClient: NotificationClientPort
+    lateinit var userRepository: UserRepository
+    lateinit var mediaClient: MediaClient
+    lateinit var termClient: TermClient
+    lateinit var notificationClient: NotificationClient
     lateinit var useCase: GetUserInfoUseCase
 
     @BeforeEach
@@ -33,12 +36,15 @@ class GetUserInfoUseCaseTest {
         termClient = mockk()
         notificationClient = mockk()
         useCase = GetUserInfoUseCase(
-            userRepository = userRepository,
+            userService = UserService(userRepository, mockk()),
             mediaClient = mediaClient,
             termClient = termClient,
             notificationClient = notificationClient,
         )
     }
+
+    private fun agreementStatus(requiredAgreed: Boolean, marketingAgreed: Boolean): TermAgreementStatus =
+        TermAgreementStatus(requiredAgreed = requiredAgreed, marketingAgreed = marketingAgreed)
 
     @Test
     @DisplayName("정상 조회 - 프로필 이미지 있음: user, storageKey, terms 동의 여부 반환")
@@ -57,8 +63,8 @@ class GetUserInfoUseCaseTest {
 
         every { userRepository.findById(userId) } returns user
         every { mediaClient.getStorageKey(ownerId = userId, mediaId = mediaId) } returns "profile/image.jpg"
-        every { termClient.hasAgreedToAllRequired(userId) } returns true
-        every { termClient.hasAgreedToMarketing(userId) } returns false
+        every { termClient.getAgreementStatus(userId) } returns
+            agreementStatus(requiredAgreed = true, marketingAgreed = false)
         every { notificationClient.isPushAgreed(userId) } returns true
 
         // When
@@ -76,6 +82,25 @@ class GetUserInfoUseCaseTest {
     }
 
     @Test
+    @DisplayName("약관 동의 조회는 한 번만 호출된다")
+    fun `약관 동의 조회는 한 번만 호출된다`() {
+        // Given
+        val userId = 1L
+        val user = aUser(id = userId, profileImageId = null)
+
+        every { userRepository.findById(userId) } returns user
+        every { termClient.getAgreementStatus(userId) } returns
+            agreementStatus(requiredAgreed = true, marketingAgreed = true)
+        every { notificationClient.isPushAgreed(userId) } returns false
+
+        // When
+        useCase.execute(UserQuery.GetUser(userId = userId))
+
+        // Then
+        verify(exactly = 1) { termClient.getAgreementStatus(userId) }
+    }
+
+    @Test
     @DisplayName("프로필 이미지 없음 - storageKey null 반환")
     fun `프로필 이미지 없음 - storageKey null 반환`() {
         // Given
@@ -83,8 +108,8 @@ class GetUserInfoUseCaseTest {
         val user = aUser(id = userId, name = "테스트유저", profileImageId = null, providerType = ProviderType.KAKAO)
 
         every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToAllRequired(userId) } returns false
-        every { termClient.hasAgreedToMarketing(userId) } returns false
+        every { termClient.getAgreementStatus(userId) } returns
+            agreementStatus(requiredAgreed = false, marketingAgreed = false)
         every { notificationClient.isPushAgreed(userId) } returns false
 
         // When
@@ -107,8 +132,7 @@ class GetUserInfoUseCaseTest {
         }
         exception.resultCode shouldBe ResultCode.NOT_FOUND_USER
         verify(exactly = 0) { mediaClient.getStorageKey(any(), any()) }
-        verify(exactly = 0) { termClient.hasAgreedToAllRequired(any()) }
-        verify(exactly = 0) { termClient.hasAgreedToMarketing(any()) }
+        verify(exactly = 0) { termClient.getAgreementStatus(any()) }
     }
 
     @Test
@@ -139,7 +163,7 @@ class GetUserInfoUseCaseTest {
 
         every { userRepository.findById(userId) } returns user
         every {
-            termClient.hasAgreedToAllRequired(userId)
+            termClient.getAgreementStatus(userId)
         } throws RuntimeException("약관 서비스 오류")
 
         // When & Then
@@ -156,8 +180,8 @@ class GetUserInfoUseCaseTest {
         val user = aUser(id = userId, profileImageId = null)
 
         every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToAllRequired(userId) } returns true
-        every { termClient.hasAgreedToMarketing(userId) } returns true
+        every { termClient.getAgreementStatus(userId) } returns
+            agreementStatus(requiredAgreed = true, marketingAgreed = true)
         every { notificationClient.isPushAgreed(userId) } returns false
 
         // When
@@ -175,8 +199,8 @@ class GetUserInfoUseCaseTest {
         val user = aUser(id = userId, profileImageId = null)
 
         every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToAllRequired(userId) } returns true
-        every { termClient.hasAgreedToMarketing(userId) } returns false
+        every { termClient.getAgreementStatus(userId) } returns
+            agreementStatus(requiredAgreed = true, marketingAgreed = false)
         every { notificationClient.isPushAgreed(userId) } returns false
 
         // When
@@ -184,24 +208,5 @@ class GetUserInfoUseCaseTest {
 
         // Then
         result.marketingTerm shouldBe false
-    }
-
-    @Test
-    @DisplayName("마케팅 termClient 예외 - 마케팅 동의 조회 실패 시 전체 요청 실패")
-    fun `마케팅 termClient 예외 - 마케팅 동의 조회 실패 시 전체 요청 실패`() {
-        // Given
-        val userId = 1L
-        val user = aUser(id = userId, profileImageId = null)
-
-        every { userRepository.findById(userId) } returns user
-        every { termClient.hasAgreedToAllRequired(userId) } returns true
-        every {
-            termClient.hasAgreedToMarketing(userId)
-        } throws RuntimeException("마케팅 약관 서비스 오류")
-
-        // When & Then
-        shouldThrow<RuntimeException> {
-            useCase.execute(UserQuery.GetUser(userId = userId))
-        }
     }
 }

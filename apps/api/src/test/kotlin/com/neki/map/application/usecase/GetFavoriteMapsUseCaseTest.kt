@@ -1,8 +1,10 @@
 package com.neki.map.application.usecase
 
-import com.neki.map.application.dto.MapQuery
-import com.neki.map.application.port.FavoriteMapRepositoryPort
-import com.neki.map.application.port.dto.MapContract
+import com.neki.map.FavoriteMapRepository
+import com.neki.map.application.GetFavoriteMapsUseCase
+import com.neki.map.dto.MapQuery
+import com.neki.map.models.PhotoBoothLocationView
+import com.neki.map.service.MapService
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -24,12 +26,12 @@ class GetFavoriteMapsUseCaseTest :
         val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
         val userId = 1L
 
-        lateinit var favoriteMapRepository: FavoriteMapRepositoryPort
+        lateinit var favoriteMapRepository: FavoriteMapRepository
         lateinit var useCase: GetFavoriteMapsUseCase
 
         beforeTest {
             favoriteMapRepository = mockk()
-            useCase = GetFavoriteMapsUseCase(favoriteMapRepository)
+            useCase = GetFavoriteMapsUseCase(MapService(favoriteMapRepository, mockk()))
         }
 
         test("즐겨찾기한 포토부스가 있으면 즐겨찾기한 순서대로 목록을 반환한다") {
@@ -40,14 +42,14 @@ class GetFavoriteMapsUseCaseTest :
             val point2 = geometryFactory.createPoint(Coordinate(127.03, 37.50))
             // Repository가 즐겨찾기한 순서대로 정렬해 반환
             val locationDtos = listOf(
-                MapContract.PhotoBoothLocation(
+                PhotoBoothLocationView(
                     id = 2L,
                     brandName = "하루필름",
                     branchName = "홍대점",
                     address = "서울 마포구",
                     location = point2,
                 ),
-                MapContract.PhotoBoothLocation(
+                PhotoBoothLocationView(
                     id = 1L,
                     brandName = "인생네컷",
                     branchName = "강남점",

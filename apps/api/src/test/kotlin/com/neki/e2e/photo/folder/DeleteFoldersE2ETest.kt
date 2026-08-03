@@ -2,11 +2,11 @@ package com.neki.e2e.photo.folder
 
 import com.neki.common.code.ResultCode
 import com.neki.e2e.photo.image.PhotoImageE2ETestBase
-import com.neki.media.entity.MediaStatus
+import com.neki.media.models.MediaStatus
 import com.neki.photo.api.dto.FolderRequest
-import com.neki.photo.entity.Folder
-import com.neki.photo.entity.PhotoImageFolder
-import com.neki.user.entity.User
+import com.neki.photo.models.Folder
+import com.neki.photo.models.PhotoImageFolder
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat

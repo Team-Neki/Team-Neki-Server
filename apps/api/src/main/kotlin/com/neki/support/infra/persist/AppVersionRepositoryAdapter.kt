@@ -1,9 +1,9 @@
 package com.neki.support.infra.persist
 
-import com.neki.support.application.port.AppVersionRepositoryPort
-import com.neki.support.entity.AppVersion
-import com.neki.support.enums.Platform
+import com.neki.support.AppVersionRepository
 import com.neki.support.infra.persist.jpa.JpaAppVersionRepository
+import com.neki.support.models.AppVersion
+import com.neki.support.models.Platform
 import org.springframework.stereotype.Repository
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository
  * description    :
  */
 @Repository
-class AppVersionRepositoryAdapter(private val jpaRepository: JpaAppVersionRepository) : AppVersionRepositoryPort {
+class AppVersionRepositoryAdapter(private val jpaRepository: JpaAppVersionRepository) : AppVersionRepository {
 
     override fun findByPlatform(platform: Platform): AppVersion? = jpaRepository.findByPlatform(platform)
 

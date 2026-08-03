@@ -2,10 +2,12 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.dto.MapCommand
-import com.neki.map.application.port.BrandRepositoryPort
-import com.neki.map.application.port.UserBrandOrderRepositoryPort
-import com.neki.map.entity.UserBrandOrder
+import com.neki.map.BrandRepository
+import com.neki.map.UserBrandOrderRepository
+import com.neki.map.application.UpdateBrandOrderUseCase
+import com.neki.map.dto.MapCommand
+import com.neki.map.models.UserBrandOrder
+import com.neki.map.service.BrandService
 import com.neki.testfixture.aBrand
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -26,14 +28,15 @@ class UpdateBrandOrderUseCaseTest :
 
         val userId = 1L
 
-        lateinit var brandRepository: BrandRepositoryPort
-        lateinit var userBrandOrderRepository: UserBrandOrderRepositoryPort
+        lateinit var brandRepository: BrandRepository
+        lateinit var userBrandOrderRepository: UserBrandOrderRepository
         lateinit var useCase: UpdateBrandOrderUseCase
 
         beforeTest {
             brandRepository = mockk()
             userBrandOrderRepository = mockk()
-            useCase = UpdateBrandOrderUseCase(brandRepository, userBrandOrderRepository)
+            useCase =
+                UpdateBrandOrderUseCase(BrandService(brandRepository, userBrandOrderRepository))
         }
 
         test("정상 - 모든 brandId가 존재하면 요청 순서대로 sortOrder가 매핑되어 replaceOrder가 한 번 호출된다") {

@@ -3,8 +3,10 @@ package com.neki.user.application.usecase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
-import com.neki.user.application.dto.UserCommand
-import com.neki.user.application.port.UserRepositoryPort
+import com.neki.user.UserRepository
+import com.neki.user.application.UpdateMeUseCase
+import com.neki.user.dto.UserCommand
+import com.neki.user.service.UserService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -16,13 +18,13 @@ import org.junit.jupiter.api.Test
 
 class UpdateMeUseCaseTest {
 
-    lateinit var userRepository: UserRepositoryPort
+    lateinit var userRepository: UserRepository
     lateinit var useCase: UpdateMeUseCase
 
     @BeforeEach
     fun setUp() {
         userRepository = mockk()
-        useCase = UpdateMeUseCase(userRepository)
+        useCase = UpdateMeUseCase(UserService(userRepository, mockk()))
     }
 
     @Test

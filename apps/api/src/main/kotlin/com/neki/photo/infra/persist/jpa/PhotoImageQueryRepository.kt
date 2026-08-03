@@ -1,11 +1,11 @@
 package com.neki.photo.infra.persist.jpa
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.port.dto.PhotoContract
-import com.neki.photo.entity.PhotoImage
-import com.neki.photo.entity.QFavoritePhoto.favoritePhoto
-import com.neki.photo.entity.QPhotoImage.photoImage
-import com.neki.photo.entity.QPhotoImageFolder.photoImageFolder
+import com.neki.photo.models.PhotoImage
+import com.neki.photo.models.PhotoWithFavorite
+import com.neki.photo.models.QFavoritePhoto.favoritePhoto
+import com.neki.photo.models.QPhotoImage.photoImage
+import com.neki.photo.models.QPhotoImageFolder.photoImageFolder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -41,11 +41,11 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         offset: Int,
         limit: Int,
         sortOrder: SortOrder,
-    ): List<PhotoContract.PhotoWithFavorite> {
+    ): List<PhotoWithFavorite> {
         val query = queryFactory
             .select(
                 Projections.constructor(
-                    PhotoContract.PhotoWithFavorite::class.java,
+                    PhotoWithFavorite::class.java,
                     photoImage,
                     CaseBuilder()
                         .`when`(favoritePhoto.id.photoId.isNotNull).then(true)
@@ -113,10 +113,10 @@ class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
         .limit(1)
         .fetchOne()
 
-    fun findOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoContract.PhotoWithFavorite? = queryFactory
+    fun findOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite? = queryFactory
         .select(
             Projections.constructor(
-                PhotoContract.PhotoWithFavorite::class.java,
+                PhotoWithFavorite::class.java,
                 photoImage,
                 CaseBuilder()
                     .`when`(favoritePhoto.id.photoId.isNotNull).then(true)

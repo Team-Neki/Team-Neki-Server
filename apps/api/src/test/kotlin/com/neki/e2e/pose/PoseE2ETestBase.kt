@@ -1,16 +1,16 @@
 package com.neki.e2e.pose
 
 import com.neki.e2e.E2ETestBase
-import com.neki.media.MediaType
-import com.neki.media.entity.Media
-import com.neki.media.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
-import com.neki.pose.HeadCount
-import com.neki.pose.entity.Pose
-import com.neki.pose.entity.ScrapPose
+import com.neki.media.models.Media
+import com.neki.media.models.MediaStatus
+import com.neki.media.models.MediaType
 import com.neki.pose.infra.cache.fake.FakePoseViewCacheAdapter
 import com.neki.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.pose.infra.persist.jpa.JpaScrapPoseRepository
+import com.neki.pose.models.HeadCount
+import com.neki.pose.models.Pose
+import com.neki.pose.models.ScrapPose
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 

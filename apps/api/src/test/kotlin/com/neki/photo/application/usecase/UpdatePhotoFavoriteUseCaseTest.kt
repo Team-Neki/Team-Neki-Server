@@ -2,10 +2,13 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.dto.PhotoImageCommand
-import com.neki.photo.application.port.FavoriteImageRepositoryPort
-import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.entity.FavoritePhoto
+import com.neki.photo.FavoriteImageRepository
+import com.neki.photo.PhotoImageRepository
+import com.neki.photo.application.UpdatePhotoFavoriteUseCase
+import com.neki.photo.dto.PhotoImageCommand
+import com.neki.photo.models.FavoritePhoto
+import com.neki.photo.service.FavoriteService
+import com.neki.photo.service.PhotoService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
@@ -20,15 +23,16 @@ import org.junit.jupiter.api.Test
 
 class UpdatePhotoFavoriteUseCaseTest {
 
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
-    lateinit var favoriteImageRepository: FavoriteImageRepositoryPort
+    lateinit var photoImageRepository: PhotoImageRepository
+    lateinit var favoriteImageRepository: FavoriteImageRepository
     lateinit var useCase: UpdatePhotoFavoriteUseCase
 
     @BeforeEach
     fun setUp() {
         photoImageRepository = mockk()
         favoriteImageRepository = mockk()
-        useCase = UpdatePhotoFavoriteUseCase(photoImageRepository, favoriteImageRepository)
+        useCase =
+            UpdatePhotoFavoriteUseCase(PhotoService(photoImageRepository), FavoriteService(favoriteImageRepository))
     }
 
     @Test

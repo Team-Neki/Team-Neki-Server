@@ -1,9 +1,9 @@
 package com.neki.media.infra.persist
 
-import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.entity.Media
-import com.neki.media.entity.MediaStatus
+import com.neki.media.MediaRepository
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
+import com.neki.media.models.Media
+import com.neki.media.models.MediaStatus
 import org.springframework.stereotype.Repository
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository
  * description    : Media Repository Adapter
  */
 @Repository
-class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : MediaRepositoryPort {
+class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : MediaRepository {
 
     override fun getActiveMedia(id: Long): Media? = jpaRepository.findByIdAndStatus(id, MediaStatus.UPLOADED)
 

@@ -6,11 +6,11 @@ import com.neki.map.api.dto.FavoriteMapConverter
 import com.neki.map.api.dto.MapConverter
 import com.neki.map.api.dto.MapRequest
 import com.neki.map.api.dto.MapResponse
-import com.neki.map.application.dto.MapCommand
-import com.neki.map.application.dto.MapQuery
+import com.neki.map.application.GetFavoriteMapsUseCase
+import com.neki.map.application.UpdateMapFavoriteUseCase
 import com.neki.map.application.dto.MapResult
-import com.neki.map.application.usecase.GetFavoriteMapsUseCase
-import com.neki.map.application.usecase.UpdateMapFavoriteUseCase
+import com.neki.map.dto.MapCommand
+import com.neki.map.dto.MapQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

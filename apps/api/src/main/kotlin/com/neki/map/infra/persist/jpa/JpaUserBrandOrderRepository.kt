@@ -1,7 +1,7 @@
 package com.neki.map.infra.persist.jpa
 
-import com.neki.map.entity.UserBrandOrder
-import com.neki.map.entity.UserBrandOrderId
+import com.neki.map.models.UserBrandOrder
+import com.neki.map.models.UserBrandOrderId
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

@@ -1,10 +1,14 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.MediaType
-import com.neki.media.application.dto.MediaQuery
-import com.neki.media.application.port.MediaBinaryCachePort
-import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.application.port.MediaStoragePort
+import com.neki.media.DistributedLock
+import com.neki.media.MediaBinaryCache
+import com.neki.media.MediaRepository
+import com.neki.media.MediaStorage
+import com.neki.media.application.GetMediasUseCase
+import com.neki.media.dto.MediaQuery
+import com.neki.media.models.MediaType
+import com.neki.media.service.MediaBinaryService
+import com.neki.media.service.MediaService
 import com.neki.testfixture.aMedia
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -22,9 +26,10 @@ import java.time.Duration
  */
 class GetMediasUseCaseTest {
 
-    private lateinit var mediaRepository: MediaRepositoryPort
-    private lateinit var mediaStorage: MediaStoragePort
-    private lateinit var cache: MediaBinaryCachePort
+    private lateinit var mediaRepository: MediaRepository
+    private lateinit var mediaStorage: MediaStorage
+    private lateinit var cache: MediaBinaryCache
+    private lateinit var distributedLock: DistributedLock
     private lateinit var useCase: GetMediasUseCase
 
     private val imageData = byteArrayOf(1, 2, 3)
@@ -34,10 +39,16 @@ class GetMediasUseCaseTest {
         mediaRepository = mockk()
         mediaStorage = mockk()
         cache = mockk()
+        distributedLock = mockk()
+
+        // 락 획득에 성공한 상황을 기본값으로 둔다
+        every { distributedLock.executeWithLock<ByteArray>(any(), any()) } answers {
+            secondArg<() -> ByteArray>()()
+        }
+
         useCase = GetMediasUseCase(
-            mediaRepository = mediaRepository,
-            mediaStorage = mediaStorage,
-            cache = cache,
+            mediaService = MediaService(mediaRepository, mediaStorage),
+            mediaBinaryService = MediaBinaryService(cache, mediaStorage, distributedLock),
         )
     }
 
@@ -58,14 +69,14 @@ class GetMediasUseCaseTest {
         val result = useCase.execute(query)
 
         // Then
-        result.medias shouldHaveSize 1
-        result.medias[0].binaryData shouldBe imageData
+        result shouldHaveSize 1
+        result[0].binaryData shouldBe imageData
         verify(exactly = 0) { mediaStorage.fetchBinaryByKey(any()) }
     }
 
     @Test
-    @DisplayName("Cacheable 타입 + cache miss - S3 조회 후 캐싱")
-    fun `Cacheable 타입 + cache miss - S3 조회 후 캐싱`() {
+    @DisplayName("Cacheable 타입 + cache miss - 분산 락 획득 후 S3 조회 및 캐싱")
+    fun `Cacheable 타입 + cache miss - 분산 락 획득 후 S3 조회 및 캐싱`() {
         // Given: POSE는 cacheable, 캐시 miss
         val ownerId = 1L
         val mediaId = 1L
@@ -82,10 +93,11 @@ class GetMediasUseCaseTest {
         val result = useCase.execute(query)
 
         // Then
-        result.medias shouldHaveSize 1
-        result.medias[0].binaryData shouldBe imageData
+        result shouldHaveSize 1
+        result[0].binaryData shouldBe imageData
         verify(exactly = 1) { mediaStorage.fetchBinaryByKey(storageKey) }
         verify(exactly = 1) { cache.put(storageKey, imageData, any<Duration>()) }
+        verify(exactly = 1) { distributedLock.executeWithLock<ByteArray>(storageKey, any()) }
     }
 
     @Test
@@ -106,10 +118,11 @@ class GetMediasUseCaseTest {
         val result = useCase.execute(query)
 
         // Then
-        result.medias shouldHaveSize 1
-        result.medias[0].binaryData shouldBe imageData
+        result shouldHaveSize 1
+        result[0].binaryData shouldBe imageData
         verify(exactly = 0) { cache.get(any()) }
         verify(exactly = 0) { cache.put(any(), any(), any<Duration>()) }
+        verify(exactly = 0) { distributedLock.executeWithLock<ByteArray>(any(), any()) }
     }
 
     @Test
@@ -126,7 +139,7 @@ class GetMediasUseCaseTest {
         val result = useCase.execute(query)
 
         // Then
-        result.medias shouldHaveSize 0
+        result shouldHaveSize 0
         verify(exactly = 0) { mediaStorage.fetchBinaryByKey(any()) }
         verify(exactly = 0) { cache.get(any()) }
     }
@@ -152,7 +165,7 @@ class GetMediasUseCaseTest {
         val result = useCase.execute(query)
 
         // Then
-        result.medias shouldHaveSize 3
-        result.medias.map { it.mediaId } shouldBe listOf(1L, 3L, 5L)
+        result shouldHaveSize 3
+        result.map { it.media.id } shouldBe listOf(1L, 3L, 5L)
     }
 }

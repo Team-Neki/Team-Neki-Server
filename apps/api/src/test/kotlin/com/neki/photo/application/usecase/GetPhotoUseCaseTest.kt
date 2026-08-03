@@ -2,11 +2,13 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.dto.PhotoImageQuery
-import com.neki.photo.application.port.MediaClientPort
-import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.application.port.dto.MediaContract
-import com.neki.photo.application.port.dto.PhotoContract
+import com.neki.photo.MediaClient
+import com.neki.photo.PhotoImageRepository
+import com.neki.photo.application.GetPhotoUseCase
+import com.neki.photo.dto.PhotoImageQuery
+import com.neki.photo.models.MediaMetadata
+import com.neki.photo.models.PhotoWithFavorite
+import com.neki.photo.service.PhotoService
 import com.neki.testfixture.aPhotoImage
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -19,15 +21,15 @@ import java.time.LocalDateTime
 
 class GetPhotoUseCaseTest {
 
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
-    lateinit var mediaClient: MediaClientPort
+    lateinit var photoImageRepository: PhotoImageRepository
+    lateinit var mediaClient: MediaClient
     lateinit var useCase: GetPhotoUseCase
 
     @BeforeEach
     fun setUp() {
         photoImageRepository = mockk()
         mediaClient = mockk()
-        useCase = GetPhotoUseCase(photoImageRepository, mediaClient)
+        useCase = GetPhotoUseCase(PhotoService(photoImageRepository), mediaClient)
     }
 
     @Test
@@ -38,7 +40,7 @@ class GetPhotoUseCaseTest {
             it.createdAt = LocalDateTime.of(2026, 1, 1, 12, 0)
         }
         val query = PhotoImageQuery.GetPhoto(userId = 1L, photoId = 1L)
-        val mediaInfo = MediaContract.StorageInfo(
+        val mediaInfo = MediaMetadata(
             mediaId = 10L,
             storageKey = "key/image.jpg",
             contentType = "image/jpeg",
@@ -47,8 +49,8 @@ class GetPhotoUseCaseTest {
         )
 
         every { photoImageRepository.getOwnedPhotoWithFavorite(1L, 1L) } returns
-            PhotoContract.PhotoWithFavorite(photo, isFavorite = true)
-        every { mediaClient.getMediaStorageInfo(1L, 10L) } returns mediaInfo
+            PhotoWithFavorite(photo, isFavorite = true)
+        every { mediaClient.getMediaMetadata(1L, 10L) } returns mediaInfo
 
         // When
         val result = useCase.execute(query)
@@ -88,8 +90,8 @@ class GetPhotoUseCaseTest {
         val query = PhotoImageQuery.GetPhoto(userId = 1L, photoId = 1L)
 
         every { photoImageRepository.getOwnedPhotoWithFavorite(1L, 1L) } returns
-            PhotoContract.PhotoWithFavorite(photo, isFavorite = false)
-        every { mediaClient.getMediaStorageInfo(1L, 10L) } throws RuntimeException("미디어 서버 오류")
+            PhotoWithFavorite(photo, isFavorite = false)
+        every { mediaClient.getMediaMetadata(1L, 10L) } throws RuntimeException("미디어 서버 오류")
 
         // When & Then
         shouldThrow<RuntimeException> {

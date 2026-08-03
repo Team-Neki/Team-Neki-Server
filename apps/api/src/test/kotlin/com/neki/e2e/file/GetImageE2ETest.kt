@@ -1,7 +1,7 @@
 package com.neki.e2e.file
 
 import com.neki.e2e.E2ETestBase
-import com.neki.media.application.port.MediaStoragePort
+import com.neki.media.MediaStorage
 import com.neki.media.infra.storage.fake.FakeMediaStorageAdapter
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.equalTo
@@ -24,10 +24,10 @@ class GetImageE2ETest : E2ETestBase() {
     private var port: Int = 0
 
     @Autowired
-    private lateinit var mediaStoragePort: MediaStoragePort
+    private lateinit var mediaStorage: MediaStorage
 
     private val fakeStorage: FakeMediaStorageAdapter
-        get() = mediaStoragePort as FakeMediaStorageAdapter
+        get() = mediaStorage as FakeMediaStorageAdapter
 
     @BeforeEach
     fun setUp() {

@@ -1,6 +1,6 @@
 package com.neki.photo.application.dto
 
-import com.neki.photo.enums.UploadMethod
+import com.neki.photo.models.UploadMethod
 import java.time.LocalDateTime
 
 /**

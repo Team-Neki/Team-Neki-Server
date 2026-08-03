@@ -1,9 +1,12 @@
 package com.neki.map.application.usecase
 
-import com.neki.map.application.port.BrandRepositoryPort
-import com.neki.map.application.port.MediaClientPort
-import com.neki.map.application.port.UserBrandOrderRepositoryPort
-import com.neki.photo.application.port.dto.MediaContract
+import com.neki.map.BrandRepository
+import com.neki.map.MediaClient
+import com.neki.map.UserBrandOrderRepository
+import com.neki.map.application.GetBrandUseCase
+import com.neki.map.dto.MapQuery
+import com.neki.map.models.MediaMetadata
+import com.neki.map.service.BrandService
 import com.neki.testfixture.aBrand
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -21,16 +24,19 @@ class GetBrandUseCaseTest :
 
         val userId = 1L
 
-        lateinit var brandRepository: BrandRepositoryPort
-        lateinit var mediaClient: MediaClientPort
-        lateinit var userBrandOrderRepository: UserBrandOrderRepositoryPort
+        lateinit var brandRepository: BrandRepository
+        lateinit var mediaClient: MediaClient
+        lateinit var userBrandOrderRepository: UserBrandOrderRepository
         lateinit var useCase: GetBrandUseCase
 
         beforeTest {
             brandRepository = mockk()
             mediaClient = mockk()
             userBrandOrderRepository = mockk()
-            useCase = GetBrandUseCase(brandRepository, mediaClient, userBrandOrderRepository)
+            useCase = GetBrandUseCase(
+                BrandService(brandRepository, userBrandOrderRepository),
+                mediaClient,
+            )
 
             // 별도 명시가 없으면 저장된 정렬 순서가 없는 사용자로 간주 (서버 기본 순서 유지)
             every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns emptyMap()
@@ -42,16 +48,16 @@ class GetBrandUseCaseTest :
             val brand2 = aBrand(id = 2L, name = "하루필름", code = "harufilm", mediaId = 20L)
             val brands = listOf(brand1, brand2)
 
-            val storageInfo1 =
-                MediaContract.StorageInfo(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg")
-            val storageInfo2 =
-                MediaContract.StorageInfo(mediaId = 20L, storageKey = "brand/harufilm.jpg", contentType = "image/jpeg")
+            val metadata1 =
+                MediaMetadata(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg")
+            val metadata2 =
+                MediaMetadata(mediaId = 20L, storageKey = "brand/harufilm.jpg", contentType = "image/jpeg")
 
             every { brandRepository.findAll() } returns brands
-            every { mediaClient.getMediaStorageInfos(listOf(10L, 20L)) } returns listOf(storageInfo1, storageInfo2)
+            every { mediaClient.getMediaMetadata(listOf(10L, 20L)) } returns listOf(metadata1, metadata2)
 
             // When
-            val results = useCase.execute(userId)
+            val results = useCase.execute(MapQuery.GetBrand(userId))
 
             // Then
             results shouldHaveSize 2
@@ -65,7 +71,7 @@ class GetBrandUseCaseTest :
             results[1].storageKey shouldBe "brand/harufilm.jpg"
 
             verify(exactly = 1) { brandRepository.findAll() }
-            verify(exactly = 1) { mediaClient.getMediaStorageInfos(listOf(10L, 20L)) }
+            verify(exactly = 1) { mediaClient.getMediaMetadata(listOf(10L, 20L)) }
         }
 
         test("미디어 없는 브랜드 - mediaId가 null이면 storageKey가 null로 처리된다") {
@@ -74,12 +80,12 @@ class GetBrandUseCaseTest :
             val brandWithoutMedia = aBrand(id = 2L, name = "하루필름", code = "harufilm", mediaId = null)
 
             every { brandRepository.findAll() } returns listOf(brandWithMedia, brandWithoutMedia)
-            every { mediaClient.getMediaStorageInfos(listOf(10L)) } returns listOf(
-                MediaContract.StorageInfo(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg"),
+            every { mediaClient.getMediaMetadata(listOf(10L)) } returns listOf(
+                MediaMetadata(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg"),
             )
 
             // When
-            val results = useCase.execute(userId)
+            val results = useCase.execute(MapQuery.GetBrand(userId))
 
             // Then
             results shouldHaveSize 2
@@ -93,17 +99,17 @@ class GetBrandUseCaseTest :
             val brand2 = aBrand(id = 2L, name = "하루필름", code = "harufilm", mediaId = null)
 
             every { brandRepository.findAll() } returns listOf(brand1, brand2)
-            every { mediaClient.getMediaStorageInfos(emptyList()) } returns emptyList()
+            every { mediaClient.getMediaMetadata(emptyList()) } returns emptyList()
 
             // When
-            val results = useCase.execute(userId)
+            val results = useCase.execute(MapQuery.GetBrand(userId))
 
             // Then
             results shouldHaveSize 2
             results[0].storageKey shouldBe null
             results[1].storageKey shouldBe null
 
-            verify(exactly = 1) { mediaClient.getMediaStorageInfos(emptyList()) }
+            verify(exactly = 1) { mediaClient.getMediaMetadata(emptyList()) }
         }
 
         test("미디어 부분 조회 실패 - 5개 브랜드 중 2개 미디어 미존재 시 해당 브랜드 storageKey가 null이다") {
@@ -113,18 +119,18 @@ class GetBrandUseCaseTest :
             }
             val mediaIds = brands.mapNotNull { it.mediaId }
 
-            // 3개만 storageInfo 반환 (40L, 50L은 미존재)
-            val availableStorageInfos = listOf(
-                MediaContract.StorageInfo(mediaId = 10L, storageKey = "brand/brand1.jpg", contentType = "image/jpeg"),
-                MediaContract.StorageInfo(mediaId = 20L, storageKey = "brand/brand2.jpg", contentType = "image/jpeg"),
-                MediaContract.StorageInfo(mediaId = 30L, storageKey = "brand/brand3.jpg", contentType = "image/jpeg"),
+            // 3개만 metadata 반환 (40L, 50L은 미존재)
+            val availableMetadataList = listOf(
+                MediaMetadata(mediaId = 10L, storageKey = "brand/brand1.jpg", contentType = "image/jpeg"),
+                MediaMetadata(mediaId = 20L, storageKey = "brand/brand2.jpg", contentType = "image/jpeg"),
+                MediaMetadata(mediaId = 30L, storageKey = "brand/brand3.jpg", contentType = "image/jpeg"),
             )
 
             every { brandRepository.findAll() } returns brands
-            every { mediaClient.getMediaStorageInfos(mediaIds) } returns availableStorageInfos
+            every { mediaClient.getMediaMetadata(mediaIds) } returns availableMetadataList
 
             // When
-            val results = useCase.execute(userId)
+            val results = useCase.execute(MapQuery.GetBrand(userId))
 
             // Then
             results shouldHaveSize 5

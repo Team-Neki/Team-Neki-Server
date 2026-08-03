@@ -2,8 +2,10 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.dto.FolderCommand
-import com.neki.photo.application.port.FolderRepositoryPort
+import com.neki.photo.FolderRepository
+import com.neki.photo.application.UpdateFolderUseCase
+import com.neki.photo.dto.FolderCommand
+import com.neki.photo.service.FolderService
 import com.neki.testfixture.aFolder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -16,13 +18,13 @@ import org.junit.jupiter.api.Test
 
 class UpdateFolderUseCaseTest {
 
-    lateinit var folderRepository: FolderRepositoryPort
+    lateinit var folderRepository: FolderRepository
     lateinit var useCase: UpdateFolderUseCase
 
     @BeforeEach
     fun setUp() {
         folderRepository = mockk()
-        useCase = UpdateFolderUseCase(folderRepository)
+        useCase = UpdateFolderUseCase(FolderService(folderRepository, mockk()))
     }
 
     @Test

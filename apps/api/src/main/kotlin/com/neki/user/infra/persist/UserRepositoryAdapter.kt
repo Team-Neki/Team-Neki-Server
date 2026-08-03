@@ -1,9 +1,9 @@
 package com.neki.user.infra.persist
 
-import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.entity.User
-import com.neki.user.enums.ProviderType
-import com.neki.user.infra.persist.jpa.UserRepository
+import com.neki.user.UserRepository
+import com.neki.user.infra.persist.jpa.JpaUserRepository
+import com.neki.user.models.ProviderType
+import com.neki.user.models.User
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository
  * description    : User 영속성에 대한 Adapter (command + query)
  */
 @Repository
-class UserRepositoryAdapter(private val jpaRepository: UserRepository) : UserRepositoryPort {
+class UserRepositoryAdapter(private val jpaRepository: JpaUserRepository) : UserRepository {
 
     override fun save(user: User): User = jpaRepository.save(user)
 

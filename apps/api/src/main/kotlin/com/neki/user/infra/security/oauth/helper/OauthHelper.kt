@@ -1,8 +1,9 @@
 package com.neki.user.infra.security.oauth.helper
 
-import com.neki.user.application.port.dto.AuthContract
-import com.neki.user.enums.Platform
-import com.neki.user.enums.ProviderType
+import com.neki.user.infra.security.oauth.dto.OIDCPublicKeysPayload
+import com.neki.user.models.OauthUserInfo
+import com.neki.user.models.Platform
+import com.neki.user.models.ProviderType
 
 /**
  * fileName       : OauthHelperPort
@@ -16,9 +17,5 @@ interface OauthHelper {
      */
     val providerType: ProviderType
 
-    fun getOauthInfoByIdToken(
-        idToken: String,
-        publicKeys: AuthContract.OIDCPublicKeysPayload,
-        platform: Platform,
-    ): AuthContract.OauthInfoPayload
+    fun getOauthInfoByIdToken(idToken: String, publicKeys: OIDCPublicKeysPayload, platform: Platform): OauthUserInfo
 }

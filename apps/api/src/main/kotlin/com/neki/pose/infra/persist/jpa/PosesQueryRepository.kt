@@ -1,11 +1,11 @@
 package com.neki.pose.infra.persist.jpa
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.HeadCount
-import com.neki.pose.application.port.dto.PoseContract
-import com.neki.pose.entity.Pose
-import com.neki.pose.entity.QPose.pose
-import com.neki.pose.entity.QScrapPose.scrapPose
+import com.neki.pose.models.HeadCount
+import com.neki.pose.models.Pose
+import com.neki.pose.models.PoseWithScrap
+import com.neki.pose.models.QPose.pose
+import com.neki.pose.models.QScrapPose.scrapPose
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -20,10 +20,10 @@ import org.springframework.stereotype.Repository
 @Repository
 class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
 
-    fun findOwnedPoseWithScrap(userId: Long, poseId: Long): PoseContract.PoseWithScrap? = queryFactory
+    fun findOwnedPoseWithScrap(userId: Long, poseId: Long): PoseWithScrap? = queryFactory
         .select(
             Projections.constructor(
-                PoseContract.PoseWithScrap::class.java,
+                PoseWithScrap::class.java,
                 pose,
                 CaseBuilder()
                     .`when`(scrapPose.id.poseId.isNotNull).then(true)
@@ -47,10 +47,10 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         limit: Int,
         headCount: HeadCount?,
         sortOrder: SortOrder,
-    ): List<PoseContract.PoseWithScrap> = queryFactory
+    ): List<PoseWithScrap> = queryFactory
         .select(
             Projections.constructor(
-                PoseContract.PoseWithScrap::class.java,
+                PoseWithScrap::class.java,
                 pose,
                 CaseBuilder()
                     .`when`(scrapPose.id.poseId.isNotNull).then(true)

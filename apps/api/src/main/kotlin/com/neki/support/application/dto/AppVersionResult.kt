@@ -1,6 +1,6 @@
 package com.neki.support.application.dto
 
-import com.neki.support.enums.Platform
+import com.neki.support.models.Platform
 
 /**
  * fileName       : AppVersionResult

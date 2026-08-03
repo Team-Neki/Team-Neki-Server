@@ -7,12 +7,12 @@ import com.neki.photo.api.dto.FavoritePhotoConverter
 import com.neki.photo.api.dto.PhotoImageConverter
 import com.neki.photo.api.dto.PhotoImageRequest
 import com.neki.photo.api.dto.PhotoImageResponse
-import com.neki.photo.application.dto.PhotoImageCommand
-import com.neki.photo.application.dto.PhotoImageQuery
+import com.neki.photo.application.GetFavoritePhotosUseCase
+import com.neki.photo.application.GetFavoriteSummaryUseCase
+import com.neki.photo.application.UpdatePhotoFavoriteUseCase
 import com.neki.photo.application.dto.PhotoImageResult
-import com.neki.photo.application.usecase.GetFavoritePhotosUseCase
-import com.neki.photo.application.usecase.GetFavoriteSummaryUseCase
-import com.neki.photo.application.usecase.UpdatePhotoFavoriteUseCase
+import com.neki.photo.dto.PhotoImageCommand
+import com.neki.photo.dto.PhotoImageQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

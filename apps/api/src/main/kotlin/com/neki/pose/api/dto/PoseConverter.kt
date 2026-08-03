@@ -1,11 +1,12 @@
 package com.neki.pose.api.dto
 
+import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
 import com.neki.common.properties.AppProperties
-import com.neki.pose.HeadCount
-import com.neki.pose.application.dto.PoseCommand
-import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.dto.PoseResult
+import com.neki.pose.dto.PoseCommand
+import com.neki.pose.dto.PoseQuery
+import com.neki.pose.models.HeadCount
 import org.springframework.stereotype.Component
 
 /**
@@ -36,10 +37,8 @@ object PoseConverter {
             sortOrder: SortOrder,
         ): PoseQuery.GetPoses = PoseQuery.GetPoses(
             userId = userId,
-            page = page,
-            size = size,
             headCount = headCount,
-            sortOrder = sortOrder,
+            pagination = Pagination(page = page, size = size, sortOrder = sortOrder),
         )
 
         fun toGetPoseQuery(userId: Long, poseId: Long): PoseQuery.GetPose =

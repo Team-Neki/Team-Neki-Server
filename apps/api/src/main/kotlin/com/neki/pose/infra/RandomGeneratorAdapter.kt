@@ -1,6 +1,6 @@
 package com.neki.pose.infra
 
-import com.neki.pose.application.port.RandomGeneratorPort
+import com.neki.pose.RandomGenerator
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 
@@ -11,6 +11,6 @@ import kotlin.random.Random
  * description    : bound 내 랜덤 값 추출
  */
 @Component
-class RandomGeneratorAdapter : RandomGeneratorPort {
+class RandomGeneratorAdapter : RandomGenerator {
     override fun nextLong(bound: Long): Long = Random.nextLong(bound)
 }

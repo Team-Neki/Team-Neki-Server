@@ -1,10 +1,10 @@
 package com.neki.photo.infra.persist
 
-import com.neki.photo.application.port.FolderRepositoryPort
-import com.neki.photo.application.port.dto.PhotoContract
-import com.neki.photo.entity.Folder
+import com.neki.photo.FolderRepository
 import com.neki.photo.infra.persist.jpa.FolderQueryRepository
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
+import com.neki.photo.models.Folder
+import com.neki.photo.models.FolderStats
 import org.springframework.stereotype.Repository
 
 /**
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository
 class FolderRepositoryAdapter(
     private val jpaRepository: JpaFolderRepository,
     private val queryRepository: FolderQueryRepository,
-) : FolderRepositoryPort {
+) : FolderRepository {
 
     override fun save(folder: Folder): Folder = jpaRepository.save(folder)
 
@@ -26,7 +26,7 @@ class FolderRepositoryAdapter(
 
     override fun listOwnedFolders(userId: Long): List<Folder> = jpaRepository.findAllByUserId(userId)
 
-    override fun listOwnedFoldersWithStats(userId: Long, limit: Int?): List<PhotoContract.FolderWithStats> =
+    override fun listOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderStats> =
         queryRepository.findOwnedFoldersWithStats(userId, limit)
 
     override fun getOwnedFolders(userId: Long, folderIds: List<Long>): List<Folder> =

@@ -2,8 +2,8 @@ package com.neki.e2e.photo.folder
 
 import com.neki.common.api.dto.BaseResponse
 import com.neki.common.code.ResultCode
-import com.neki.photo.entity.Folder
-import com.neki.user.entity.User
+import com.neki.photo.models.Folder
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat

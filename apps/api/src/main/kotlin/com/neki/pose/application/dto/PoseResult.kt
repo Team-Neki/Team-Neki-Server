@@ -1,6 +1,6 @@
 package com.neki.pose.application.dto
 
-import com.neki.pose.HeadCount
+import com.neki.pose.models.HeadCount
 import java.time.LocalDateTime
 
 /**

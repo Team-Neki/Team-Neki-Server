@@ -5,13 +5,13 @@ import com.neki.common.api.dto.BaseResponse
 import com.neki.map.api.dto.MapConverter
 import com.neki.map.api.dto.MapRequest
 import com.neki.map.api.dto.MapResponse
-import com.neki.map.application.dto.MapCommand
-import com.neki.map.application.dto.MapQuery
+import com.neki.map.application.CollectPhotoBoothLocationUseCase
+import com.neki.map.application.GetBrandUseCase
+import com.neki.map.application.GetPhotoBoothLocationUseCase
+import com.neki.map.application.UpdateBrandOrderUseCase
 import com.neki.map.application.dto.MapResult
-import com.neki.map.application.usecase.CollectPhotoBoothLocationUseCase
-import com.neki.map.application.usecase.GetBrandUseCase
-import com.neki.map.application.usecase.GetPhotoBoothLocationUseCase
-import com.neki.map.application.usecase.UpdateBrandOrderUseCase
+import com.neki.map.dto.MapCommand
+import com.neki.map.dto.MapQuery
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -53,7 +53,7 @@ class MapController(
     )
     @GetMapping("/brand")
     fun getBrand(@AuthenticationPrincipal(expression = "id") userId: Long): BaseResponse<List<MapResponse.GetBrand>> {
-        val result: List<MapResult.GetBrand> = getBrandUseCase.execute(userId)
+        val result: List<MapResult.GetBrand> = getBrandUseCase.execute(MapQuery.GetBrand(userId))
 
         val response: List<MapResponse.GetBrand> = responseConverter.toGetBrandResponse(result)
 

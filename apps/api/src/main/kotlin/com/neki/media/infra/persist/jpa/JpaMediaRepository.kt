@@ -1,7 +1,7 @@
 package com.neki.media.infra.persist.jpa
 
-import com.neki.media.entity.Media
-import com.neki.media.entity.MediaStatus
+import com.neki.media.models.Media
+import com.neki.media.models.MediaStatus
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

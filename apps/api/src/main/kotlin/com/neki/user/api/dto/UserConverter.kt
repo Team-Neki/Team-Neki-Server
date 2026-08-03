@@ -1,9 +1,9 @@
 package com.neki.user.api.dto
 
 import com.neki.common.properties.AppProperties
-import com.neki.user.application.dto.UserCommand
-import com.neki.user.application.dto.UserQuery
 import com.neki.user.application.dto.UserResult
+import com.neki.user.dto.UserCommand
+import com.neki.user.dto.UserQuery
 import org.springframework.stereotype.Component
 
 /**

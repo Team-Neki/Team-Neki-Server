@@ -1,13 +1,13 @@
 package com.neki.e2e.map
 
 import com.neki.e2e.E2ETestBase
-import com.neki.map.entity.Brand
-import com.neki.map.entity.FavoriteMap
-import com.neki.map.entity.PhotoBoothLocation
 import com.neki.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.map.infra.persist.jpa.JpaFavoriteMapRepository
 import com.neki.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.map.infra.persist.jpa.JpaUserBrandOrderRepository
+import com.neki.map.models.Brand
+import com.neki.map.models.FavoriteMap
+import com.neki.map.models.PhotoBoothLocation
 import org.junit.jupiter.api.AfterEach
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory

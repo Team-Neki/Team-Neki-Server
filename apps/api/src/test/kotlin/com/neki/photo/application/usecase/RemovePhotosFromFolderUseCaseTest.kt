@@ -2,9 +2,11 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.dto.FolderCommand
-import com.neki.photo.application.port.FolderRepositoryPort
-import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
+import com.neki.photo.FolderRepository
+import com.neki.photo.PhotoImageFolderRepository
+import com.neki.photo.application.RemovePhotosFromFolderUseCase
+import com.neki.photo.dto.FolderCommand
+import com.neki.photo.service.FolderService
 import com.neki.testfixture.aFolder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -17,15 +19,15 @@ import org.junit.jupiter.api.Test
 
 class RemovePhotosFromFolderUseCaseTest {
 
-    lateinit var folderRepository: FolderRepositoryPort
-    lateinit var photoImageFolderRepository: PhotoImageFolderRepositoryPort
+    lateinit var folderRepository: FolderRepository
+    lateinit var photoImageFolderRepository: PhotoImageFolderRepository
     lateinit var useCase: RemovePhotosFromFolderUseCase
 
     @BeforeEach
     fun setUp() {
         folderRepository = mockk()
         photoImageFolderRepository = mockk()
-        useCase = RemovePhotosFromFolderUseCase(folderRepository, photoImageFolderRepository)
+        useCase = RemovePhotosFromFolderUseCase(FolderService(folderRepository, photoImageFolderRepository))
     }
 
     @Test

@@ -1,13 +1,13 @@
 package com.neki.support.infra.persist
 
-import com.neki.support.application.port.UserTermAgreementRepositoryPort
-import com.neki.support.entity.UserTermAgreement
+import com.neki.support.UserTermAgreementRepository
 import com.neki.support.infra.persist.jpa.JpaUserTermAgreementRepository
+import com.neki.support.models.UserTermAgreement
 import org.springframework.stereotype.Repository
 
 @Repository
 class UserTermAgreementRepositoryAdapter(private val jpaRepository: JpaUserTermAgreementRepository) :
-    UserTermAgreementRepositoryPort {
+    UserTermAgreementRepository {
 
     override fun findByUserId(userId: Long): List<UserTermAgreement> = jpaRepository.findAllByIdUserId(userId)
 

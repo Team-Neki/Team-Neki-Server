@@ -1,6 +1,6 @@
 package com.neki.notification.infra.persist.jpa
 
-import com.neki.notification.entity.NotificationHist
+import com.neki.notification.models.NotificationHist
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

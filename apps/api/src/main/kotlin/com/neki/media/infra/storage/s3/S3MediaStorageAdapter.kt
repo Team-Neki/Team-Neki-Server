@@ -1,10 +1,10 @@
 package com.neki.media.infra.storage.s3
 
 import com.neki.config.aws.S3Properties
-import com.neki.media.MediaType
-import com.neki.media.application.dto.MediaRef
-import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.port.dto.MediaStorageContract
+import com.neki.media.MediaStorage
+import com.neki.media.models.MediaRef
+import com.neki.media.models.MediaStorageUploadTicket
+import com.neki.media.models.MediaType
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
@@ -27,7 +27,7 @@ class S3MediaStorageAdapter(
     private val s3Client: S3Client,
     private val s3Presigner: S3Presigner,
     private val props: S3Properties,
-) : MediaStoragePort {
+) : MediaStorage {
 
     override fun deleteByKey(key: String) {
         s3Client.deleteObject {
@@ -83,7 +83,7 @@ class S3MediaStorageAdapter(
         }
     }
 
-    override fun generateUploadTicket(key: String, contentType: String): MediaStorageContract.UploadTicket {
+    override fun generateUploadTicket(key: String, contentType: String): MediaStorageUploadTicket {
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(props.bucket)
             .key(key)
@@ -97,7 +97,7 @@ class S3MediaStorageAdapter(
 
         val presignedRequest = s3Presigner.presignPutObject(presignRequest)
 
-        return MediaStorageContract.UploadTicket(
+        return MediaStorageUploadTicket(
             url = presignedRequest.url().toString(),
             method = "PUT",
             expiresAt = Instant.now().plus(props.presignedUrlExpiration),

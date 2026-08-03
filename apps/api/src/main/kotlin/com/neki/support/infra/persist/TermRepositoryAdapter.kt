@@ -1,14 +1,14 @@
 package com.neki.support.infra.persist
 
-import com.neki.support.application.port.TermRepositoryPort
-import com.neki.support.entity.Term
-import com.neki.support.enums.TermType
+import com.neki.support.TermRepository
 import com.neki.support.infra.persist.jpa.JpaTermRepository
+import com.neki.support.models.Term
+import com.neki.support.models.TermType
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 @Repository
-class TermRepositoryAdapter(private val jpaRepository: JpaTermRepository) : TermRepositoryPort {
+class TermRepositoryAdapter(private val jpaRepository: JpaTermRepository) : TermRepository {
 
     override fun findAllActiveTerms(): List<Term> = jpaRepository.findAllByIsActiveTrueOrderByDisplayOrderAsc()
 

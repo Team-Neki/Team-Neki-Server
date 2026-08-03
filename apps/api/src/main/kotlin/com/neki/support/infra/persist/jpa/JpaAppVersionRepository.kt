@@ -1,7 +1,7 @@
 package com.neki.support.infra.persist.jpa
 
-import com.neki.support.entity.AppVersion
-import com.neki.support.enums.Platform
+import com.neki.support.models.AppVersion
+import com.neki.support.models.Platform
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

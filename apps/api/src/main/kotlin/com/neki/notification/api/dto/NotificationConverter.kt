@@ -1,7 +1,7 @@
 package com.neki.notification.api.dto
 
-import com.neki.notification.application.dto.NotificationCommand
 import com.neki.notification.application.dto.NotificationResult
+import com.neki.notification.dto.NotificationCommand
 import org.springframework.stereotype.Component
 
 /**

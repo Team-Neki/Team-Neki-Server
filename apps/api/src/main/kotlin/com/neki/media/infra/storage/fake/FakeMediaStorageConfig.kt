@@ -1,9 +1,9 @@
 package com.neki.media.infra.storage.fake
 
-import com.neki.media.MediaType
-import com.neki.media.application.dto.MediaRef
-import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.port.dto.MediaStorageContract
+import com.neki.media.MediaStorage
+import com.neki.media.models.MediaRef
+import com.neki.media.models.MediaStorageUploadTicket
+import com.neki.media.models.MediaType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -21,10 +21,10 @@ import java.util.concurrent.ConcurrentHashMap
 class FakeMediaStorageConfig {
 
     @Bean
-    fun fakeMediaStorage(): MediaStoragePort = FakeMediaStorageAdapter()
+    fun fakeMediaStorage(): MediaStorage = FakeMediaStorageAdapter()
 }
 
-class FakeMediaStorageAdapter : MediaStoragePort {
+class FakeMediaStorageAdapter : MediaStorage {
 
     private val storage = ConcurrentHashMap<String, ByteArray>()
     private val fetchCount = ConcurrentHashMap<String, Int>()
@@ -48,8 +48,8 @@ class FakeMediaStorageAdapter : MediaStoragePort {
 
     override fun exists(key: String): Boolean = true
 
-    override fun generateUploadTicket(key: String, contentType: String): MediaStorageContract.UploadTicket =
-        MediaStorageContract.UploadTicket(
+    override fun generateUploadTicket(key: String, contentType: String): MediaStorageUploadTicket =
+        MediaStorageUploadTicket(
             url = "https://fake-storage.test/upload/$key",
             method = "PUT",
             expiresAt = Instant.now().plusSeconds(3600),

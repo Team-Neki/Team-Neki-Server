@@ -1,9 +1,11 @@
 package com.neki.map.application.usecase
 
-import com.neki.map.application.dto.MapQuery
-import com.neki.map.application.port.FavoriteMapRepositoryPort
-import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
-import com.neki.map.application.port.dto.MapContract
+import com.neki.map.FavoriteMapRepository
+import com.neki.map.PhotoBoothLocationRepository
+import com.neki.map.application.GetPhotoBoothLocationUseCase
+import com.neki.map.dto.MapQuery
+import com.neki.map.models.PhotoBoothLocationView
+import com.neki.map.models.PhotoBoothLocationWithDistance
 import com.neki.testfixture.FakeTransactionRunner
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -27,8 +29,8 @@ class GetPhotoBoothLocationUseCaseTest :
         val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
         val userId = 1L
 
-        lateinit var photoBoothLocationRepository: PhotoBoothLocationRepositoryPort
-        lateinit var favoriteMapRepository: FavoriteMapRepositoryPort
+        lateinit var photoBoothLocationRepository: PhotoBoothLocationRepository
+        lateinit var favoriteMapRepository: FavoriteMapRepository
         lateinit var useCase: GetPhotoBoothLocationUseCase
 
         beforeTest {
@@ -57,14 +59,14 @@ class GetPhotoBoothLocationUseCaseTest :
             val point1 = geometryFactory.createPoint(Coordinate(127.02, 37.49))
             val point2 = geometryFactory.createPoint(Coordinate(127.03, 37.50))
             val locationDtos = listOf(
-                MapContract.PhotoBoothLocation(
+                PhotoBoothLocationView(
                     id = 1L,
                     brandName = "인생네컷",
                     branchName = "강남점",
                     address = "서울 강남구",
                     location = point1,
                 ),
-                MapContract.PhotoBoothLocation(
+                PhotoBoothLocationView(
                     id = 2L,
                     brandName = "하루필름",
                     branchName = "홍대점",
@@ -142,7 +144,7 @@ class GetPhotoBoothLocationUseCaseTest :
 
             val point = geometryFactory.createPoint(Coordinate(127.0280, 37.4985))
             val locationDtos = listOf(
-                MapContract.PhotoBoothLocationWithDistance(
+                PhotoBoothLocationWithDistance(
                     id = 1L,
                     brandName = "인생네컷",
                     branchName = "강남점",

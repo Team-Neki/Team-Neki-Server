@@ -5,10 +5,10 @@ import com.neki.common.api.dto.BaseResponse
 import com.neki.support.api.dto.TermConverter
 import com.neki.support.api.dto.TermRequest
 import com.neki.support.api.dto.TermResponse
-import com.neki.support.application.dto.TermCommand
+import com.neki.support.application.CreateTermAgreementsUseCase
+import com.neki.support.application.GetTermsUseCase
 import com.neki.support.application.dto.TermResult
-import com.neki.support.application.usecase.CreateTermAgreementsUseCase
-import com.neki.support.application.usecase.GetTermsUseCase
+import com.neki.support.dto.TermCommand
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

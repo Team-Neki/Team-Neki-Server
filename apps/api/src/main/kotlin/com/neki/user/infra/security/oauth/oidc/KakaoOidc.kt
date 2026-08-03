@@ -1,10 +1,10 @@
 package com.neki.user.infra.security.oauth.oidc
 
-import com.neki.user.application.port.AuthCachePort
-import com.neki.user.application.port.dto.AuthContract
-import com.neki.user.enums.ProviderType
+import com.neki.user.infra.cache.AuthCachePort
 import com.neki.user.infra.security.config.OauthProperties
 import com.neki.user.infra.security.oauth.AuthCacheKeys
+import com.neki.user.infra.security.oauth.dto.OIDCPublicKeysPayload
+import com.neki.user.models.ProviderType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -38,7 +38,7 @@ class KakaoOidc(
      * - TTL: 6시간
      * - 캐시 미스 시 카카오 API 호출 후 캐싱
      */
-    override fun getOIDCPublicKey(): AuthContract.OIDCPublicKeysPayload {
+    override fun getOIDCPublicKey(): OIDCPublicKeysPayload {
         // 1. 캐시 조회
         val cached = authRedisCacheAdapter.getPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY)
 
@@ -50,7 +50,7 @@ class KakaoOidc(
         val publicKeys = restClient.get()
             .uri(oauthProperties.kakao.jwksUri)
             .retrieve()
-            .body(AuthContract.OIDCPublicKeysPayload::class.java)!!
+            .body(OIDCPublicKeysPayload::class.java)!!
 
         // 3. 캐시 저장 (TTL 14일)
         authRedisCacheAdapter.setPublicKeys(AuthCacheKeys.KAKAO_OIDC_KEY, publicKeys, Duration.ofDays(14))

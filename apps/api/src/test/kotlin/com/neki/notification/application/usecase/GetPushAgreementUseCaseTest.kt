@@ -1,8 +1,10 @@
 package com.neki.notification.application.usecase
 
-import com.neki.notification.application.dto.NotificationQuery
-import com.neki.notification.application.port.NotificationRepositoryPort
-import com.neki.notification.entity.Notification
+import com.neki.notification.NotificationRepository
+import com.neki.notification.application.GetPushAgreementUseCase
+import com.neki.notification.dto.NotificationQuery
+import com.neki.notification.models.Notification
+import com.neki.notification.service.NotificationService
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -12,13 +14,13 @@ import org.junit.jupiter.api.Test
 
 class GetPushAgreementUseCaseTest {
 
-    lateinit var notificationRepository: NotificationRepositoryPort
+    lateinit var notificationRepository: NotificationRepository
     lateinit var useCase: GetPushAgreementUseCase
 
     @BeforeEach
     fun setUp() {
         notificationRepository = mockk()
-        useCase = GetPushAgreementUseCase(notificationRepository = notificationRepository)
+        useCase = GetPushAgreementUseCase(NotificationService(notificationRepository, mockk()))
     }
 
     @Test

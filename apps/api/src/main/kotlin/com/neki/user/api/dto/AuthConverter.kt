@@ -1,9 +1,9 @@
 package com.neki.user.api.dto
 
-import com.neki.user.application.dto.AuthCommand
 import com.neki.user.application.dto.AuthResult
-import com.neki.user.enums.Platform
-import com.neki.user.enums.ProviderType
+import com.neki.user.dto.AuthCommand
+import com.neki.user.models.Platform
+import com.neki.user.models.ProviderType
 import org.springframework.stereotype.Component
 
 /**

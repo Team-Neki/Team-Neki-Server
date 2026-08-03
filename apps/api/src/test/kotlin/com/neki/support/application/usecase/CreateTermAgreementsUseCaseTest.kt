@@ -2,12 +2,14 @@ package com.neki.support.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.application.dto.TermCommand
-import com.neki.support.application.port.TermRepositoryPort
-import com.neki.support.application.port.UserTermAgreementHistRepositoryPort
-import com.neki.support.application.port.UserTermAgreementRepositoryPort
-import com.neki.support.entity.UserTermAgreementHist
-import com.neki.support.enums.TermAgreementAction
+import com.neki.support.TermRepository
+import com.neki.support.UserTermAgreementHistRepository
+import com.neki.support.UserTermAgreementRepository
+import com.neki.support.application.CreateTermAgreementsUseCase
+import com.neki.support.dto.TermCommand
+import com.neki.support.models.TermAgreementAction
+import com.neki.support.models.UserTermAgreementHist
+import com.neki.support.service.TermService
 import com.neki.testfixture.aTerm
 import com.neki.testfixture.aUserTermAgreement
 import io.kotest.assertions.throwables.shouldThrow
@@ -26,9 +28,9 @@ import org.junit.jupiter.api.Test
 
 class CreateTermAgreementsUseCaseTest {
 
-    private lateinit var termRepository: TermRepositoryPort
-    private lateinit var userTermAgreementRepository: UserTermAgreementRepositoryPort
-    private lateinit var userTermAgreementHistRepository: UserTermAgreementHistRepositoryPort
+    private lateinit var termRepository: TermRepository
+    private lateinit var userTermAgreementRepository: UserTermAgreementRepository
+    private lateinit var userTermAgreementHistRepository: UserTermAgreementHistRepository
     private lateinit var useCase: CreateTermAgreementsUseCase
 
     @BeforeEach
@@ -37,7 +39,9 @@ class CreateTermAgreementsUseCaseTest {
         userTermAgreementRepository = mockk()
         userTermAgreementHistRepository = mockk()
         useCase =
-            CreateTermAgreementsUseCase(termRepository, userTermAgreementRepository, userTermAgreementHistRepository)
+            CreateTermAgreementsUseCase(
+                TermService(termRepository, userTermAgreementRepository, userTermAgreementHistRepository),
+            )
     }
 
     @Test

@@ -1,10 +1,10 @@
 package com.neki.e2e.photo.image
 
 import com.neki.common.code.ResultCode
-import com.neki.media.entity.MediaStatus
+import com.neki.media.models.MediaStatus
 import com.neki.photo.api.dto.PhotoImageRequest
-import com.neki.photo.entity.FavoritePhotoId
-import com.neki.user.entity.User
+import com.neki.photo.models.FavoritePhotoId
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat

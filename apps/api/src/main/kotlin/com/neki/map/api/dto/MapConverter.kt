@@ -1,9 +1,9 @@
 package com.neki.map.api.dto
 
 import com.neki.common.properties.AppProperties
-import com.neki.map.application.dto.MapCommand
-import com.neki.map.application.dto.MapQuery
 import com.neki.map.application.dto.MapResult
+import com.neki.map.dto.MapCommand
+import com.neki.map.dto.MapQuery
 import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Component
 

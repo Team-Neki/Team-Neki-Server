@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.token
 
-import com.neki.user.entity.User
-import com.neki.user.enums.ProviderType
+import com.neki.user.models.ProviderType
+import com.neki.user.models.User
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.core.oidc.OidcIdToken

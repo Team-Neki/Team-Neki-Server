@@ -1,10 +1,10 @@
 package com.neki.media.api.controller
 
-import com.neki.media.MediaKey
-import com.neki.media.MediaType
-import com.neki.media.application.dto.MediaRef
-import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.port.dto.MediaStorageContract
+import com.neki.media.MediaStorage
+import com.neki.media.models.MediaKey
+import com.neki.media.models.MediaRef
+import com.neki.media.models.MediaStorageUploadTicket
+import com.neki.media.models.MediaType
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
@@ -25,7 +25,7 @@ import java.time.Instant
 @Profile("local")
 @RestController
 @RequestMapping("/api/media/test")
-class MediaTestController(private val mediaStorage: MediaStoragePort) {
+class MediaTestController(private val mediaStorage: MediaStorage) {
 
     @GetMapping
     fun listMedia(@RequestParam(defaultValue = "temp/") prefix: String): MediaListResponse {
@@ -54,7 +54,7 @@ class MediaTestController(private val mediaStorage: MediaStoragePort) {
         val key: String = MediaKey.generate(MediaType.TEMP, effectiveFilename, contentType)
 
         // Presigned URL 생성
-        val uploadTicket: MediaStorageContract.UploadTicket = mediaStorage.generateUploadTicket(
+        val uploadTicket: MediaStorageUploadTicket = mediaStorage.generateUploadTicket(
             key = key,
             contentType = contentType,
         )

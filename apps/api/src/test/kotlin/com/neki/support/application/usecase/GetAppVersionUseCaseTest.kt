@@ -2,9 +2,11 @@ package com.neki.support.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.application.dto.AppVersionQuery
-import com.neki.support.application.port.AppVersionRepositoryPort
-import com.neki.support.enums.Platform
+import com.neki.support.AppVersionRepository
+import com.neki.support.application.GetAppVersionUseCase
+import com.neki.support.dto.AppVersionQuery
+import com.neki.support.models.Platform
+import com.neki.support.service.AppVersionService
 import com.neki.testfixture.anAppVersion
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -16,13 +18,13 @@ import org.junit.jupiter.api.Test
 
 class GetAppVersionUseCaseTest {
 
-    private lateinit var appVersionRepository: AppVersionRepositoryPort
+    private lateinit var appVersionRepository: AppVersionRepository
     private lateinit var useCase: GetAppVersionUseCase
 
     @BeforeEach
     fun setUp() {
         appVersionRepository = mockk()
-        useCase = GetAppVersionUseCase(appVersionRepository)
+        useCase = GetAppVersionUseCase(AppVersionService(appVersionRepository))
     }
 
     @Test

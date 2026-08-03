@@ -1,5 +1,6 @@
 package com.neki.media.infra.lock
 
+import com.neki.media.infra.lock.redis.DistributedLockProperties
 import com.neki.media.infra.lock.redis.RedisDistributedLockAdapter
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -43,10 +44,7 @@ class RedisDistributedLockAdapterTest :
 
             // When
             val result =
-                adapter.executeWithLock(
-                    key = objectKey,
-                    ttl = Duration.ofSeconds(10),
-                ) {
+                adapter.executeWithLock(objectKey) {
                     actionExecuted.incrementAndGet()
                     "result"
                 }
@@ -54,7 +52,10 @@ class RedisDistributedLockAdapterTest :
             // Then
             result shouldBe "result"
             actionExecuted.get() shouldBe 1
-            verify(exactly = 1) { mockValueOps.setIfAbsent(lockKey, any(), any<Duration>()) }
+            // 락 TTL은 호출자가 아닌 어댑터 설정에서 온다
+            verify(exactly = 1) {
+                mockValueOps.setIfAbsent(lockKey, any(), DistributedLockProperties.DEFAULT.lockTtl)
+            }
             verify(exactly = 1) {
                 mockRedisTemplate.execute(
                     any<RedisScript<Long>>(),
@@ -79,10 +80,7 @@ class RedisDistributedLockAdapterTest :
 
             // When
             val result =
-                adapter.executeWithLock(
-                    key = objectKey,
-                    ttl = Duration.ofSeconds(10),
-                ) {
+                adapter.executeWithLock(objectKey) {
                     "should not execute"
                 }
 
@@ -102,10 +100,7 @@ class RedisDistributedLockAdapterTest :
 
             // When
             val result =
-                adapter.executeWithLock(
-                    key = objectKey,
-                    ttl = Duration.ofSeconds(10),
-                ) {
+                adapter.executeWithLock(objectKey) {
                     "should not execute"
                 }
 
@@ -128,10 +123,7 @@ class RedisDistributedLockAdapterTest :
 
             // When
             val result =
-                adapter.executeWithLock(
-                    key = objectKey,
-                    ttl = Duration.ofSeconds(10),
-                ) {
+                adapter.executeWithLock(objectKey) {
                     throw RuntimeException("Action failed")
                 }
 
@@ -161,10 +153,7 @@ class RedisDistributedLockAdapterTest :
 
             // When/Then: Should not throw
             val result =
-                adapter.executeWithLock(
-                    key = objectKey,
-                    ttl = Duration.ofSeconds(10),
-                ) {
+                adapter.executeWithLock(objectKey) {
                     "result"
                 }
 
@@ -188,10 +177,7 @@ class RedisDistributedLockAdapterTest :
             // When: Concurrent requests for different keys
             val future1 =
                 CompletableFuture.supplyAsync {
-                    adapter.executeWithLock(
-                        key = objectKey1,
-                        ttl = Duration.ofSeconds(10),
-                    ) {
+                    adapter.executeWithLock(objectKey1) {
                         executions.incrementAndGet()
                         "result1"
                     }
@@ -199,10 +185,7 @@ class RedisDistributedLockAdapterTest :
 
             val future2 =
                 CompletableFuture.supplyAsync {
-                    adapter.executeWithLock(
-                        key = objectKey2,
-                        ttl = Duration.ofSeconds(10),
-                    ) {
+                    adapter.executeWithLock(objectKey2) {
                         executions.incrementAndGet()
                         "result2"
                     }

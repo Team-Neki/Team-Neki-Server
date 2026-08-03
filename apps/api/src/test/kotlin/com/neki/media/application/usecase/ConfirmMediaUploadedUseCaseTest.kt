@@ -1,10 +1,12 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.application.dto.MediaCommand
-import com.neki.media.application.dto.MediaResult.ConfirmMediasUploaded.UploadConfirmStatus
-import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.entity.MediaStatus
+import com.neki.media.MediaRepository
+import com.neki.media.MediaStorage
+import com.neki.media.application.ConfirmMediaUploadedUseCase
+import com.neki.media.dto.MediaCommand
+import com.neki.media.models.MediaStatus
+import com.neki.media.models.UploadConfirmStatus
+import com.neki.media.service.MediaService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aMedia
 import io.kotest.assertions.throwables.shouldThrow
@@ -22,8 +24,8 @@ import org.junit.jupiter.api.Test
  */
 class ConfirmMediaUploadedUseCaseTest {
 
-    private lateinit var mediaRepository: MediaRepositoryPort
-    private lateinit var mediaStorage: MediaStoragePort
+    private lateinit var mediaRepository: MediaRepository
+    private lateinit var mediaStorage: MediaStorage
     private lateinit var useCase: ConfirmMediaUploadedUseCase
 
     @BeforeEach
@@ -31,8 +33,7 @@ class ConfirmMediaUploadedUseCaseTest {
         mediaRepository = mockk()
         mediaStorage = mockk()
         useCase = ConfirmMediaUploadedUseCase(
-            mediaRepository = mediaRepository,
-            mediaStorage = mediaStorage,
+            mediaService = MediaService(mediaRepository, mediaStorage),
             transactionRunner = FakeTransactionRunner(),
         )
     }
@@ -47,7 +48,7 @@ class ConfirmMediaUploadedUseCaseTest {
         val result = useCase.execute(command)
 
         // Then
-        result.results shouldBe emptyMap()
+        result shouldBe emptyMap<Long, UploadConfirmStatus>()
         verify(exactly = 0) { mediaRepository.getMediaForUploadConfirmation(any(), any()) }
     }
 
@@ -67,7 +68,7 @@ class ConfirmMediaUploadedUseCaseTest {
         val result = useCase.execute(command)
 
         // Then
-        result.results[mediaId] shouldBe UploadConfirmStatus.CONFIRMED
+        result[mediaId] shouldBe UploadConfirmStatus.CONFIRMED
         verify(exactly = 0) { mediaStorage.exists(any()) }
     }
 
@@ -90,7 +91,7 @@ class ConfirmMediaUploadedUseCaseTest {
         val result = useCase.execute(command)
 
         // Then
-        result.results[mediaId] shouldBe UploadConfirmStatus.CONFIRMED
+        result[mediaId] shouldBe UploadConfirmStatus.CONFIRMED
         initiatedMedia.status shouldBe MediaStatus.UPLOADED
         verify(exactly = 1) { mediaRepository.save(initiatedMedia) }
     }
@@ -118,7 +119,7 @@ class ConfirmMediaUploadedUseCaseTest {
         val result = useCase.execute(command)
 
         // Then
-        result.results[mediaId] shouldBe UploadConfirmStatus.NOT_UPLOADED
+        result[mediaId] shouldBe UploadConfirmStatus.NOT_UPLOADED
     }
 
     @Test
@@ -135,7 +136,7 @@ class ConfirmMediaUploadedUseCaseTest {
         val result = useCase.execute(command)
 
         // Then
-        result.results[mediaId] shouldBe UploadConfirmStatus.NOT_FOUND
+        result[mediaId] shouldBe UploadConfirmStatus.NOT_FOUND
     }
 
     @Test

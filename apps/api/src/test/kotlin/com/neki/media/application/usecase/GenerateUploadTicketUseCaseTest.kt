@@ -2,12 +2,13 @@ package com.neki.media.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.media.MediaType
-import com.neki.media.application.dto.MediaCommand
-import com.neki.media.application.port.MediaRepositoryPort
-import com.neki.media.application.port.MediaStoragePort
-import com.neki.media.application.port.dto.MediaStorageContract
-import com.neki.testfixture.FakeTransactionRunner
+import com.neki.media.MediaRepository
+import com.neki.media.MediaStorage
+import com.neki.media.application.GenerateUploadTicketUseCase
+import com.neki.media.dto.MediaCommand
+import com.neki.media.models.MediaStorageUploadTicket
+import com.neki.media.models.MediaType
+import com.neki.media.service.MediaService
 import com.neki.testfixture.aMedia
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -26,8 +27,8 @@ import java.time.Instant
  */
 class GenerateUploadTicketUseCaseTest {
 
-    private lateinit var mediaStorage: MediaStoragePort
-    private lateinit var mediaRepository: MediaRepositoryPort
+    private lateinit var mediaStorage: MediaStorage
+    private lateinit var mediaRepository: MediaRepository
     private lateinit var useCase: GenerateUploadTicketUseCase
 
     private val fixedExpiresAt: Instant = Instant.parse("2026-01-01T00:00:00Z")
@@ -36,11 +37,7 @@ class GenerateUploadTicketUseCaseTest {
     fun setUp() {
         mediaStorage = mockk()
         mediaRepository = mockk()
-        useCase = GenerateUploadTicketUseCase(
-            mediaStorage = mediaStorage,
-            mediaRepository = mediaRepository,
-            transactionRunner = FakeTransactionRunner(),
-        )
+        useCase = GenerateUploadTicketUseCase(MediaService(mediaRepository, mediaStorage))
     }
 
     @Test
@@ -64,13 +61,13 @@ class GenerateUploadTicketUseCaseTest {
         val savedMedia1 = aMedia(id = 1L, ownerId = ownerId)
         val savedMedia2 = aMedia(id = 2L, ownerId = ownerId)
 
-        val ticket1 = MediaStorageContract.UploadTicket(
+        val ticket1 = MediaStorageUploadTicket(
             url = "https://s3.example.com/presigned-1",
             method = "PUT",
             expiresAt = fixedExpiresAt,
             contentType = "image/jpeg",
         )
-        val ticket2 = MediaStorageContract.UploadTicket(
+        val ticket2 = MediaStorageUploadTicket(
             url = "https://s3.example.com/presigned-2",
             method = "PUT",
             expiresAt = fixedExpiresAt,
@@ -120,13 +117,13 @@ class GenerateUploadTicketUseCaseTest {
         val firstTicketExpiresAt = Instant.parse("2026-01-01T12:00:00Z")
         val secondTicketExpiresAt = Instant.parse("2026-01-02T12:00:00Z")
 
-        val ticket1 = MediaStorageContract.UploadTicket(
+        val ticket1 = MediaStorageUploadTicket(
             url = "https://s3.example.com/presigned-1",
             method = "PUT",
             expiresAt = firstTicketExpiresAt,
             contentType = "image/jpeg",
         )
-        val ticket2 = MediaStorageContract.UploadTicket(
+        val ticket2 = MediaStorageUploadTicket(
             url = "https://s3.example.com/presigned-2",
             method = "POST",
             expiresAt = secondTicketExpiresAt,

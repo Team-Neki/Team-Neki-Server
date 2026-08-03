@@ -1,8 +1,8 @@
 package com.neki.user.infra.security.oauth.oidc
 
-import com.neki.user.application.port.dto.AuthContract
-import com.neki.user.enums.ProviderType
 import com.neki.user.infra.security.config.OauthProperties
+import com.neki.user.infra.security.oauth.dto.OIDCPublicKeysPayload
+import com.neki.user.models.ProviderType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 
@@ -16,8 +16,8 @@ import org.springframework.web.client.RestClient
 class AppleOidc(private val restClient: RestClient, private val oauthProperties: OauthProperties) : Oidc {
     override val providerType: ProviderType = ProviderType.APPLE
 
-    override fun getOIDCPublicKey(): AuthContract.OIDCPublicKeysPayload = restClient.get()
+    override fun getOIDCPublicKey(): OIDCPublicKeysPayload = restClient.get()
         .uri(oauthProperties.apple.jwksUri)
         .retrieve()
-        .body(AuthContract.OIDCPublicKeysPayload::class.java)!!
+        .body(OIDCPublicKeysPayload::class.java)!!
 }

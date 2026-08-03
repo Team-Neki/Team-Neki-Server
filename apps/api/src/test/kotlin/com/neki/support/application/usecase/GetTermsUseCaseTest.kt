@@ -1,7 +1,9 @@
 package com.neki.support.application.usecase
 
-import com.neki.support.application.port.TermRepositoryPort
-import com.neki.support.enums.TermType
+import com.neki.support.TermRepository
+import com.neki.support.application.GetTermsUseCase
+import com.neki.support.models.TermType
+import com.neki.support.service.TermService
 import com.neki.testfixture.aTerm
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -13,13 +15,13 @@ import org.junit.jupiter.api.Test
 
 class GetTermsUseCaseTest {
 
-    private lateinit var termRepository: TermRepositoryPort
+    private lateinit var termRepository: TermRepository
     private lateinit var useCase: GetTermsUseCase
 
     @BeforeEach
     fun setUp() {
         termRepository = mockk()
-        useCase = GetTermsUseCase(termRepository)
+        useCase = GetTermsUseCase(TermService(termRepository, mockk(), mockk()))
     }
 
     @Test

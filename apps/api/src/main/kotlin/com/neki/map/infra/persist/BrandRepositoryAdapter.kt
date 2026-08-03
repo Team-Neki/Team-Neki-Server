@@ -1,8 +1,8 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.application.port.BrandRepositoryPort
-import com.neki.map.entity.Brand
+import com.neki.map.BrandRepository
 import com.neki.map.infra.persist.jpa.JpaBrandRepository
+import com.neki.map.models.Brand
 import org.springframework.stereotype.Repository
 
 /**
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository
  * description    :
  */
 @Repository
-class BrandRepositoryAdapter(private val jpaRepository: JpaBrandRepository) : BrandRepositoryPort {
+class BrandRepositoryAdapter(private val jpaRepository: JpaBrandRepository) : BrandRepository {
 
     override fun getBrand(code: String): Brand? = jpaRepository.findByCode(code)
 

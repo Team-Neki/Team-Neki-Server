@@ -1,15 +1,15 @@
 package com.neki.e2e.photo.folder
 
 import com.neki.e2e.E2ETestBase
-import com.neki.media.MediaType
-import com.neki.media.entity.Media
-import com.neki.media.entity.MediaStatus
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
-import com.neki.photo.entity.PhotoImage
-import com.neki.photo.entity.PhotoImageFolder
+import com.neki.media.models.Media
+import com.neki.media.models.MediaStatus
+import com.neki.media.models.MediaType
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
+import com.neki.photo.models.PhotoImage
+import com.neki.photo.models.PhotoImageFolder
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.UUID

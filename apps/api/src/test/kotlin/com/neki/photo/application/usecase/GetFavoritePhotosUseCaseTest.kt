@@ -1,10 +1,13 @@
 package com.neki.photo.application.usecase
 
+import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.application.dto.PhotoImageQuery
-import com.neki.photo.application.port.MediaClientPort
-import com.neki.photo.application.port.PhotoImageRepositoryPort
-import com.neki.photo.application.port.dto.MediaContract
+import com.neki.photo.MediaClient
+import com.neki.photo.PhotoImageRepository
+import com.neki.photo.application.GetFavoritePhotosUseCase
+import com.neki.photo.dto.PhotoImageQuery
+import com.neki.photo.models.MediaMetadata
+import com.neki.photo.service.PhotoService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPhotoImage
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -24,21 +27,28 @@ private fun favoritePhotoWithCreatedAt(id: Long, userId: Long = 1L, mediaId: Lon
 
 class GetFavoritePhotosUseCaseTest {
 
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
-    lateinit var mediaClient: MediaClientPort
+    lateinit var photoImageRepository: PhotoImageRepository
+    lateinit var mediaClient: MediaClient
     lateinit var useCase: GetFavoritePhotosUseCase
 
     @BeforeEach
     fun setUp() {
         photoImageRepository = mockk()
         mediaClient = mockk()
-        useCase = GetFavoritePhotosUseCase(photoImageRepository, mediaClient, FakeTransactionRunner())
+        useCase =
+            GetFavoritePhotosUseCase(
+                PhotoService(photoImageRepository),
+                mediaClient,
+                FakeTransactionRunner(),
+            )
     }
 
-    private fun makeQuery(page: Int = 0, size: Int = 10) =
-        PhotoImageQuery.GetFavoritePhotos(userId = 1L, page = page, size = size, sortOrder = SortOrder.DESC)
+    private fun makeQuery(page: Int = 0, size: Int = 10) = PhotoImageQuery.GetFavoritePhotos(
+        userId = 1L,
+        pagination = Pagination(page = page, size = size, sortOrder = SortOrder.DESC),
+    )
 
-    private fun makeMediaInfo(mediaId: Long) = MediaContract.StorageInfo(
+    private fun makeMediaInfo(mediaId: Long) = MediaMetadata(
         mediaId = mediaId,
         storageKey = "key/$mediaId.jpg",
         contentType = "image/jpeg",
@@ -57,7 +67,7 @@ class GetFavoritePhotosUseCaseTest {
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns
             listOf(photo1, photo2)
         every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 2L
-        every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
+        every { mediaClient.getMediaMetadata(1L, listOf(10L, 20L)) } returns
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
         // When
@@ -80,7 +90,7 @@ class GetFavoritePhotosUseCaseTest {
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
         every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 3L
-        every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
+        every { mediaClient.getMediaMetadata(1L, listOf(10L, 20L)) } returns
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
         // When
@@ -101,7 +111,7 @@ class GetFavoritePhotosUseCaseTest {
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 3, SortOrder.DESC) } returns photos
         every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 2L
-        every { mediaClient.getMediaStorageInfos(1L, listOf(10L, 20L)) } returns
+        every { mediaClient.getMediaMetadata(1L, listOf(10L, 20L)) } returns
             listOf(makeMediaInfo(10L), makeMediaInfo(20L))
 
         // When
@@ -140,7 +150,7 @@ class GetFavoritePhotosUseCaseTest {
 
         every { photoImageRepository.listOwnedFavoritePhotos(1L, 0, 11, SortOrder.DESC) } returns listOf(photo1)
         every { photoImageRepository.countOwnedFavoritePhotos(1L) } returns 1L
-        every { mediaClient.getMediaStorageInfos(1L, listOf(10L)) } returns emptyList()
+        every { mediaClient.getMediaMetadata(1L, listOf(10L)) } returns emptyList()
 
         // When
         val result = useCase.execute(query)

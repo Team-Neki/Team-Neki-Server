@@ -1,12 +1,12 @@
 package com.neki.photo.infra.persist.jpa
 
-import com.neki.media.entity.QMedia.media
-import com.neki.photo.application.port.dto.PhotoContract
-import com.neki.photo.entity.QFolder.folder
-import com.neki.photo.entity.QPhotoImage
-import com.neki.photo.entity.QPhotoImage.photoImage
-import com.neki.photo.entity.QPhotoImageFolder
-import com.neki.photo.entity.QPhotoImageFolder.photoImageFolder
+import com.neki.media.models.QMedia.media
+import com.neki.photo.models.FolderStats
+import com.neki.photo.models.QFolder.folder
+import com.neki.photo.models.QPhotoImage
+import com.neki.photo.models.QPhotoImage.photoImage
+import com.neki.photo.models.QPhotoImageFolder
+import com.neki.photo.models.QPhotoImageFolder.photoImageFolder
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
@@ -29,7 +29,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
             .execute().toInt()
     }
 
-    fun findOwnedFoldersWithStats(userId: Long, limit: Int?): List<PhotoContract.FolderWithStats> {
+    fun findOwnedFoldersWithStats(userId: Long, limit: Int?): List<FolderStats> {
         val latestPhotoDate = photoImage.createdAt.max()
 
         val folderStats = queryFactory
@@ -85,7 +85,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
 
         return folderStats.map { tuple ->
             val folderId = tuple.get(folder.id)!!
-            PhotoContract.FolderWithStats(
+            FolderStats(
                 folderId = folderId,
                 name = tuple.get(folder.name)!!,
                 coverImageStorageKey = coverMap[folderId],

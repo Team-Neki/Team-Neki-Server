@@ -4,11 +4,11 @@ import com.neki.common.api.dto.BaseResponse
 import com.neki.support.api.dto.AppVersionConverter
 import com.neki.support.api.dto.AppVersionRequest
 import com.neki.support.api.dto.AppVersionResponse
-import com.neki.support.application.dto.AppVersionCommand
-import com.neki.support.application.dto.AppVersionQuery
+import com.neki.support.application.GetAppVersionUseCase
+import com.neki.support.application.UpdateAppVersionUseCase
 import com.neki.support.application.dto.AppVersionResult
-import com.neki.support.application.usecase.GetAppVersionUseCase
-import com.neki.support.application.usecase.UpdateAppVersionUseCase
+import com.neki.support.dto.AppVersionCommand
+import com.neki.support.dto.AppVersionQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

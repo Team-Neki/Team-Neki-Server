@@ -2,10 +2,12 @@ package com.neki.user.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.application.dto.AuthCommand
-import com.neki.user.application.port.AuthTokenProviderPort
-import com.neki.user.enums.ProviderType
-import com.neki.user.infra.security.token.UserPrincipal
+import com.neki.user.AuthTokenProvider
+import com.neki.user.application.RefreshTokenUseCase
+import com.neki.user.dto.AuthCommand
+import com.neki.user.models.ProviderType
+import com.neki.user.models.TokenPrincipal
+import com.neki.user.service.AuthService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -14,17 +16,16 @@ import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.springframework.security.core.Authentication
 
 class RefreshTokenUseCaseTest {
 
-    lateinit var tokenProviderPort: AuthTokenProviderPort
+    lateinit var tokenProviderPort: AuthTokenProvider
     lateinit var useCase: RefreshTokenUseCase
 
     @BeforeEach
     fun setUp() {
         tokenProviderPort = mockk()
-        useCase = RefreshTokenUseCase(tokenProviderPort)
+        useCase = RefreshTokenUseCase(AuthService(tokenProviderPort, mockk()))
     }
 
     @Test
@@ -32,19 +33,15 @@ class RefreshTokenUseCaseTest {
     fun `정상 갱신 - 유효한 refresh token으로 새 토큰 쌍 반환`() {
         // Given
         val refreshToken = "valid-refresh-token"
-        val userPrincipal = UserPrincipal(
+        val principal = TokenPrincipal(
             id = 1L,
             name = "테스트유저",
+            roles = listOf("USER"),
             providerType = ProviderType.KAKAO,
-            email = "test@example.com",
-            roles = setOf("USER"),
-            password = "NO_PASS",
         )
-        val authentication: Authentication = mockk()
 
         every { tokenProviderPort.validateRefreshToken(refreshToken) } returns true
-        every { tokenProviderPort.getAuthenticationFromRefreshToken(refreshToken) } returns authentication
-        every { authentication.principal } returns userPrincipal
+        every { tokenProviderPort.getPrincipalFromRefreshToken(refreshToken) } returns principal
         every {
             tokenProviderPort.createAccessToken(
                 id = "1",
@@ -69,7 +66,7 @@ class RefreshTokenUseCaseTest {
         result.accessToken shouldBe "new-access-token"
         result.refreshToken shouldBe "new-refresh-token"
         verify(exactly = 1) { tokenProviderPort.validateRefreshToken(refreshToken) }
-        verify(exactly = 1) { tokenProviderPort.getAuthenticationFromRefreshToken(refreshToken) }
+        verify(exactly = 1) { tokenProviderPort.getPrincipalFromRefreshToken(refreshToken) }
     }
 
     @Test
@@ -84,7 +81,7 @@ class RefreshTokenUseCaseTest {
             useCase.execute(AuthCommand.RefreshToken(refreshToken = invalidToken))
         }
         exception.resultCode shouldBe ResultCode.INVALID_TOKEN_ERROR
-        verify(exactly = 0) { tokenProviderPort.getAuthenticationFromRefreshToken(any()) }
+        verify(exactly = 0) { tokenProviderPort.getPrincipalFromRefreshToken(any()) }
     }
 
     @Test
@@ -99,6 +96,6 @@ class RefreshTokenUseCaseTest {
             useCase.execute(AuthCommand.RefreshToken(refreshToken = expiredToken))
         }
         exception.resultCode shouldBe ResultCode.INVALID_TOKEN_ERROR
-        verify(exactly = 0) { tokenProviderPort.getAuthenticationFromRefreshToken(any()) }
+        verify(exactly = 0) { tokenProviderPort.getPrincipalFromRefreshToken(any()) }
     }
 }

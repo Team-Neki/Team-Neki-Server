@@ -2,10 +2,12 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.application.dto.MapCommand
-import com.neki.map.application.port.FavoriteMapRepositoryPort
-import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
-import com.neki.map.entity.FavoriteMap
+import com.neki.map.FavoriteMapRepository
+import com.neki.map.PhotoBoothLocationRepository
+import com.neki.map.application.UpdateMapFavoriteUseCase
+import com.neki.map.dto.MapCommand
+import com.neki.map.models.FavoriteMap
+import com.neki.map.service.MapService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
@@ -24,15 +26,20 @@ import org.junit.jupiter.api.Test
  */
 class UpdateMapFavoriteUseCaseTest {
 
-    lateinit var photoBoothLocationRepository: PhotoBoothLocationRepositoryPort
-    lateinit var favoriteMapRepository: FavoriteMapRepositoryPort
+    lateinit var photoBoothLocationRepository: PhotoBoothLocationRepository
+    lateinit var favoriteMapRepository: FavoriteMapRepository
     lateinit var useCase: UpdateMapFavoriteUseCase
 
     @BeforeEach
     fun setUp() {
         photoBoothLocationRepository = mockk()
         favoriteMapRepository = mockk()
-        useCase = UpdateMapFavoriteUseCase(photoBoothLocationRepository, favoriteMapRepository)
+        useCase = UpdateMapFavoriteUseCase(
+            MapService(
+                favoriteMapRepository,
+                photoBoothLocationRepository,
+            ),
+        )
     }
 
     @Test

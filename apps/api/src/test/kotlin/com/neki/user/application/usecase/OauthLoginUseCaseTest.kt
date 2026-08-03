@@ -3,18 +3,21 @@ package com.neki.user.application.usecase
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aUser
-import com.neki.user.application.dto.AuthCommand
-import com.neki.user.application.port.AuthTokenProviderPort
-import com.neki.user.application.port.NicknameGeneratorPort
-import com.neki.user.application.port.OidcTokenValidatorPort
-import com.neki.user.application.port.UserEventPublisherPort
-import com.neki.user.application.port.UserRepositoryPort
-import com.neki.user.application.port.dto.AuthContract
-import com.neki.user.entity.User
-import com.neki.user.enums.Platform
-import com.neki.user.enums.ProviderType
-import com.neki.user.enums.RoleType
+import com.neki.user.AuthTokenProvider
+import com.neki.user.NicknameGenerator
+import com.neki.user.OidcTokenValidator
+import com.neki.user.UserEventPublisher
+import com.neki.user.UserRepository
+import com.neki.user.application.OauthLoginUseCase
+import com.neki.user.dto.AuthCommand
 import com.neki.user.infra.security.config.OauthProperties
+import com.neki.user.models.OauthUserInfo
+import com.neki.user.models.Platform
+import com.neki.user.models.ProviderType
+import com.neki.user.models.RoleType
+import com.neki.user.models.User
+import com.neki.user.service.AuthService
+import com.neki.user.service.UserService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -28,12 +31,12 @@ import org.springframework.web.client.RestClient
 class OauthLoginUseCaseTest {
 
     lateinit var oauthProperties: OauthProperties
-    lateinit var oidcTokenValidatorPort: OidcTokenValidatorPort
+    lateinit var oidcTokenValidatorPort: OidcTokenValidator
     lateinit var restClient: RestClient
-    lateinit var tokenProviderPort: AuthTokenProviderPort
-    lateinit var userRepositoryPort: UserRepositoryPort
-    lateinit var nicknameGenerator: NicknameGeneratorPort
-    lateinit var userEventPublisher: UserEventPublisherPort
+    lateinit var tokenProviderPort: AuthTokenProvider
+    lateinit var userRepositoryPort: UserRepository
+    lateinit var nicknameGenerator: NicknameGenerator
+    lateinit var userEventPublisher: UserEventPublisher
     lateinit var transactionRunner: FakeTransactionRunner
     lateinit var useCase: OauthLoginUseCase
 
@@ -50,11 +53,9 @@ class OauthLoginUseCaseTest {
 
         useCase = OauthLoginUseCase(
             oauthProperties = oauthProperties,
-            oidcTokenValidatorPort = oidcTokenValidatorPort,
             restClient = restClient,
-            tokenProviderPort = tokenProviderPort,
-            userRepositoryPort = userRepositoryPort,
-            nicknameGenerator = nicknameGenerator,
+            authService = AuthService(tokenProviderPort, oidcTokenValidatorPort),
+            userService = UserService(userRepositoryPort, nicknameGenerator),
             userEventPublisher = userEventPublisher,
             transactionRunner = transactionRunner,
         )
@@ -67,7 +68,7 @@ class OauthLoginUseCaseTest {
         val idToken = "valid-id-token"
         val existingUser =
             aUser(id = 1L, name = "기존유저", roles = RoleType.USER.role, providerType = ProviderType.KAKAO)
-        val oauthInfoPayload = AuthContract.OauthInfoPayload(
+        val oauthUserInfo = OauthUserInfo(
             providerType = ProviderType.KAKAO,
             oid = "kakao-oid-123",
             email = "existing@example.com",
@@ -82,7 +83,7 @@ class OauthLoginUseCaseTest {
 
         every {
             oidcTokenValidatorPort.validateIdToken(idToken, ProviderType.KAKAO, Platform.IOS)
-        } returns oauthInfoPayload
+        } returns oauthUserInfo
         every {
             userRepositoryPort.findByOid(oid = "kakao-oid-123", provider = ProviderType.KAKAO)
         } returns existingUser
@@ -118,7 +119,7 @@ class OauthLoginUseCaseTest {
     fun `신규 유저 가입 - 미존재 유저 감지 후 닉네임 생성 및 저장 후 토큰 생성`() {
         // Given
         val idToken = "valid-id-token"
-        val oauthInfoPayload = AuthContract.OauthInfoPayload(
+        val oauthUserInfo = OauthUserInfo(
             providerType = ProviderType.KAKAO,
             oid = "kakao-oid-new",
             email = "new@example.com",
@@ -135,7 +136,7 @@ class OauthLoginUseCaseTest {
 
         every {
             oidcTokenValidatorPort.validateIdToken(idToken, ProviderType.KAKAO, Platform.IOS)
-        } returns oauthInfoPayload
+        } returns oauthUserInfo
         every {
             userRepositoryPort.findByOid(oid = "kakao-oid-new", provider = ProviderType.KAKAO)
         } returns null
@@ -197,7 +198,7 @@ class OauthLoginUseCaseTest {
     fun `유저 저장 후 토큰 생성 실패 - createAccessToken 예외 전파 확인`() {
         // Given
         val idToken = "valid-id-token"
-        val oauthInfoPayload = AuthContract.OauthInfoPayload(
+        val oauthUserInfo = OauthUserInfo(
             providerType = ProviderType.KAKAO,
             oid = "kakao-oid-new",
             email = "new@example.com",
@@ -214,7 +215,7 @@ class OauthLoginUseCaseTest {
 
         every {
             oidcTokenValidatorPort.validateIdToken(idToken, ProviderType.KAKAO, Platform.IOS)
-        } returns oauthInfoPayload
+        } returns oauthUserInfo
         every {
             userRepositoryPort.findByOid(oid = "kakao-oid-new", provider = ProviderType.KAKAO)
         } returns null
@@ -244,7 +245,7 @@ class OauthLoginUseCaseTest {
         val idToken = "valid-id-token"
         val userWithMultipleRoles =
             aUser(id = 4L, name = "관리자", roles = "USER,ADMIN", providerType = ProviderType.KAKAO)
-        val oauthInfoPayload = AuthContract.OauthInfoPayload(
+        val oauthUserInfo = OauthUserInfo(
             providerType = ProviderType.KAKAO,
             oid = "kakao-oid-admin",
             email = "admin@example.com",
@@ -259,7 +260,7 @@ class OauthLoginUseCaseTest {
 
         every {
             oidcTokenValidatorPort.validateIdToken(idToken, ProviderType.KAKAO, Platform.IOS)
-        } returns oauthInfoPayload
+        } returns oauthUserInfo
         every {
             userRepositoryPort.findByOid(oid = "kakao-oid-admin", provider = ProviderType.KAKAO)
         } returns userWithMultipleRoles

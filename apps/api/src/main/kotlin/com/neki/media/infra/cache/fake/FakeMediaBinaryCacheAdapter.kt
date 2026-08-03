@@ -1,6 +1,6 @@
 package com.neki.media.infra.cache.fake
 
-import com.neki.media.application.port.MediaBinaryCachePort
+import com.neki.media.MediaBinaryCache
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
  */
 @Component
 @Profile("!prod")
-class FakeMediaBinaryCacheAdapter : MediaBinaryCachePort {
+class FakeMediaBinaryCacheAdapter : MediaBinaryCache {
 
     private val cache = ConcurrentHashMap<String, CacheEntry>()
 

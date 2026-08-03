@@ -5,9 +5,9 @@ import com.neki.common.code.ResultCode
 import com.neki.e2e.E2ETestBase
 import com.neki.photo.api.dto.FolderRequest
 import com.neki.photo.api.dto.FolderResponse
-import com.neki.photo.entity.Folder
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
-import com.neki.user.entity.User
+import com.neki.photo.models.Folder
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import io.restassured.common.mapper.TypeRef
 import io.restassured.http.ContentType

@@ -3,11 +3,12 @@ package com.neki.user.infra.security.oauth.helper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.application.port.dto.AuthContract
-import com.neki.user.enums.Platform
-import com.neki.user.enums.ProviderType
 import com.neki.user.infra.security.config.OauthProperties
-import com.neki.user.infra.security.oauth.helper.OIDCDecodePayload
+import com.neki.user.infra.security.oauth.dto.OIDCPublicKey
+import com.neki.user.infra.security.oauth.dto.OIDCPublicKeysPayload
+import com.neki.user.models.OauthUserInfo
+import com.neki.user.models.Platform
+import com.neki.user.models.ProviderType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
@@ -61,14 +62,14 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
      */
     override fun getOauthInfoByIdToken(
         idToken: String,
-        publicKeys: AuthContract.OIDCPublicKeysPayload,
+        publicKeys: OIDCPublicKeysPayload,
         platform: Platform,
-    ): AuthContract.OauthInfoPayload {
+    ): OauthUserInfo {
         // Step 1: 헤더에서 kid 추출
         val kid: String = extractKidFromTokenHeader(idToken)
 
         // Step 2: kid로 jwks 조회
-        val publicKey: AuthContract.OIDCPublicKey = findPublicKeyByKid(publicKeys.keys, kid)
+        val publicKey: OIDCPublicKey = findPublicKeyByKid(publicKeys.keys, kid)
 
         // Step 3-6: 토큰 검증 및 Claims 추출
         // Apple은 플랫폼 구분 불필요, 동일한 clientId 사용
@@ -79,7 +80,7 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
             expectedAudience = oauthProperties.apple.clientId,
         )
 
-        return AuthContract.OauthInfoPayload(
+        return OauthUserInfo(
             providerType = ProviderType.APPLE,
             oid = payload.sub, // String 그대로 사용 (UUID)
             email = payload.email,
@@ -106,9 +107,8 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
     /**
      * Step 2: kid로 공개키 목록에서 해당 공개키 찾기
      */
-    private fun findPublicKeyByKid(keys: List<AuthContract.OIDCPublicKey>, kid: String): AuthContract.OIDCPublicKey =
-        keys.find { it.kid == kid }
-            ?: throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
+    private fun findPublicKeyByKid(keys: List<OIDCPublicKey>, kid: String): OIDCPublicKey = keys.find { it.kid == kid }
+        ?: throw BusinessException(ResultCode.INVALID_TOKEN_ERROR)
 
     /**
      * Step 3-6: 토큰 검증 및 페이로드 추출
@@ -119,7 +119,7 @@ class AppleOauthHelper(private val oauthProperties: OauthProperties, private val
      */
     private fun validateTokenAndExtractPayload(
         token: String,
-        publicKey: AuthContract.OIDCPublicKey,
+        publicKey: OIDCPublicKey,
         expectedIssuer: String,
         expectedAudience: String,
     ): OIDCDecodePayload {

@@ -5,12 +5,12 @@ import com.neki.common.api.dto.BaseResponse
 import com.neki.notification.api.dto.NotificationConverter
 import com.neki.notification.api.dto.NotificationRequest
 import com.neki.notification.api.dto.NotificationResponse
-import com.neki.notification.application.dto.NotificationCommand
-import com.neki.notification.application.dto.NotificationQuery
+import com.neki.notification.application.GetRecentNotificationsUseCase
+import com.neki.notification.application.SendPushUseCase
+import com.neki.notification.application.UpdateNotificationUseCase
 import com.neki.notification.application.dto.NotificationResult
-import com.neki.notification.application.usecase.GetRecentNotificationsUseCase
-import com.neki.notification.application.usecase.SendPushUseCase
-import com.neki.notification.application.usecase.UpdateNotificationUseCase
+import com.neki.notification.dto.NotificationCommand
+import com.neki.notification.dto.NotificationQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

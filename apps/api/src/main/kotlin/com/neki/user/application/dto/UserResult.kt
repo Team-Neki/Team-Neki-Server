@@ -1,11 +1,11 @@
 package com.neki.user.application.dto
 
-import com.neki.user.enums.ProviderType
+import com.neki.user.models.ProviderType
 
 /**
  * fileName       : UserResult
  * author         : koo
- * date           : 2026. 7. 21.
+ * date           : 2026. 8. 3. 오전 2:19
  * description    : User domain result
  */
 object UserResult {

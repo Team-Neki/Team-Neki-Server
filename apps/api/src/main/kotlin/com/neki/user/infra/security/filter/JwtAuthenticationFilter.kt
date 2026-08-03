@@ -1,6 +1,6 @@
 package com.neki.user.infra.security.filter
 
-import com.neki.user.infra.security.token.AuthTokenProvider
+import com.neki.user.infra.security.token.AuthTokenProviderAdapter
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -20,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter
  */
 @Component
 class JwtAuthenticationFilter(
-    private val tokenProvider: AuthTokenProvider,
+    private val tokenProvider: AuthTokenProviderAdapter,
     private val authenticationEntryPoint: AuthenticationEntryPoint,
 ) : OncePerRequestFilter() {
 

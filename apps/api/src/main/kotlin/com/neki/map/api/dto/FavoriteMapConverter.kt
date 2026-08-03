@@ -1,7 +1,7 @@
 package com.neki.map.api.dto
 
-import com.neki.map.application.dto.MapCommand
-import com.neki.map.application.dto.MapQuery
+import com.neki.map.dto.MapCommand
+import com.neki.map.dto.MapQuery
 import org.springframework.stereotype.Component
 
 /**

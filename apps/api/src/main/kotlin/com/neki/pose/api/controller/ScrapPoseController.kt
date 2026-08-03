@@ -6,11 +6,11 @@ import com.neki.common.domain.vo.SortOrder
 import com.neki.pose.api.dto.PoseRequest
 import com.neki.pose.api.dto.PoseResponse
 import com.neki.pose.api.dto.ScrapPoseConverter
-import com.neki.pose.application.dto.PoseCommand
-import com.neki.pose.application.dto.PoseQuery
+import com.neki.pose.application.GetScrapPosesUseCase
+import com.neki.pose.application.UpdatePoseScrapUseCase
 import com.neki.pose.application.dto.PoseResult
-import com.neki.pose.application.usecase.GetScrapPosesUseCase
-import com.neki.pose.application.usecase.UpdatePoseScrapUseCase
+import com.neki.pose.dto.PoseCommand
+import com.neki.pose.dto.PoseQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

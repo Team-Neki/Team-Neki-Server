@@ -2,8 +2,8 @@ package com.neki.user.infra.security.oauth.registry
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.enums.ProviderType
 import com.neki.user.infra.security.oauth.oidc.Oidc
+import com.neki.user.models.ProviderType
 import org.springframework.stereotype.Component
 
 /**

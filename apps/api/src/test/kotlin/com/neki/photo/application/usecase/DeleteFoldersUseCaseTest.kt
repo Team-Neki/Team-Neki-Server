@@ -2,12 +2,16 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.application.dto.FolderCommand
-import com.neki.photo.application.port.FavoriteImageRepositoryPort
-import com.neki.photo.application.port.FolderRepositoryPort
-import com.neki.photo.application.port.MediaClientPort
-import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
-import com.neki.photo.application.port.PhotoImageRepositoryPort
+import com.neki.photo.FavoriteImageRepository
+import com.neki.photo.FolderRepository
+import com.neki.photo.MediaClient
+import com.neki.photo.PhotoImageFolderRepository
+import com.neki.photo.PhotoImageRepository
+import com.neki.photo.application.DeleteFoldersUseCase
+import com.neki.photo.dto.FolderCommand
+import com.neki.photo.service.FavoriteService
+import com.neki.photo.service.FolderService
+import com.neki.photo.service.PhotoService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPhotoImage
 import io.kotest.assertions.throwables.shouldThrow
@@ -23,11 +27,11 @@ import org.junit.jupiter.api.Test
 
 class DeleteFoldersUseCaseTest {
 
-    lateinit var folderRepository: FolderRepositoryPort
-    lateinit var photoImageRepository: PhotoImageRepositoryPort
-    lateinit var photoImageFolderRepository: PhotoImageFolderRepositoryPort
-    lateinit var favoriteImageRepository: FavoriteImageRepositoryPort
-    lateinit var mediaClient: MediaClientPort
+    lateinit var folderRepository: FolderRepository
+    lateinit var photoImageRepository: PhotoImageRepository
+    lateinit var photoImageFolderRepository: PhotoImageFolderRepository
+    lateinit var favoriteImageRepository: FavoriteImageRepository
+    lateinit var mediaClient: MediaClient
     lateinit var useCase: DeleteFoldersUseCase
 
     @BeforeEach
@@ -38,10 +42,9 @@ class DeleteFoldersUseCaseTest {
         favoriteImageRepository = mockk()
         mediaClient = mockk()
         useCase = DeleteFoldersUseCase(
-            folderRepository,
-            photoImageRepository,
-            photoImageFolderRepository,
-            favoriteImageRepository,
+            FolderService(folderRepository, photoImageFolderRepository),
+            PhotoService(photoImageRepository),
+            FavoriteService(favoriteImageRepository),
             mediaClient,
             FakeTransactionRunner(),
         )

@@ -1,10 +1,11 @@
 package com.neki.pose.api.dto
 
+import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
 import com.neki.common.properties.AppProperties
-import com.neki.pose.application.dto.PoseCommand
-import com.neki.pose.application.dto.PoseQuery
 import com.neki.pose.application.dto.PoseResult
+import com.neki.pose.dto.PoseCommand
+import com.neki.pose.dto.PoseQuery
 import org.springframework.stereotype.Component
 
 /**
@@ -24,7 +25,11 @@ object ScrapPoseConverter {
             PoseCommand.UpdatePoseScrap(userId = userId, poseId = poseId, scrap = request.scrap!!)
 
         fun toGetPoseScrapCommand(userId: Long, page: Int, size: Int, sortOrder: SortOrder): PoseQuery.GetScrapPoses =
-            PoseQuery.GetScrapPoses(userId = userId, page = page, size = size, headCount = null, sortOrder = sortOrder)
+            PoseQuery.GetScrapPoses(
+                userId = userId,
+                headCount = null,
+                pagination = Pagination(page = page, size = size, sortOrder = sortOrder),
+            )
     }
 
     @Component

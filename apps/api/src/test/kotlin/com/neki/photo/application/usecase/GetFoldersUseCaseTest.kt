@@ -1,8 +1,10 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.application.dto.FolderQuery
-import com.neki.photo.application.port.FolderRepositoryPort
-import com.neki.photo.application.port.dto.PhotoContract
+import com.neki.photo.FolderRepository
+import com.neki.photo.application.GetFoldersUseCase
+import com.neki.photo.dto.FolderQuery
+import com.neki.photo.models.FolderStats
+import com.neki.photo.service.FolderService
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -14,13 +16,13 @@ import org.junit.jupiter.api.Test
 
 class GetFoldersUseCaseTest {
 
-    lateinit var folderRepository: FolderRepositoryPort
+    lateinit var folderRepository: FolderRepository
     lateinit var useCase: GetFoldersUseCase
 
     @BeforeEach
     fun setUp() {
         folderRepository = mockk()
-        useCase = GetFoldersUseCase(folderRepository)
+        useCase = GetFoldersUseCase(FolderService(folderRepository, mockk()))
     }
 
     @Test
@@ -29,13 +31,13 @@ class GetFoldersUseCaseTest {
         // Given
         val query = FolderQuery.GetFolders(userId = 1L, limit = 10)
         val foldersWithStats = listOf(
-            PhotoContract.FolderWithStats(
+            FolderStats(
                 folderId = 1L,
                 name = "폴더1",
                 coverImageStorageKey = "key/image1.jpg",
                 photoCount = 5L,
             ),
-            PhotoContract.FolderWithStats(
+            FolderStats(
                 folderId = 2L,
                 name = "폴더2",
                 coverImageStorageKey = "key/image2.jpg",
@@ -77,7 +79,7 @@ class GetFoldersUseCaseTest {
         // Given
         val query = FolderQuery.GetFolders(userId = 1L, limit = null)
         val foldersWithStats = listOf(
-            PhotoContract.FolderWithStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
+            FolderStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
         )
 
         every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns foldersWithStats

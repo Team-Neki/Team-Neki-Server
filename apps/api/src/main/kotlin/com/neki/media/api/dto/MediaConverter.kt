@@ -1,7 +1,7 @@
 package com.neki.media.api.dto
 
-import com.neki.media.application.dto.MediaCommand
 import com.neki.media.application.dto.MediaResult
+import com.neki.media.dto.MediaCommand
 import org.springframework.stereotype.Component
 
 /**

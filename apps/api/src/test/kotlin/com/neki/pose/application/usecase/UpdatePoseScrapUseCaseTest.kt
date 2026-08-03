@@ -2,10 +2,12 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.application.dto.PoseCommand
-import com.neki.pose.application.port.PoseRepositoryPort
-import com.neki.pose.application.port.ScrapPoseRepositoryPort
-import com.neki.pose.entity.ScrapPose
+import com.neki.pose.PoseRepository
+import com.neki.pose.ScrapPoseRepository
+import com.neki.pose.application.UpdatePoseScrapUseCase
+import com.neki.pose.dto.PoseCommand
+import com.neki.pose.models.ScrapPose
+import com.neki.pose.service.PoseService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
@@ -20,15 +22,15 @@ import org.junit.jupiter.api.Test
 
 class UpdatePoseScrapUseCaseTest {
 
-    private lateinit var poseRepository: PoseRepositoryPort
-    private lateinit var scrapPoseRepository: ScrapPoseRepositoryPort
+    private lateinit var poseRepository: PoseRepository
+    private lateinit var scrapPoseRepository: ScrapPoseRepository
     private lateinit var useCase: UpdatePoseScrapUseCase
 
     @BeforeEach
     fun setUp() {
         poseRepository = mockk()
         scrapPoseRepository = mockk()
-        useCase = UpdatePoseScrapUseCase(poseRepository, scrapPoseRepository)
+        useCase = UpdatePoseScrapUseCase(PoseService(poseRepository, scrapPoseRepository, mockk(), mockk()))
     }
 
     @Test

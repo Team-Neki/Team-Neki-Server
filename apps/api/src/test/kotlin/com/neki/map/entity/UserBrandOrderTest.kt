@@ -1,5 +1,6 @@
-package com.neki.map.entity
+package com.neki.map.models
 
+import com.neki.map.models.UserBrandOrder
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe

@@ -1,10 +1,10 @@
 package com.neki.map.infra.client
 
-import com.neki.map.application.port.MediaClientPort
-import com.neki.media.application.dto.MediaQuery
+import com.neki.map.MediaClient
+import com.neki.map.models.MediaMetadata
+import com.neki.media.application.GetMediaMetadataListUseCase
 import com.neki.media.application.dto.MediaResult
-import com.neki.media.application.usecase.GetMediaStorageInfosUseCase
-import com.neki.photo.application.port.dto.MediaContract
+import com.neki.media.dto.MediaQuery
 import org.springframework.stereotype.Component
 
 /**
@@ -15,17 +15,19 @@ import org.springframework.stereotype.Component
  * - media service 분리 시 OpenFeign, EventPublisher/Consumer로 변경
  */
 @Component
-class MapMediaClient(private val getMediaStorageInfosUseCase: GetMediaStorageInfosUseCase) : MediaClientPort {
-    override fun getMediaStorageInfos(mediaIds: List<Long>): List<MediaContract.StorageInfo> {
-        val result: MediaResult.GetMediaStorageInfos = getMediaStorageInfosUseCase.execute(
-            MediaQuery.GetMediaStorageInfos(null, mediaIds),
+class MapMediaClient(private val getMediaMetadataListUseCase: GetMediaMetadataListUseCase) : MediaClient {
+    override fun getMediaMetadata(mediaIds: List<Long>): List<MediaMetadata> {
+        val result: MediaResult.GetMediaMetadataList = getMediaMetadataListUseCase.execute(
+            MediaQuery.GetMediaMetadataList(null, mediaIds),
         )
 
-        return result.storageInfos.map {
-            MediaContract.StorageInfo(
+        return result.medias.map {
+            MediaMetadata(
                 mediaId = it.mediaId,
                 storageKey = it.storageKey,
                 contentType = it.contentType,
+                width = it.width,
+                height = it.height,
             )
         }
     }

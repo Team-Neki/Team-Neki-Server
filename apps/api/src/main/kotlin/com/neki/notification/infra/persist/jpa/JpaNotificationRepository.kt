@@ -1,6 +1,6 @@
 package com.neki.notification.infra.persist.jpa
 
-import com.neki.notification.entity.Notification
+import com.neki.notification.models.Notification
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface JpaNotificationRepository : JpaRepository<Notification, Long> {

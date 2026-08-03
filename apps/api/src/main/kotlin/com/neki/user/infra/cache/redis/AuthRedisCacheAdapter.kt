@@ -1,8 +1,8 @@
 package com.neki.user.infra.cache.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.neki.user.application.port.AuthCachePort
-import com.neki.user.application.port.dto.AuthContract
+import com.neki.user.infra.cache.AuthCachePort
+import com.neki.user.infra.security.oauth.dto.OIDCPublicKeysPayload
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.data.redis.core.RedisTemplate
@@ -25,7 +25,7 @@ class AuthRedisCacheAdapter(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun setPublicKeys(key: String, value: AuthContract.OIDCPublicKeysPayload, ttl: Duration) {
+    override fun setPublicKeys(key: String, value: OIDCPublicKeysPayload, ttl: Duration) {
         try {
             redisTemplate.opsForValue().set(key, value, ttl)
         } catch (e: Exception) {
@@ -33,11 +33,11 @@ class AuthRedisCacheAdapter(
         }
     }
 
-    override fun getPublicKeys(key: String): AuthContract.OIDCPublicKeysPayload? {
+    override fun getPublicKeys(key: String): OIDCPublicKeysPayload? {
         val value = redisTemplate.opsForValue().get(key) ?: return null
 
         return try {
-            objectMapper.convertValue(value, AuthContract.OIDCPublicKeysPayload::class.java)
+            objectMapper.convertValue(value, OIDCPublicKeysPayload::class.java)
         } catch (e: Exception) {
             log.error("[AuthCache] Failed to deserialize OIDC public keys for key: $key", e)
             null

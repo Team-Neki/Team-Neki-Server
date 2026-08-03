@@ -1,8 +1,9 @@
 package com.neki.map.infra.persist.jpa
 
-import com.neki.map.application.port.dto.MapContract
-import com.neki.map.entity.QBrand.brand
-import com.neki.map.entity.QPhotoBoothLocation.photoBoothLocation
+import com.neki.map.models.PhotoBoothLocationView
+import com.neki.map.models.PhotoBoothLocationWithDistance
+import com.neki.map.models.QBrand.brand
+import com.neki.map.models.QPhotoBoothLocation.photoBoothLocation
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -29,14 +30,14 @@ class PhotoBoothLocationQueryRepository(
      * @param coordinates 다각형을 구성하는 좌표 리스트 (경도, 위도)
      * @param brandIds 브랜드 ID 리스트 (nullable)
      */
-    fun findByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): List<MapContract.PhotoBoothLocation> {
+    fun findByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationView> {
         // LINESTRING 생성을 위한 좌표 문자열 생성
         val lineString: String = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
 
         val query = queryFactory
             .select(
                 Projections.constructor(
-                    MapContract.PhotoBoothLocation::class.java,
+                    PhotoBoothLocationView::class.java,
                     photoBoothLocation.id,
                     brand.name,
                     photoBoothLocation.branchName,
@@ -69,7 +70,7 @@ class PhotoBoothLocationQueryRepository(
         coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
-    ): List<MapContract.PhotoBoothLocationWithDistance> {
+    ): List<PhotoBoothLocationWithDistance> {
         val sql = """
             SELECT
                 TB_PHOTO_BOOTH_LOCATION.id,
@@ -111,7 +112,7 @@ class PhotoBoothLocationQueryRepository(
             val locationWkt = row[4] as String
             val jtsPoint = wktReader.read(locationWkt) as Point
 
-            MapContract.PhotoBoothLocationWithDistance(
+            PhotoBoothLocationWithDistance(
                 id = (row[0] as Number).toLong(),
                 brandName = row[1] as String,
                 branchName = row[2] as String,

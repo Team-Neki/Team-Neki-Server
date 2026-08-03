@@ -1,10 +1,11 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.application.port.PhotoBoothLocationRepositoryPort
-import com.neki.map.application.port.dto.MapContract
-import com.neki.map.entity.PhotoBoothLocation
+import com.neki.map.PhotoBoothLocationRepository
 import com.neki.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
+import com.neki.map.models.PhotoBoothLocation
+import com.neki.map.models.PhotoBoothLocationView
+import com.neki.map.models.PhotoBoothLocationWithDistance
 import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Repository
 
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Repository
 class PhotoBoothLocationRepositoryAdapter(
     private val jpaRepository: JpaPhotoBoothLocationRepository,
     private val queryRepository: PhotoBoothLocationQueryRepository,
-) : PhotoBoothLocationRepositoryPort {
+) : PhotoBoothLocationRepository {
 
     override fun saveAll(photoBoothLocations: Collection<PhotoBoothLocation>): Collection<PhotoBoothLocation> =
         jpaRepository.saveAll(photoBoothLocations)
@@ -34,12 +35,12 @@ class PhotoBoothLocationRepositoryAdapter(
     override fun listPolygonLocations(
         coordinates: List<Coordinate>,
         brandIds: List<Long>?,
-    ): List<MapContract.PhotoBoothLocation> = queryRepository.findByPolygon(coordinates, brandIds)
+    ): List<PhotoBoothLocationView> = queryRepository.findByPolygon(coordinates, brandIds)
 
     override fun listPointLocations(
         coordinate: Coordinate,
         radiusInMeters: Int,
         brandIds: List<Long>?,
-    ): List<MapContract.PhotoBoothLocationWithDistance> =
+    ): List<PhotoBoothLocationWithDistance> =
         queryRepository.findByDistanceFromPoint(coordinate, radiusInMeters, brandIds)
 }

@@ -1,7 +1,7 @@
 package com.neki.e2e.user
 
 import com.neki.e2e.E2ETestBase
-import com.neki.user.entity.User
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.boot.test.context.SpringBootTest

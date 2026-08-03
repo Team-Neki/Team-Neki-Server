@@ -1,10 +1,10 @@
 package com.neki.e2e
 
-import com.neki.user.entity.User
-import com.neki.user.enums.ProviderType
-import com.neki.user.enums.RoleType
-import com.neki.user.infra.persist.jpa.UserRepository
-import com.neki.user.infra.security.token.AuthTokenProvider
+import com.neki.user.infra.persist.jpa.JpaUserRepository
+import com.neki.user.infra.security.token.AuthTokenProviderAdapter
+import com.neki.user.models.ProviderType
+import com.neki.user.models.RoleType
+import com.neki.user.models.User
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -17,10 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired
 abstract class E2ETestBase {
 
     @Autowired
-    protected lateinit var tokenProvider: AuthTokenProvider
+    protected lateinit var tokenProvider: AuthTokenProviderAdapter
 
     @Autowired
-    protected lateinit var userRepository: UserRepository
+    protected lateinit var userRepository: JpaUserRepository
 
     @AfterEach
     protected open fun tearDown() {

@@ -1,9 +1,9 @@
 package com.neki.e2e.map
 
 import com.neki.common.code.ResultCode
-import com.neki.map.entity.Brand
-import com.neki.map.entity.PhotoBoothLocation
-import com.neki.user.entity.User
+import com.neki.map.models.Brand
+import com.neki.map.models.PhotoBoothLocation
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasSize

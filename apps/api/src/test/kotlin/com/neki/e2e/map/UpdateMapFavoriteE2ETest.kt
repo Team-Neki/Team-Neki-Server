@@ -2,9 +2,9 @@ package com.neki.e2e.map
 
 import com.neki.common.code.ResultCode
 import com.neki.map.api.dto.MapRequest
-import com.neki.map.entity.Brand
-import com.neki.map.entity.FavoriteMapId
-import com.neki.user.entity.User
+import com.neki.map.models.Brand
+import com.neki.map.models.FavoriteMapId
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat

@@ -1,7 +1,9 @@
 package com.neki.notification.application.usecase
 
-import com.neki.notification.application.dto.NotificationCommand
-import com.neki.notification.application.port.NotificationRepositoryPort
+import com.neki.notification.NotificationRepository
+import com.neki.notification.application.DeleteNotificationUseCase
+import com.neki.notification.dto.NotificationCommand
+import com.neki.notification.service.NotificationService
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
@@ -13,13 +15,13 @@ import org.junit.jupiter.api.Test
 
 class DeleteNotificationUseCaseTest {
 
-    lateinit var notificationRepository: NotificationRepositoryPort
+    lateinit var notificationRepository: NotificationRepository
     lateinit var useCase: DeleteNotificationUseCase
 
     @BeforeEach
     fun setUp() {
         notificationRepository = mockk()
-        useCase = DeleteNotificationUseCase(notificationRepository = notificationRepository)
+        useCase = DeleteNotificationUseCase(NotificationService(notificationRepository, mockk()))
     }
 
     @Test

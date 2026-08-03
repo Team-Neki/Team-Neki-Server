@@ -1,6 +1,6 @@
 package com.neki.pose.infra.cache.redis
 
-import com.neki.pose.application.port.PoseViewCachePort
+import com.neki.pose.PoseViewCache
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary
@@ -14,7 +14,7 @@ import java.time.ZoneId
 @Component
 @Primary
 @Profile("!test")
-class RedisPoseViewCacheAdapter(private val redisTemplate: RedisTemplate<String, Any>) : PoseViewCachePort {
+class RedisPoseViewCacheAdapter(private val redisTemplate: RedisTemplate<String, Any>) : PoseViewCache {
 
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 

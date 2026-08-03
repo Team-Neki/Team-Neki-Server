@@ -1,6 +1,6 @@
 package com.neki.media.infra.lock.redis
 
-import com.neki.media.application.port.DistributedLockPort
+import com.neki.media.DistributedLock
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
@@ -18,7 +18,7 @@ import kotlin.math.min
 @Component
 @Primary
 @Profile("!test")
-class RedisDistributedLockAdapter(private val redisTemplate: RedisTemplate<String, Any>) : DistributedLockPort {
+class RedisDistributedLockAdapter(private val redisTemplate: RedisTemplate<String, Any>) : DistributedLock {
     private val log = LoggerFactory.getLogger(javaClass)
     private val lockProperties = DistributedLockProperties.DEFAULT
 
@@ -41,8 +41,8 @@ class RedisDistributedLockAdapter(private val redisTemplate: RedisTemplate<Strin
      */
     private fun generateLockKey(objectKey: String): String = "lock:media:fetch:$objectKey"
 
-    override fun <T> executeWithLock(key: String, ttl: Duration, action: () -> T): T? =
-        executeWithRedisLock(key, ttl, action)
+    override fun <T> executeWithLock(key: String, action: () -> T): T? =
+        executeWithRedisLock(key, lockProperties.lockTtl, action)
 
     private fun <T> executeWithRedisLock(key: String, ttl: Duration, action: () -> T): T? {
         val lockKey = generateLockKey(key) // Generate lock key internally

@@ -1,10 +1,11 @@
 package com.neki.photo.api.dto
 
+import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
 import com.neki.common.properties.AppProperties
-import com.neki.photo.application.dto.PhotoImageCommand
-import com.neki.photo.application.dto.PhotoImageQuery
 import com.neki.photo.application.dto.PhotoImageResult
+import com.neki.photo.dto.PhotoImageCommand
+import com.neki.photo.dto.PhotoImageQuery
 import org.springframework.stereotype.Component
 
 /**
@@ -39,9 +40,7 @@ object PhotoImageConverter {
         ): PhotoImageQuery.GetPhotos = PhotoImageQuery.GetPhotos(
             userId = userId,
             folderId = folderId,
-            page = page,
-            size = size,
-            sortOrder = sortOrder,
+            pagination = Pagination(page = page, size = size, sortOrder = sortOrder),
         )
 
         fun toGetPhotoQuery(userId: Long, photoId: Long): PhotoImageQuery.GetPhoto = PhotoImageQuery.GetPhoto(
@@ -111,7 +110,7 @@ object PhotoImageConverter {
         fun toGetFavoriteSummaryResponse(
             result: PhotoImageResult.GetFavoriteSummary,
         ): PhotoImageResponse.GetFavoriteSummary = PhotoImageResponse.GetFavoriteSummary(
-            latestImageUrl = result.storageKey?.let { toImageUrl(result.storageKey) },
+            latestImageUrl = result.storageKey?.let { toImageUrl(it) },
             totalCount = result.totalCount,
         )
 

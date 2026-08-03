@@ -1,13 +1,13 @@
 package com.neki.photo.infra.persist
 
-import com.neki.photo.application.port.PhotoImageFolderRepositoryPort
-import com.neki.photo.entity.PhotoImageFolder
+import com.neki.photo.PhotoImageFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
+import com.neki.photo.models.PhotoImageFolder
 import org.springframework.stereotype.Repository
 
 @Repository
 class PhotoImageFolderRepositoryAdapter(private val jpaRepository: JpaPhotoImageFolderRepository) :
-    PhotoImageFolderRepositoryPort {
+    PhotoImageFolderRepository {
 
     override fun saveAll(photoImageIds: List<Long>, folderId: Long) {
         if (photoImageIds.isEmpty()) return

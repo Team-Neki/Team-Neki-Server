@@ -1,10 +1,10 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.application.port.FavoriteMapRepositoryPort
-import com.neki.map.application.port.dto.MapContract
-import com.neki.map.entity.FavoriteMap
+import com.neki.map.FavoriteMapRepository
 import com.neki.map.infra.persist.jpa.FavoriteMapQueryRepository
 import com.neki.map.infra.persist.jpa.JpaFavoriteMapRepository
+import com.neki.map.models.FavoriteMap
+import com.neki.map.models.PhotoBoothLocationView
 import org.springframework.stereotype.Repository
 
 /**
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository
 class FavoriteMapRepositoryAdapter(
     private val jpaRepository: JpaFavoriteMapRepository,
     private val queryRepository: FavoriteMapQueryRepository,
-) : FavoriteMapRepositoryPort {
+) : FavoriteMapRepository {
 
     override fun add(favoriteMap: FavoriteMap) {
         jpaRepository.save(favoriteMap)
@@ -27,7 +27,7 @@ class FavoriteMapRepositoryAdapter(
 
     override fun exists(favoriteMap: FavoriteMap): Boolean = jpaRepository.existsById(favoriteMap.id)
 
-    override fun findFavoriteLocationsByUserId(userId: Long): List<MapContract.PhotoBoothLocation> =
+    override fun findFavoriteLocationsByUserId(userId: Long): List<PhotoBoothLocationView> =
         queryRepository.findFavoriteLocationsByUserId(userId)
 
     override fun findFavoritedLocationIds(userId: Long, locationIds: List<Long>): Set<Long> =

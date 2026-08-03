@@ -1,7 +1,7 @@
 package com.neki.map.infra.persist.jpa
 
-import com.neki.map.entity.FavoriteMap
-import com.neki.map.entity.FavoriteMapId
+import com.neki.map.models.FavoriteMap
+import com.neki.map.models.FavoriteMapId
 import org.springframework.data.jpa.repository.JpaRepository
 
 /**

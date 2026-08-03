@@ -1,9 +1,9 @@
 package com.neki.e2e.photo.image
 
 import com.neki.common.code.ResultCode
-import com.neki.media.entity.MediaStatus
-import com.neki.photo.entity.PhotoImageFolder
-import com.neki.user.entity.User
+import com.neki.media.models.MediaStatus
+import com.neki.photo.models.PhotoImageFolder
+import com.neki.user.models.User
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo

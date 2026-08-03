@@ -1,6 +1,6 @@
 package com.neki.map
 
-import com.neki.map.entity.Brand
+import com.neki.map.models.Brand
 
 /**
  * fileName       : BrandOrderPolicy

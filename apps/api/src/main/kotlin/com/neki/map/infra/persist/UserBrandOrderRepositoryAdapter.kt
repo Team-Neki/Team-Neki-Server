@@ -1,8 +1,8 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.application.port.UserBrandOrderRepositoryPort
-import com.neki.map.entity.UserBrandOrder
+import com.neki.map.UserBrandOrderRepository
 import com.neki.map.infra.persist.jpa.JpaUserBrandOrderRepository
+import com.neki.map.models.UserBrandOrder
 import org.springframework.stereotype.Repository
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 class UserBrandOrderRepositoryAdapter(private val jpaRepository: JpaUserBrandOrderRepository) :
-    UserBrandOrderRepositoryPort {
+    UserBrandOrderRepository {
 
     override fun findSortOrderMapByUserId(userId: Long): Map<Long, Int> =
         jpaRepository.findAllByIdUserId(userId).associate { it.id.brandId to it.sortOrder }
