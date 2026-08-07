@@ -2,11 +2,11 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.FavoriteMapRepository
-import com.neki.map.PhotoBoothLocationRepository
 import com.neki.map.application.UpdateMapFavoriteUseCase
 import com.neki.map.dto.MapCommand
 import com.neki.map.models.FavoriteMap
+import com.neki.map.repository.FavoriteMapRepository
+import com.neki.map.repository.PhotoBoothLocationRepository
 import com.neki.map.service.MapService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

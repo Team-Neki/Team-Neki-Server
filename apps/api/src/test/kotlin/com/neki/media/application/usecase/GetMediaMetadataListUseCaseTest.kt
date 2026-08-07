@@ -1,8 +1,8 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.MediaRepository
 import com.neki.media.application.GetMediaMetadataListUseCase
 import com.neki.media.dto.MediaQuery
+import com.neki.media.repository.MediaRepository
 import com.neki.media.service.MediaService
 import com.neki.testfixture.aMedia
 import io.kotest.matchers.collections.shouldHaveSize

@@ -1,11 +1,11 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.PhotoBoothLocationRepository
 import com.neki.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
 import com.neki.map.models.PhotoBoothLocation
 import com.neki.map.models.PhotoBoothLocationView
 import com.neki.map.models.PhotoBoothLocationWithDistance
+import com.neki.map.repository.PhotoBoothLocationRepository
 import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Repository
 

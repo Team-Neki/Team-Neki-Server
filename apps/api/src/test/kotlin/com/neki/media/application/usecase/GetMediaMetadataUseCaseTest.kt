@@ -2,9 +2,9 @@ package com.neki.media.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.media.MediaRepository
 import com.neki.media.application.GetMediaMetadataUseCase
 import com.neki.media.dto.MediaQuery
+import com.neki.media.repository.MediaRepository
 import com.neki.media.service.MediaService
 import com.neki.testfixture.aMedia
 import io.kotest.assertions.throwables.shouldThrow

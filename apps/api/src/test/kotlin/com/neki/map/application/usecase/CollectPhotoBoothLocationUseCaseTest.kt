@@ -2,13 +2,13 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.BrandRepository
-import com.neki.map.MapSearch
-import com.neki.map.PhotoBoothLocationRepository
 import com.neki.map.application.CollectPhotoBoothLocationUseCase
 import com.neki.map.dto.MapCommand
+import com.neki.map.external.MapSearch
 import com.neki.map.models.PhotoBoothLocation
 import com.neki.map.models.SearchedPlace
+import com.neki.map.repository.BrandRepository
+import com.neki.map.repository.PhotoBoothLocationRepository
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aBrand
 import com.neki.testfixture.aPhotoBoothLocation

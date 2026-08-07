@@ -1,9 +1,9 @@
 package com.neki.media.service
 
-import com.neki.media.DistributedLock
-import com.neki.media.MediaBinaryCache
-import com.neki.media.MediaStorage
 import com.neki.media.dto.MediaQuery
+import com.neki.media.external.DistributedLock
+import com.neki.media.external.MediaBinaryCache
+import com.neki.media.external.MediaStorage
 import com.neki.media.models.Media
 import com.neki.media.models.MediaType
 import org.slf4j.Logger

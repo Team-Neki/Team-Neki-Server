@@ -5,7 +5,7 @@ import com.neki.support.application.RevokeOptionalTermsUseCase
 import com.neki.support.application.dto.TermResult
 import com.neki.support.dto.TermCommand
 import com.neki.support.dto.TermQuery
-import com.neki.user.TermClient
+import com.neki.user.client.TermClient
 import com.neki.user.models.TermAgreementStatus
 import org.springframework.stereotype.Component
 

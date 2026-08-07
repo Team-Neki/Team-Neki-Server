@@ -1,10 +1,10 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.FavoriteMapRepository
 import com.neki.map.infra.persist.jpa.FavoriteMapQueryRepository
 import com.neki.map.infra.persist.jpa.JpaFavoriteMapRepository
 import com.neki.map.models.FavoriteMap
 import com.neki.map.models.PhotoBoothLocationView
+import com.neki.map.repository.FavoriteMapRepository
 import org.springframework.stereotype.Repository
 
 /**

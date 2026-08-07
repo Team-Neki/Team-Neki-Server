@@ -1,8 +1,8 @@
 package com.neki.notification.application.usecase
 
-import com.neki.notification.NotificationRepository
 import com.neki.notification.application.DeleteNotificationUseCase
 import com.neki.notification.dto.NotificationCommand
+import com.neki.notification.repository.NotificationRepository
 import com.neki.notification.service.NotificationService
 import io.mockk.Runs
 import io.mockk.every

@@ -1,6 +1,6 @@
 package com.neki.user.infra.event
 
-import com.neki.user.UserEventPublisher
+import com.neki.user.external.UserEventPublisher
 import com.neki.user.models.UserEvent
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component

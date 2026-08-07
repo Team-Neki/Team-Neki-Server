@@ -2,13 +2,13 @@ package com.neki.photo.service
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.FolderRepository
-import com.neki.photo.PhotoImageFolderRepository
 import com.neki.photo.dto.FolderCommand
 import com.neki.photo.dto.FolderQuery
 import com.neki.photo.dto.PhotoImageCommand
 import com.neki.photo.models.Folder
 import com.neki.photo.models.FolderStats
+import com.neki.photo.repository.FolderRepository
+import com.neki.photo.repository.PhotoImageFolderRepository
 import org.springframework.stereotype.Component
 
 /**

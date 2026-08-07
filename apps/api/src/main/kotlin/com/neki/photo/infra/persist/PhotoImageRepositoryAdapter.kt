@@ -3,12 +3,12 @@ package com.neki.photo.infra.persist
 import com.neki.common.code.ResultCode
 import com.neki.common.domain.vo.SortOrder
 import com.neki.common.exception.BusinessException
-import com.neki.photo.PhotoImageFolderRepository
-import com.neki.photo.PhotoImageRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageRepository
 import com.neki.photo.infra.persist.jpa.PhotoImageQueryRepository
 import com.neki.photo.models.PhotoImage
 import com.neki.photo.models.PhotoWithFavorite
+import com.neki.photo.repository.PhotoImageFolderRepository
+import com.neki.photo.repository.PhotoImageRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Repository
 

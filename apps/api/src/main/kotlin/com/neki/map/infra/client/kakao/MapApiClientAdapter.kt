@@ -2,7 +2,7 @@ package com.neki.map.infra.client.kakao
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.MapApiClient
+import com.neki.map.external.MapApiClient
 import com.neki.map.models.SearchPagination
 import com.neki.map.models.SearchedPlace
 import com.neki.map.models.SearchedPlaces

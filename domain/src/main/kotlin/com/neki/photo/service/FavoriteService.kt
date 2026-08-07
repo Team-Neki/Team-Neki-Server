@@ -1,9 +1,9 @@
 package com.neki.photo.service
 
-import com.neki.photo.FavoriteImageRepository
 import com.neki.photo.dto.PhotoImageCommand
 import com.neki.photo.dto.UserScoped
 import com.neki.photo.models.FavoritePhoto
+import com.neki.photo.repository.FavoriteImageRepository
 import org.springframework.stereotype.Component
 
 /**

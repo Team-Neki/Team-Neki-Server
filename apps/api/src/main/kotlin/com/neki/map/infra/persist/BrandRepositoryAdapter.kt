@@ -1,8 +1,8 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.BrandRepository
 import com.neki.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.map.models.Brand
+import com.neki.map.repository.BrandRepository
 import org.springframework.stereotype.Repository
 
 /**

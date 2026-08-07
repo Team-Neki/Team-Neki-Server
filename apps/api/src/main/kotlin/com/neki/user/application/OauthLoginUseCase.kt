@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.user.UserEventPublisher
 import com.neki.user.application.dto.AuthResult
 import com.neki.user.dto.AuthCommand
+import com.neki.user.external.UserEventPublisher
 import com.neki.user.infra.security.config.OauthProperties
 import com.neki.user.models.IssuedTokens
 import com.neki.user.models.OauthRegistration

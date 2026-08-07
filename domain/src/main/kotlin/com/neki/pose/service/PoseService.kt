@@ -3,15 +3,15 @@ package com.neki.pose.service
 import com.neki.common.code.ResultCode
 import com.neki.common.domain.vo.Page
 import com.neki.common.exception.BusinessException
-import com.neki.pose.PoseRepository
-import com.neki.pose.PoseViewCache
-import com.neki.pose.RandomGenerator
-import com.neki.pose.ScrapPoseRepository
 import com.neki.pose.dto.PoseCommand
 import com.neki.pose.dto.PoseQuery
+import com.neki.pose.external.PoseViewCache
+import com.neki.pose.external.RandomGenerator
 import com.neki.pose.models.Pose
 import com.neki.pose.models.PoseWithScrap
 import com.neki.pose.models.ScrapPose
+import com.neki.pose.repository.PoseRepository
+import com.neki.pose.repository.ScrapPoseRepository
 import org.springframework.stereotype.Component
 
 /**

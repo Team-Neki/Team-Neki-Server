@@ -127,22 +127,24 @@ class ArchitectureRulesTest {
                 .check(importedClasses)
         }
 
-        // 엔티티 계층은 :domain 한 모듈에 모여 있어 Gradle이 도메인 간 의존을 막지 못한다.
-        // user, map 의 알려진 예외는 application 계층 문제이므로 엔티티 계층은 전 도메인을 검증한다.
-        // 루트 패키지(com.neki.<domain>)는 MediaType, HeadCount 등 엔티티 부속 클래스를 포함한다.
-        // models 는 entity/enums/vo 를 합친 패키지로, 도메인별로 전환이 진행 중이라 함께 검증한다.
-        @ParameterizedTest(name = "{0} 도메인 엔티티 계층은 다른 도메인에 의존할 수 없다")
+        // :domain 은 모든 도메인이 한 모듈에 모여 있어 Gradle이 도메인 간 의존을 막지 못한다.
+        // user, map 의 알려진 예외는 application 계층 문제이므로 :domain 계층은 전 도메인을 검증한다.
+        // 루트 패키지(com.neki.<domain>)는 BrandOrderPolicy 같은 도메인 정책 object 를 포함한다.
+        // 인터페이스는 repository/client/external 로 나뉘며, 셋 다 자기 도메인 models 만 주고받아야 한다.
+        @ParameterizedTest(name = "{0} 도메인의 domain 모듈 계층은 다른 도메인에 의존할 수 없다")
         @MethodSource("com.neki.rule.ArchitectureRulesTest#allDomains")
-        fun `엔티티 계층은 다른 도메인에 의존할 수 없다`(domain: String) {
+        fun `domain 모듈 계층은 다른 도메인에 의존할 수 없다`(domain: String) {
             noClasses()
                 .that().resideInAnyPackage(
                     "com.neki.$domain",
-                    "com.neki.$domain.entity..",
-                    "com.neki.$domain.enums..",
-                    "com.neki.$domain.vo..",
                     "com.neki.$domain.models..",
+                    "com.neki.$domain.dto..",
+                    "com.neki.$domain.service..",
+                    "com.neki.$domain.repository..",
+                    "com.neki.$domain.client..",
+                    "com.neki.$domain.external..",
                 ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages(domain))
-                .because("$domain entity layer must not depend on other domains")
+                .because("$domain domain module must not depend on other domains")
                 .check(importedClasses)
         }
     }

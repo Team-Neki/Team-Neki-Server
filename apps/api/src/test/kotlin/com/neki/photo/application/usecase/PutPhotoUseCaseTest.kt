@@ -2,9 +2,9 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.PhotoImageRepository
 import com.neki.photo.application.PutPhotoUseCase
 import com.neki.photo.dto.PhotoImageCommand
+import com.neki.photo.repository.PhotoImageRepository
 import com.neki.photo.service.PhotoService
 import com.neki.testfixture.aPhotoImage
 import io.kotest.assertions.throwables.shouldThrow

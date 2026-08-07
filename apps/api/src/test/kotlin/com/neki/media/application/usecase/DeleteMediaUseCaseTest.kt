@@ -1,10 +1,10 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.MediaBinaryCache
-import com.neki.media.MediaRepository
 import com.neki.media.application.DeleteMediaUseCase
 import com.neki.media.dto.MediaCommand
+import com.neki.media.external.MediaBinaryCache
 import com.neki.media.models.MediaStatus
+import com.neki.media.repository.MediaRepository
 import com.neki.media.service.MediaBinaryService
 import com.neki.media.service.MediaService
 import com.neki.testfixture.FakeTransactionRunner

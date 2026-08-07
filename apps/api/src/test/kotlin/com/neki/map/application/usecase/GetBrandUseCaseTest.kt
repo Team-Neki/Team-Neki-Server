@@ -1,11 +1,11 @@
 package com.neki.map.application.usecase
 
-import com.neki.map.BrandRepository
-import com.neki.map.MediaClient
-import com.neki.map.UserBrandOrderRepository
 import com.neki.map.application.GetBrandUseCase
+import com.neki.map.client.MediaClient
 import com.neki.map.dto.MapQuery
 import com.neki.map.models.MediaMetadata
+import com.neki.map.repository.BrandRepository
+import com.neki.map.repository.UserBrandOrderRepository
 import com.neki.map.service.BrandService
 import com.neki.testfixture.aBrand
 import io.kotest.core.spec.style.FunSpec

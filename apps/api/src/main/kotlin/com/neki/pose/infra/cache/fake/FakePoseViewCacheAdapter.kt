@@ -1,6 +1,6 @@
 package com.neki.pose.infra.cache.fake
 
-import com.neki.pose.PoseViewCache
+import com.neki.pose.external.PoseViewCache
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap

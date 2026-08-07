@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.token
 
 import com.neki.common.properties.AppProperties
-import com.neki.user.AuthTokenProvider
+import com.neki.user.external.AuthTokenProvider
 import com.neki.user.models.ProviderType
 import com.neki.user.models.TokenPrincipal
 import io.jsonwebtoken.Claims

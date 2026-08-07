@@ -1,6 +1,6 @@
 package com.neki.pose.infra.cache.redis
 
-import com.neki.pose.PoseViewCache
+import com.neki.pose.external.PoseViewCache
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary

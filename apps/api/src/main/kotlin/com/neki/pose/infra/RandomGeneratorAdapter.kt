@@ -1,6 +1,6 @@
 package com.neki.pose.infra
 
-import com.neki.pose.RandomGenerator
+import com.neki.pose.external.RandomGenerator
 import org.springframework.stereotype.Component
 import kotlin.random.Random
 

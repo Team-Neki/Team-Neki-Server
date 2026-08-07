@@ -1,11 +1,11 @@
 package com.neki.map.application.usecase
 
-import com.neki.map.FavoriteMapRepository
-import com.neki.map.PhotoBoothLocationRepository
 import com.neki.map.application.GetPhotoBoothLocationUseCase
 import com.neki.map.dto.MapQuery
 import com.neki.map.models.PhotoBoothLocationView
 import com.neki.map.models.PhotoBoothLocationWithDistance
+import com.neki.map.repository.FavoriteMapRepository
+import com.neki.map.repository.PhotoBoothLocationRepository
 import com.neki.testfixture.FakeTransactionRunner
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty

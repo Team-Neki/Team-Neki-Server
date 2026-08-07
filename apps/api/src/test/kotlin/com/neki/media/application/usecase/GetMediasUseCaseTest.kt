@@ -1,12 +1,12 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.DistributedLock
-import com.neki.media.MediaBinaryCache
-import com.neki.media.MediaRepository
-import com.neki.media.MediaStorage
 import com.neki.media.application.GetMediasUseCase
 import com.neki.media.dto.MediaQuery
+import com.neki.media.external.DistributedLock
+import com.neki.media.external.MediaBinaryCache
+import com.neki.media.external.MediaStorage
 import com.neki.media.models.MediaType
+import com.neki.media.repository.MediaRepository
 import com.neki.media.service.MediaBinaryService
 import com.neki.media.service.MediaService
 import com.neki.testfixture.aMedia

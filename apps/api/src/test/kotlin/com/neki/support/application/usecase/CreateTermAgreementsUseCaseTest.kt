@@ -2,13 +2,13 @@ package com.neki.support.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.TermRepository
-import com.neki.support.UserTermAgreementHistRepository
-import com.neki.support.UserTermAgreementRepository
 import com.neki.support.application.CreateTermAgreementsUseCase
 import com.neki.support.dto.TermCommand
 import com.neki.support.models.TermAgreementAction
 import com.neki.support.models.UserTermAgreementHist
+import com.neki.support.repository.TermRepository
+import com.neki.support.repository.UserTermAgreementHistRepository
+import com.neki.support.repository.UserTermAgreementRepository
 import com.neki.support.service.TermService
 import com.neki.testfixture.aTerm
 import com.neki.testfixture.aUserTermAgreement

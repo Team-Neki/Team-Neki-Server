@@ -2,12 +2,12 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.MediaClient
-import com.neki.pose.PoseRepository
 import com.neki.pose.application.GetScrapPosesUseCase
+import com.neki.pose.client.MediaClient
 import com.neki.pose.dto.PoseQuery
 import com.neki.pose.models.MediaMetadata
 import com.neki.pose.models.Pose
+import com.neki.pose.repository.PoseRepository
 import com.neki.pose.service.PoseService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose

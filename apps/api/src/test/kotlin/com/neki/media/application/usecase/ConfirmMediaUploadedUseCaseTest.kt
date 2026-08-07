@@ -1,11 +1,11 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.MediaRepository
-import com.neki.media.MediaStorage
 import com.neki.media.application.ConfirmMediaUploadedUseCase
 import com.neki.media.dto.MediaCommand
+import com.neki.media.external.MediaStorage
 import com.neki.media.models.MediaStatus
 import com.neki.media.models.UploadConfirmStatus
+import com.neki.media.repository.MediaRepository
 import com.neki.media.service.MediaService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aMedia

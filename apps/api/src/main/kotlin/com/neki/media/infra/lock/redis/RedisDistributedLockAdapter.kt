@@ -1,6 +1,6 @@
 package com.neki.media.infra.lock.redis
 
-import com.neki.media.DistributedLock
+import com.neki.media.external.DistributedLock
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile

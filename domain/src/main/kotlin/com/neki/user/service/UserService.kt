@@ -2,14 +2,14 @@ package com.neki.user.service
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.NicknameGenerator
-import com.neki.user.UserRepository
 import com.neki.user.dto.UserCommand
 import com.neki.user.dto.UserQuery
+import com.neki.user.external.NicknameGenerator
 import com.neki.user.models.OauthRegistration
 import com.neki.user.models.OauthUserInfo
 import com.neki.user.models.RoleType
 import com.neki.user.models.User
+import com.neki.user.repository.UserRepository
 import org.springframework.stereotype.Component
 
 /**

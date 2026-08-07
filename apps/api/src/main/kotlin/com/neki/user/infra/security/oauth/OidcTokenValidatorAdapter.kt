@@ -1,7 +1,7 @@
 package com.neki.user.infra.security.oauth
 
 import com.neki.common.exception.BusinessException
-import com.neki.user.OidcTokenValidator
+import com.neki.user.external.OidcTokenValidator
 import com.neki.user.infra.cache.AuthCachePort
 import com.neki.user.infra.security.oauth.dto.OIDCPublicKeysPayload
 import com.neki.user.infra.security.oauth.helper.OauthHelper

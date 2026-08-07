@@ -2,13 +2,13 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.MediaClient
-import com.neki.pose.PoseRepository
-import com.neki.pose.PoseViewCache
 import com.neki.pose.application.GetPoseUseCase
+import com.neki.pose.client.MediaClient
 import com.neki.pose.dto.PoseQuery
+import com.neki.pose.external.PoseViewCache
 import com.neki.pose.models.MediaMetadata
 import com.neki.pose.models.PoseWithScrap
+import com.neki.pose.repository.PoseRepository
 import com.neki.pose.service.PoseService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPose

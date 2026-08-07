@@ -1,8 +1,8 @@
 package com.neki.map.infra.client.kakao
 
 import com.neki.config.kakao.KakaoApiRateLimitProperties
-import com.neki.map.MapApiClient
-import com.neki.map.MapSearch
+import com.neki.map.external.MapApiClient
+import com.neki.map.external.MapSearch
 import com.neki.map.models.GeographicKoreaBounds
 import com.neki.map.models.SearchedPlace
 import com.neki.map.models.SearchedPlaces

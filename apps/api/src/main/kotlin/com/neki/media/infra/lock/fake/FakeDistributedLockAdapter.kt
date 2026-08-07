@@ -1,6 +1,6 @@
 package com.neki.media.infra.lock.fake
 
-import com.neki.media.DistributedLock
+import com.neki.media.external.DistributedLock
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component

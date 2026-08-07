@@ -15,9 +15,9 @@ modules/                 외부 의존성 연결 설정 전용
 
 ```text
 domain/src/main/kotlin/com/neki/<domain>/
-├── <Domain>Repository.kt      영속성 인터페이스
-├── <External>Client.kt        다른 도메인 호출 인터페이스
-├── <External>Storage.kt       외부 시스템 인터페이스
+├── repository/                영속성 인터페이스
+├── client/                    다른 도메인 호출 인터페이스
+├── external/                  외부 시스템 인터페이스
 ├── dto/                       Command, Query
 ├── models/                    Entity, VO, enum, 인터페이스 입출력 객체
 └── service/                   도메인 서비스
@@ -83,9 +83,21 @@ apps/api/src/main/kotlin/com/neki/<domain>/
 
 ## 인터페이스 규칙
 
-- 도메인 인터페이스에 `port` 패키지와 `Port` 접미사를 쓰지 않음. 도메인 루트에 flat하게 둠. e.g. `MediaRepository`, `MediaStorage`, `MediaClient`
+- 도메인 인터페이스에 `port` 패키지와 `Port` 접미사를 쓰지 않음. 역할별 패키지로 나눔
 - 인터페이스의 매개변수와 반환값은 같은 도메인의 `models` 타입만 사용
 - Spring Data JPA 인터페이스는 `Jpa*Repository`, QueryDSL은 `*QueryRepository`
+
+역할별 패키지는 세 갈래입니다.
+
+| 패키지 | 담는 것 | 예시 |
+| --- | --- | --- |
+| `repository/` | 자기 도메인 영속성 | `MediaRepository`, `FolderRepository` |
+| `client/` | 다른 도메인 호출 | `photo/client/MediaClient`, `user/client/TermClient` |
+| `external/` | 외부 시스템 연동 | `MediaStorage`, `DistributedLock`, `MapApiClient` |
+
+`client/`는 도메인 간 호출 전용입니다. `MapApiClient`, `MapSearch`는 `Client` 접미사가 붙어 있지만 Kakao 외부 API이므로 `external/`에 둡니다. 패키지만 보고 도메인 경계를 넘는 호출인지 판별할 수 있게 하는 것이 목적입니다.
+
+인터페이스가 아닌 순수 도메인 규칙(`BrandOrderPolicy` 같은 object)은 도메인 루트에 둡니다.
 
 구현체 이름은 두 갈래입니다.
 

@@ -1,9 +1,9 @@
 package com.neki.map.application
 
 import com.neki.common.annotation.UseCase
-import com.neki.map.MediaClient
 import com.neki.map.application.dto.BrandAssembler
 import com.neki.map.application.dto.MapResult
+import com.neki.map.client.MediaClient
 import com.neki.map.dto.MapQuery
 import com.neki.map.models.Brand
 import com.neki.map.models.MediaMetadata

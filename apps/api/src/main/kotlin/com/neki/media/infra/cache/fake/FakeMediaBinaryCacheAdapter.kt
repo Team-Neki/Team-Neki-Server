@@ -1,6 +1,6 @@
 package com.neki.media.infra.cache.fake
 
-import com.neki.media.MediaBinaryCache
+import com.neki.media.external.MediaBinaryCache
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import java.time.Duration

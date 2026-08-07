@@ -2,11 +2,11 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.domain.vo.Pagination
 import com.neki.common.domain.vo.SortOrder
-import com.neki.photo.MediaClient
-import com.neki.photo.PhotoImageRepository
 import com.neki.photo.application.GetFavoritePhotosUseCase
+import com.neki.photo.client.MediaClient
 import com.neki.photo.dto.PhotoImageQuery
 import com.neki.photo.models.MediaMetadata
+import com.neki.photo.repository.PhotoImageRepository
 import com.neki.photo.service.PhotoService
 import com.neki.testfixture.FakeTransactionRunner
 import com.neki.testfixture.aPhotoImage

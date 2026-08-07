@@ -2,13 +2,13 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.FavoriteImageRepository
-import com.neki.photo.FolderRepository
-import com.neki.photo.MediaClient
-import com.neki.photo.PhotoImageFolderRepository
-import com.neki.photo.PhotoImageRepository
 import com.neki.photo.application.DeleteFoldersUseCase
+import com.neki.photo.client.MediaClient
 import com.neki.photo.dto.FolderCommand
+import com.neki.photo.repository.FavoriteImageRepository
+import com.neki.photo.repository.FolderRepository
+import com.neki.photo.repository.PhotoImageFolderRepository
+import com.neki.photo.repository.PhotoImageRepository
 import com.neki.photo.service.FavoriteService
 import com.neki.photo.service.FolderService
 import com.neki.photo.service.PhotoService

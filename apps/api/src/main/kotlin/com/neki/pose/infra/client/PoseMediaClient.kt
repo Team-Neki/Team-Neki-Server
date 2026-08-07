@@ -7,7 +7,7 @@ import com.neki.media.application.dto.MediaResult
 import com.neki.media.dto.MediaCommand
 import com.neki.media.dto.MediaQuery
 import com.neki.media.models.UploadConfirmStatus
-import com.neki.pose.MediaClient
+import com.neki.pose.client.MediaClient
 import com.neki.pose.models.MediaAvailability
 import com.neki.pose.models.MediaMetadata
 import org.springframework.stereotype.Component

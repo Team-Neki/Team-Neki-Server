@@ -1,10 +1,10 @@
 package com.neki.notification.application.usecase
 
 import com.neki.common.transaction.TransactionRunner
-import com.neki.notification.NotificationRepository
 import com.neki.notification.application.UpdateNotificationUseCase
 import com.neki.notification.dto.NotificationCommand
 import com.neki.notification.models.Notification
+import com.neki.notification.repository.NotificationRepository
 import com.neki.notification.service.NotificationService
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs

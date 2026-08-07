@@ -1,9 +1,9 @@
 package com.neki.support.infra.persist
 
-import com.neki.support.TermRepository
 import com.neki.support.infra.persist.jpa.JpaTermRepository
 import com.neki.support.models.Term
 import com.neki.support.models.TermType
+import com.neki.support.repository.TermRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 

@@ -24,8 +24,9 @@ modules/       외부 의존성 연결 설정 전용 (postgres, redis, aws, kaka
 
 ```text
 domain/src/main/kotlin/com/neki/<domain>/
-├── <Domain>Repository.kt      영속성 인터페이스 (루트에 flat)
-├── <External>Client.kt        다른 도메인 호출 인터페이스
+├── repository/                영속성 인터페이스
+├── client/                    다른 도메인 호출 인터페이스
+├── external/                  외부 시스템 인터페이스
 ├── dto/                       Command, Query
 ├── models/                    Entity, VO, enum, 인터페이스 입출력 객체
 └── service/                   도메인 서비스
@@ -120,7 +121,7 @@ object FolderCommand {
 도메인은 다른 도메인을 직접 import 하지 않는다. 소비 도메인이 호출 인터페이스를 소유하고, 자기 도메인의 모델을 반환한다.
 
 ```kotlin
-// domain/photo/MediaClient.kt — 소비 도메인이 소유
+// domain/photo/client/MediaClient.kt — 소비 도메인이 소유
 interface MediaClient {
     fun getMediaMetadata(ownerId: Long, mediaIds: List<Long>): List<MediaMetadata>  // photo.models
 }
@@ -149,7 +150,8 @@ class PhotoMediaClient(private val getMediaMetadataListUseCase: GetMediaMetadata
 
 ## Interface Naming
 
-- 도메인 인터페이스에 `port` 패키지와 `Port` 접미사를 쓰지 않는다. 도메인 루트에 flat 하게 둔다
+- 도메인 인터페이스에 `port` 패키지와 `Port` 접미사를 쓰지 않는다. 역할별로 `repository/`, `client/`, `external/` 에 나눠 둔다
+- `client/` 는 도메인 간 호출 전용이다. `MapApiClient` 처럼 `Client` 접미사가 붙어도 외부 API 면 `external/` 에 둔다
 - 기술 구현 어댑터는 `*Adapter`, 다른 도메인 호출 어댑터는 `<소비도메인><Provider>Client` (e.g. `PhotoMediaClient`)
 - Spring Data JPA 는 `Jpa*Repository`, QueryDSL 은 `*QueryRepository`
 - infra 내부에서만 쓰이는 인터페이스는 이 규칙 밖이다 (e.g. `user/infra/cache/AuthCachePort`)
@@ -265,7 +267,7 @@ class FavoritePhotoQueryRepository(private val queryFactory: JPAQueryFactory) {
 
 - [ ] `domain/<domain>/models` 에 엔티티와 값 객체 정의
 - [ ] `domain/<domain>/dto` 에 Command, Query 정의
-- [ ] 도메인 인터페이스를 `domain/<domain>` 루트에 flat 하게 정의 (Port 접미사 없이)
+- [ ] 도메인 인터페이스를 `domain/<domain>/{repository,client,external}` 에 정의 (Port 접미사 없이)
 - [ ] `domain/<domain>/service` 에 도메인 서비스 정의 (자기 애그리거트 리포지터리만 의존)
 - [ ] `apps/api/<domain>/application` 에 `@UseCase` 정의 (command/query 를 그대로 도메인 서비스에 전달)
 - [ ] `apps/api/<domain>/application/dto` 에 Result 와 Assembler 정의

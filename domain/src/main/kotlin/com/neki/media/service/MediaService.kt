@@ -2,16 +2,16 @@ package com.neki.media.service
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.media.MediaRepository
-import com.neki.media.MediaStorage
 import com.neki.media.dto.MediaCommand
 import com.neki.media.dto.MediaQuery
+import com.neki.media.external.MediaStorage
 import com.neki.media.models.Media
 import com.neki.media.models.MediaKey
 import com.neki.media.models.MediaStorageUploadTicket
 import com.neki.media.models.MediaUploadTicket
 import com.neki.media.models.MediaUploadTickets
 import com.neki.media.models.UploadConfirmStatus
+import com.neki.media.repository.MediaRepository
 import org.springframework.stereotype.Component
 
 /**

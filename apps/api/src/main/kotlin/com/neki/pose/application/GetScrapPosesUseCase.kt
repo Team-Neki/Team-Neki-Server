@@ -3,9 +3,9 @@ package com.neki.pose.application
 import com.neki.common.annotation.UseCase
 import com.neki.common.domain.vo.Page
 import com.neki.common.transaction.TransactionRunner
-import com.neki.pose.MediaClient
 import com.neki.pose.application.dto.PoseAssembler
 import com.neki.pose.application.dto.PoseResult
+import com.neki.pose.client.MediaClient
 import com.neki.pose.dto.PoseQuery
 import com.neki.pose.models.MediaMetadata
 import com.neki.pose.models.Pose

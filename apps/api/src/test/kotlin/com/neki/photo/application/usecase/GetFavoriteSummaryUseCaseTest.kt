@@ -1,11 +1,11 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.FavoriteImageRepository
-import com.neki.photo.MediaClient
-import com.neki.photo.PhotoImageRepository
 import com.neki.photo.application.GetFavoriteSummaryUseCase
+import com.neki.photo.client.MediaClient
 import com.neki.photo.dto.PhotoImageQuery
 import com.neki.photo.models.MediaMetadata
+import com.neki.photo.repository.FavoriteImageRepository
+import com.neki.photo.repository.PhotoImageRepository
 import com.neki.photo.service.FavoriteService
 import com.neki.photo.service.PhotoService
 import com.neki.testfixture.FakeTransactionRunner

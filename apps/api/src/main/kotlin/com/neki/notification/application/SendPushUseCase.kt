@@ -1,9 +1,9 @@
 package com.neki.notification.application
 
 import com.neki.common.annotation.UseCase
-import com.neki.notification.PushNotificationSender
 import com.neki.notification.application.dto.NotificationResult
 import com.neki.notification.dto.NotificationCommand
+import com.neki.notification.external.PushNotificationSender
 import com.neki.notification.service.NotificationService
 
 /**

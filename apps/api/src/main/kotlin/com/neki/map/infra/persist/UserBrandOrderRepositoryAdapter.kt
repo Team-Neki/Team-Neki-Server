@@ -1,8 +1,8 @@
 package com.neki.map.infra.persist
 
-import com.neki.map.UserBrandOrderRepository
 import com.neki.map.infra.persist.jpa.JpaUserBrandOrderRepository
 import com.neki.map.models.UserBrandOrder
+import com.neki.map.repository.UserBrandOrderRepository
 import org.springframework.stereotype.Repository
 
 /**

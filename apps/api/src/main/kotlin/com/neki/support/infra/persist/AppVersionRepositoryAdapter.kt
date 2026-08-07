@@ -1,9 +1,9 @@
 package com.neki.support.infra.persist
 
-import com.neki.support.AppVersionRepository
 import com.neki.support.infra.persist.jpa.JpaAppVersionRepository
 import com.neki.support.models.AppVersion
 import com.neki.support.models.Platform
+import com.neki.support.repository.AppVersionRepository
 import org.springframework.stereotype.Repository
 
 /**

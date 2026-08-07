@@ -1,8 +1,8 @@
 package com.neki.support.application.usecase
 
-import com.neki.support.TermRepository
 import com.neki.support.application.GetTermsUseCase
 import com.neki.support.models.TermType
+import com.neki.support.repository.TermRepository
 import com.neki.support.service.TermService
 import com.neki.testfixture.aTerm
 import io.kotest.matchers.collections.shouldBeEmpty

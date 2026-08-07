@@ -3,13 +3,13 @@ package com.neki.photo.service
 import com.neki.common.code.ResultCode
 import com.neki.common.domain.vo.Page
 import com.neki.common.exception.BusinessException
-import com.neki.photo.PhotoImageRepository
 import com.neki.photo.dto.FolderCommand
 import com.neki.photo.dto.PhotoImageCommand
 import com.neki.photo.dto.PhotoImageQuery
 import com.neki.photo.dto.UserScoped
 import com.neki.photo.models.PhotoImage
 import com.neki.photo.models.PhotoWithFavorite
+import com.neki.photo.repository.PhotoImageRepository
 import org.springframework.stereotype.Component
 
 /**

@@ -1,10 +1,10 @@
 package com.neki.media.application.usecase
 
-import com.neki.media.DistributedLock
-import com.neki.media.MediaBinaryCache
-import com.neki.media.MediaStorage
 import com.neki.media.application.GetImageByKeyUseCase
 import com.neki.media.dto.MediaQuery
+import com.neki.media.external.DistributedLock
+import com.neki.media.external.MediaBinaryCache
+import com.neki.media.external.MediaStorage
 import com.neki.media.service.MediaBinaryService
 import io.kotest.matchers.shouldBe
 import io.mockk.every

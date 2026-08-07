@@ -1,8 +1,8 @@
 package com.neki.photo.infra.persist
 
-import com.neki.photo.PhotoImageFolderRepository
 import com.neki.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
 import com.neki.photo.models.PhotoImageFolder
+import com.neki.photo.repository.PhotoImageFolderRepository
 import org.springframework.stereotype.Repository
 
 @Repository

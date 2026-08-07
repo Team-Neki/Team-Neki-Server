@@ -2,9 +2,9 @@ package com.neki.user.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.AuthTokenProvider
 import com.neki.user.application.RefreshTokenUseCase
 import com.neki.user.dto.AuthCommand
+import com.neki.user.external.AuthTokenProvider
 import com.neki.user.models.ProviderType
 import com.neki.user.models.TokenPrincipal
 import com.neki.user.service.AuthService

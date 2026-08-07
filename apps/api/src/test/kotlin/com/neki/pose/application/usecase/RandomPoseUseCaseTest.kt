@@ -2,15 +2,15 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.MediaClient
-import com.neki.pose.PoseRepository
-import com.neki.pose.RandomGenerator
-import com.neki.pose.ScrapPoseRepository
 import com.neki.pose.application.RandomPoseUseCase
+import com.neki.pose.client.MediaClient
 import com.neki.pose.dto.PoseQuery
+import com.neki.pose.external.RandomGenerator
 import com.neki.pose.models.HeadCount
 import com.neki.pose.models.MediaMetadata
 import com.neki.pose.models.ScrapPoseId
+import com.neki.pose.repository.PoseRepository
+import com.neki.pose.repository.ScrapPoseRepository
 import com.neki.pose.service.PoseService
 import com.neki.testfixture.aPose
 import io.kotest.assertions.throwables.shouldThrow

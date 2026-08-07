@@ -1,12 +1,12 @@
 package com.neki.pose.infra.persist
 
 import com.neki.common.domain.vo.SortOrder
-import com.neki.pose.PoseRepository
 import com.neki.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.pose.infra.persist.jpa.PosesQueryRepository
 import com.neki.pose.models.HeadCount
 import com.neki.pose.models.Pose
 import com.neki.pose.models.PoseWithScrap
+import com.neki.pose.repository.PoseRepository
 import org.springframework.stereotype.Repository
 
 /**

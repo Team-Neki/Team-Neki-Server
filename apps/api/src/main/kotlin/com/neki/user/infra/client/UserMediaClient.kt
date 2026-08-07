@@ -7,7 +7,7 @@ import com.neki.media.application.dto.MediaResult
 import com.neki.media.dto.MediaCommand
 import com.neki.media.dto.MediaQuery
 import com.neki.media.models.UploadConfirmStatus
-import com.neki.user.MediaClient
+import com.neki.user.client.MediaClient
 import com.neki.user.models.MediaAvailability
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

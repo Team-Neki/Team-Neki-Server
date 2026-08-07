@@ -1,7 +1,7 @@
 package com.neki.media.infra.storage.s3
 
 import com.neki.config.aws.S3Properties
-import com.neki.media.MediaStorage
+import com.neki.media.external.MediaStorage
 import com.neki.media.models.MediaRef
 import com.neki.media.models.MediaStorageUploadTicket
 import com.neki.media.models.MediaType

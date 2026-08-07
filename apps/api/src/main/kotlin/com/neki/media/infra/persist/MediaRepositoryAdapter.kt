@@ -1,9 +1,9 @@
 package com.neki.media.infra.persist
 
-import com.neki.media.MediaRepository
 import com.neki.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.media.models.Media
 import com.neki.media.models.MediaStatus
+import com.neki.media.repository.MediaRepository
 import org.springframework.stereotype.Repository
 
 /**

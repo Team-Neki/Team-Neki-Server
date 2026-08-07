@@ -1,9 +1,9 @@
 package com.neki.photo.application.usecase
 
-import com.neki.photo.FolderRepository
 import com.neki.photo.application.GetFoldersUseCase
 import com.neki.photo.dto.FolderQuery
 import com.neki.photo.models.FolderStats
+import com.neki.photo.repository.FolderRepository
 import com.neki.photo.service.FolderService
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize

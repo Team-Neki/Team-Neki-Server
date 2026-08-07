@@ -2,9 +2,9 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.FolderRepository
 import com.neki.photo.application.UpdateFolderUseCase
 import com.neki.photo.dto.FolderCommand
+import com.neki.photo.repository.FolderRepository
 import com.neki.photo.service.FolderService
 import com.neki.testfixture.aFolder
 import io.kotest.assertions.throwables.shouldThrow

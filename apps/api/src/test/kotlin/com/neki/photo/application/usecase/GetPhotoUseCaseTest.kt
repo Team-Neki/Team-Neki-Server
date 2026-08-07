@@ -2,12 +2,12 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.MediaClient
-import com.neki.photo.PhotoImageRepository
 import com.neki.photo.application.GetPhotoUseCase
+import com.neki.photo.client.MediaClient
 import com.neki.photo.dto.PhotoImageQuery
 import com.neki.photo.models.MediaMetadata
 import com.neki.photo.models.PhotoWithFavorite
+import com.neki.photo.repository.PhotoImageRepository
 import com.neki.photo.service.PhotoService
 import com.neki.testfixture.aPhotoImage
 import io.kotest.assertions.throwables.shouldThrow

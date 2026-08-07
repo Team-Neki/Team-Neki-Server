@@ -2,11 +2,11 @@ package com.neki.photo.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.photo.FavoriteImageRepository
-import com.neki.photo.PhotoImageRepository
 import com.neki.photo.application.UpdatePhotoFavoriteUseCase
 import com.neki.photo.dto.PhotoImageCommand
 import com.neki.photo.models.FavoritePhoto
+import com.neki.photo.repository.FavoriteImageRepository
+import com.neki.photo.repository.PhotoImageRepository
 import com.neki.photo.service.FavoriteService
 import com.neki.photo.service.PhotoService
 import io.kotest.assertions.throwables.shouldThrow

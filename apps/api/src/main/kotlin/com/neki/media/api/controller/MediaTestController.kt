@@ -1,6 +1,6 @@
 package com.neki.media.api.controller
 
-import com.neki.media.MediaStorage
+import com.neki.media.external.MediaStorage
 import com.neki.media.models.MediaKey
 import com.neki.media.models.MediaRef
 import com.neki.media.models.MediaStorageUploadTicket

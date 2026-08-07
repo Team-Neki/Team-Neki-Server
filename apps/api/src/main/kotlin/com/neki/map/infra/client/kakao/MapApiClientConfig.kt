@@ -1,6 +1,6 @@
 package com.neki.map.infra.client.kakao
 
-import com.neki.map.MapApiClient
+import com.neki.map.external.MapApiClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

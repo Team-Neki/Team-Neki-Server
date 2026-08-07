@@ -3,9 +3,9 @@ package com.neki.user.application.usecase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.testfixture.aUser
-import com.neki.user.UserRepository
 import com.neki.user.application.UpdateMeUseCase
 import com.neki.user.dto.UserCommand
+import com.neki.user.repository.UserRepository
 import com.neki.user.service.UserService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

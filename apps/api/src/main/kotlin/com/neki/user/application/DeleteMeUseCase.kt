@@ -1,10 +1,10 @@
 package com.neki.user.application
 
 import com.neki.common.annotation.UseCase
-import com.neki.user.NotificationClient
-import com.neki.user.TermClient
-import com.neki.user.UserEventPublisher
+import com.neki.user.client.NotificationClient
+import com.neki.user.client.TermClient
 import com.neki.user.dto.UserCommand
+import com.neki.user.external.UserEventPublisher
 import com.neki.user.models.User
 import com.neki.user.models.UserWithdrawnEvent
 import com.neki.user.service.UserService

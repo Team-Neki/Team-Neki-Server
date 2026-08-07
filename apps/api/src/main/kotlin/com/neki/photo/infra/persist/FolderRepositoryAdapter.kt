@@ -1,10 +1,10 @@
 package com.neki.photo.infra.persist
 
-import com.neki.photo.FolderRepository
 import com.neki.photo.infra.persist.jpa.FolderQueryRepository
 import com.neki.photo.infra.persist.jpa.JpaFolderRepository
 import com.neki.photo.models.Folder
 import com.neki.photo.models.FolderStats
+import com.neki.photo.repository.FolderRepository
 import org.springframework.stereotype.Repository
 
 /**

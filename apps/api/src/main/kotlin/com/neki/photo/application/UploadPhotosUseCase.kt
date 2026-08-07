@@ -4,7 +4,7 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.photo.MediaClient
+import com.neki.photo.client.MediaClient
 import com.neki.photo.dto.PhotoImageCommand
 import com.neki.photo.models.MediaAvailabilities
 import com.neki.photo.models.PhotoImage

@@ -2,12 +2,12 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.MediaClient
-import com.neki.pose.PoseRepository
 import com.neki.pose.application.UploadPosesUseCase
+import com.neki.pose.client.MediaClient
 import com.neki.pose.dto.PoseCommand
 import com.neki.pose.models.HeadCount
 import com.neki.pose.models.MediaAvailability
+import com.neki.pose.repository.PoseRepository
 import com.neki.pose.service.PoseService
 import com.neki.testfixture.FakeTransactionRunner
 import io.kotest.assertions.throwables.shouldThrow

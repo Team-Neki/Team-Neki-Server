@@ -2,10 +2,10 @@ package com.neki.support.service
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.AppVersionRepository
 import com.neki.support.dto.AppVersionCommand
 import com.neki.support.dto.AppVersionQuery
 import com.neki.support.models.AppVersion
+import com.neki.support.repository.AppVersionRepository
 import org.springframework.stereotype.Component
 
 /**

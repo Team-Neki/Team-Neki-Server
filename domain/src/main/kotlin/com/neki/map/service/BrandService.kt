@@ -3,12 +3,12 @@ package com.neki.map.service
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.map.BrandOrderPolicy
-import com.neki.map.BrandRepository
-import com.neki.map.UserBrandOrderRepository
 import com.neki.map.dto.MapCommand
 import com.neki.map.dto.MapQuery
 import com.neki.map.models.Brand
 import com.neki.map.models.UserBrandOrder
+import com.neki.map.repository.BrandRepository
+import com.neki.map.repository.UserBrandOrderRepository
 import org.springframework.stereotype.Component
 
 /**

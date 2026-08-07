@@ -1,10 +1,10 @@
 package com.neki.support.application.usecase
 
-import com.neki.support.TermRepository
-import com.neki.support.UserTermAgreementRepository
 import com.neki.support.application.GetTermAgreementStatusUseCase
 import com.neki.support.dto.TermQuery
 import com.neki.support.models.TermType
+import com.neki.support.repository.TermRepository
+import com.neki.support.repository.UserTermAgreementRepository
 import com.neki.support.service.TermService
 import com.neki.testfixture.aTerm
 import com.neki.testfixture.aUserTermAgreement

@@ -5,7 +5,7 @@ import com.neki.notification.application.GetPushAgreementUseCase
 import com.neki.notification.application.dto.NotificationResult
 import com.neki.notification.dto.NotificationCommand
 import com.neki.notification.dto.NotificationQuery
-import com.neki.user.NotificationClient
+import com.neki.user.client.NotificationClient
 import org.springframework.stereotype.Component
 
 @Component

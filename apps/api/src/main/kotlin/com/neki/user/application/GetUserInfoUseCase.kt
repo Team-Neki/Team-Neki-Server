@@ -1,10 +1,10 @@
 package com.neki.user.application
 
 import com.neki.common.annotation.UseCase
-import com.neki.user.MediaClient
-import com.neki.user.NotificationClient
-import com.neki.user.TermClient
 import com.neki.user.application.dto.UserResult
+import com.neki.user.client.MediaClient
+import com.neki.user.client.NotificationClient
+import com.neki.user.client.TermClient
 import com.neki.user.dto.UserQuery
 import com.neki.user.models.TermAgreementStatus
 import com.neki.user.models.User

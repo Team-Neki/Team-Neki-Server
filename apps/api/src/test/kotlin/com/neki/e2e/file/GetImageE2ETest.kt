@@ -1,7 +1,7 @@
 package com.neki.e2e.file
 
 import com.neki.e2e.E2ETestBase
-import com.neki.media.MediaStorage
+import com.neki.media.external.MediaStorage
 import com.neki.media.infra.storage.fake.FakeMediaStorageAdapter
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.equalTo

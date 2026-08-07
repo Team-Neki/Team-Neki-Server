@@ -2,11 +2,11 @@ package com.neki.pose.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.pose.PoseRepository
-import com.neki.pose.ScrapPoseRepository
 import com.neki.pose.application.UpdatePoseScrapUseCase
 import com.neki.pose.dto.PoseCommand
 import com.neki.pose.models.ScrapPose
+import com.neki.pose.repository.PoseRepository
+import com.neki.pose.repository.ScrapPoseRepository
 import com.neki.pose.service.PoseService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

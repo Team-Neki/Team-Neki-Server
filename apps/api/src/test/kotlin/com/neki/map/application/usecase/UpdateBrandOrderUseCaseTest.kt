@@ -2,11 +2,11 @@ package com.neki.map.application.usecase
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.map.BrandRepository
-import com.neki.map.UserBrandOrderRepository
 import com.neki.map.application.UpdateBrandOrderUseCase
 import com.neki.map.dto.MapCommand
 import com.neki.map.models.UserBrandOrder
+import com.neki.map.repository.BrandRepository
+import com.neki.map.repository.UserBrandOrderRepository
 import com.neki.map.service.BrandService
 import com.neki.testfixture.aBrand
 import io.kotest.assertions.throwables.shouldThrow

@@ -1,6 +1,6 @@
 package com.neki.map.infra.client
 
-import com.neki.map.MediaClient
+import com.neki.map.client.MediaClient
 import com.neki.map.models.MediaMetadata
 import com.neki.media.application.GetMediaMetadataListUseCase
 import com.neki.media.application.dto.MediaResult

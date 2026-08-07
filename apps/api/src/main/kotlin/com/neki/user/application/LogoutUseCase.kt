@@ -1,7 +1,7 @@
 package com.neki.user.application
 
 import com.neki.common.annotation.UseCase
-import com.neki.user.NotificationClient
+import com.neki.user.client.NotificationClient
 import com.neki.user.dto.UserCommand
 
 /**

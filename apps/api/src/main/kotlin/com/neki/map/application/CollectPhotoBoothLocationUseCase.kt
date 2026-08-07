@@ -4,14 +4,14 @@ import com.neki.common.annotation.UseCase
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
 import com.neki.common.transaction.TransactionRunner
-import com.neki.map.BrandRepository
-import com.neki.map.MapSearch
-import com.neki.map.PhotoBoothLocationRepository
 import com.neki.map.application.dto.MapResult
 import com.neki.map.dto.MapCommand
+import com.neki.map.external.MapSearch
 import com.neki.map.models.GeoPoint
 import com.neki.map.models.PhotoBoothLocation
 import com.neki.map.models.SearchedPlace
+import com.neki.map.repository.BrandRepository
+import com.neki.map.repository.PhotoBoothLocationRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

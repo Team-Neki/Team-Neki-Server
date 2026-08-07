@@ -2,12 +2,12 @@ package com.neki.map.application
 
 import com.neki.common.annotation.UseCase
 import com.neki.common.transaction.TransactionRunner
-import com.neki.map.FavoriteMapRepository
-import com.neki.map.PhotoBoothLocationRepository
 import com.neki.map.application.dto.MapResult
 import com.neki.map.dto.MapQuery
 import com.neki.map.models.PhotoBoothLocationView
 import com.neki.map.models.PhotoBoothLocationWithDistance
+import com.neki.map.repository.FavoriteMapRepository
+import com.neki.map.repository.PhotoBoothLocationRepository
 
 /**
  * fileName       : GetPhotoBoothLocationUseCase

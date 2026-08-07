@@ -2,9 +2,9 @@ package com.neki.user.service
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.user.AuthTokenProvider
-import com.neki.user.OidcTokenValidator
 import com.neki.user.dto.AuthCommand
+import com.neki.user.external.AuthTokenProvider
+import com.neki.user.external.OidcTokenValidator
 import com.neki.user.models.IssuedTokens
 import com.neki.user.models.OauthUserInfo
 import com.neki.user.models.TokenPrincipal

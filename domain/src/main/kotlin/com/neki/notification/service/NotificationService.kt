@@ -1,11 +1,11 @@
 package com.neki.notification.service
 
-import com.neki.notification.NotificationHistRepository
-import com.neki.notification.NotificationRepository
 import com.neki.notification.dto.NotificationCommand
 import com.neki.notification.dto.NotificationQuery
 import com.neki.notification.models.Notification
 import com.neki.notification.models.NotificationHist
+import com.neki.notification.repository.NotificationHistRepository
+import com.neki.notification.repository.NotificationRepository
 import org.springframework.stereotype.Component
 
 /**

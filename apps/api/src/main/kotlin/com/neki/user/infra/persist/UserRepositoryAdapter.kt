@@ -1,9 +1,9 @@
 package com.neki.user.infra.persist
 
-import com.neki.user.UserRepository
 import com.neki.user.infra.persist.jpa.JpaUserRepository
 import com.neki.user.models.ProviderType
 import com.neki.user.models.User
+import com.neki.user.repository.UserRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 

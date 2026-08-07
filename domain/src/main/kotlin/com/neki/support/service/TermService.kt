@@ -2,9 +2,6 @@ package com.neki.support.service
 
 import com.neki.common.code.ResultCode
 import com.neki.common.exception.BusinessException
-import com.neki.support.TermRepository
-import com.neki.support.UserTermAgreementHistRepository
-import com.neki.support.UserTermAgreementRepository
 import com.neki.support.dto.TermCommand
 import com.neki.support.dto.TermQuery
 import com.neki.support.models.ActiveTerms
@@ -12,6 +9,9 @@ import com.neki.support.models.Term
 import com.neki.support.models.TermAgreementStatus
 import com.neki.support.models.UserTermAgreement
 import com.neki.support.models.UserTermAgreementHist
+import com.neki.support.repository.TermRepository
+import com.neki.support.repository.UserTermAgreementHistRepository
+import com.neki.support.repository.UserTermAgreementRepository
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 

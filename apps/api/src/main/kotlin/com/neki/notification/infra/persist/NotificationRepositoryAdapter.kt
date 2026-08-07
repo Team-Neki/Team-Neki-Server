@@ -1,8 +1,8 @@
 package com.neki.notification.infra.persist
 
-import com.neki.notification.NotificationRepository
 import com.neki.notification.infra.persist.jpa.JpaNotificationRepository
 import com.neki.notification.models.Notification
+import com.neki.notification.repository.NotificationRepository
 import org.springframework.stereotype.Repository
 
 @Repository

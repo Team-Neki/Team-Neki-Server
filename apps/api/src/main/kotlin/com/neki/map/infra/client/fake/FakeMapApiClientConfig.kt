@@ -1,6 +1,6 @@
 package com.neki.map.infra.client.fake
 
-import com.neki.map.MapApiClient
+import com.neki.map.external.MapApiClient
 import com.neki.map.models.SearchPagination
 import com.neki.map.models.SearchedPlaces
 import org.springframework.context.annotation.Bean

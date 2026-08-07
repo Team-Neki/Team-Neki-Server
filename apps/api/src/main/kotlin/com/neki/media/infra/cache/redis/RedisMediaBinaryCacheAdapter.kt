@@ -1,6 +1,6 @@
 package com.neki.media.infra.cache.redis
 
-import com.neki.media.MediaBinaryCache
+import com.neki.media.external.MediaBinaryCache
 import com.neki.media.infra.cache.MediaRedisCacheKey
 import com.neki.media.models.MediaType
 import org.slf4j.Logger
