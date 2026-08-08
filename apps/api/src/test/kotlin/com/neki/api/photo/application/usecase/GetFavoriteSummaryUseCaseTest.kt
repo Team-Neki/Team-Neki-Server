@@ -1,0 +1,111 @@
+package com.neki.api.photo.application.usecase
+
+import com.neki.api.photo.application.GetFavoriteSummaryUseCase
+import com.neki.api.testfixture.FakeTransactionRunner
+import com.neki.api.testfixture.aPhotoImage
+import com.neki.domain.photo.client.MediaClient
+import com.neki.domain.photo.dto.PhotoImageQuery
+import com.neki.domain.photo.models.MediaMetadata
+import com.neki.domain.photo.repository.FavoriteImageRepository
+import com.neki.domain.photo.repository.PhotoImageRepository
+import com.neki.domain.photo.service.FavoriteService
+import com.neki.domain.photo.service.PhotoService
+import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+
+class GetFavoriteSummaryUseCaseTest {
+
+    lateinit var favoriteImageRepository: FavoriteImageRepository
+    lateinit var photoImageRepository: PhotoImageRepository
+    lateinit var mediaClient: MediaClient
+    lateinit var useCase: GetFavoriteSummaryUseCase
+
+    val query = PhotoImageQuery.GetFavoriteSummary(userId = 1L)
+
+    @BeforeEach
+    fun setUp() {
+        favoriteImageRepository = mockk()
+        photoImageRepository = mockk()
+        mediaClient = mockk()
+        useCase = GetFavoriteSummaryUseCase(
+            PhotoService(photoImageRepository),
+            FavoriteService(favoriteImageRepository),
+            mediaClient,
+            FakeTransactionRunner(),
+        )
+    }
+
+    @Test
+    @DisplayName("즐겨찾기 count=0이면 storageKey=null, totalCount=0 반환")
+    fun `즐겨찾기 count=0이면 storageKey=null, totalCount=0 반환`() {
+        // Given
+        every { favoriteImageRepository.countByUserId(1L) } returns 0L
+
+        // When
+        val result = useCase.execute(query)
+
+        // Then
+        result.storageKey shouldBe null
+        result.totalCount shouldBe 0L
+    }
+
+    @Test
+    @DisplayName("count>0이지만 최신 photo가 없는 경우 storageKey=null 반환")
+    fun `count가 0보다 크지만 최신 photo가 없는 경우 storageKey=null 반환`() {
+        // Given
+        every { favoriteImageRepository.countByUserId(1L) } returns 3L
+        every { photoImageRepository.getLatestFavoritePhoto(1L) } returns null
+
+        // When
+        val result = useCase.execute(query)
+
+        // Then
+        result.storageKey shouldBe null
+        result.totalCount shouldBe 3L
+    }
+
+    @Test
+    @DisplayName("count>0이고 photo 있으나 미디어가 없는 경우 storageKey=null 반환")
+    fun `count가 0보다 크고 photo 있으나 미디어가 없는 경우 storageKey=null 반환`() {
+        // Given
+        val photo = aPhotoImage(id = 1L, userId = 1L, mediaId = 10L)
+
+        every { favoriteImageRepository.countByUserId(1L) } returns 3L
+        every { photoImageRepository.getLatestFavoritePhoto(1L) } returns photo
+        every { mediaClient.getMediaMetadata(1L, listOf(10L)) } returns emptyList()
+
+        // When
+        val result = useCase.execute(query)
+
+        // Then
+        result.storageKey shouldBe null
+        result.totalCount shouldBe 3L
+    }
+
+    @Test
+    @DisplayName("count>0이고 photo와 미디어가 모두 존재하는 경우 count와 storageKey 반환")
+    fun `count가 0보다 크고 photo와 미디어가 모두 존재하는 경우 count와 storageKey 반환`() {
+        // Given
+        val photo = aPhotoImage(id = 1L, userId = 1L, mediaId = 10L)
+        val mediaInfo = MediaMetadata(
+            mediaId = 10L,
+            storageKey = "key/cover.jpg",
+            contentType = "image/jpeg",
+        )
+
+        every { favoriteImageRepository.countByUserId(1L) } returns 5L
+        every { photoImageRepository.getLatestFavoritePhoto(1L) } returns photo
+        every { mediaClient.getMediaMetadata(1L, listOf(10L)) } returns listOf(mediaInfo)
+
+        // When
+        val result = useCase.execute(query)
+
+        // Then
+        result.storageKey shouldBe "key/cover.jpg"
+        result.totalCount shouldBe 5L
+    }
+}
