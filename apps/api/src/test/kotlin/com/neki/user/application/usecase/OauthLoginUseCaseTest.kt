@@ -110,6 +110,7 @@ class OauthLoginUseCaseTest {
         // Then
         result.accessToken shouldBe "access-token"
         result.refreshToken shouldBe "refresh-token"
+        result.isNewUser shouldBe false
         verify(exactly = 0) { nicknameGenerator.generateUniqueNickname() }
         verify(exactly = 0) { userRepositoryPort.save(any()) }
     }
@@ -167,6 +168,7 @@ class OauthLoginUseCaseTest {
         // Then
         result.accessToken shouldBe "new-access-token"
         result.refreshToken shouldBe "new-refresh-token"
+        result.isNewUser shouldBe true
         verify(exactly = 1) { nicknameGenerator.generateUniqueNickname() }
         verify(exactly = 1) { userRepositoryPort.save(any()) }
     }

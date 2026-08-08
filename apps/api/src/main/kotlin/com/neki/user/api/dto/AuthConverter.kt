@@ -33,7 +33,14 @@ object AuthConverter {
 
     @Component
     class ResponseConverter {
-        fun toCreateAuthResponse(result: AuthResult.GetAuth): AuthResponse.GetAuth =
-            AuthResponse.GetAuth(accessToken = result.accessToken, result.refreshToken)
+        fun toOauthLoginResponse(result: AuthResult.GetOauthLogin): AuthResponse.GetOauthLogin =
+            AuthResponse.GetOauthLogin(
+                accessToken = result.accessToken,
+                refreshToken = result.refreshToken,
+                isNewUser = result.isNewUser,
+            )
+
+        fun toRefreshTokenResponse(result: AuthResult.GetRefreshToken): AuthResponse.GetRefreshToken =
+            AuthResponse.GetRefreshToken(accessToken = result.accessToken, refreshToken = result.refreshToken)
     }
 }

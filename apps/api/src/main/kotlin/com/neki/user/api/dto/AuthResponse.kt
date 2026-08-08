@@ -9,8 +9,18 @@ import io.swagger.v3.oas.annotations.media.Schema
  * description    : 인증/인가 관련 응답 DTO
  */
 object AuthResponse {
-    @Schema(name = "GetAuthResponse")
-    data class GetAuth(
+    @Schema(name = "GetOauthLoginResponse")
+    data class GetOauthLogin(
+        @field:Schema(description = "AccessToken", example = "ey...")
+        val accessToken: String,
+        @field:Schema(description = "RefreshToken", example = "ey...")
+        val refreshToken: String,
+        @field:Schema(description = "이번 로그인으로 새로 가입된 신규 유저 여부", example = "true")
+        val isNewUser: Boolean,
+    )
+
+    @Schema(name = "GetRefreshTokenResponse")
+    data class GetRefreshToken(
         @field:Schema(description = "AccessToken", example = "ey...")
         val accessToken: String,
         @field:Schema(description = "RefreshToken", example = "ey...")

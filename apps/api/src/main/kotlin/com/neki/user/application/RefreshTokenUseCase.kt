@@ -15,10 +15,10 @@ import com.neki.user.service.AuthService
 @UseCase
 class RefreshTokenUseCase(private val authService: AuthService) {
 
-    fun execute(command: AuthCommand.RefreshToken): AuthResult.GetAuth {
+    fun execute(command: AuthCommand.RefreshToken): AuthResult.GetRefreshToken {
         val tokens: IssuedTokens = authService.rotateTokens(command)
 
-        return AuthResult.GetAuth(
+        return AuthResult.GetRefreshToken(
             accessToken = tokens.accessToken,
             refreshToken = tokens.refreshToken,
         )

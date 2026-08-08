@@ -42,7 +42,7 @@ class OauthLoginUseCase(
      * 3. 신규 가입 시 이벤트 발행
      * 4. 토큰 발급
      */
-    fun execute(command: AuthCommand.RegisterOauthUser): AuthResult.GetAuth {
+    fun execute(command: AuthCommand.RegisterOauthUser): AuthResult.GetOauthLogin {
         val oauthUserInfo: OauthUserInfo = authService.validateOauthToken(command)
 
         // 신규 사용자 추가
@@ -68,9 +68,10 @@ class OauthLoginUseCase(
         // 토큰 생성
         val tokens: IssuedTokens = authService.issueTokens(registration.user)
 
-        return AuthResult.GetAuth(
+        return AuthResult.GetOauthLogin(
             accessToken = tokens.accessToken,
             refreshToken = tokens.refreshToken,
+            isNewUser = registration.isNew,
         )
     }
 
