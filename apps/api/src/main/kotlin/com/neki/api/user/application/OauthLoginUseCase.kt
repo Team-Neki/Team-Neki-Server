@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.neki.api.user.application.dto.AuthResult
-import com.neki.api.user.infra.security.config.OauthProperties
 import com.neki.core.annotation.UseCase
 import com.neki.core.transaction.TransactionRunner
 import com.neki.domain.user.dto.AuthCommand
 import com.neki.domain.user.external.UserEventPublisher
+import com.neki.domain.user.infra.security.config.OauthProperties
 import com.neki.domain.user.models.IssuedTokens
 import com.neki.domain.user.models.OauthRegistration
 import com.neki.domain.user.models.OauthUserInfo

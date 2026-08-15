@@ -2,9 +2,9 @@ package com.neki.api.e2e.photo.image
 
 import com.neki.api.media.api.dto.MediaRequest
 import com.neki.api.photo.api.dto.PhotoImageRequest
-import com.neki.api.photo.infra.persist.jpa.PhotoImageQueryRepository
 import com.neki.core.code.ResultCode
 import com.neki.domain.media.models.MediaType
+import com.neki.domain.photo.infra.persist.jpa.PhotoImageQueryRepository
 import com.neki.domain.photo.models.UploadMethod
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured

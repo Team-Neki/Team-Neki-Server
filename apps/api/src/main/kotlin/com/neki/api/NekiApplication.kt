@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @SpringBootApplication(scanBasePackages = ["com.neki"])
 @ConfigurationPropertiesScan("com.neki")
 @EntityScan("com.neki.domain", "com.neki.core")
-@EnableJpaRepositories("com.neki.api")
+@EnableJpaRepositories("com.neki.api", "com.neki.domain")
 class NekiApplication
 
 fun main(args: Array<String>) {

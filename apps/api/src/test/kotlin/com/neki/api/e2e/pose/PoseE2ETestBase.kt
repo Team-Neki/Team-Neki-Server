@@ -1,13 +1,13 @@
 package com.neki.api.e2e.pose
 
 import com.neki.api.e2e.E2ETestBase
-import com.neki.api.media.infra.persist.jpa.JpaMediaRepository
-import com.neki.api.pose.infra.cache.fake.FakePoseViewCacheAdapter
-import com.neki.api.pose.infra.persist.jpa.JpaPoseRepository
-import com.neki.api.pose.infra.persist.jpa.JpaScrapPoseRepository
+import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.media.models.MediaType
+import com.neki.domain.pose.infra.cache.fake.FakePoseViewCacheAdapter
+import com.neki.domain.pose.infra.persist.jpa.JpaPoseRepository
+import com.neki.domain.pose.infra.persist.jpa.JpaScrapPoseRepository
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.ScrapPose

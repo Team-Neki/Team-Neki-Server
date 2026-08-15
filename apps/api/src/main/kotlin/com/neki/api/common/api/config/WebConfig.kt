@@ -1,6 +1,6 @@
 package com.neki.api.common.api.config
 
-import com.neki.api.common.properties.AppProperties
+import com.neki.core.properties.AppProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.cors.CorsConfiguration

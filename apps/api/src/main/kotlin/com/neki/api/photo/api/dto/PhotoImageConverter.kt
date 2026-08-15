@@ -1,9 +1,9 @@
 package com.neki.api.photo.api.dto
 
-import com.neki.api.common.properties.AppProperties
 import com.neki.api.photo.application.dto.PhotoImageResult
 import com.neki.core.domain.vo.Pagination
 import com.neki.core.domain.vo.SortOrder
+import com.neki.core.properties.AppProperties
 import com.neki.domain.photo.dto.PhotoImageCommand
 import com.neki.domain.photo.dto.PhotoImageQuery
 import org.springframework.stereotype.Component

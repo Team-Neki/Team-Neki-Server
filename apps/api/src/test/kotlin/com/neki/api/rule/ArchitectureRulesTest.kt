@@ -73,8 +73,10 @@ class ArchitectureRulesTest {
     @DisplayName("레이어 의존성 규칙")
     inner class LayerDependencies {
 
-        // Domain 계층(:domain 의 entity/enums/vo)의 바깥 레이어(application/api/infra) 의존 금지는
-        // Gradle 모듈 그래프가 보장한다 (:domain 은 :core 만 의존하므로 컴파일 자체가 불가능).
+        // Domain 계층(:domain 의 entity/enums/vo)의 application/api 의존 금지는
+        // Gradle 모듈 그래프가 보장한다 (:domain 은 :apps:api 를 의존하지 않으므로 컴파일 자체가 불가능).
+        // :domain 은 자신의 infra(기술 구현 어댑터)를 포함하므로, domain 서비스가 자기 도메인 infra를
+        // 의존하지 않는지는 "도메인 격리 규칙"의 별도 테스트로 검증한다.
         // 같은 모듈 안에서 발생할 수 있는 도메인 간 엔티티 의존은 "도메인 격리 규칙"에서 검증한다.
 
         @Test
@@ -145,7 +147,7 @@ class ArchitectureRulesTest {
         }
 
         // :domain 은 모든 도메인이 한 모듈에 모여 있어 Gradle이 도메인 간 의존을 막지 못한다.
-        // user, map 의 알려진 예외는 application 계층 문제이므로 :domain 계층은 전 도메인을 검증한다.
+        // user 의 알려진 예외는 application 계층 문제이므로 :domain 계층은 전 도메인을 검증한다.
         // 루트 패키지(com.neki.domain.<domain>)는 BrandOrderPolicy 같은 도메인 정책 object 를 포함한다.
         // 인터페이스는 repository/client/external 로 나뉘며, 셋 다 자기 도메인 models 만 주고받아야 한다.
         @ParameterizedTest(name = "{0} 도메인의 domain 모듈 계층은 다른 도메인에 의존할 수 없다")
@@ -160,8 +162,29 @@ class ArchitectureRulesTest {
                     "com.neki.domain.$domain.repository..",
                     "com.neki.domain.$domain.client..",
                     "com.neki.domain.$domain.external..",
+                    "com.neki.domain.$domain.infra..",
                 ).should().dependOnClassesThat().resideInAnyPackage(*otherDomainPackages(domain))
                 .because("$domain domain module must not depend on other domains")
+                .check(importedClasses)
+        }
+
+        // :domain 은 자신의 infra(기술 구현 어댑터)를 포함한다. 도메인 서비스는 자기 도메인의
+        // repository/client/external 인터페이스만 알아야 하고, 그 인터페이스를 구현하는 구체 어댑터를
+        // 직접 의존해서는 안 된다 (docs/layering-policy.md 의 "domain에서 infra 타입을 import하는 것" 금지).
+        @ParameterizedTest(name = "{0} 도메인의 domain 계층은 자기 도메인 infra를 의존할 수 없다")
+        @MethodSource("com.neki.api.rule.ArchitectureRulesTest#allDomains")
+        fun `domain 계층은 자기 도메인의 infra를 의존할 수 없다`(domain: String) {
+            noClasses()
+                .that().resideInAnyPackage(
+                    "com.neki.domain.$domain",
+                    "com.neki.domain.$domain.models..",
+                    "com.neki.domain.$domain.dto..",
+                    "com.neki.domain.$domain.service..",
+                    "com.neki.domain.$domain.repository..",
+                    "com.neki.domain.$domain.client..",
+                    "com.neki.domain.$domain.external..",
+                ).should().dependOnClassesThat().resideInAnyPackage("com.neki.domain.$domain.infra..")
+                .because("domain layer must depend on its own interfaces, not concrete infra adapters")
                 .check(importedClasses)
         }
     }

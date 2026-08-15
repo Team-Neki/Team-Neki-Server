@@ -1,13 +1,13 @@
 package com.neki.api.e2e.photo.folder
 
 import com.neki.api.e2e.E2ETestBase
-import com.neki.api.media.infra.persist.jpa.JpaMediaRepository
-import com.neki.api.photo.infra.persist.jpa.JpaFolderRepository
-import com.neki.api.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
-import com.neki.api.photo.infra.persist.jpa.JpaPhotoImageRepository
+import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.media.models.MediaType
+import com.neki.domain.photo.infra.persist.jpa.JpaFolderRepository
+import com.neki.domain.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
+import com.neki.domain.photo.infra.persist.jpa.JpaPhotoImageRepository
 import com.neki.domain.photo.models.PhotoImage
 import com.neki.domain.photo.models.PhotoImageFolder
 import org.junit.jupiter.api.AfterEach

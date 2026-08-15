@@ -1,7 +1,7 @@
 package com.neki.api.photo.api.dto
 
-import com.neki.api.common.properties.AppProperties
 import com.neki.api.photo.application.dto.FolderResult
+import com.neki.core.properties.AppProperties
 import com.neki.domain.photo.dto.FolderCommand
 import com.neki.domain.photo.dto.FolderQuery
 import org.springframework.stereotype.Component

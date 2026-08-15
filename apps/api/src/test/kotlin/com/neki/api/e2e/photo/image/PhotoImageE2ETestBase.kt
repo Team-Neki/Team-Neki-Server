@@ -1,14 +1,14 @@
 package com.neki.api.e2e.photo.image
 
 import com.neki.api.e2e.E2ETestBase
-import com.neki.api.media.infra.persist.jpa.JpaMediaRepository
-import com.neki.api.photo.infra.persist.jpa.JpaFavoriteImageRepository
-import com.neki.api.photo.infra.persist.jpa.JpaFolderRepository
-import com.neki.api.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
-import com.neki.api.photo.infra.persist.jpa.JpaPhotoImageRepository
+import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.media.models.MediaType
+import com.neki.domain.photo.infra.persist.jpa.JpaFavoriteImageRepository
+import com.neki.domain.photo.infra.persist.jpa.JpaFolderRepository
+import com.neki.domain.photo.infra.persist.jpa.JpaPhotoImageFolderRepository
+import com.neki.domain.photo.infra.persist.jpa.JpaPhotoImageRepository
 import com.neki.domain.photo.models.FavoritePhoto
 import com.neki.domain.photo.models.Folder
 import com.neki.domain.photo.models.PhotoImage

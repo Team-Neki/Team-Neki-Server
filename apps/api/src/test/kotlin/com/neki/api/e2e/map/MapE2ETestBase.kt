@@ -1,10 +1,10 @@
 package com.neki.api.e2e.map
 
 import com.neki.api.e2e.E2ETestBase
-import com.neki.api.map.infra.persist.jpa.JpaBrandRepository
-import com.neki.api.map.infra.persist.jpa.JpaFavoriteMapRepository
-import com.neki.api.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
-import com.neki.api.map.infra.persist.jpa.JpaUserBrandOrderRepository
+import com.neki.domain.map.infra.persist.jpa.JpaBrandRepository
+import com.neki.domain.map.infra.persist.jpa.JpaFavoriteMapRepository
+import com.neki.domain.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
+import com.neki.domain.map.infra.persist.jpa.JpaUserBrandOrderRepository
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.models.FavoriteMap
 import com.neki.domain.map.models.PhotoBoothLocation

@@ -1,7 +1,7 @@
 package com.neki.api.map.api.dto
 
-import com.neki.api.common.properties.AppProperties
 import com.neki.api.map.application.dto.MapResult
+import com.neki.core.properties.AppProperties
 import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.dto.MapQuery
 import org.locationtech.jts.geom.Coordinate

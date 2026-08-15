@@ -1,7 +1,7 @@
 package com.neki.api.e2e
 
-import com.neki.api.user.infra.persist.jpa.JpaUserRepository
-import com.neki.api.user.infra.security.token.AuthTokenProviderAdapter
+import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
+import com.neki.domain.user.infra.security.token.AuthTokenProviderAdapter
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User

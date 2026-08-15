@@ -2,8 +2,8 @@ package com.neki.api.e2e.notification
 
 import com.neki.api.e2e.E2ETestBase
 import com.neki.api.notification.api.dto.NotificationRequest
-import com.neki.api.notification.infra.persist.jpa.JpaNotificationRepository
 import com.neki.core.code.ResultCode
+import com.neki.domain.notification.infra.persist.jpa.JpaNotificationRepository
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured

@@ -3,9 +3,9 @@ package com.neki.api.e2e.photo.folder
 import com.neki.api.e2e.E2ETestBase
 import com.neki.api.photo.api.dto.FolderRequest
 import com.neki.api.photo.api.dto.FolderResponse
-import com.neki.api.photo.infra.persist.jpa.JpaFolderRepository
 import com.neki.core.api.dto.BaseResponse
 import com.neki.core.code.ResultCode
+import com.neki.domain.photo.infra.persist.jpa.JpaFolderRepository
 import com.neki.domain.photo.models.Folder
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured

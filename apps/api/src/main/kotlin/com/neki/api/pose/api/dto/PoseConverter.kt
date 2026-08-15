@@ -1,9 +1,9 @@
 package com.neki.api.pose.api.dto
 
-import com.neki.api.common.properties.AppProperties
 import com.neki.api.pose.application.dto.PoseResult
 import com.neki.core.domain.vo.Pagination
 import com.neki.core.domain.vo.SortOrder
+import com.neki.core.properties.AppProperties
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount

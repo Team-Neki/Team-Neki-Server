@@ -1,7 +1,7 @@
 package com.neki.api.common.api.document
 
-import com.neki.api.common.properties.AppProperties
 import com.neki.core.code.ResultCode
+import com.neki.core.properties.AppProperties
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation

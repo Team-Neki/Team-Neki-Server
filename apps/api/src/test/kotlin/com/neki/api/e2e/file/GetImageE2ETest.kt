@@ -1,8 +1,8 @@
 package com.neki.api.e2e.file
 
 import com.neki.api.e2e.E2ETestBase
-import com.neki.api.media.infra.storage.fake.FakeMediaStorageAdapter
 import com.neki.domain.media.external.MediaStorage
+import com.neki.domain.media.infra.storage.fake.FakeMediaStorageAdapter
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.AfterEach

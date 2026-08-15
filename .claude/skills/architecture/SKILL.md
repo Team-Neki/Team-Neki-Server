@@ -15,23 +15,25 @@ Load this context when designing features, creating new domains, or refactoring.
 
 ```text
 core/          공유 커널. annotation, code, exception, transaction, domain/vo
-domain/        도메인 모델과 인터페이스. core 만 의존
-apps/api/      api + application + infra. 실행 모듈(bootJar)
+domain/        도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
+apps/api/      api + application + (교차 도메인 호출 어댑터). 실행 모듈(bootJar)
 modules/       외부 의존성 연결 설정 전용 (postgres, redis, aws, kakao, apple, discord, jasypt, firebase)
 ```
 
 ### Per-Domain Structure
 
 ```text
-domain/src/main/kotlin/com/neki/<domain>/
+domain/src/main/kotlin/com/neki/domain/<domain>/
 ├── repository/                영속성 인터페이스
 ├── client/                    다른 도메인 호출 인터페이스
 ├── external/                  외부 시스템 인터페이스
 ├── dto/                       Command, Query
 ├── models/                    Entity, VO, enum, 인터페이스 입출력 객체
-└── service/                   도메인 서비스
+├── service/                   도메인 서비스
+└── infra/
+    └── persist|cache|storage|security/ 자기 도메인 인터페이스를 구현하는 기술 어댑터
 
-apps/api/src/main/kotlin/com/neki/<domain>/
+apps/api/src/main/kotlin/com/neki/api/<domain>/
 ├── api/
 │   ├── controller/            REST controller
 │   └── dto/                   Request, Response, Converter
@@ -39,22 +41,24 @@ apps/api/src/main/kotlin/com/neki/<domain>/
 │   ├── *UseCase.kt            유스케이스 (usecase/ 하위 패키지 없음)
 │   └── dto/                   Result, Assembler
 └── infra/
-    ├── client/                다른 도메인 호출 어댑터
-    └── persist|cache|storage/ 기술 구현 어댑터
+    └── client/                다른 도메인 UseCase 를 호출하는 어댑터
 ```
+
+`infra/client` 는 다른 도메인의 UseCase(apps/api)를 호출하므로 apps/api 에 남는다. domain 모듈이 apps/api 를 의존하면 순환 의존이 생기기 때문이다. 그 외 자기 도메인 인터페이스(repository/external)만 구현하는 기술 어댑터는 domain 모듈로 옮겨져 있다.
 
 ---
 
 ## Dependency Rules
 
-| Layer          | Can Depend On       | Cannot Depend On    |
-|----------------|---------------------|---------------------|
-| API            | Application, Domain | Infrastructure      |
-| Application    | Domain              | API, Infrastructure |
-| Domain         | Core                | Any other layer     |
-| Infrastructure | Application, Domain | API                 |
+| Layer                    | Can Depend On                  | Cannot Depend On |
+|---------------------------|--------------------------------|-------------------|
+| API                       | Application, Domain            | Infrastructure    |
+| Application               | Domain                         | API, Infrastructure (client 제외) |
+| Domain (models/dto/service/repository/client/external) | Core | 자기 도메인 infra, 다른 도메인, Application, API |
+| Domain infra (persist/cache/storage/security) | Core, modules:* | 다른 도메인, Application, API |
+| apps/api infra/client      | Application(다른 도메인), Domain | API |
 
-`apps/api/src/test/kotlin/com/neki/rule/ArchitectureRulesTest.kt` 가 이를 검증한다.
+`apps/api/src/test/kotlin/com/neki/api/rule/ArchitectureRulesTest.kt` 가 이를 검증한다.
 
 ---
 
@@ -269,9 +273,10 @@ class FavoritePhotoQueryRepository(private val queryFactory: JPAQueryFactory) {
 - [ ] `domain/<domain>/dto` 에 Command, Query 정의
 - [ ] 도메인 인터페이스를 `domain/<domain>/{repository,client,external}` 에 정의 (Port 접미사 없이)
 - [ ] `domain/<domain>/service` 에 도메인 서비스 정의 (자기 애그리거트 리포지터리만 의존)
+- [ ] `domain/<domain>/infra` 에 자기 도메인 인터페이스(repository/external)를 구현하는 `*Adapter` 구현
 - [ ] `apps/api/<domain>/application` 에 `@UseCase` 정의 (command/query 를 그대로 도메인 서비스에 전달)
 - [ ] `apps/api/<domain>/application/dto` 에 Result 와 Assembler 정의
-- [ ] `apps/api/<domain>/infra` 에 `*Adapter` 구현
+- [ ] `apps/api/<domain>/infra/client` 에 다른 도메인 UseCase 를 호출하는 어댑터 구현
 - [ ] `apps/api/<domain>/api/dto` 에 Request, Response, Converter 정의
 - [ ] 다른 도메인 import 가 없는지 확인
 - [ ] E2E 테스트 추가

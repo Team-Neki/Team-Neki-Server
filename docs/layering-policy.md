@@ -6,23 +6,25 @@
 
 ```text
 core/                    공유 커널. 모든 모듈이 의존할 수 있음
-domain/                  도메인 모델과 인터페이스. core 만 의존
-apps/api/                api + application + infra. 실행 모듈
+domain/                  도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
+apps/api/                api + application + 교차 도메인 호출 어댑터. 실행 모듈
 modules/                 외부 의존성 연결 설정 전용
 ```
 
 도메인별 구조는 다음과 같습니다.
 
 ```text
-domain/src/main/kotlin/com/neki/<domain>/
+domain/src/main/kotlin/com/neki/domain/<domain>/
 ├── repository/                영속성 인터페이스
 ├── client/                    다른 도메인 호출 인터페이스
 ├── external/                  외부 시스템 인터페이스
 ├── dto/                       Command, Query
 ├── models/                    Entity, VO, enum, 인터페이스 입출력 객체
-└── service/                   도메인 서비스
+├── service/                   도메인 서비스
+└── infra/
+    └── persist|cache|storage|security/ 자기 도메인 인터페이스를 구현하는 기술 어댑터
 
-apps/api/src/main/kotlin/com/neki/<domain>/
+apps/api/src/main/kotlin/com/neki/api/<domain>/
 ├── api/
 │   ├── controller/            REST controller
 │   └── dto/                   Request, Response, Converter
@@ -30,9 +32,10 @@ apps/api/src/main/kotlin/com/neki/<domain>/
 │   ├── *UseCase.kt            유스케이스
 │   └── dto/                   Result, Assembler
 └── infra/
-    ├── client/                다른 도메인 호출 어댑터
-    └── persist|cache|storage/ 기술 구현 어댑터
+    └── client/                다른 도메인 UseCase 를 호출하는 어댑터
 ```
+
+`infra/client`(교차 도메인 호출)만 apps/api 에 남습니다. domain 모듈이 apps/api 를 의존하면 순환 의존이 생기기 때문입니다. 자기 도메인 인터페이스(repository/external)만 구현하는 기술 어댑터(persist/cache/storage/security)는 인터페이스 옆에 두는 것이 자연스러워 domain 모듈로 옮겼습니다. 그 대가로 domain 모듈이 `modules:*`(postgres, redis, aws, discord, firebase)와 spring-security/oauth2-client 같은 기술 의존성을 갖게 되었습니다 — 도메인이 자기 애그리거트의 영속성·캐시·외부 저장소를 구현하는 데 필요한 만큼만 추가합니다.
 
 ## 타입 소유권
 
@@ -199,8 +202,8 @@ UserTermAgreementHist.withdrawn(userId, termId)
 
 `apps/api/src/test/kotlin/com/neki/rule/ArchitectureRulesTest.kt`가 이 정책을 검증합니다.
 
-- 도메인 격리 : api·application·엔티티 계층이 다른 도메인을 의존하지 않음
-- 계층 의존 : application이 api·infra를 의존하지 않음
+- 도메인 격리 : api·application·엔티티·domain infra 계층이 다른 도메인을 의존하지 않음
+- 계층 의존 : application이 api·infra를 의존하지 않음, domain(models/dto/service/repository/client/external)이 자기 도메인 infra를 의존하지 않음
 - DTO 배치 : Request·Response는 api, Command·Query는 domain dto, Result는 application
 - 어노테이션 배치 : `@UseCase`는 application, `@RestController`는 api.controller, `@Repository`는 infra
 

@@ -3,13 +3,13 @@ package com.neki.api.user.application.usecase
 import com.neki.api.testfixture.FakeTransactionRunner
 import com.neki.api.testfixture.aUser
 import com.neki.api.user.application.OauthLoginUseCase
-import com.neki.api.user.infra.security.config.OauthProperties
 import com.neki.core.exception.BusinessException
 import com.neki.domain.user.dto.AuthCommand
 import com.neki.domain.user.external.AuthTokenProvider
 import com.neki.domain.user.external.NicknameGenerator
 import com.neki.domain.user.external.OidcTokenValidator
 import com.neki.domain.user.external.UserEventPublisher
+import com.neki.domain.user.infra.security.config.OauthProperties
 import com.neki.domain.user.models.OauthUserInfo
 import com.neki.domain.user.models.Platform
 import com.neki.domain.user.models.ProviderType
