@@ -1,6 +1,5 @@
 package com.neki.domain.photo.infra.persist.jpa
 
-import com.neki.domain.media.models.QMedia.media
 import com.neki.domain.photo.models.FolderStats
 import com.neki.domain.photo.models.QFolder.folder
 import com.neki.domain.photo.models.QPhotoImage
@@ -59,10 +58,9 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
             val maxIdPhotoFolder = QPhotoImageFolder("maxIdPhotoFolder")
 
             queryFactory
-                .select(latestPhotoFolder.folderId, media.storageKey)
+                .select(latestPhotoFolder.folderId, latestPhoto.mediaId)
                 .from(latestPhoto)
                 .join(latestPhotoFolder).on(latestPhotoFolder.photoImageId.eq(latestPhoto.id))
-                .join(media).on(media.id.eq(latestPhoto.mediaId))
                 .where(
                     latestPhoto.userId.eq(userId),
                     latestPhotoFolder.folderId.`in`(folderIdsWithPhotos),
@@ -78,7 +76,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
                     ),
                 )
                 .fetch()
-                .associate { it.get(latestPhotoFolder.folderId)!! to it.get(media.storageKey)!! }
+                .associate { it.get(latestPhotoFolder.folderId)!! to it.get(latestPhoto.mediaId)!! }
         } else {
             emptyMap()
         }
@@ -88,7 +86,7 @@ class FolderQueryRepository(private val queryFactory: JPAQueryFactory) {
             FolderStats(
                 folderId = folderId,
                 name = tuple.get(folder.name)!!,
-                coverImageStorageKey = coverMap[folderId],
+                coverMediaId = coverMap[folderId],
                 photoCount = tuple.get(photoImage.id.count())!!,
             )
         }

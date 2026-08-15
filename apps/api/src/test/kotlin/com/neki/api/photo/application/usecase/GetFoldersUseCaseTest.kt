@@ -1,8 +1,10 @@
 package com.neki.api.photo.application.usecase
 
 import com.neki.api.photo.application.GetFoldersUseCase
+import com.neki.domain.photo.client.MediaClient
 import com.neki.domain.photo.dto.FolderQuery
 import com.neki.domain.photo.models.FolderStats
+import com.neki.domain.photo.models.MediaMetadata
 import com.neki.domain.photo.repository.FolderRepository
 import com.neki.domain.photo.service.FolderService
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -17,12 +19,14 @@ import org.junit.jupiter.api.Test
 class GetFoldersUseCaseTest {
 
     lateinit var folderRepository: FolderRepository
+    lateinit var mediaClient: MediaClient
     lateinit var useCase: GetFoldersUseCase
 
     @BeforeEach
     fun setUp() {
         folderRepository = mockk()
-        useCase = GetFoldersUseCase(FolderService(folderRepository, mockk()))
+        mediaClient = mockk()
+        useCase = GetFoldersUseCase(FolderService(folderRepository, mockk()), mediaClient)
     }
 
     @Test
@@ -31,21 +35,15 @@ class GetFoldersUseCaseTest {
         // Given
         val query = FolderQuery.GetFolders(userId = 1L, limit = 10)
         val foldersWithStats = listOf(
-            FolderStats(
-                folderId = 1L,
-                name = "폴더1",
-                coverImageStorageKey = "key/image1.jpg",
-                photoCount = 5L,
-            ),
-            FolderStats(
-                folderId = 2L,
-                name = "폴더2",
-                coverImageStorageKey = "key/image2.jpg",
-                photoCount = 3L,
-            ),
+            FolderStats(folderId = 1L, name = "폴더1", coverMediaId = 10L, photoCount = 5L),
+            FolderStats(folderId = 2L, name = "폴더2", coverMediaId = 20L, photoCount = 3L),
         )
 
         every { folderRepository.listOwnedFoldersWithStats(1L, 10) } returns foldersWithStats
+        every { mediaClient.getMediaMetadata(1L, listOf(10L, 20L)) } returns listOf(
+            MediaMetadata(mediaId = 10L, storageKey = "key/image1.jpg", contentType = "image/jpeg"),
+            MediaMetadata(mediaId = 20L, storageKey = "key/image2.jpg", contentType = "image/jpeg"),
+        )
 
         // When
         val result = useCase.execute(query)
@@ -74,12 +72,12 @@ class GetFoldersUseCaseTest {
     }
 
     @Test
-    @DisplayName("coverImageStorageKey가 null인 폴더는 storageKey에 null 반환")
-    fun `coverImageStorageKey가 null인 폴더는 storageKey에 null 반환`() {
+    @DisplayName("coverMediaId가 null인 폴더는 storageKey에 null 반환")
+    fun `coverMediaId가 null인 폴더는 storageKey에 null 반환`() {
         // Given
         val query = FolderQuery.GetFolders(userId = 1L, limit = null)
         val foldersWithStats = listOf(
-            FolderStats(folderId = 1L, name = "빈 폴더", coverImageStorageKey = null, photoCount = 0L),
+            FolderStats(folderId = 1L, name = "빈 폴더", coverMediaId = null, photoCount = 0L),
         )
 
         every { folderRepository.listOwnedFoldersWithStats(1L, null) } returns foldersWithStats

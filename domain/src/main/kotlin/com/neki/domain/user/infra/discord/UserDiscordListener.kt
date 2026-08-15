@@ -1,4 +1,4 @@
-package com.neki.domain.notification.infra.discord
+package com.neki.domain.user.infra.discord
 
 import com.neki.config.discord.DiscordProperties
 import com.neki.domain.user.models.UserEvent
