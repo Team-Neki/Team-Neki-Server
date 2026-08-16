@@ -2,7 +2,7 @@ package com.neki.api.map.application
 
 import com.neki.core.annotation.UseCase
 import com.neki.domain.map.dto.MapCommand
-import com.neki.domain.map.service.BrandService
+import com.neki.domain.map.service.BrandOrderService
 import org.springframework.transaction.annotation.Transactional
 
 /**
@@ -12,10 +12,10 @@ import org.springframework.transaction.annotation.Transactional
  * description    : 사용자별 브랜드 정렬 순서 저장/갱신
  */
 @UseCase
-class UpdateBrandOrderUseCase(private val brandService: BrandService) {
+class UpdateBrandOrderUseCase(private val brandOrderService: BrandOrderService) {
 
     @Transactional
     fun execute(command: MapCommand.UpdateBrandOrder) {
-        brandService.updateBrandOrder(command)
+        brandOrderService.updateBrandOrder(command)
     }
 }

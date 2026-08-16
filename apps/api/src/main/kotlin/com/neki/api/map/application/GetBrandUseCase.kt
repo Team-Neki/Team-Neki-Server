@@ -7,7 +7,7 @@ import com.neki.domain.map.client.MediaClient
 import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.models.MediaMetadata
-import com.neki.domain.map.service.BrandService
+import com.neki.domain.map.service.BrandOrderService
 
 /**
  * fileName       : GetBrandUseCase
@@ -16,10 +16,10 @@ import com.neki.domain.map.service.BrandService
  * description    : Brand 조회
  */
 @UseCase
-class GetBrandUseCase(private val brandService: BrandService, private val mediaClient: MediaClient) {
+class GetBrandUseCase(private val brandOrderService: BrandOrderService, private val mediaClient: MediaClient) {
 
     fun execute(query: MapQuery.GetBrand): List<MapResult.GetBrand> {
-        val sortedBrands: List<Brand> = brandService.getBrand(query)
+        val sortedBrands: List<Brand> = brandOrderService.getOrderedBrand(query)
 
         val medias: List<MediaMetadata> = mediaClient.getMediaMetadata(sortedBrands.mapNotNull { it.mediaId })
 

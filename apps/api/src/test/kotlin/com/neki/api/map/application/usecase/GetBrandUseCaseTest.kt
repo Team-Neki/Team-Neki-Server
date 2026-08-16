@@ -7,7 +7,7 @@ import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.MediaMetadata
 import com.neki.domain.map.repository.BrandRepository
 import com.neki.domain.map.repository.UserBrandOrderRepository
-import com.neki.domain.map.service.BrandService
+import com.neki.domain.map.service.BrandOrderService
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -34,7 +34,7 @@ class GetBrandUseCaseTest :
             mediaClient = mockk()
             userBrandOrderRepository = mockk()
             useCase = GetBrandUseCase(
-                BrandService(brandRepository, userBrandOrderRepository),
+                BrandOrderService(brandRepository, userBrandOrderRepository),
                 mediaClient,
             )
 
