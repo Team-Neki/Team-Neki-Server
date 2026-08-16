@@ -7,7 +7,7 @@ import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.models.ScrapPose
 import com.neki.domain.pose.repository.PoseRepository
 import com.neki.domain.pose.repository.ScrapPoseRepository
-import com.neki.domain.pose.service.PoseService
+import com.neki.domain.pose.service.PoseScrapService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
@@ -30,7 +30,7 @@ class UpdatePoseScrapUseCaseTest {
     fun setUp() {
         poseRepository = mockk()
         scrapPoseRepository = mockk()
-        useCase = UpdatePoseScrapUseCase(PoseService(poseRepository, scrapPoseRepository, mockk(), mockk()))
+        useCase = UpdatePoseScrapUseCase(PoseScrapService(poseRepository, scrapPoseRepository))
     }
 
     @Test

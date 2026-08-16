@@ -6,20 +6,22 @@ import com.neki.core.transaction.TransactionRunner
 import com.neki.domain.pose.client.MediaClient
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.MediaMetadata
-import com.neki.domain.pose.service.PoseService
+import com.neki.domain.pose.service.PoseScrapService
+import com.neki.domain.pose.service.PoseViewService
 
 @UseCase
 class GetPoseUseCase(
-    private val poseService: PoseService,
+    private val poseScrapService: PoseScrapService,
+    private val poseViewService: PoseViewService,
     private val mediaClient: MediaClient,
     private val transactionRunner: TransactionRunner,
 ) {
 
     fun execute(query: PoseQuery.GetPose): PoseResult.GetPose {
-        val (pose, isScraped) = poseService.getOwnedPoseWithScrap(query)
+        val (pose, isScraped) = poseScrapService.getOwnedPoseWithScrap(query)
 
-        if (poseService.isFirstViewOf(query)) {
-            transactionRunner.run { poseService.incrementViewCount(query) }
+        if (poseViewService.isFirstViewOf(query)) {
+            transactionRunner.run { poseViewService.incrementViewCount(query) }
         }
 
         val mediaInfo: MediaMetadata = mediaClient.getMediaMetadata(pose.mediaId)

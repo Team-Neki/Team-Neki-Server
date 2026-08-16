@@ -34,7 +34,7 @@ class UploadPosesUseCaseTest {
         poseRepository = mockk()
         transactionRunner = FakeTransactionRunner()
         useCase = UploadPosesUseCase(
-            PoseService(poseRepository, mockk(), mockk(), mockk()),
+            PoseService(poseRepository),
             mediaClient,
             transactionRunner,
         )

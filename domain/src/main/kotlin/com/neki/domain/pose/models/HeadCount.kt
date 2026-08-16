@@ -7,6 +7,7 @@ package com.neki.domain.pose.models
  * description    :
  */
 enum class HeadCount(val description: String) {
+    ALL("전체"),
     ONE("1인"),
     TWO("2인"),
     THREE("3인"),
