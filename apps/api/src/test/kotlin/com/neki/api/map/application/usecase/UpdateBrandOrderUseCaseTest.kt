@@ -8,7 +8,7 @@ import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.models.UserBrandOrder
 import com.neki.domain.map.repository.BrandRepository
 import com.neki.domain.map.repository.UserBrandOrderRepository
-import com.neki.domain.map.service.BrandService
+import com.neki.domain.map.service.BrandOrderService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -36,7 +36,7 @@ class UpdateBrandOrderUseCaseTest :
             brandRepository = mockk()
             userBrandOrderRepository = mockk()
             useCase =
-                UpdateBrandOrderUseCase(BrandService(brandRepository, userBrandOrderRepository))
+                UpdateBrandOrderUseCase(BrandOrderService(brandRepository, userBrandOrderRepository))
         }
 
         test("정상 - 모든 brandId가 존재하면 요청 순서대로 sortOrder가 매핑되어 replaceOrder가 한 번 호출된다") {

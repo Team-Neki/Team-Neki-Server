@@ -1,45 +1,65 @@
 package com.neki.domain.map.service
 
 import com.neki.core.code.ResultCode
+import com.neki.core.domain.vo.CountedPage
 import com.neki.core.exception.BusinessException
-import com.neki.domain.map.BrandOrderPolicy
-import com.neki.domain.map.dto.MapCommand
-import com.neki.domain.map.dto.MapQuery
+import com.neki.domain.map.dto.BrandCommand
+import com.neki.domain.map.dto.BrandQuery
 import com.neki.domain.map.models.Brand
-import com.neki.domain.map.models.UserBrandOrder
+import com.neki.domain.map.models.QBrand.brand
 import com.neki.domain.map.repository.BrandRepository
-import com.neki.domain.map.repository.UserBrandOrderRepository
 import org.springframework.stereotype.Component
 
 /**
  * fileName       : BrandService
  * author         : koo
  * date           : 2026. 8. 3. 오전 12:26
- * description    :
+ * description    : 브랜드 자체의 조회와 상태 변경. 사용자별 정렬은 [BrandOrderService] 가 맡는다
  */
 @Component
-class BrandService(
-    private val brandRepository: BrandRepository,
-    private val userBrandOrderRepository: UserBrandOrderRepository,
-) {
+class BrandService(private val brandRepository: BrandRepository) {
 
-    fun getBrand(query: MapQuery.GetBrand): List<Brand> {
-        val brands: List<Brand> = brandRepository.findAll()
+    fun getBrands(query: BrandQuery.GetBrands): CountedPage<Brand> = CountedPage(
+        items = brandRepository.findAll(query),
+        totalCount = brandRepository.count(query),
+        size = query.pagination.size,
+    )
 
-        val sortOrderMap: Map<Long, Int> = userBrandOrderRepository.findSortOrderMapByUserId(query.userId)
+    fun searchBrands(query: BrandQuery.SearchBrands): CountedPage<Brand> = CountedPage(
+        items = brandRepository.findByKeyword(query),
+        totalCount = brandRepository.countByKeyword(query),
+        size = query.pagination.size,
+    )
 
-        return BrandOrderPolicy.sort(brands, sortOrderMap)
-    }
-
-    fun updateBrandOrder(command: MapCommand.UpdateBrandOrder) {
-        val brandIds: List<Long> = command.brandIds
-
-        val existingBrandIds: Set<Long> = brandRepository.findAll().mapNotNull(Brand::id).toSet()
-        if (!existingBrandIds.containsAll(brandIds)) {
-            throw BusinessException(ResultCode.NOT_FOUND)
+    fun updateBrand(command: BrandCommand.UpdateBrand): Brand {
+        if (command.hasNoChanges) {
+            throw BusinessException(ResultCode.INVALID_PARAMETER)
         }
 
-        val orders: List<UserBrandOrder> = UserBrandOrder.ofOrderedBrandIds(command.userId, brandIds)
-        userBrandOrderRepository.replaceOrder(command.userId, orders)
+        val brand = brandRepository.findById(command.brandId)
+        brand.updateInfo(
+            command.name,
+            command.code,
+            command.supportAndroidQr,
+            command.supportIosQr,
+            command.exposeToMap,
+        )
+        return brand
+    }
+
+    fun deleteBrand(command: BrandCommand.DeleteBrand) {
+        val brand = brandRepository.findById(command.brandId)
+        brand.softDelete()
+    }
+
+    fun addBrand(command: BrandCommand.AddBrand) {
+        val brand = Brand.of(
+            command.name,
+            command.code,
+            command.mediaId,
+            command.supportAndroidQr,
+            command.supportIosQr,
+        )
+        brandRepository.save(brand)
     }
 }
