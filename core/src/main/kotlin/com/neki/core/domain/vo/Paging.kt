@@ -34,3 +34,13 @@ data class Pagination(val page: Int, val size: Int, val sortOrder: SortOrder = S
  * 다음 페이지 존재 여부를 함께 담은 조회 결과
  */
 data class Page<T>(val items: List<T>, val hasNext: Boolean)
+
+/**
+ * 전체 건수를 함께 담은 조회 결과. 총 페이지 수를 노출해야 하는 목록 화면에서 쓴다.
+ * hasNext 만 필요하면 [Page] 를 쓴다.
+ */
+data class CountedPage<T>(val items: List<T>, val totalCount: Long, val size: Int) {
+
+    val totalPages: Int
+        get() = if (size <= 0) 0 else ((totalCount + size - 1) / size).toInt()
+}
