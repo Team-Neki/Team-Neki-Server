@@ -1,220 +1,164 @@
 ---
 name: architecture
-description: Load when designing new domains or modules, refactoring architecture, working with Clean Architecture layers, ports/adapters pattern, or cross-domain communication.
+description: Load when designing new domains or modules, refactoring architecture, working with Clean Architecture layers, domain services, cross-domain communication, or DTO placement.
 ---
 
 # Architecture & Design Patterns
 
 Load this context when designing features, creating new domains, or refactoring.
 
----
-
-## Clean Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  API Layer (Controllers, DTOs, Converters)                  │
-│  - Handles HTTP requests/responses                          │
-│  - Input validation                                         │
-│  - DTO transformation                                       │
-├─────────────────────────────────────────────────────────────┤
-│  Application Layer (UseCases, Commands, Results, Ports)     │
-│  - Business logic orchestration                             │
-│  - Transaction management                                   │
-│  - Defines ports (interfaces) for infrastructure            │
-├─────────────────────────────────────────────────────────────┤
-│  Domain Layer (Entities, Value Objects, Enums)              │
-│  - Core business rules                                      │
-│  - Domain models                                            │
-│  - No external dependencies                                 │
-├─────────────────────────────────────────────────────────────┤
-│  Infrastructure Layer (Adapters, Repositories, Configs)     │
-│  - Implements ports defined in application layer            │
-│  - External service integration                             │
-│  - Database access                                          │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Dependency Rules
-
-| Layer          | Can Depend On       | Cannot Depend On          |
-|----------------|---------------------|---------------------------|
-| API            | Application, Domain | Infrastructure (directly) |
-| Application    | Domain              | API, Infrastructure       |
-| Domain         | Nothing             | Any other layer           |
-| Infrastructure | Application, Domain | API                       |
-
-**Critical**: Inner layers MUST NOT depend on outer layers.
-
-- ✅ `application` → `domain`
-- ❌ `application` → `api` or `infra`
+전체 정책과 결정 근거는 `docs/layering-policy.md` 에 있다. 이 문서는 작업 중 자주 쓰는 부분만 추린다.
 
 ---
 
-## Domain Module Structure
+## Module Structure
 
+```text
+core/          공유 커널. annotation, code, exception, transaction, domain/vo
+domain/        도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
+apps/api/      api + application + (교차 도메인 호출 어댑터). 실행 모듈(bootJar)
+modules/       외부 의존성 연결 설정 전용 (postgres, redis, aws, kakao, apple, discord, jasypt, firebase)
 ```
-core/                     # 공유 커널 (annotation, code, domain, exception, transaction)
-domain/                   # JPA 엔티티. com.neki.<context>.entity.*
-apps/api/              # api + application + infra 어댑터. 실행 모듈(bootJar)
-└── src/main/kotlin/com/neki/
-    ├── user/                  # 회원, 인증(OAuth/JWT)
-    │   ├── api/              # Controllers, DTOs, Converters
-    │   ├── application/      # UseCases, dto, Ports
-    │   └── infra/            # Adapters, Security configs
-    ├── photo/                 # 사진 아카이빙
-    ├── pose/                  # 포즈 추천
-    ├── map/                   # 부스 위치 검색
-    ├── media/                 # S3 미디어
-    ├── support/               # 약관, 앱 버전
-    ├── notification/          # 푸시, Discord
-    └── common/                # 필터, 프로퍼티, 예외 핸들러 등 실행 모듈 공통
-modules/                       # 외부 의존성 연결 설정 전용
-├── postgres/  redis/  aws/  kakao/  apple/  discord/  jasypt/  firebase/
-```
-
-도메인 엔티티는 `:domain` 에 있으므로 도메인별 `domain/` 하위 패키지는 존재하지 않는다.
-`com.neki.<context>.entity.*` 로 바로 접근한다.
 
 ### Per-Domain Structure
 
-```
-[domain]/
-├── api/
-│   ├── controller/     # REST controllers
-│   ├── converter/      # Request→Command, Result→Response
-│   └── dto/           # Request/Response DTOs
-├── application/
-│   ├── command/       # Input to use cases
-│   ├── result/        # Output from use cases
-│   ├── port/          # Interfaces for infrastructure
-│   └── usecase/       # Business logic
-├── domain/
-│   ├── entity/        # JPA entities
-│   └── enums/         # Domain enums
+```text
+domain/src/main/kotlin/com/neki/domain/<domain>/
+├── repository/                영속성 인터페이스
+├── client/                    다른 도메인 호출 인터페이스
+├── external/                  외부 시스템 인터페이스
+├── dto/                       Command, Query
+├── models/                    Entity, VO, enum, 인터페이스 입출력 객체
+├── service/                   도메인 서비스
 └── infra/
-    └── persist/       # Repository adapters
-        └── jpa/       # JPA repositories
+    └── persist|cache|storage|security/ 자기 도메인 인터페이스를 구현하는 기술 어댑터
+
+apps/api/src/main/kotlin/com/neki/api/<domain>/
+├── api/
+│   ├── controller/            REST controller
+│   └── dto/                   Request, Response, Converter
+├── application/
+│   ├── *UseCase.kt            유스케이스 (usecase/ 하위 패키지 없음)
+│   └── dto/                   Result, Assembler
+└── infra/
+    └── client/                다른 도메인 UseCase 를 호출하는 어댑터
 ```
+
+`infra/client` 는 다른 도메인의 UseCase(apps/api)를 호출하므로 apps/api 에 남는다. domain 모듈이 apps/api 를 의존하면 순환 의존이 생기기 때문이다. 그 외 자기 도메인 인터페이스(repository/external)만 구현하는 기술 어댑터는 domain 모듈로 옮겨져 있다.
 
 ---
 
-## Domain Isolation Rule
+## Dependency Rules
 
-**Domains MUST NOT import from other domains directly.**
+| Layer                    | Can Depend On                  | Cannot Depend On |
+|---------------------------|--------------------------------|-------------------|
+| API                       | Application, Domain            | Infrastructure    |
+| Application               | Domain                         | API, Infrastructure (client 제외) |
+| Domain (models/dto/service/repository/client/external) | Core | 자기 도메인 infra, 다른 도메인, Application, API |
+| Domain infra (persist/cache/storage/security) | Core, modules:* | 다른 도메인, Application, API |
+| apps/api infra/client      | Application(다른 도메인), Domain | API |
 
-❌ **Wrong**:
-
-```kotlin
-// In photo domain
-import com.neki.user.entity.User  // Direct import!
-```
-
-✅ **Correct** - Use ports for cross-domain communication:
-
-```kotlin
-// In photo domain - define a port
-interface UserInfoPort {
-    fun getUserName(userId: Long): String
-}
-
-// In user domain - implement the port
-@Component
-class UserInfoAdapter(
-    private val userRepository: UserRepository
-) : UserInfoPort {
-    override fun getUserName(userId: Long): String {
-        return userRepository.findById(userId).name
-    }
-}
-```
+`apps/api/src/test/kotlin/com/neki/api/rule/ArchitectureRulesTest.kt` 가 이를 검증한다.
 
 ---
 
-## UseCase Pattern
+## 도메인 서비스 vs 유스케이스
 
-Services are annotated with `@UseCase`:
+가장 자주 어긋나는 경계다.
+
+- 도메인 서비스 : 자기 애그리거트의 불변식과 엔티티 상태 전이
+- 유스케이스 : 요청 해석, 트랜잭션 경계, 애그리거트 간 호출 순서, 외부 연동과 보상
 
 ```kotlin
 @UseCase
-class CreateFolderUseCase(
-    private val folderRepository: FolderRepositoryPort  // Inject port, not adapter
+class DeletePhotosUseCase(
+    private val photoService: PhotoService,
+    private val favoriteService: FavoriteService,
+    private val mediaClient: MediaClient,
+    private val transactionRunner: TransactionRunner,
 ) {
-    @Transactional
-    fun execute(command: CreateFolderCommand): CreateFolderResult {
-        // 1. Validate business rules
-        if (folderRepository.existsOwnedFolderName(command.userId, command.name)) {
-            throw BusinessException(ResultCode.CONFLICT_FOLDER)
+    fun execute(command: PhotoImageCommand.DeletePhotos) {
+        val deletedPhotos: List<PhotoImage> = transactionRunner.run {
+            // 즐겨찾기를 먼저 지워야 고아 레코드가 남지 않는다 (애그리거트 간 순서 = 유스케이스)
+            favoriteService.removeAll(command)
+
+            photoService.deletePhotos(command)
         }
 
-        // 2. Create domain entity
-        val folder = Folder(
-            userId = command.userId,
-            name = command.name,
-        )
-
-        // 3. Persist
-        val saved = folderRepository.save(folder)
-
-        // 4. Return result
-        return CreateFolderResult(saved.id!!)
+        // 외부 정리는 트랜잭션 커밋 이후
+        mediaClient.deleteMedias(command.userId, deletedPhotos.map { it.mediaId })
     }
 }
 ```
 
-Reference: `core/src/main/kotlin/com/neki/common/annotation/UseCase.kt`
+### 도메인 서비스 규칙
+
+- 자기 도메인의 인터페이스만 의존한다. repository 외에 cache·storage·generator 도 자기 도메인 것이면 무방하다
+- 다른 도메인 호출 클라이언트(`*Client`)와 다른 도메인 서비스는 의존하지 않는다. 교차 도메인 호출은 유스케이스가 한다
+- `Command`/`Query` 를 그대로 받는다. 스칼라로 분해해서 넘기지 않는다
+
+```kotlin
+// 지양
+photoService.validatePhotosOwned(command.userId, command.photoIds)
+
+// 지향
+photoService.validatePhotosOwned(command)
+```
+
+여러 command 가 같은 모양을 공유하면 인터페이스로 묶는다.
+
+```kotlin
+object FolderCommand {
+    interface PhotosToTargetFolders : UserScoped {
+        val photoIds: List<Long>
+        val targetFolderIds: List<Long>
+    }
+}
+```
+
+소유자만 필요하면 `UserScoped` 로 받는다. 오케스트레이션 중 정해지는 값은 `(command, photoIds)` 형태로 함께 받고 주석을 남긴다.
 
 ---
 
-## Port/Adapter Pattern
+## Domain Isolation
 
-### Port (Interface in Application Layer)
+도메인은 다른 도메인을 직접 import 하지 않는다. 소비 도메인이 호출 인터페이스를 소유하고, 자기 도메인의 모델을 반환한다.
 
 ```kotlin
-// apps/api/src/main/kotlin/com/neki/photo/application/port/FolderRepositoryPort.kt
-interface FolderRepositoryPort {
-    fun save(folder: Folder): Folder
-    fun findById(id: Long): Folder?
-    fun findAllByUserId(userId: Long): List<Folder>
-    fun existsOwnedFolderName(userId: Long, name: String): Boolean
-    fun deleteById(id: Long)
+// domain/photo/client/MediaClient.kt — 소비 도메인이 소유
+interface MediaClient {
+    fun getMediaMetadata(ownerId: Long, mediaIds: List<Long>): List<MediaMetadata>  // photo.models
 }
-```
 
-### Adapter (Implementation in Infrastructure Layer)
+// apps/api/photo/infra/client/PhotoMediaClient.kt — 어댑터가 변환 담당
+@Component
+class PhotoMediaClient(private val getMediaMetadataListUseCase: GetMediaMetadataListUseCase) : MediaClient {
 
-```kotlin
-// apps/api/src/main/kotlin/com/neki/photo/infra/persist/FolderRepositoryAdapter.kt
-@Repository
-class FolderRepositoryAdapter(
-    private val jpaRepository: JpaFolderRepository
-) : FolderRepositoryPort {
+    override fun getMediaMetadata(ownerId: Long, mediaIds: List<Long>): List<MediaMetadata> {
+        val result: MediaResult.GetMediaMetadataList =
+            getMediaMetadataListUseCase.execute(MediaQuery.GetMediaMetadataList(ownerId, mediaIds))
 
-    override fun save(folder: Folder): Folder {
-        return jpaRepository.save(folder)
+        return result.medias.map { it.toMetadata() }
     }
 
-    override fun findById(id: Long): Folder? {
-        return jpaRepository.findByIdOrNull(id)
-    }
-
-    // ... other implementations
+    // media 도메인의 Result 를 photo 도메인 모델로 변환
+    private fun MediaResult.Metadata.toMetadata(): MediaMetadata = MediaMetadata(...)
 }
 ```
 
-### JPA Repository
+`*Contract` 타입은 두지 않는다. provider 의 `Result` 에서 소비 도메인 모델로 adapter 가 바로 변환한다.
 
-```kotlin
-// apps/api/src/main/kotlin/com/neki/photo/infra/persist/jpa/JpaFolderRepository.kt
-interface JpaFolderRepository : JpaRepository<Folder, Long> {
-    fun findAllByUserId(userId: Long): List<Folder>
-    fun existsByUserIdAndName(userId: Long, name: String): Boolean
-}
-```
+같은 모양의 모델이 도메인마다 중복되는 것은 도메인 격리를 위해 감수하는 트레이드 오프다.
 
-### Port Method Naming Conventions
+---
 
-Use consistent verb names across all ports:
+## Interface Naming
+
+- 도메인 인터페이스에 `port` 패키지와 `Port` 접미사를 쓰지 않는다. 역할별로 `repository/`, `client/`, `external/` 에 나눠 둔다
+- `client/` 는 도메인 간 호출 전용이다. `MapApiClient` 처럼 `Client` 접미사가 붙어도 외부 API 면 `external/` 에 둔다
+- 기술 구현 어댑터는 `*Adapter`, 다른 도메인 호출 어댑터는 `<소비도메인><Provider>Client` (e.g. `PhotoMediaClient`)
+- Spring Data JPA 는 `Jpa*Repository`, QueryDSL 은 `*QueryRepository`
+- infra 내부에서만 쓰이는 인터페이스는 이 규칙 밖이다 (e.g. `user/infra/cache/AuthCachePort`)
 
 | Operation | Method Name               | Example                              |
 |-----------|---------------------------|--------------------------------------|
@@ -224,77 +168,91 @@ Use consistent verb names across all ports:
 | Delete    | `delete`, `remove`        | `delete(userId, photoId)`            |
 | Count     | `count*`                  | `countByUserId(userId)`              |
 
-**Prefer `delete` over `remove` for consistency with SQL terminology.**
+---
+
+## Command / Query / Result / Assembler
+
+| 타입 | 위치 |
+|------|------|
+| `Command`, `Query` | `domain/<domain>/dto` |
+| `Result`, `Assembler` | `apps/api/<domain>/application/dto` |
+| `Request`, `Response`, `Converter` | `apps/api/<domain>/api/dto` |
+
+```kotlin
+// domain/photo/dto/FolderCommand.kt
+object FolderCommand {
+    data class CreateFolder(override val userId: Long, val name: String) : UserScoped
+}
+
+// apps/api/photo/application/dto/FolderResult.kt
+object FolderResult {
+    data class CreateFolder(val folderId: Long)
+}
+```
+
+### Assembler
+
+`Result` 조립은 유스케이스에 인라인으로 두지 않고 `application/dto/*Assembler` 로 뺀다.
+
+```kotlin
+object FolderAssembler {
+    fun toItems(foldersWithStats: List<FolderStats>): List<FolderResult.GetFolders.Item> = ...
+}
+```
+
+포트 호출은 유스케이스가 하고 `Assembler` 는 순수 변환만 한다. 조립에 외부 조회가 필요하면 유스케이스가 먼저 조회해서 넘긴다.
 
 ---
 
-## Command/Query/Result Pattern
+## Entity State Change
 
-application DTO는 모두 `application/dto/` 에 두고, 도메인 그룹별 `object` 하위 중첩 클래스로 묶는다.
-쓰기 입력은 `XxxCommand`, 조회 입력은 `XxxQuery`, 출력은 `XxxResult`.
-
-### Command (쓰기 입력)
+엔티티 필드를 외부에서 직접 대입하지 않고 의도가 드러나는 메서드로 바꾼다.
 
 ```kotlin
-// apps/api/src/main/kotlin/com/neki/photo/application/dto/FolderCommand.kt
-object FolderCommand {
-    data class CreateFolder(
-        val userId: Long,
-        val name: String,
-    )
+// 지양
+folder.name = command.newName
 
-    data class DeleteFolders(
-        val userId: Long,
-        val folderIds: List<Long>,
-    )
-}
+// 지향
+folder.rename(command.newName)
 ```
 
-### Query (조회 입력)
+종류가 갈리는 엔티티는 companion factory 로 의도를 드러낸다.
 
 ```kotlin
-// apps/api/src/main/kotlin/com/neki/photo/application/dto/FolderQuery.kt
-object FolderQuery {
-    data class GetFolders(
-        val userId: Long,
-        val limit: Int?,
-    )
-}
+UserTermAgreementHist.agreed(userId, termId)
+UserTermAgreementHist.withdrawn(userId, termId)
 ```
 
-### Result (출력)
+---
 
-```kotlin
-// apps/api/src/main/kotlin/com/neki/photo/application/dto/FolderResult.kt
-object FolderResult {
-    data class CreateFolder(
-        val folderId: Long,
-    )
+## 일급 컬렉션 도입 기준
 
-    data class GetFolders(
-        val items: List<FolderInfo>,
-    ) {
-        data class FolderInfo(val folderId: Long, val name: String, val storageKey: String?, val count: Long)
-    }
-}
-```
+컬렉션에 대한 질의나 판단이 **반복될 때만** 도입한다. 한 번 매핑하고 끝나는 리스트를 감싸면 껍데기만 늘어난다.
+
+- 도입 : `ActiveTerms`, `MediaMetadatas`, `MediaAvailabilities`
+- 미도입 : `List<NotificationHist>` (한 번 매핑하고 끝)
+
+유스케이스의 리스트 매핑이 거슬린다면 일급 컬렉션이 아니라 `Assembler` 로 해결할 문제다.
+
+---
+
+## Shared Kernel
+
+`core` 의 `com.neki.common.domain.vo` 에 도메인 무관한 값 객체를 둔다.
+
+- `SortOrder` : 정렬 순서
+- `Pagination` : `offset`, `limit`, `slice()` 를 소유. hasNext 판단 전략이 여기 한 곳에만 있다
+- `Page<T>` : 조회 결과와 다음 페이지 존재 여부
+
+도메인 의미가 붙는 순간 각 도메인의 `models` 로 가야 한다.
 
 ---
 
 ## QueryDSL for Batch Operations
 
-When you need batch operations (delete/update multiple records), use QueryDSL instead of Spring Data
-JPA for better performance.
-
-### Naming Convention
-
-- **Spring Data JPA**: `Jpa*Repository` (e.g., `JpaFolderRepository`)
-- **QueryDSL**: `*QueryRepository` (e.g., `FolderQueryRepository`)
-
-### Example: Batch Delete
+벌크 삭제·수정은 Spring Data JPA 대신 QueryDSL 을 쓴다. 단일 쿼리로 처리되어 N 번의 개별 쿼리를 피할 수 있다.
 
 ```kotlin
-// QueryDSL repository
 @Repository
 class FavoritePhotoQueryRepository(private val queryFactory: JPAQueryFactory) {
     fun deleteAllByUserIdAndPhotoIds(userId: Long, photoIds: List<Long>): Long =
@@ -305,86 +263,33 @@ class FavoritePhotoQueryRepository(private val queryFactory: JPAQueryFactory) {
             )
             .execute()
 }
-
-// Adapter using both JPA and QueryDSL
-@Repository
-class FavoriteImageRepositoryAdapter(
-    private val jpaRepository: JpaFavoriteImageRepository,
-    private val queryRepository: FavoritePhotoQueryRepository,
-) : FavoriteImageRepositoryPort {
-
-    override fun delete(favoritePhoto: FavoritePhoto) =
-        jpaRepository.deleteById(favoritePhoto.id)
-
-    override fun deleteAll(userId: Long, photoIds: List<Long>) {
-        if (photoIds.isEmpty()) return
-        queryRepository.deleteAllByUserIdAndPhotoIds(userId, photoIds)
-    }
-}
 ```
-
-**Performance**: Single DELETE query vs N individual deletes
-
----
-
-## Entity Deletion Patterns
-
-### Cascade Deletion Order
-
-When deleting entities with relationships, delete dependent entities FIRST to prevent orphan
-records.
-
-**Example: Photo with Favorites**
-
-```kotlin
-@UseCase
-class DeletePhotoUseCase(
-    private val photoImageRepository: PhotoImageRepositoryPort,
-    private val favoriteImageRepository: FavoriteImageRepositoryPort,
-    private val mediaClient: MediaClientPort,
-    private val transactionRunner: TransactionRunner,
-) {
-    fun execute(command: DeletePhotoCommand) {
-        val photo = transactionRunner.run {
-            // 1. Delete favorites FIRST (dependent)
-            favoriteImageRepository.delete(FavoritePhoto(command.userId, command.photoId))
-
-            // 2. Delete photo SECOND (parent)
-            photoImageRepository.deleteOwnedPhoto(command.userId, command.photoId)
-        } ?: throw BusinessException(ResultCode.NOT_FOUND)
-
-        // 3. External cleanup LAST (outside transaction)
-        mediaClient.deleteMedia(command.userId, photo.mediaId)
-    }
-}
-```
-
-**Key Points:**
-
-- Delete dependent entities before parent entities
-- Use transactions to ensure atomicity
-- External service calls (S3, etc.) happen AFTER transaction commits
-- Prevents orphan records in the database
 
 ---
 
 ## Checklist for New Domain
 
-- [ ] Create domain directory with api/application/domain/infra structure
-- [ ] Define entities in `domain/entity/`
-- [ ] Define ports in `application/port/`
-- [ ] Implement adapters in `infra/persist/`
-- [ ] Create use cases with `@UseCase` annotation
-- [ ] Create converters for Request→Command and Result→Response
-- [ ] Ensure NO imports from other domains
-- [ ] Add E2E tests
+- [ ] `domain/<domain>/models` 에 엔티티와 값 객체 정의
+- [ ] `domain/<domain>/dto` 에 Command, Query 정의
+- [ ] 도메인 인터페이스를 `domain/<domain>/{repository,client,external}` 에 정의 (Port 접미사 없이)
+- [ ] `domain/<domain>/service` 에 도메인 서비스 정의 (자기 애그리거트 리포지터리만 의존)
+- [ ] `domain/<domain>/infra` 에 자기 도메인 인터페이스(repository/external)를 구현하는 `*Adapter` 구현
+- [ ] `apps/api/<domain>/application` 에 `@UseCase` 정의 (command/query 를 그대로 도메인 서비스에 전달)
+- [ ] `apps/api/<domain>/application/dto` 에 Result 와 Assembler 정의
+- [ ] `apps/api/<domain>/infra/client` 에 다른 도메인 UseCase 를 호출하는 어댑터 구현
+- [ ] `apps/api/<domain>/api/dto` 에 Request, Response, Converter 정의
+- [ ] 다른 도메인 import 가 없는지 확인
+- [ ] E2E 테스트 추가
 
 ---
 
 ## File References
 
-| Component          | Location                                                           |
-|--------------------|--------------------------------------------------------------------|
+| Component          | Location                                                               |
+|--------------------|------------------------------------------------------------------------|
 | UseCase annotation | `core/src/main/kotlin/com/neki/common/annotation/UseCase.kt`            |
 | Base entity        | `core/src/main/kotlin/com/neki/common/domain/BaseTimeEntity.kt`         |
 | Transaction runner | `core/src/main/kotlin/com/neki/common/transaction/TransactionRunner.kt` |
+| Paging value objects | `core/src/main/kotlin/com/neki/common/domain/vo/Paging.kt`            |
+| Architecture rules | `apps/api/src/test/kotlin/com/neki/rule/ArchitectureRulesTest.kt`       |
+| Full policy        | `docs/layering-policy.md`                                              |

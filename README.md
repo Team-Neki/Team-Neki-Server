@@ -48,13 +48,16 @@
 
 도메인별로 패키지를 나누고, 각 도메인 내부는 **Clean Architecture** 기반의 계층으로 구성됩니다.
 
+세부적인 DTO·도메인 모델·인프라 계약의 소유권과 변환 책임은 [`docs/layering-policy.md`](docs/layering-policy.md)를 따릅니다.
+
 ```
 api          HTTP 요청/응답 처리 (Controller, DTO, Converter)
-application  비즈니스 로직 (UseCase, Port, Command/Query, Result)
+application  유스케이스 조합과 Result 반환
 infra        외부 의존성 구현체 (JPA, Redis, S3, 외부 API 등)
+domain       Command/Query, 모델, 도메인 서비스와 flat 인터페이스
 ```
 
-핵심 엔티티와 도메인 규칙은 별도 모듈 `domain`으로 분리되어 있습니다. 의존성 방향은 항상 `api → application → domain` 단방향이며, `infra`는 `application`의 Port 인터페이스를 구현합니다. 도메인 간 직접 import는 금지하고, 필요한 경우 Port를 통해 통신합니다.
+핵심 엔티티와 도메인 규칙은 별도 모듈 `domain`으로 분리되어 있습니다. 의존성 방향은 항상 `api → application → domain` 단방향입니다. infra adapter는 domain의 flat 인터페이스를 구현하며, 도메인 간 호출은 소비 도메인의 client 인터페이스와 infra adapter를 통해 격리합니다.
 
 Gradle 멀티 모듈로 구성되어 있습니다. `core`는 공유 커널, `domain`은 JPA 엔티티,
 `apps/api`은 api·application·infra 어댑터를 담는 실행 모듈이며,

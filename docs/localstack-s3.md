@@ -82,7 +82,7 @@ presigned URL 로 업로드할 때 CORS 가 걸리면 `app.cors.allowed-origins`
 
 ## 테스트 프로파일과의 관계
 
-`test` 프로파일에서는 LocalStack 을 쓰지 않습니다. `S3MediaStorageConfig` 가 `@Profile("!test")` 라 S3 관련 빈이 아예 만들어지지 않고, 대신 `FakeMediaStorageConfig` 의 인메모리 구현이 `MediaStoragePort` 를 대신합니다. 따라서 E2E 테스트를 돌릴 때 docker compose 가 떠 있을 필요가 없습니다.
+`test` 프로파일에서는 LocalStack 을 쓰지 않습니다. `S3MediaStorageConfig` 가 `@Profile("!test")` 라 S3 관련 빈이 아예 만들어지지 않고, 대신 `FakeMediaStorageConfig` 의 인메모리 구현이 `MediaStorage` 를 대신합니다. 따라서 E2E 테스트를 돌릴 때 docker compose 가 떠 있을 필요가 없습니다.
 
 `apps/api/src/test/resources/application-test.yml` 에도 `aws.s3` 블록이 있지만, 이는 `S3Properties` 바인딩을 통과시키기 위한 더미값입니다.
 
