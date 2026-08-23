@@ -59,6 +59,31 @@ class PhotoBoothLocationQueryRepository(
     }
 
     /**
+     * 다각형 내부에 포토부스가 존재하는 브랜드 ID 조회
+     * 브랜드 목록만 필요하므로 location row 를 가져오지 않고 brand_id 만 중복 없이 조회한다.
+     * @param coordinates 다각형을 구성하는 좌표 리스트 (경도, 위도)
+     * @param brandIds 브랜드 ID 리스트 (nullable)
+     */
+    fun findBrandIdsByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): List<Long> {
+        // LINESTRING 생성을 위한 좌표 문자열 생성
+        val lineString: String = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
+
+        val query = queryFactory
+            .select(photoBoothLocation.brandId)
+            .distinct()
+            .from(photoBoothLocation)
+            .where(
+                Expressions.booleanTemplate(
+                    "ST_Contains(ST_MakePolygon(ST_GeomFromText('LINESTRING($lineString)', 4326)), {0}) = true",
+                    photoBoothLocation.location,
+                ),
+                brandIds?.takeIf { it.isNotEmpty() }?.let { photoBoothLocation.brandId.`in`(it) },
+            )
+
+        return query.fetch()
+    }
+
+    /**
      * geography문법이 Hibernate/QueryDSL에서 파싱 불가 따라서 Native Query 작성
      * 특정 좌표 기준 거리순 포토부스 조회
      * @param longitude 경도

@@ -23,6 +23,8 @@ interface PhotoBoothLocationRepository {
 
     fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationView>
 
+    fun listPolygonBrandIds(coordinates: List<Coordinate>, brandIds: List<Long>?): List<Long>
+
     fun listPointLocations(
         coordinate: Coordinate,
         radiusInMeters: Int,

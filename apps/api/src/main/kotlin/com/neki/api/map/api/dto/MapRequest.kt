@@ -62,6 +62,32 @@ object MapRequest {
         )
     }
 
+    @Schema(
+        name = "GetPolygonBrandRequest",
+        description = "다각형 영역 내 브랜드 조회 요청. GetPolygonLocationRequest 와 파라미터가 동일합니다.",
+        example = """
+            {
+                "coordinates": [
+                    {"longitude": 127.019128, "latitude": 37.502456},
+                    {"longitude": 127.035359, "latitude": 37.502853},
+                    {"longitude": 127.035663, "latitude": 37.494395},
+                    {"longitude": 127.023675, "latitude": 37.494257},
+                    {"longitude": 127.019128, "latitude": 37.502456}
+                ],
+                "brandIds": []
+            }
+        """,
+    )
+    data class GetPolygonBrand(
+        @field:Schema(description = "다각형을 구성하는 좌표 리스트. 첫 좌표와 마지막 좌표가 동일해야 합니다.")
+        @field:NotEmpty
+        @field:Valid
+        val coordinates: List<GetPolygonLocation.Coordinate>,
+
+        @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드)", example = "[1, 2, 3]")
+        val brandIds: List<Long>? = null,
+    )
+
     @Schema(name = "GetPointLocationRequest")
     data class GetPointLocation(
         @field:Schema(description = "기준점 경도", example = "127.0276")

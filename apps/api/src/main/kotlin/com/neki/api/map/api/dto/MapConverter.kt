@@ -36,6 +36,15 @@ object MapConverter {
             )
         }
 
+        fun toGetPolygonBrandQuery(userId: Long, request: MapRequest.GetPolygonBrand): MapQuery.GetPolygonBrand {
+            val coordinates: List<Coordinate> = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
+            return MapQuery.GetPolygonBrand(
+                userId = userId,
+                coordinates = coordinates,
+                brandIds = request.brandIds,
+            )
+        }
+
         fun toGetPointLocationQuery(userId: Long, request: MapRequest.GetPointLocation): MapQuery.GetPointLocation =
             MapQuery.GetPointLocation(
                 userId = userId,

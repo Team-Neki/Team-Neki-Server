@@ -381,5 +381,17 @@ class ArchitectureRulesTest {
                 .because("@UseCase classes must depend on ports, not infrastructure (user domain excluded)")
                 .check(importedClasses)
         }
+
+        // UseCase -> Service -> Repository 가 표준이다.
+        // repository 를 직접 주입하면 도메인 서비스 계층이 우회되어 애그리거트 불변식이 흩어진다.
+        // client/external 인터페이스 의존은 교차 도메인 호출·외부 연동이므로 계속 허용한다.
+        @Test
+        fun `@UseCase 클래스는 repository 인터페이스를 직접 의존할 수 없다`() {
+            noClasses()
+                .that().areAnnotatedWith(com.neki.core.annotation.UseCase::class.java)
+                .should().dependOnClassesThat().resideInAnyPackage("com.neki.domain.*.repository..")
+                .because("@UseCase must go through domain services, not repositories directly")
+                .check(importedClasses)
+        }
     }
 }

@@ -5,7 +5,9 @@ import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.FavoriteMap
+import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.PhotoBoothLocationView
+import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
 import org.springframework.stereotype.Component
@@ -37,4 +39,40 @@ class MapService(
             favoriteMapRepository.delete(favoriteMap)
         }
     }
+
+    fun getPolygonLocations(query: MapQuery.GetPolygonLocation): List<PhotoBoothLocationView> =
+        photoBoothLocationRepository.listPolygonLocations(
+            coordinates = query.coordinates,
+            brandIds = query.brandIds,
+        )
+
+    fun getPointLocations(query: MapQuery.GetPointLocation): List<PhotoBoothLocationWithDistance> =
+        photoBoothLocationRepository.listPointLocations(
+            coordinate = query.coordinate,
+            radiusInMeters = query.radiusInMeters,
+            brandIds = query.brandIds,
+        )
+
+    /**
+     * 다각형 영역 안에 포토부스가 존재하는 브랜드 ID 를 중복 없이 조회한다.
+     */
+    fun getBrandIdsInPolygon(query: MapQuery.GetPolygonBrand): List<Long> =
+        photoBoothLocationRepository.listPolygonBrandIds(
+            coordinates = query.coordinates,
+            brandIds = query.brandIds,
+        )
+
+    /**
+     * locationIds 는 오케스트레이션 중 결정되는 값이므로 userId 와 함께 받는다.
+     */
+    fun findFavoritedLocationIds(userId: Long, locationIds: List<Long>): Set<Long> =
+        favoriteMapRepository.findFavoritedLocationIds(userId, locationIds)
+
+    fun getLocationsByBrandId(brandId: Long): List<PhotoBoothLocation> =
+        photoBoothLocationRepository.getPhotoBoothLocations(brandId)
+
+    fun saveLocations(locations: Collection<PhotoBoothLocation>): Collection<PhotoBoothLocation> =
+        photoBoothLocationRepository.saveAll(locations)
+
+    fun deleteLocations(locations: Collection<PhotoBoothLocation>) = photoBoothLocationRepository.deleteAll(locations)
 }

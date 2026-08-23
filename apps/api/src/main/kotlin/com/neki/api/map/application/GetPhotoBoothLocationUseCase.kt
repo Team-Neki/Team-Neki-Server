@@ -6,8 +6,7 @@ import com.neki.core.transaction.TransactionRunner
 import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
-import com.neki.domain.map.repository.FavoriteMapRepository
-import com.neki.domain.map.repository.PhotoBoothLocationRepository
+import com.neki.domain.map.service.MapService
 
 /**
  * fileName       : GetPhotoBoothLocationUseCase
@@ -17,8 +16,7 @@ import com.neki.domain.map.repository.PhotoBoothLocationRepository
  */
 @UseCase
 class GetPhotoBoothLocationUseCase(
-    private val photoBoothLocationRepository: PhotoBoothLocationRepository,
-    private val favoriteMapRepository: FavoriteMapRepository,
+    private val mapService: MapService,
     private val transactionRunner: TransactionRunner,
 ) {
 
@@ -26,16 +24,13 @@ class GetPhotoBoothLocationUseCase(
      * 다각형 기준으로 포토부스 위치 조회
      */
     fun execute(query: MapQuery.GetPolygonLocation): MapResult.GetPolygonLocation = transactionRunner.readOnly {
-        val locations: List<PhotoBoothLocationView> = photoBoothLocationRepository.listPolygonLocations(
-            coordinates = query.coordinates,
-            brandIds = query.brandIds,
-        )
+        val locations: List<PhotoBoothLocationView> = mapService.getPolygonLocations(query)
 
         if (locations.isEmpty()) {
             return@readOnly MapResult.GetPolygonLocation(emptyList(), emptySet())
         }
 
-        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+        val favoriteLocationIds: Set<Long> = mapService.findFavoritedLocationIds(
             userId = query.userId,
             locationIds = locations.map { it.id },
         )
@@ -47,18 +42,13 @@ class GetPhotoBoothLocationUseCase(
      * 특정 Point(사용자) 기준으로 포토부스 위치 조회
      */
     fun execute(query: MapQuery.GetPointLocation): MapResult.GetPointLocation = transactionRunner.readOnly {
-        val locations: List<PhotoBoothLocationWithDistance> =
-            photoBoothLocationRepository.listPointLocations(
-                coordinate = query.coordinate,
-                radiusInMeters = query.radiusInMeters,
-                brandIds = query.brandIds,
-            )
+        val locations: List<PhotoBoothLocationWithDistance> = mapService.getPointLocations(query)
 
         if (locations.isEmpty()) {
             return@readOnly MapResult.GetPointLocation(emptyList(), emptySet())
         }
 
-        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+        val favoriteLocationIds: Set<Long> = mapService.findFavoritedLocationIds(
             userId = query.userId,
             locationIds = locations.map { it.id },
         )

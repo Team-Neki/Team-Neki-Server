@@ -13,4 +13,6 @@ interface BrandRepository {
     fun getBrand(code: String): Brand?
 
     fun findAll(): List<Brand>
+
+    fun findAllByIds(ids: Collection<Long>): List<Brand>
 }

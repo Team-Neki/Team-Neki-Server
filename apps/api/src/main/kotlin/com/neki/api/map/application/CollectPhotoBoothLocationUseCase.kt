@@ -2,16 +2,15 @@ package com.neki.api.map.application
 
 import com.neki.api.map.application.dto.MapResult
 import com.neki.core.annotation.UseCase
-import com.neki.core.code.ResultCode
-import com.neki.core.exception.BusinessException
 import com.neki.core.transaction.TransactionRunner
 import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.external.MapSearch
+import com.neki.domain.map.models.Brand
 import com.neki.domain.map.models.GeoPoint
 import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.SearchedPlace
-import com.neki.domain.map.repository.BrandRepository
-import com.neki.domain.map.repository.PhotoBoothLocationRepository
+import com.neki.domain.map.service.BrandService
+import com.neki.domain.map.service.MapService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -24,8 +23,8 @@ import org.slf4j.LoggerFactory
 @Deprecated("Prefect 배치로 이관 예정. 이관 완료 후 POST /api/photo-booths/collect 와 함께 제거한다")
 @UseCase
 class CollectPhotoBoothLocationUseCase(
-    private val brandRepository: BrandRepository,
-    private val photoBoothLocationRepository: PhotoBoothLocationRepository,
+    private val brandService: BrandService,
+    private val mapService: MapService,
     private val transactionRunner: TransactionRunner,
     private val mapSearch: MapSearch,
 ) {
@@ -40,9 +39,8 @@ class CollectPhotoBoothLocationUseCase(
 
         // 1. 브랜드 및 기존 위치 조회
         val (brand, existingLocations) = transactionRunner.readOnly {
-            val brand = brandRepository.getBrand(command.brandCode)
-                ?: throw BusinessException(ResultCode.NOT_FOUND)
-            val locations = photoBoothLocationRepository.getPhotoBoothLocations(brand.id!!)
+            val brand: Brand = brandService.getBrandByCode(command)
+            val locations: Map<String, PhotoBoothLocation> = mapService.getLocationsByBrandId(brand.id!!)
                 .associateBy { it.mapId }
             brand to locations
         }
@@ -91,12 +89,12 @@ class CollectPhotoBoothLocationUseCase(
 
         transactionRunner.run {
             if (processed.isNotEmpty()) {
-                photoBoothLocationRepository.saveAll(processed.values)
+                mapService.saveLocations(processed.values)
                 log.info("Saved {} locations (insert: {}, update: {})", processed.size, insertCount, updateCount)
             }
 
             if (toDelete.isNotEmpty()) {
-                photoBoothLocationRepository.deleteAll(toDelete)
+                mapService.deleteLocations(toDelete)
                 log.info("Deleted {} locations", toDelete.size)
             }
         }

@@ -7,6 +7,7 @@ import com.neki.api.map.api.dto.MapResponse
 import com.neki.api.map.application.CollectPhotoBoothLocationUseCase
 import com.neki.api.map.application.GetBrandUseCase
 import com.neki.api.map.application.GetPhotoBoothLocationUseCase
+import com.neki.api.map.application.GetPolygonBrandUseCase
 import com.neki.api.map.application.UpdateBrandOrderUseCase
 import com.neki.api.map.application.dto.MapResult
 import com.neki.core.api.dto.BaseResponse
@@ -39,6 +40,7 @@ class MapController(
     private val updateBrandOrderUseCase: UpdateBrandOrderUseCase,
     private val collectPhotoBoothLocationUseCase: CollectPhotoBoothLocationUseCase,
     private val getPhotoBoothLocationUseCase: GetPhotoBoothLocationUseCase,
+    private val getPolygonBrandUseCase: GetPolygonBrandUseCase,
     private val requestConverter: MapConverter.RequestConverter,
     private val responseConverter: MapConverter.ResponseConverter,
 ) {
@@ -122,6 +124,34 @@ class MapController(
         val result: MapResult.GetPolygonLocation = getPhotoBoothLocationUseCase.execute(query)
 
         val response: MapResponse.GetPolygonLocation = responseConverter.toGetPolygonLocationResponse(result)
+
+        return BaseResponse(data = response)
+    }
+
+    @Operation(
+        summary = "다각형 영역 내 브랜드 조회 API",
+        description = """
+            다각형 영역 내에 포토부스가 존재하는 브랜드만 조회합니다.
+            지도 필터에서 현재 화면에 실제로 존재하는 브랜드만 노출하기 위한 API 입니다.
+
+            요청 파라미터는 POST /api/photo-booths/polygon 과 동일하므로 동일한 body 를 그대로 사용할 수 있습니다.
+            coordinates의 첫 좌표와 마지막 좌표는 동일해야 합니다 (다각형을 닫기 위함).
+
+            정렬 순서는 브랜드 전체 조회(GET /api/photo-booths/brand)와 동일하게 사용자별 정렬 순서를 따릅니다.
+
+            example에 있는 위치는 강남역 기준
+            """,
+    )
+    @PostMapping("/polygon/brand")
+    fun getBrandsByPolygon(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @Valid @RequestBody request: MapRequest.GetPolygonBrand,
+    ): BaseResponse<List<MapResponse.GetBrand>> {
+        val query: MapQuery.GetPolygonBrand = requestConverter.toGetPolygonBrandQuery(userId, request)
+
+        val result: List<MapResult.GetBrand> = getPolygonBrandUseCase.execute(query)
+
+        val response: List<MapResponse.GetBrand> = responseConverter.toGetBrandResponse(result)
 
         return BaseResponse(data = response)
     }

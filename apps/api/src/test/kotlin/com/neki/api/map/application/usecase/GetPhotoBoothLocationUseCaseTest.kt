@@ -7,6 +7,7 @@ import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
+import com.neki.domain.map.service.MapService
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -36,9 +37,9 @@ class GetPhotoBoothLocationUseCaseTest :
         beforeTest {
             photoBoothLocationRepository = mockk()
             favoriteMapRepository = mockk()
+            // repository 는 mock, 도메인 서비스는 실제 구현을 사용해 UseCase -> Service -> Repository 경로를 검증한다
             useCase = GetPhotoBoothLocationUseCase(
-                photoBoothLocationRepository,
-                favoriteMapRepository,
+                MapService(favoriteMapRepository, photoBoothLocationRepository),
                 FakeTransactionRunner(),
             )
         }

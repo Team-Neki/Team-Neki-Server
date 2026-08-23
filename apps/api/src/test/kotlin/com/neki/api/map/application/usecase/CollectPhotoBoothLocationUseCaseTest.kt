@@ -11,7 +11,11 @@ import com.neki.domain.map.external.MapSearch
 import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.SearchedPlace
 import com.neki.domain.map.repository.BrandRepository
+import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
+import com.neki.domain.map.repository.UserBrandOrderRepository
+import com.neki.domain.map.service.BrandService
+import com.neki.domain.map.service.MapService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -29,16 +33,22 @@ class CollectPhotoBoothLocationUseCaseTest :
 
         lateinit var brandRepository: BrandRepository
         lateinit var photoBoothLocationRepository: PhotoBoothLocationRepository
+        lateinit var favoriteMapRepository: FavoriteMapRepository
+        lateinit var userBrandOrderRepository: UserBrandOrderRepository
         lateinit var mapSearch: MapSearch
         lateinit var useCase: CollectPhotoBoothLocationUseCase
 
         beforeTest {
             brandRepository = mockk()
             photoBoothLocationRepository = mockk()
+            // 수집 흐름에서 사용하지 않는 의존이지만 도메인 서비스 생성을 위해 필요하다
+            favoriteMapRepository = mockk()
+            userBrandOrderRepository = mockk()
             mapSearch = mockk()
+            // repository 는 mock, 도메인 서비스는 실제 구현을 사용해 UseCase -> Service -> Repository 경로를 검증한다
             useCase = CollectPhotoBoothLocationUseCase(
-                brandRepository = brandRepository,
-                photoBoothLocationRepository = photoBoothLocationRepository,
+                brandService = BrandService(brandRepository, userBrandOrderRepository),
+                mapService = MapService(favoriteMapRepository, photoBoothLocationRepository),
                 transactionRunner = FakeTransactionRunner(),
                 mapSearch = mapSearch,
             )
