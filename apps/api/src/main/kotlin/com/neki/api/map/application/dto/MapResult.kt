@@ -13,10 +13,15 @@ object MapResult {
     data class GetBrand(val id: Long, val name: String, val code: String, val storageKey: String?)
 
     /**
-     * 다각형 영역 내 브랜드 조회 전용.
+     * 다각형 영역에서 사용할 수 있는 지도 필터 목록.
+     * 필터가 늘어나면 배열이 아닌 이 타입에 필드를 추가한다.
+     */
+    data class GetPolygonFilter(val brandFilter: List<BrandFilter>)
+
+    /**
      * 로고 이미지는 브랜드 전체 조회(GET /api/photo-booths/brand)에서 이미 내려주므로 여기서는 싣지 않는다.
      */
-    data class GetPolygonBrand(val id: Long, val name: String, val code: String, val boothCount: Long)
+    data class BrandFilter(val id: Long, val name: String, val code: String, val boothCount: Long)
 
     data class CollectPhotoBooth(val collectedCount: Int, val duplicatedCount: Int, val totalProcessed: Int)
 

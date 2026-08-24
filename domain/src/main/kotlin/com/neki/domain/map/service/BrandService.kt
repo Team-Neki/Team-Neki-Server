@@ -41,7 +41,7 @@ class BrandService(
      * brandIds 는 오케스트레이션 중 결정되는 값이므로 query 와 함께 받는다.
      * 조회 결과는 전체 조회와 동일하게 사용자별 정렬 순서를 따른다.
      */
-    fun getBrandsByIds(query: MapQuery.GetPolygonBrand, brandIds: List<Long>): List<Brand> {
+    fun getBrandsByIds(query: MapQuery.GetPolygonFilter, brandIds: List<Long>): List<Brand> {
         val brands: List<Brand> = brandRepository.findAllByIds(brandIds)
 
         val sortOrderMap: Map<Long, Int> = userBrandOrderRepository.findSortOrderMapByUserId(query.userId)

@@ -1,6 +1,6 @@
 package com.neki.api.map.application.usecase
 
-import com.neki.api.map.application.GetPolygonBrandUseCase
+import com.neki.api.map.application.GetPolygonFilterUseCase
 import com.neki.api.testfixture.FakeTransactionRunner
 import com.neki.api.testfixture.aBrand
 import com.neki.domain.map.dto.MapQuery
@@ -20,13 +20,13 @@ import io.mockk.verify
 import org.locationtech.jts.geom.Coordinate
 
 /**
- * fileName       : GetPolygonBrandUseCaseTest
- * description    : GetPolygonBrandUseCase 단위 테스트
+ * fileName       : GetPolygonFilterUseCaseTest
+ * description    : GetPolygonFilterUseCase 단위 테스트
  *
  * 다각형 조회는 PostGIS 함수(ST_Contains 등)에 의존해 H2 기반 E2E 로 검증할 수 없다.
  * 따라서 영역 내 브랜드 필터링과 사용자별 정렬은 이 단위 테스트가 검증한다.
  */
-class GetPolygonBrandUseCaseTest :
+class GetPolygonFilterUseCaseTest :
     FunSpec({
 
         val userId = 1L
@@ -44,7 +44,7 @@ class GetPolygonBrandUseCaseTest :
         lateinit var favoriteMapRepository: FavoriteMapRepository
         lateinit var brandRepository: BrandRepository
         lateinit var userBrandOrderRepository: UserBrandOrderRepository
-        lateinit var useCase: GetPolygonBrandUseCase
+        lateinit var useCase: GetPolygonFilterUseCase
 
         beforeTest {
             photoBoothLocationRepository = mockk()
@@ -53,7 +53,7 @@ class GetPolygonBrandUseCaseTest :
             userBrandOrderRepository = mockk()
 
             // repository 는 mock, 도메인 서비스는 실제 구현을 사용해 UseCase -> Service -> Repository 경로를 검증한다
-            useCase = GetPolygonBrandUseCase(
+            useCase = GetPolygonFilterUseCase(
                 MapService(favoriteMapRepository, photoBoothLocationRepository),
                 BrandService(brandRepository, userBrandOrderRepository),
                 FakeTransactionRunner(),
@@ -63,9 +63,9 @@ class GetPolygonBrandUseCaseTest :
             every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns emptyMap()
         }
 
-        test("영역 내 브랜드만 반환 - 폴리곤 조회 결과에 없는 브랜드는 제외된다") {
+        test("brandFilter - 영역 내 브랜드만 반환 - 폴리곤 조회 결과에 없는 브랜드는 제외된다") {
             // Given: 영역 내에는 1L, 3L 브랜드만 존재 (2L 은 영역 밖)
-            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
+            val query = MapQuery.GetPolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
             every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
                 mapOf(1L to 1L, 3L to 2L)
@@ -75,7 +75,7 @@ class GetPolygonBrandUseCaseTest :
             )
 
             // When
-            val results = useCase.execute(query)
+            val results = useCase.execute(query).brandFilter
 
             // Then
             results shouldHaveSize 2
@@ -93,7 +93,7 @@ class GetPolygonBrandUseCaseTest :
 
         test("사용자 정렬 순서 반영 - 저장된 순서대로 반환한다") {
             // Given: 사용자가 3L -> 1L 순으로 정렬을 저장한 상태
-            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
+            val query = MapQuery.GetPolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
             every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
                 mapOf(1L to 1L, 2L to 2L, 3L to 3L)
@@ -105,7 +105,7 @@ class GetPolygonBrandUseCaseTest :
             every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns mapOf(3L to 0, 1L to 1)
 
             // When
-            val results = useCase.execute(query)
+            val results = useCase.execute(query).brandFilter
 
             // Then: 저장된 순서(3, 1) 이후 미지정 브랜드(2)가 id 순으로 뒤에 붙는다
             results.map { it.id } shouldBe listOf(3L, 1L, 2L)
@@ -113,7 +113,7 @@ class GetPolygonBrandUseCaseTest :
 
         test("정렬 순서 미저장 사용자 - 조회 기본 순서(id 오름차순)를 유지한다") {
             // Given
-            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
+            val query = MapQuery.GetPolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
             every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
                 mapOf(3L to 1L, 1L to 2L, 2L to 3L)
@@ -124,7 +124,7 @@ class GetPolygonBrandUseCaseTest :
             )
 
             // When
-            val results = useCase.execute(query)
+            val results = useCase.execute(query).brandFilter
 
             // Then
             results.map { it.id } shouldBe listOf(1L, 2L, 3L)
@@ -132,7 +132,7 @@ class GetPolygonBrandUseCaseTest :
 
         test("일부 브랜드만 정렬 저장 - 저장된 브랜드가 앞, 나머지는 뒤쪽 id 순이다") {
             // Given: 2L 만 최상단으로 저장한 상태
-            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
+            val query = MapQuery.GetPolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
             every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
                 mapOf(1L to 1L, 2L to 2L, 3L to 3L)
@@ -144,7 +144,7 @@ class GetPolygonBrandUseCaseTest :
             every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns mapOf(2L to 0)
 
             // When
-            val results = useCase.execute(query)
+            val results = useCase.execute(query).brandFilter
 
             // Then
             results.map { it.id } shouldBe listOf(2L, 1L, 3L)
@@ -152,12 +152,12 @@ class GetPolygonBrandUseCaseTest :
 
         test("영역 내 포토부스 없음 - 빈 리스트를 반환하고 브랜드를 조회하지 않는다") {
             // Given
-            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
+            val query = MapQuery.GetPolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
             every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns emptyMap()
 
             // When
-            val results = useCase.execute(query)
+            val results = useCase.execute(query).brandFilter
 
             // Then
             results.shouldBeEmpty()
@@ -167,7 +167,7 @@ class GetPolygonBrandUseCaseTest :
 
         test("boothCount - 정렬로 순서가 뒤바뀌어도 개수는 브랜드를 따라간다") {
             // Given: 개수는 1L=10, 2L=20, 3L=30 이고 사용자는 3L -> 1L 순으로 정렬을 저장
-            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
+            val query = MapQuery.GetPolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
             every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
                 mapOf(1L to 10L, 2L to 20L, 3L to 30L)
@@ -179,7 +179,7 @@ class GetPolygonBrandUseCaseTest :
             every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns mapOf(3L to 0, 1L to 1)
 
             // When
-            val results = useCase.execute(query)
+            val results = useCase.execute(query).brandFilter
 
             // Then: 순서는 3, 1, 2 지만 각 개수는 브랜드 id 에 맞게 붙는다
             results.map { it.id } shouldBe listOf(3L, 1L, 2L)
@@ -189,7 +189,7 @@ class GetPolygonBrandUseCaseTest :
         test("brandIds 필터 - 요청 필터가 폴리곤 조회로 그대로 전달된다") {
             // Given: 1L, 2L 로 필터링 요청. 영역 내에 실제로 존재하는 것은 1L 뿐
             val filter = listOf(1L, 2L)
-            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = filter)
+            val query = MapQuery.GetPolygonFilter(userId = userId, coordinates = coordinates, brandIds = filter)
 
             every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, filter) } returns
                 mapOf(1L to 1L)
@@ -198,7 +198,7 @@ class GetPolygonBrandUseCaseTest :
             )
 
             // When
-            val results = useCase.execute(query)
+            val results = useCase.execute(query).brandFilter
 
             // Then: 필터와 영역의 교집합만 반환
             results shouldHaveSize 1

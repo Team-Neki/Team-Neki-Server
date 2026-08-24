@@ -36,9 +36,9 @@ object MapConverter {
             )
         }
 
-        fun toGetPolygonBrandQuery(userId: Long, request: MapRequest.GetPolygonBrand): MapQuery.GetPolygonBrand {
+        fun toGetPolygonFilterQuery(userId: Long, request: MapRequest.GetPolygonFilter): MapQuery.GetPolygonFilter {
             val coordinates: List<Coordinate> = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
-            return MapQuery.GetPolygonBrand(
+            return MapQuery.GetPolygonFilter(
                 userId = userId,
                 coordinates = coordinates,
                 brandIds = request.brandIds,
@@ -75,15 +75,17 @@ object MapConverter {
             )
         }
 
-        fun toGetPolygonBrandResponse(result: List<MapResult.GetPolygonBrand>): List<MapResponse.GetPolygonBrand> =
-            result.map {
-                MapResponse.GetPolygonBrand(
-                    id = it.id,
-                    name = it.name,
-                    code = it.code,
-                    boothCount = it.boothCount,
-                )
-            }
+        fun toGetPolygonFilterResponse(result: MapResult.GetPolygonFilter): MapResponse.GetPolygonFilter =
+            MapResponse.GetPolygonFilter(
+                brandFilter = result.brandFilter.map {
+                    MapResponse.BrandFilter(
+                        id = it.id,
+                        name = it.name,
+                        code = it.code,
+                        boothCount = it.boothCount,
+                    )
+                },
+            )
 
         private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
 

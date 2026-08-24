@@ -71,7 +71,7 @@ object MapRequest {
     }
 
     @Schema(
-        name = "GetPolygonBrandRequest",
+        name = "GetPolygonFilterRequest",
         description = "다각형 영역 내 브랜드 조회 요청. GetPolygonLocationRequest 와 파라미터가 동일합니다.",
         example = """
             {
@@ -86,7 +86,7 @@ object MapRequest {
             }
         """,
     )
-    data class GetPolygonBrand(
+    data class GetPolygonFilter(
         @field:Schema(
             description = "다각형을 구성하는 좌표 리스트. 4개 이상 ${MAX_POLYGON_POINTS}개 이하이며 첫 좌표와 마지막 좌표가 동일해야 합니다.",
         )

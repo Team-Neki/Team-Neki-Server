@@ -7,7 +7,7 @@ import com.neki.api.map.api.dto.MapResponse
 import com.neki.api.map.application.CollectPhotoBoothLocationUseCase
 import com.neki.api.map.application.GetBrandUseCase
 import com.neki.api.map.application.GetPhotoBoothLocationUseCase
-import com.neki.api.map.application.GetPolygonBrandUseCase
+import com.neki.api.map.application.GetPolygonFilterUseCase
 import com.neki.api.map.application.UpdateBrandOrderUseCase
 import com.neki.api.map.application.dto.MapResult
 import com.neki.core.api.dto.BaseResponse
@@ -40,7 +40,7 @@ class MapController(
     private val updateBrandOrderUseCase: UpdateBrandOrderUseCase,
     private val collectPhotoBoothLocationUseCase: CollectPhotoBoothLocationUseCase,
     private val getPhotoBoothLocationUseCase: GetPhotoBoothLocationUseCase,
-    private val getPolygonBrandUseCase: GetPolygonBrandUseCase,
+    private val getPolygonFilterUseCase: GetPolygonFilterUseCase,
     private val requestConverter: MapConverter.RequestConverter,
     private val responseConverter: MapConverter.ResponseConverter,
 ) {
@@ -129,31 +129,34 @@ class MapController(
     }
 
     @Operation(
-        summary = "다각형 영역 내 브랜드 조회 API",
+        summary = "다각형 영역 내 지도 필터 조회 API",
         description = """
-            다각형 영역 내에 포토부스가 존재하는 브랜드만 조회합니다.
-            지도 필터에서 현재 화면에 실제로 존재하는 브랜드만 노출하기 위한 API 입니다.
+            다각형 영역에서 사용할 수 있는 지도 필터를 조회합니다.
+            현재 화면에 실제로 존재하는 대상만 필터에 노출하기 위한 API 입니다.
+
+            brandFilter 는 영역 내에 포토부스가 존재하는 브랜드 목록입니다.
+            필터가 추가되면 응답에 필드가 늘어나므로, 클라이언트는 필요한 필드만 읽으면 됩니다.
 
             요청 파라미터는 POST /api/photo-booths/polygon 과 동일하므로 동일한 body 를 그대로 사용할 수 있습니다.
             coordinates 는 4개 이상이어야 하고 첫 좌표와 마지막 좌표는 동일해야 합니다 (다각형을 닫기 위함). 위반 시 400 을 반환합니다.
 
-            정렬 순서는 브랜드 전체 조회(GET /api/photo-booths/brand)와 동일하게 사용자별 정렬 순서를 따릅니다.
+            brandFilter 의 정렬 순서는 브랜드 전체 조회(GET /api/photo-booths/brand)와 동일하게 사용자별 정렬 순서를 따릅니다.
             boothCount 는 해당 영역 안에 있는 그 브랜드의 포토부스 개수입니다.
             브랜드 이미지는 내려주지 않습니다. 브랜드 전체 조회에서 받은 값을 id 로 매칭해 재사용하세요.
 
             example에 있는 위치는 강남역 기준
             """,
     )
-    @PostMapping("/polygon/brand")
-    fun getBrandsByPolygon(
+    @PostMapping("/polygon/filter")
+    fun getPolygonFilter(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: MapRequest.GetPolygonBrand,
-    ): BaseResponse<List<MapResponse.GetPolygonBrand>> {
-        val query: MapQuery.GetPolygonBrand = requestConverter.toGetPolygonBrandQuery(userId, request)
+        @Valid @RequestBody request: MapRequest.GetPolygonFilter,
+    ): BaseResponse<MapResponse.GetPolygonFilter> {
+        val query: MapQuery.GetPolygonFilter = requestConverter.toGetPolygonFilterQuery(userId, request)
 
-        val result: List<MapResult.GetPolygonBrand> = getPolygonBrandUseCase.execute(query)
+        val result: MapResult.GetPolygonFilter = getPolygonFilterUseCase.execute(query)
 
-        val response: List<MapResponse.GetPolygonBrand> = responseConverter.toGetPolygonBrandResponse(result)
+        val response: MapResponse.GetPolygonFilter = responseConverter.toGetPolygonFilterResponse(result)
 
         return BaseResponse(data = response)
     }

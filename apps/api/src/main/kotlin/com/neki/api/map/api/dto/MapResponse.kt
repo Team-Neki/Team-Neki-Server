@@ -25,11 +25,20 @@ object MapResponse {
     )
 
     @Schema(
-        name = "GetPolygonBrandResponse",
-        description = "다각형 영역 내 브랜드 조회 응답. " +
-            "브랜드 이미지는 브랜드 전체 조회(GET /api/photo-booths/brand)의 값을 재사용한다.",
+        name = "GetPolygonFilterResponse",
+        description = "다각형 영역에서 사용할 수 있는 지도 필터 목록. 필터가 추가되면 이 응답에 필드가 늘어난다.",
     )
-    data class GetPolygonBrand(
+    data class GetPolygonFilter(
+        @field:Schema(description = "영역 내에 포토부스가 존재하는 브랜드 목록")
+        val brandFilter: List<BrandFilter>,
+    )
+
+    @Schema(
+        name = "BrandFilterResponse",
+        description = "브랜드 필터 항목. " +
+            "브랜드 이미지는 브랜드 전체 조회(GET /api/photo-booths/brand)의 값을 id 로 매칭해 재사용한다.",
+    )
+    data class BrandFilter(
         @field:Schema(description = "브랜드 ID", example = "1")
         val id: Long,
 
