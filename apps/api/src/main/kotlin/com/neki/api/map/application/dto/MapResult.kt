@@ -12,6 +12,12 @@ import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 object MapResult {
     data class GetBrand(val id: Long, val name: String, val code: String, val storageKey: String?)
 
+    /**
+     * 다각형 영역 내 브랜드 조회 전용.
+     * 로고 이미지는 브랜드 전체 조회(GET /api/photo-booths/brand)에서 이미 내려주므로 여기서는 싣지 않는다.
+     */
+    data class GetPolygonBrand(val id: Long, val name: String, val code: String, val boothCount: Long)
+
     data class CollectPhotoBooth(val collectedCount: Int, val duplicatedCount: Int, val totalProcessed: Int)
 
     data class PhotoBooth(val x1: Double, val y1: Double, val x2: Double, val y2: Double)

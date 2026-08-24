@@ -54,10 +54,10 @@ class MapService(
         )
 
     /**
-     * 다각형 영역 안에 포토부스가 존재하는 브랜드 ID 를 중복 없이 조회한다.
+     * 다각형 영역 안의 포토부스 개수를 브랜드별로 집계한다. key 는 영역 내에 포토부스가 존재하는 브랜드 ID 다.
      */
-    fun getBrandIdsInPolygon(query: MapQuery.GetPolygonBrand): List<Long> =
-        photoBoothLocationRepository.listPolygonBrandIds(
+    fun getBrandBoothCountsInPolygon(query: MapQuery.GetPolygonBrand): Map<Long, Long> =
+        photoBoothLocationRepository.listPolygonBrandBoothCounts(
             coordinates = query.coordinates,
             brandIds = query.brandIds,
         )

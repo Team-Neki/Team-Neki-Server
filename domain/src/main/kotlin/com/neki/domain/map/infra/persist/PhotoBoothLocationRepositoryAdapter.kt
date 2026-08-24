@@ -37,8 +37,8 @@ class PhotoBoothLocationRepositoryAdapter(
         brandIds: List<Long>?,
     ): List<PhotoBoothLocationView> = queryRepository.findByPolygon(coordinates, brandIds)
 
-    override fun listPolygonBrandIds(coordinates: List<Coordinate>, brandIds: List<Long>?): List<Long> =
-        queryRepository.findBrandIdsByPolygon(coordinates, brandIds)
+    override fun listPolygonBrandBoothCounts(coordinates: List<Coordinate>, brandIds: List<Long>?): Map<Long, Long> =
+        queryRepository.findBrandBoothCountsByPolygon(coordinates, brandIds)
 
     override fun listPointLocations(
         coordinate: Coordinate,

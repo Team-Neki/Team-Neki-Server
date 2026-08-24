@@ -1,5 +1,8 @@
 package com.neki.api.map.api.dto
 
+import com.neki.api.map.api.validation.ClosedPolygon
+import com.neki.api.map.api.validation.MAX_POLYGON_POINTS
+import com.neki.api.map.api.validation.MAX_POLYGON_POINTS_MESSAGE
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
@@ -7,6 +10,7 @@ import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 /**
  * fileName       : MapRequest
@@ -43,9 +47,13 @@ object MapRequest {
         """,
     )
     data class GetPolygonLocation(
-        @field:Schema(description = "다각형을 구성하는 좌표 리스트. 첫 좌표와 마지막 좌표가 동일해야 합니다.")
+        @field:Schema(
+            description = "다각형을 구성하는 좌표 리스트. 4개 이상 ${MAX_POLYGON_POINTS}개 이하이며 첫 좌표와 마지막 좌표가 동일해야 합니다.",
+        )
         @field:NotEmpty
+        @field:Size(max = MAX_POLYGON_POINTS, message = MAX_POLYGON_POINTS_MESSAGE)
         @field:Valid
+        @field:ClosedPolygon
         val coordinates: List<Coordinate>,
 
         @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드)", example = "[1, 2, 3]")
@@ -79,9 +87,13 @@ object MapRequest {
         """,
     )
     data class GetPolygonBrand(
-        @field:Schema(description = "다각형을 구성하는 좌표 리스트. 첫 좌표와 마지막 좌표가 동일해야 합니다.")
+        @field:Schema(
+            description = "다각형을 구성하는 좌표 리스트. 4개 이상 ${MAX_POLYGON_POINTS}개 이하이며 첫 좌표와 마지막 좌표가 동일해야 합니다.",
+        )
         @field:NotEmpty
+        @field:Size(max = MAX_POLYGON_POINTS, message = MAX_POLYGON_POINTS_MESSAGE)
         @field:Valid
+        @field:ClosedPolygon
         val coordinates: List<GetPolygonLocation.Coordinate>,
 
         @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드)", example = "[1, 2, 3]")

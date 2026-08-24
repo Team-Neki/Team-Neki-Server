@@ -3,9 +3,7 @@ package com.neki.api.map.application.usecase
 import com.neki.api.map.application.GetPolygonBrandUseCase
 import com.neki.api.testfixture.FakeTransactionRunner
 import com.neki.api.testfixture.aBrand
-import com.neki.domain.map.client.MediaClient
 import com.neki.domain.map.dto.MapQuery
-import com.neki.domain.map.models.MediaMetadata
 import com.neki.domain.map.repository.BrandRepository
 import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
@@ -46,7 +44,6 @@ class GetPolygonBrandUseCaseTest :
         lateinit var favoriteMapRepository: FavoriteMapRepository
         lateinit var brandRepository: BrandRepository
         lateinit var userBrandOrderRepository: UserBrandOrderRepository
-        lateinit var mediaClient: MediaClient
         lateinit var useCase: GetPolygonBrandUseCase
 
         beforeTest {
@@ -54,13 +51,11 @@ class GetPolygonBrandUseCaseTest :
             favoriteMapRepository = mockk()
             brandRepository = mockk()
             userBrandOrderRepository = mockk()
-            mediaClient = mockk()
 
             // repository 는 mock, 도메인 서비스는 실제 구현을 사용해 UseCase -> Service -> Repository 경로를 검증한다
             useCase = GetPolygonBrandUseCase(
                 MapService(favoriteMapRepository, photoBoothLocationRepository),
                 BrandService(brandRepository, userBrandOrderRepository),
-                mediaClient,
                 FakeTransactionRunner(),
             )
 
@@ -72,14 +67,11 @@ class GetPolygonBrandUseCaseTest :
             // Given: 영역 내에는 1L, 3L 브랜드만 존재 (2L 은 영역 밖)
             val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonBrandIds(coordinates, null) } returns listOf(1L, 3L)
+            every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
+                mapOf(1L to 1L, 3L to 2L)
             every { brandRepository.findAllByIds(listOf(1L, 3L)) } returns listOf(
                 aBrand(id = 1L, name = "인생네컷", code = "lifefour", mediaId = 10L),
                 aBrand(id = 3L, name = "포토이즘", code = "photoism", mediaId = 30L),
-            )
-            every { mediaClient.getMediaMetadata(listOf(10L, 30L)) } returns listOf(
-                MediaMetadata(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg"),
-                MediaMetadata(mediaId = 30L, storageKey = "brand/photoism.jpg", contentType = "image/jpeg"),
             )
 
             // When
@@ -89,11 +81,13 @@ class GetPolygonBrandUseCaseTest :
             results shouldHaveSize 2
             results.map { it.id } shouldBe listOf(1L, 3L)
             results[0].name shouldBe "인생네컷"
-            results[0].storageKey shouldBe "brand/lifefour.jpg"
+            results[0].code shouldBe "lifefour"
+            results[0].boothCount shouldBe 1L
             results[1].name shouldBe "포토이즘"
-            results[1].storageKey shouldBe "brand/photoism.jpg"
+            results[1].code shouldBe "photoism"
+            results[1].boothCount shouldBe 2L
 
-            verify(exactly = 1) { photoBoothLocationRepository.listPolygonBrandIds(coordinates, null) }
+            verify(exactly = 1) { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) }
             verify(exactly = 1) { brandRepository.findAllByIds(listOf(1L, 3L)) }
         }
 
@@ -101,14 +95,14 @@ class GetPolygonBrandUseCaseTest :
             // Given: 사용자가 3L -> 1L 순으로 정렬을 저장한 상태
             val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonBrandIds(coordinates, null) } returns listOf(1L, 2L, 3L)
+            every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
+                mapOf(1L to 1L, 2L to 2L, 3L to 3L)
             every { brandRepository.findAllByIds(listOf(1L, 2L, 3L)) } returns listOf(
                 aBrand(id = 1L, name = "브랜드1", code = "brand1", mediaId = null),
                 aBrand(id = 2L, name = "브랜드2", code = "brand2", mediaId = null),
                 aBrand(id = 3L, name = "브랜드3", code = "brand3", mediaId = null),
             )
             every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns mapOf(3L to 0, 1L to 1)
-            every { mediaClient.getMediaMetadata(emptyList()) } returns emptyList()
 
             // When
             val results = useCase.execute(query)
@@ -121,13 +115,13 @@ class GetPolygonBrandUseCaseTest :
             // Given
             val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonBrandIds(coordinates, null) } returns listOf(3L, 1L, 2L)
+            every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
+                mapOf(3L to 1L, 1L to 2L, 2L to 3L)
             every { brandRepository.findAllByIds(listOf(3L, 1L, 2L)) } returns listOf(
                 aBrand(id = 3L, name = "브랜드3", code = "brand3", mediaId = null),
                 aBrand(id = 1L, name = "브랜드1", code = "brand1", mediaId = null),
                 aBrand(id = 2L, name = "브랜드2", code = "brand2", mediaId = null),
             )
-            every { mediaClient.getMediaMetadata(emptyList()) } returns emptyList()
 
             // When
             val results = useCase.execute(query)
@@ -140,14 +134,14 @@ class GetPolygonBrandUseCaseTest :
             // Given: 2L 만 최상단으로 저장한 상태
             val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonBrandIds(coordinates, null) } returns listOf(1L, 2L, 3L)
+            every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
+                mapOf(1L to 1L, 2L to 2L, 3L to 3L)
             every { brandRepository.findAllByIds(listOf(1L, 2L, 3L)) } returns listOf(
                 aBrand(id = 1L, name = "브랜드1", code = "brand1", mediaId = null),
                 aBrand(id = 2L, name = "브랜드2", code = "brand2", mediaId = null),
                 aBrand(id = 3L, name = "브랜드3", code = "brand3", mediaId = null),
             )
             every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns mapOf(2L to 0)
-            every { mediaClient.getMediaMetadata(emptyList()) } returns emptyList()
 
             // When
             val results = useCase.execute(query)
@@ -156,11 +150,11 @@ class GetPolygonBrandUseCaseTest :
             results.map { it.id } shouldBe listOf(2L, 1L, 3L)
         }
 
-        test("영역 내 포토부스 없음 - 빈 리스트를 반환하고 브랜드/미디어를 조회하지 않는다") {
+        test("영역 내 포토부스 없음 - 빈 리스트를 반환하고 브랜드를 조회하지 않는다") {
             // Given
             val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonBrandIds(coordinates, null) } returns emptyList()
+            every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns emptyMap()
 
             // When
             val results = useCase.execute(query)
@@ -168,8 +162,28 @@ class GetPolygonBrandUseCaseTest :
             // Then
             results.shouldBeEmpty()
             verify(exactly = 0) { brandRepository.findAllByIds(any()) }
-            verify(exactly = 0) { mediaClient.getMediaMetadata(any()) }
             verify(exactly = 0) { userBrandOrderRepository.findSortOrderMapByUserId(any()) }
+        }
+
+        test("boothCount - 정렬로 순서가 뒤바뀌어도 개수는 브랜드를 따라간다") {
+            // Given: 개수는 1L=10, 2L=20, 3L=30 이고 사용자는 3L -> 1L 순으로 정렬을 저장
+            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
+
+            every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, null) } returns
+                mapOf(1L to 10L, 2L to 20L, 3L to 30L)
+            every { brandRepository.findAllByIds(listOf(1L, 2L, 3L)) } returns listOf(
+                aBrand(id = 1L, name = "브랜드1", code = "brand1", mediaId = null),
+                aBrand(id = 2L, name = "브랜드2", code = "brand2", mediaId = null),
+                aBrand(id = 3L, name = "브랜드3", code = "brand3", mediaId = null),
+            )
+            every { userBrandOrderRepository.findSortOrderMapByUserId(userId) } returns mapOf(3L to 0, 1L to 1)
+
+            // When
+            val results = useCase.execute(query)
+
+            // Then: 순서는 3, 1, 2 지만 각 개수는 브랜드 id 에 맞게 붙는다
+            results.map { it.id } shouldBe listOf(3L, 1L, 2L)
+            results.map { it.boothCount } shouldBe listOf(30L, 10L, 20L)
         }
 
         test("brandIds 필터 - 요청 필터가 폴리곤 조회로 그대로 전달된다") {
@@ -177,11 +191,11 @@ class GetPolygonBrandUseCaseTest :
             val filter = listOf(1L, 2L)
             val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = filter)
 
-            every { photoBoothLocationRepository.listPolygonBrandIds(coordinates, filter) } returns listOf(1L)
+            every { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, filter) } returns
+                mapOf(1L to 1L)
             every { brandRepository.findAllByIds(listOf(1L)) } returns listOf(
                 aBrand(id = 1L, name = "인생네컷", code = "lifefour", mediaId = null),
             )
-            every { mediaClient.getMediaMetadata(emptyList()) } returns emptyList()
 
             // When
             val results = useCase.execute(query)
@@ -190,28 +204,6 @@ class GetPolygonBrandUseCaseTest :
             results shouldHaveSize 1
             results[0].id shouldBe 1L
 
-            verify(exactly = 1) { photoBoothLocationRepository.listPolygonBrandIds(coordinates, filter) }
-        }
-
-        test("미디어 없는 브랜드 - mediaId 가 null 이면 storageKey 가 null 이다") {
-            // Given
-            val query = MapQuery.GetPolygonBrand(userId = userId, coordinates = coordinates, brandIds = null)
-
-            every { photoBoothLocationRepository.listPolygonBrandIds(coordinates, null) } returns listOf(1L, 2L)
-            every { brandRepository.findAllByIds(listOf(1L, 2L)) } returns listOf(
-                aBrand(id = 1L, name = "인생네컷", code = "lifefour", mediaId = 10L),
-                aBrand(id = 2L, name = "하루필름", code = "harufilm", mediaId = null),
-            )
-            every { mediaClient.getMediaMetadata(listOf(10L)) } returns listOf(
-                MediaMetadata(mediaId = 10L, storageKey = "brand/lifefour.jpg", contentType = "image/jpeg"),
-            )
-
-            // When
-            val results = useCase.execute(query)
-
-            // Then
-            results shouldHaveSize 2
-            results[0].storageKey shouldBe "brand/lifefour.jpg"
-            results[1].storageKey shouldBe null
+            verify(exactly = 1) { photoBoothLocationRepository.listPolygonBrandBoothCounts(coordinates, filter) }
         }
     })

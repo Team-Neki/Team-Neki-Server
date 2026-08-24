@@ -1,6 +1,9 @@
 package com.neki.api.e2e.map
 
 import com.neki.api.map.api.dto.MapRequest
+import com.neki.api.map.api.validation.CLOSED_POLYGON_MESSAGE
+import com.neki.api.map.api.validation.MAX_POLYGON_POINTS
+import com.neki.api.map.api.validation.MAX_POLYGON_POINTS_MESSAGE
 import com.neki.core.api.dto.BaseResponse
 import com.neki.core.code.ResultCode
 import com.neki.domain.map.models.Brand
@@ -8,6 +11,7 @@ import com.neki.domain.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
@@ -114,6 +118,74 @@ class GetPolygonBrandE2ETest : MapE2ETestBase() {
             .post("/api/photo-booths/polygon/brand")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
+    }
+
+    @Test
+    @DisplayName("좌표가 4개 미만이면 500이 아니라 검증 에러를 반환한다")
+    fun givenTooFewCoordinates_whenGetBrandsByPolygon_thenReturnsBadRequest() {
+        // Given: 닫혀 있어도 3개면 PostGIS ST_MakePolygon 이 예외를 던진다
+        val request = MapRequest.GetPolygonBrand(
+            coordinates = listOf(
+                MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
+                MapRequest.GetPolygonLocation.Coordinate(127.035359, 37.502853),
+                MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
+            ),
+            brandIds = null,
+        )
+
+        // When & Then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(request)
+            .`when`()
+            .post("/api/photo-booths/polygon/brand")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("message", equalTo(CLOSED_POLYGON_MESSAGE))
+    }
+
+    @Test
+    @DisplayName("첫 좌표와 마지막 좌표가 다르면 500이 아니라 검증 에러를 반환한다")
+    fun givenUnclosedPolygon_whenGetBrandsByPolygon_thenReturnsBadRequest() {
+        // Given: 마지막 좌표를 빼 다각형이 닫히지 않은 상태
+        val request = MapRequest.GetPolygonBrand(
+            coordinates = gangnamPolygonCoordinates.dropLast(1),
+            brandIds = null,
+        )
+
+        // When & Then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(request)
+            .`when`()
+            .post("/api/photo-booths/polygon/brand")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("message", equalTo(CLOSED_POLYGON_MESSAGE))
+    }
+
+    @Test
+    @DisplayName("좌표가 상한을 넘으면 검증 에러를 반환한다")
+    fun givenTooManyCoordinates_whenGetBrandsByPolygon_thenReturnsBadRequest() {
+        // Given: 닫혀 있고 4개 이상이지만 개수 상한을 1개 초과 → Size 제약만 위반한다
+        val tooManyCoordinates = (0 until MAX_POLYGON_POINTS).map {
+            MapRequest.GetPolygonLocation.Coordinate(127.0 + it * 0.00001, 37.0 + it * 0.00001)
+        } + MapRequest.GetPolygonLocation.Coordinate(127.0, 37.0)
+
+        val request = MapRequest.GetPolygonBrand(coordinates = tooManyCoordinates, brandIds = null)
+
+        // When & Then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(request)
+            .`when`()
+            .post("/api/photo-booths/polygon/brand")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("message", equalTo(MAX_POLYGON_POINTS_MESSAGE))
     }
 
     // ── 조회 동작 (PostGIS 필요) ────────────────────────────────────────────────

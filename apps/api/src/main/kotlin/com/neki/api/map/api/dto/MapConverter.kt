@@ -75,6 +75,16 @@ object MapConverter {
             )
         }
 
+        fun toGetPolygonBrandResponse(result: List<MapResult.GetPolygonBrand>): List<MapResponse.GetPolygonBrand> =
+            result.map {
+                MapResponse.GetPolygonBrand(
+                    id = it.id,
+                    name = it.name,
+                    code = it.code,
+                    boothCount = it.boothCount,
+                )
+            }
+
         private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
 
         fun toCollectPhotoBoothResponse(result: MapResult.CollectPhotoBooth): MapResponse.CollectPhotoBooth =

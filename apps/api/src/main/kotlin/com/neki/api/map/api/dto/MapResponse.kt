@@ -24,6 +24,25 @@ object MapResponse {
         val imageUrl: String?,
     )
 
+    @Schema(
+        name = "GetPolygonBrandResponse",
+        description = "다각형 영역 내 브랜드 조회 응답. " +
+            "브랜드 이미지는 브랜드 전체 조회(GET /api/photo-booths/brand)의 값을 재사용한다.",
+    )
+    data class GetPolygonBrand(
+        @field:Schema(description = "브랜드 ID", example = "1")
+        val id: Long,
+
+        @field:Schema(description = "브랜드 이름", example = "포토이즘")
+        val name: String,
+
+        @field:Schema(description = "브랜드 코드", example = "PHOTOISM")
+        val code: String,
+
+        @field:Schema(description = "다각형 영역 내에 존재하는 해당 브랜드의 포토부스 개수", example = "3")
+        val boothCount: Long,
+    )
+
     @Schema(name = "CollectPhotoBoothResponse")
     data class CollectPhotoBooth(
         @field:Schema(description = "수집된 포토부스 수", example = "45")
