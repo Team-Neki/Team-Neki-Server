@@ -37,12 +37,12 @@ object MapConverter {
         }
 
         fun toPolygonFilterQuery(userId: Long, request: MapRequest.FilterGroup): MapQuery.PolygonFilter {
-            val coordinates: List<Coordinate> = request.polygonFilter.coordinates
+            val coordinates: List<Coordinate> = request.polygonFilter!!.coordinates
                 .map { Coordinate(it.longitude!!, it.latitude!!) }
             return MapQuery.PolygonFilter(
                 userId = userId,
                 coordinates = coordinates,
-                brandIds = request.brandFilter.brandIds,
+                brandIds = request.brandFilter?.brandIds,
             )
         }
 

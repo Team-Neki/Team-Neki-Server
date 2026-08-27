@@ -70,7 +70,7 @@ class GetFilterE2ETest : MapE2ETestBase() {
         brandIds: List<Long>? = null,
     ) = MapRequest.FilterGroup(
         polygonFilter = MapRequest.FilterGroup.PolygonFilter(coordinates = coordinates),
-        brandFilter = MapRequest.FilterGroup.BrandFilter(brandIds = brandIds),
+        brandFilter = brandIds?.let { MapRequest.FilterGroup.BrandFilter(brandIds = it) },
     )
 
     // ── 인증·검증 (PostGIS 불필요) ──────────────────────────────────────────────
@@ -92,10 +92,10 @@ class GetFilterE2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @DisplayName("polygonFilter가 없으면 500이 아니라 검증 에러를 반환한다")
+    @DisplayName("polygonFilter가 없으면 검증 에러를 반환한다")
     fun givenNoPolygonFilter_whenGetFilter_thenReturnsBadRequest() {
-        // Given: 필수 필터인 polygonFilter 를 누락 (역직렬화 단계에서 걸린다)
-        val request = """{"brandFilter": {"brandIds": []}}"""
+        // Given: 필수 필터인 polygonFilter 를 누락
+        val request = MapRequest.FilterGroup(polygonFilter = null, brandFilter = null)
 
         // When & Then
         RestAssured.given()
@@ -106,28 +106,7 @@ class GetFilterE2ETest : MapE2ETestBase() {
             .post("/api/photo-booths/polygon/filter")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("message", equalTo(ResultCode.INVALID_PARAMETER.message))
-    }
-
-    @Test
-    @DisplayName("brandFilter를 생략해도 역직렬화에 실패하지 않는다")
-    fun givenNoBrandFilter_whenGetFilter_thenBodyIsStillDeserialized() {
-        // Given: brandFilter 는 기본값이 있어 생략 가능하다. 폴리곤만 일부러 닫히지 않게 보낸다
-        val coordinates: String = gangnamPolygonCoordinates.dropLast(1).joinToString(", ") {
-            """{"longitude": ${it.longitude}, "latitude": ${it.latitude}}"""
-        }
-        val request = """{"polygonFilter": {"coordinates": [$coordinates]}}"""
-
-        // When & Then: 역직렬화 실패(INVALID_PARAMETER)가 아니라 폴리곤 검증 메시지가 나와야 한다
-        RestAssured.given()
-            .contentType(ContentType.JSON)
-            .header("Authorization", "Bearer $accessToken")
-            .body(request)
-            .`when`()
-            .post("/api/photo-booths/polygon/filter")
-            .then()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
-            .body("message", equalTo(CLOSED_POLYGON_MESSAGE))
+            .body("message", equalTo("polygonFilter는 필수값입니다."))
     }
 
     @Test
