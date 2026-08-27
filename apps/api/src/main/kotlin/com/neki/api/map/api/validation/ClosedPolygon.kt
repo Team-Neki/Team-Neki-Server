@@ -44,17 +44,20 @@ annotation class ClosedPolygon(
     val payload: Array<KClass<out Payload>> = [],
 )
 
-class ClosedPolygonValidator : ConstraintValidator<ClosedPolygon, List<MapRequest.Coordinate>> {
+class ClosedPolygonValidator : ConstraintValidator<ClosedPolygon, List<MapRequest.GetPolygonLocation.Coordinate>> {
 
-    override fun isValid(value: List<MapRequest.Coordinate>?, context: ConstraintValidatorContext): Boolean {
+    override fun isValid(
+        value: List<MapRequest.GetPolygonLocation.Coordinate>?,
+        context: ConstraintValidatorContext,
+    ): Boolean {
         // null·빈 리스트는 @NotEmpty, 좌표 내부 null 은 @Valid + @NotNull 이 각각 더 구체적인 메시지로 처리한다
         if (value.isNullOrEmpty()) return true
         if (value.any { it.longitude == null || it.latitude == null }) return true
 
         if (value.size < MIN_POLYGON_POINTS) return false
 
-        val first: MapRequest.Coordinate = value.first()
-        val last: MapRequest.Coordinate = value.last()
+        val first: MapRequest.GetPolygonLocation.Coordinate = value.first()
+        val last: MapRequest.GetPolygonLocation.Coordinate = value.last()
 
         return first.longitude == last.longitude && first.latitude == last.latitude
     }

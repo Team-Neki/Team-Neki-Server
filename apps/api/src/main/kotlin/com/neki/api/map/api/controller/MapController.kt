@@ -109,8 +109,7 @@ class MapController(
         summary = "다각형 영역 내 포토부스 조회 API",
         description = """
             다각형 영역 내의 포토부스 위치 정보를 조회합니다.
-            요청은 필터별로 그룹지어 전달합니다. polygonFilter 는 필수, 나머지 필터는 생략할 수 있습니다.
-            polygonFilter.coordinates 는 4개 이상이어야 하고 첫 좌표와 마지막 좌표는 동일해야 합니다 (다각형을 닫기 위함). 위반 시 400 을 반환합니다.
+            coordinates 는 4개 이상이어야 하고 첫 좌표와 마지막 좌표는 동일해야 합니다 (다각형을 닫기 위함). 위반 시 400 을 반환합니다.
 
             example에 있는 위치는 강남역 기준
             """,
@@ -118,7 +117,7 @@ class MapController(
     @PostMapping("/polygon")
     fun getPhotoBoothsByPolygon(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Valid @RequestBody request: MapRequest.FilterGroup,
+        @Valid @RequestBody request: MapRequest.GetPolygonLocation,
     ): BaseResponse<MapResponse.GetPolygonLocation> {
         val query: MapQuery.GetPolygonLocation = requestConverter.toGetPolygonLocationQuery(userId, request)
 
