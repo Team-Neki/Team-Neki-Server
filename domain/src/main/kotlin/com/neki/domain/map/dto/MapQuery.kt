@@ -13,7 +13,7 @@ object MapQuery {
 
     data class GetPolygonLocation(val userId: Long, val coordinates: List<Coordinate>, val brandIds: List<Long>?)
 
-    data class GetPolygonFilter(val userId: Long, val coordinates: List<Coordinate>, val brandIds: List<Long>?)
+    data class PolygonFilter(val userId: Long, val coordinates: List<Coordinate>, val brandIds: List<Long>?)
 
     data class GetPointLocation(
         val userId: Long,

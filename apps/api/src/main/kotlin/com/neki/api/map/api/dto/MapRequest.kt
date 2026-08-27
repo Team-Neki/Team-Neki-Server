@@ -71,34 +71,54 @@ object MapRequest {
     }
 
     @Schema(
-        name = "GetPolygonFilterRequest",
-        description = "다각형 영역 내 브랜드 조회 요청. GetPolygonLocationRequest 와 파라미터가 동일합니다.",
+        name = "FilterGroupRequest",
+        description = "지도 필터 조회 요청. 필터가 추가되면 이 요청에 필터 필드가 늘어난다.",
         example = """
             {
-                "coordinates": [
-                    {"longitude": 127.019128, "latitude": 37.502456},
-                    {"longitude": 127.035359, "latitude": 37.502853},
-                    {"longitude": 127.035663, "latitude": 37.494395},
-                    {"longitude": 127.023675, "latitude": 37.494257},
-                    {"longitude": 127.019128, "latitude": 37.502456}
-                ],
-                "brandIds": []
+                "polygonFilter": {
+                    "coordinates": [
+                        {"longitude": 127.019128, "latitude": 37.502456},
+                        {"longitude": 127.035359, "latitude": 37.502853},
+                        {"longitude": 127.035663, "latitude": 37.494395},
+                        {"longitude": 127.023675, "latitude": 37.494257},
+                        {"longitude": 127.019128, "latitude": 37.502456}
+                    ]
+                },
+                "brandFilter": {
+                    "brandIds": []
+                }
             }
         """,
     )
-    data class GetPolygonFilter(
-        @field:Schema(
-            description = "다각형을 구성하는 좌표 리스트. 4개 이상 ${MAX_POLYGON_POINTS}개 이하이며 첫 좌표와 마지막 좌표가 동일해야 합니다.",
-        )
-        @field:NotEmpty
-        @field:Size(max = MAX_POLYGON_POINTS, message = MAX_POLYGON_POINTS_MESSAGE)
+    data class FilterGroup(
+        @field:Schema(description = "조회할 다각형 영역")
+        @field:NotNull(message = "polygonFilter는 필수값입니다.")
         @field:Valid
-        @field:ClosedPolygon
-        val coordinates: List<GetPolygonLocation.Coordinate>,
+        val polygonFilter: PolygonFilter?,
 
-        @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드)", example = "[1, 2, 3]")
-        val brandIds: List<Long>? = null,
-    )
+        @field:Schema(description = "브랜드 필터 (생략하면 모든 브랜드)")
+        @field:Valid
+        val brandFilter: BrandFilter? = null,
+    ) {
+        @Schema(name = "PolygonFilterRequest", description = "다각형 영역 필터")
+        data class PolygonFilter(
+            @field:Schema(
+                description = "다각형을 구성하는 좌표 리스트. " +
+                    "4개 이상 ${MAX_POLYGON_POINTS}개 이하이며 첫 좌표와 마지막 좌표가 동일해야 합니다.",
+            )
+            @field:NotEmpty
+            @field:Size(max = MAX_POLYGON_POINTS, message = MAX_POLYGON_POINTS_MESSAGE)
+            @field:Valid
+            @field:ClosedPolygon
+            val coordinates: List<GetPolygonLocation.Coordinate>,
+        )
+
+        @Schema(name = "BrandFilterRequest", description = "브랜드 필터")
+        data class BrandFilter(
+            @field:Schema(description = "브랜드 ID 리스트 (null 이거나 [] 이면 모든 브랜드)", example = "[1, 2, 3]")
+            val brandIds: List<Long>? = null,
+        )
+    }
 
     @Schema(name = "GetPointLocationRequest")
     data class GetPointLocation(

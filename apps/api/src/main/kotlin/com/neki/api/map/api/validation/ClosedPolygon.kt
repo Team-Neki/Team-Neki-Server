@@ -46,11 +46,6 @@ annotation class ClosedPolygon(
 
 class ClosedPolygonValidator : ConstraintValidator<ClosedPolygon, List<MapRequest.GetPolygonLocation.Coordinate>> {
 
-    companion object {
-        /** 닫힌 링을 만들려면 최소 3개의 꼭짓점 + 시작점 반복 1개가 필요하다. */
-        private const val MIN_POLYGON_POINTS = 4
-    }
-
     override fun isValid(
         value: List<MapRequest.GetPolygonLocation.Coordinate>?,
         context: ConstraintValidatorContext,
@@ -65,5 +60,10 @@ class ClosedPolygonValidator : ConstraintValidator<ClosedPolygon, List<MapReques
         val last: MapRequest.GetPolygonLocation.Coordinate = value.last()
 
         return first.longitude == last.longitude && first.latitude == last.latitude
+    }
+
+    companion object {
+        /** 닫힌 링을 만들려면 최소 3개의 꼭짓점 + 시작점 반복 1개가 필요하다. */
+        private const val MIN_POLYGON_POINTS = 4
     }
 }

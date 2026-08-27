@@ -22,7 +22,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
 
 /**
- * fileName       : GetPolygonFilterE2ETest
+ * fileName       : GetFilterE2ETest
  * author         : darren
  * date           : 2026. 8. 23.
  * description    : 다각형 영역 내 브랜드 조회 E2E 테스트
@@ -30,12 +30,12 @@ import org.springframework.test.context.ActiveProfiles
  * 다각형 조회는 PostGIS 함수(ST_Contains, ST_MakePolygon 등)에 의존하지만
  * 테스트 프로파일은 H2(PostgreSQL 모드)를 사용해 해당 함수를 제공하지 않는다.
  * 따라서 영역 필터링·정렬 검증 케이스는 기존 GetPhotoBoothsByPolygonE2ETest 와 동일하게 @Disabled 로 두고,
- * 실제 로직 검증은 GetPolygonFilterUseCaseTest(단위 테스트)가 담당한다.
+ * 실제 로직 검증은 GetFilterUseCaseTest(단위 테스트)가 담당한다.
  * 인증·검증 케이스는 쿼리에 도달하기 전에 처리되므로 여기서 활성 상태로 검증한다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-class GetPolygonFilterE2ETest : MapE2ETestBase() {
+class GetFilterE2ETest : MapE2ETestBase() {
 
     @LocalServerPort
     private var port: Int = 0
@@ -65,13 +65,21 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
         testBrand = createBrand("포토이즘", "PHOTOISM")
     }
 
+    private fun filterGroupOf(
+        coordinates: List<MapRequest.GetPolygonLocation.Coordinate>,
+        brandIds: List<Long>? = null,
+    ) = MapRequest.FilterGroup(
+        polygonFilter = MapRequest.FilterGroup.PolygonFilter(coordinates = coordinates),
+        brandFilter = brandIds?.let { MapRequest.FilterGroup.BrandFilter(brandIds = it) },
+    )
+
     // ── 인증·검증 (PostGIS 불필요) ──────────────────────────────────────────────
 
     @Test
     @DisplayName("토큰 없이 조회 시 403 에러를 반환한다")
-    fun givenNoToken_whenGetPolygonFilter_thenReturnsForbidden() {
+    fun givenNoToken_whenGetFilter_thenReturnsForbidden() {
         // Given
-        val request = MapRequest.GetPolygonFilter(coordinates = gangnamPolygonCoordinates, brandIds = null)
+        val request = filterGroupOf(gangnamPolygonCoordinates)
 
         // When & Then
         RestAssured.given()
@@ -84,10 +92,28 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
     }
 
     @Test
+    @DisplayName("polygonFilter가 없으면 검증 에러를 반환한다")
+    fun givenNoPolygonFilter_whenGetFilter_thenReturnsBadRequest() {
+        // Given: 필수 필터인 polygonFilter 를 누락
+        val request = MapRequest.FilterGroup(polygonFilter = null, brandFilter = null)
+
+        // When & Then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(request)
+            .`when`()
+            .post("/api/photo-booths/polygon/filter")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("message", equalTo("polygonFilter는 필수값입니다."))
+    }
+
+    @Test
     @DisplayName("coordinates가 비어있으면 검증 에러를 반환한다")
-    fun givenEmptyCoordinates_whenGetPolygonFilter_thenReturnsBadRequest() {
+    fun givenEmptyCoordinates_whenGetFilter_thenReturnsBadRequest() {
         // Given
-        val request = MapRequest.GetPolygonFilter(coordinates = emptyList(), brandIds = null)
+        val request = filterGroupOf(emptyList())
 
         // When & Then
         RestAssured.given()
@@ -102,11 +128,10 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
 
     @Test
     @DisplayName("좌표에 경도가 없으면 검증 에러를 반환한다")
-    fun givenCoordinateWithoutLongitude_whenGetPolygonFilter_thenReturnsBadRequest() {
+    fun givenCoordinateWithoutLongitude_whenGetFilter_thenReturnsBadRequest() {
         // Given
-        val request = MapRequest.GetPolygonFilter(
-            coordinates = listOf(MapRequest.GetPolygonLocation.Coordinate(longitude = null, latitude = 37.502456)),
-            brandIds = null,
+        val request = filterGroupOf(
+            listOf(MapRequest.GetPolygonLocation.Coordinate(longitude = null, latitude = 37.502456)),
         )
 
         // When & Then
@@ -122,15 +147,14 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
 
     @Test
     @DisplayName("좌표가 4개 미만이면 500이 아니라 검증 에러를 반환한다")
-    fun givenTooFewCoordinates_whenGetPolygonFilter_thenReturnsBadRequest() {
+    fun givenTooFewCoordinates_whenGetFilter_thenReturnsBadRequest() {
         // Given: 닫혀 있어도 3개면 PostGIS ST_MakePolygon 이 예외를 던진다
-        val request = MapRequest.GetPolygonFilter(
-            coordinates = listOf(
+        val request = filterGroupOf(
+            listOf(
                 MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
                 MapRequest.GetPolygonLocation.Coordinate(127.035359, 37.502853),
                 MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
             ),
-            brandIds = null,
         )
 
         // When & Then
@@ -147,12 +171,9 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
 
     @Test
     @DisplayName("첫 좌표와 마지막 좌표가 다르면 500이 아니라 검증 에러를 반환한다")
-    fun givenUnclosedPolygon_whenGetPolygonFilter_thenReturnsBadRequest() {
+    fun givenUnclosedPolygon_whenGetFilter_thenReturnsBadRequest() {
         // Given: 마지막 좌표를 빼 다각형이 닫히지 않은 상태
-        val request = MapRequest.GetPolygonFilter(
-            coordinates = gangnamPolygonCoordinates.dropLast(1),
-            brandIds = null,
-        )
+        val request = filterGroupOf(gangnamPolygonCoordinates.dropLast(1))
 
         // When & Then
         RestAssured.given()
@@ -168,13 +189,13 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
 
     @Test
     @DisplayName("좌표가 상한을 넘으면 검증 에러를 반환한다")
-    fun givenTooManyCoordinates_whenGetPolygonFilter_thenReturnsBadRequest() {
+    fun givenTooManyCoordinates_whenGetFilter_thenReturnsBadRequest() {
         // Given: 닫혀 있고 4개 이상이지만 개수 상한을 1개 초과 → Size 제약만 위반한다
         val tooManyCoordinates = (0 until MAX_POLYGON_POINTS).map {
             MapRequest.GetPolygonLocation.Coordinate(127.0 + it * 0.00001, 37.0 + it * 0.00001)
         } + MapRequest.GetPolygonLocation.Coordinate(127.0, 37.0)
 
-        val request = MapRequest.GetPolygonFilter(coordinates = tooManyCoordinates, brandIds = null)
+        val request = filterGroupOf(tooManyCoordinates)
 
         // When & Then
         RestAssured.given()
@@ -191,11 +212,11 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
     // ── 조회 동작 (PostGIS 필요) ────────────────────────────────────────────────
 
     @Test
-    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetPolygonFilterUseCaseTest 에서 검증")
+    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetFilterUseCaseTest 에서 검증")
     @DisplayName("다각형 영역 내에 포토부스가 없으면 빈 목록을 반환한다")
-    fun givenNoPhotoBooths_whenGetPolygonFilter_thenReturnsEmptyList() {
+    fun givenNoPhotoBooths_whenGetFilter_thenReturnsEmptyList() {
         // Given: 포토부스가 없는 상태
-        val request = MapRequest.GetPolygonFilter(coordinates = gangnamPolygonCoordinates, brandIds = null)
+        val request = filterGroupOf(gangnamPolygonCoordinates)
 
         // When
         val response = RestAssured.given()
@@ -216,9 +237,9 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetPolygonFilterUseCaseTest 에서 검증")
+    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetFilterUseCaseTest 에서 검증")
     @DisplayName("영역 내에 포토부스가 있는 브랜드만 반환한다")
-    fun givenPhotoBoothsInPolygon_whenGetPolygonFilter_thenReturnsOnlyBrandsInArea() {
+    fun givenPhotoBoothsInPolygon_whenGetFilter_thenReturnsOnlyBrandsInArea() {
         // Given: 영역 내에는 testBrand, 영역 밖(부산)에는 anotherBrand 의 포토부스만 존재
         val anotherBrand = createBrand("인생네컷", "LIFEFOURCUTS")
 
@@ -237,7 +258,7 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
             latitude = 35.163574,
         )
 
-        val request = MapRequest.GetPolygonFilter(coordinates = gangnamPolygonCoordinates, brandIds = null)
+        val request = filterGroupOf(gangnamPolygonCoordinates)
 
         // When
         val response = RestAssured.given()
@@ -255,9 +276,9 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetPolygonFilterUseCaseTest 에서 검증")
+    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetFilterUseCaseTest 에서 검증")
     @DisplayName("같은 브랜드의 포토부스가 여러 개여도 브랜드는 중복 없이 1건만 반환한다")
-    fun givenMultipleBoothsOfSameBrand_whenGetPolygonFilter_thenReturnsBrandOnce() {
+    fun givenMultipleBoothsOfSameBrand_whenGetFilter_thenReturnsBrandOnce() {
         // Given: 같은 브랜드 포토부스 2개를 영역 내에 생성
         createPhotoBoothLocation(
             brandId = testBrand.id!!,
@@ -274,7 +295,7 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
             latitude = 37.499123,
         )
 
-        val request = MapRequest.GetPolygonFilter(coordinates = gangnamPolygonCoordinates, brandIds = null)
+        val request = filterGroupOf(gangnamPolygonCoordinates)
 
         // When
         val response = RestAssured.given()
@@ -292,9 +313,9 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetPolygonFilterUseCaseTest 에서 검증")
+    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetFilterUseCaseTest 에서 검증")
     @DisplayName("사용자가 저장한 브랜드 정렬 순서대로 반환한다")
-    fun givenUserBrandOrder_whenGetPolygonFilter_thenReturnsInSavedOrder() {
+    fun givenUserBrandOrder_whenGetFilter_thenReturnsInSavedOrder() {
         // Given: 영역 내에 두 브랜드의 포토부스가 있고, 사용자는 역순으로 정렬을 저장
         val anotherBrand = createBrand("인생네컷", "LIFEFOURCUTS")
 
@@ -322,7 +343,7 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
             .then()
             .statusCode(HttpStatus.OK.value())
 
-        val request = MapRequest.GetPolygonFilter(coordinates = gangnamPolygonCoordinates, brandIds = null)
+        val request = filterGroupOf(gangnamPolygonCoordinates)
 
         // When
         val response = RestAssured.given()
@@ -341,9 +362,9 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetPolygonFilterUseCaseTest 에서 검증")
+    @Disabled("PostGIS 함수 미지원(H2)으로 테스트 불가. 로직은 GetFilterUseCaseTest 에서 검증")
     @DisplayName("brandIds 필터와 영역의 교집합만 반환한다")
-    fun givenBrandFilter_whenGetPolygonFilter_thenReturnsIntersection() {
+    fun givenBrandFilter_whenGetFilter_thenReturnsIntersection() {
         // Given: 영역 내에 두 브랜드가 있지만 필터는 testBrand 만 지정
         val anotherBrand = createBrand("인생네컷", "LIFEFOURCUTS")
 
@@ -362,10 +383,7 @@ class GetPolygonFilterE2ETest : MapE2ETestBase() {
             latitude = 37.498000,
         )
 
-        val request = MapRequest.GetPolygonFilter(
-            coordinates = gangnamPolygonCoordinates,
-            brandIds = listOf(testBrand.id!!),
-        )
+        val request = filterGroupOf(gangnamPolygonCoordinates, brandIds = listOf(testBrand.id!!))
 
         // When
         val response = RestAssured.given()

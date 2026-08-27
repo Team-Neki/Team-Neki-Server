@@ -36,12 +36,13 @@ object MapConverter {
             )
         }
 
-        fun toGetPolygonFilterQuery(userId: Long, request: MapRequest.GetPolygonFilter): MapQuery.GetPolygonFilter {
-            val coordinates: List<Coordinate> = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
-            return MapQuery.GetPolygonFilter(
+        fun toPolygonFilterQuery(userId: Long, request: MapRequest.FilterGroup): MapQuery.PolygonFilter {
+            val coordinates: List<Coordinate> = request.polygonFilter!!.coordinates
+                .map { Coordinate(it.longitude!!, it.latitude!!) }
+            return MapQuery.PolygonFilter(
                 userId = userId,
                 coordinates = coordinates,
-                brandIds = request.brandIds,
+                brandIds = request.brandFilter?.brandIds,
             )
         }
 
@@ -75,14 +76,14 @@ object MapConverter {
             )
         }
 
-        fun toGetPolygonFilterResponse(result: MapResult.GetPolygonFilter): MapResponse.GetPolygonFilter =
-            MapResponse.GetPolygonFilter(
+        fun toPolygonFilterResponse(result: MapResult.PolygonFilter): MapResponse.PolygonFilter =
+            MapResponse.PolygonFilter(
                 brandFilter = result.brandFilter.map {
                     MapResponse.BrandFilter(
                         id = it.id,
                         name = it.name,
                         code = it.code,
-                        boothCount = it.boothCount,
+                        count = it.count,
                     )
                 },
             )

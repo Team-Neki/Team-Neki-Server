@@ -39,7 +39,7 @@ class CollectPhotoBoothLocationUseCase(
 
         // 1. 브랜드 및 기존 위치 조회
         val (brand, existingLocations) = transactionRunner.readOnly {
-            val brand: Brand = brandService.getBrandByCode(command)
+            val brand: Brand = brandService.getBrand(command)
             val locations: Map<String, PhotoBoothLocation> = mapService.getLocationsByBrandId(brand.id!!)
                 .associateBy { it.mapId }
             brand to locations

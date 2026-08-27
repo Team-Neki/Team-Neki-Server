@@ -25,10 +25,10 @@ object MapResponse {
     )
 
     @Schema(
-        name = "GetPolygonFilterResponse",
+        name = "PolygonFilterResponse",
         description = "다각형 영역에서 사용할 수 있는 지도 필터 목록. 필터가 추가되면 이 응답에 필드가 늘어난다.",
     )
-    data class GetPolygonFilter(
+    data class PolygonFilter(
         @field:Schema(description = "영역 내에 포토부스가 존재하는 브랜드 목록")
         val brandFilter: List<BrandFilter>,
     )
@@ -49,7 +49,7 @@ object MapResponse {
         val code: String,
 
         @field:Schema(description = "다각형 영역 내에 존재하는 해당 브랜드의 포토부스 개수", example = "3")
-        val boothCount: Long,
+        val count: Long,
     )
 
     @Schema(name = "CollectPhotoBoothResponse")
