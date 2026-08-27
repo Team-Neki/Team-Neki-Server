@@ -11,6 +11,7 @@ import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 import com.neki.domain.map.models.PhotoBoothLocations
 import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
+import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Component
 
 /**
@@ -42,10 +43,9 @@ class MapService(
     }
 
     fun getPolygonLocations(query: MapQuery.GetPolygonLocation): List<PhotoBoothLocationView> =
-        photoBoothLocationRepository.listPolygonLocations(
-            coordinates = query.coordinates,
-            brandIds = query.brandIds,
-        )
+        polygonLocations(query.coordinates)
+            .filterByBrandIds(query.brandIds)
+            .toList()
 
     fun getPointLocations(query: MapQuery.GetPointLocation): List<PhotoBoothLocationWithDistance> =
         photoBoothLocationRepository.listPointLocations(
@@ -56,16 +56,18 @@ class MapService(
 
     /**
      * 다각형 영역 안의 포토부스 개수를 브랜드별로 집계한다. key 는 영역 내에 포토부스가 존재하는 브랜드 ID 다.
-     *
-     * 영역 내 지점을 한 번만 읽어 메모리에서 집계한다. 필터 축이 늘어나도 조회는 그대로 1회이고
-     * PhotoBoothLocations 에 집계 메서드만 추가하면 되므로 DB 왕복이 축 개수만큼 늘지 않는다.
      */
-    fun getBrandBoothCountsInPolygon(query: MapQuery.PolygonFilter): Map<Long, Long> = PhotoBoothLocations(
-        photoBoothLocationRepository.listPolygonLocations(
-            coordinates = query.coordinates,
-            brandIds = query.brandIds,
-        ),
-    ).countByBrandId()
+    fun getBrandBoothCountsInPolygon(query: MapQuery.PolygonFilter): Map<Long, Long> =
+        polygonLocations(query.coordinates)
+            .filterByBrandIds(query.brandIds)
+            .countByBrandId()
+
+    /**
+     * 폴리곤 조회는 조건이 영역뿐이라 지도 조회와 필터 조회가 동일한 쿼리를 공유한다.
+     * 필터 적용과 집계는 PhotoBoothLocations 가 메모리에서 처리한다.
+     */
+    private fun polygonLocations(coordinates: List<Coordinate>): PhotoBoothLocations =
+        PhotoBoothLocations(photoBoothLocationRepository.listPolygonLocations(coordinates))
 
     /**
      * locationIds 는 오케스트레이션 중 결정되는 값이므로 userId 와 함께 받는다.

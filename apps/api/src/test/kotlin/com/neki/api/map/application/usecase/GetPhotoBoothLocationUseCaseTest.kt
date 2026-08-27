@@ -79,10 +79,7 @@ class GetPhotoBoothLocationUseCaseTest :
             )
 
             every {
-                photoBoothLocationRepository.listPolygonLocations(
-                    coordinates = coordinates,
-                    brandIds = null,
-                )
+                photoBoothLocationRepository.listPolygonLocations(coordinates)
             } returns locationDtos
             // 1번 부스만 즐겨찾기한 상태
             every { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L, 2L)) } returns setOf(1L)
@@ -97,12 +94,56 @@ class GetPhotoBoothLocationUseCaseTest :
             result.favoriteLocationIds shouldContainExactly setOf(1L)
 
             verify(exactly = 1) {
-                photoBoothLocationRepository.listPolygonLocations(
-                    coordinates = coordinates,
-                    brandIds = null,
-                )
+                photoBoothLocationRepository.listPolygonLocations(coordinates)
             }
             verify(exactly = 1) { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L, 2L)) }
+        }
+
+        test("Polygon 검색 - brandIds 를 지정하면 쿼리는 영역 전체를 조회하고 필터는 메모리에서 적용된다") {
+            // Given: 영역 내에 1L, 2L 브랜드가 있고 요청은 1L 만 지정
+            val coordinates = listOf(
+                Coordinate(127.0, 37.0),
+                Coordinate(127.5, 37.0),
+                Coordinate(127.5, 37.5),
+                Coordinate(127.0, 37.5),
+                Coordinate(127.0, 37.0),
+            )
+            val query =
+                MapQuery.GetPolygonLocation(userId = userId, coordinates = coordinates, brandIds = listOf(1L))
+
+            val locationDtos = listOf(
+                PhotoBoothLocationView(
+                    id = 1L,
+                    brandId = 1L,
+                    brandName = "인생네컷",
+                    branchName = "강남점",
+                    address = "서울 강남구",
+                    location = geometryFactory.createPoint(Coordinate(127.02, 37.49)),
+                ),
+                PhotoBoothLocationView(
+                    id = 2L,
+                    brandId = 2L,
+                    brandName = "하루필름",
+                    branchName = "홍대점",
+                    address = "서울 마포구",
+                    location = geometryFactory.createPoint(Coordinate(127.03, 37.50)),
+                ),
+            )
+
+            every { photoBoothLocationRepository.listPolygonLocations(coordinates) } returns locationDtos
+            every { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L)) } returns emptySet()
+
+            // When
+            val result = useCase.execute(query)
+
+            // Then: 1L 브랜드의 지점만 남는다
+            result.locations shouldHaveSize 1
+            result.locations[0].id shouldBe 1L
+
+            // 쿼리에는 브랜드 조건이 걸리지 않는다 (필터 조회와 동일한 쿼리를 공유)
+            verify(exactly = 1) { photoBoothLocationRepository.listPolygonLocations(coordinates) }
+            // 즐겨찾기는 필터링 후 남은 지점으로만 조회한다
+            verify(exactly = 1) { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L)) }
         }
 
         test("Polygon 검색 - 결과가 없으면 빈 리스트를 반환하고 즐겨찾기를 조회하지 않는다") {
@@ -118,10 +159,7 @@ class GetPhotoBoothLocationUseCaseTest :
                 MapQuery.GetPolygonLocation(userId = userId, coordinates = coordinates, brandIds = listOf(1L, 2L))
 
             every {
-                photoBoothLocationRepository.listPolygonLocations(
-                    coordinates = coordinates,
-                    brandIds = listOf(1L, 2L),
-                )
+                photoBoothLocationRepository.listPolygonLocations(coordinates)
             } returns emptyList()
 
             // When

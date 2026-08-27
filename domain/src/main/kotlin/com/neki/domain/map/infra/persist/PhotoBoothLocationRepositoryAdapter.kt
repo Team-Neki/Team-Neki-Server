@@ -32,10 +32,8 @@ class PhotoBoothLocationRepositoryAdapter(
 
     override fun existsById(locationId: Long): Boolean = jpaRepository.existsById(locationId)
 
-    override fun listPolygonLocations(
-        coordinates: List<Coordinate>,
-        brandIds: List<Long>?,
-    ): List<PhotoBoothLocationView> = queryRepository.findByPolygon(coordinates, brandIds)
+    override fun listPolygonLocations(coordinates: List<Coordinate>): List<PhotoBoothLocationView> =
+        queryRepository.findByPolygon(coordinates)
 
     override fun listPointLocations(
         coordinate: Coordinate,

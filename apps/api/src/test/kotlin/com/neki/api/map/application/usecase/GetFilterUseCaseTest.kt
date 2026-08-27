@@ -86,7 +86,7 @@ class GetFilterUseCaseTest :
             // Given: 영역 내에는 1L, 3L 브랜드만 존재 (2L 은 영역 밖)
             val query = MapQuery.PolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonLocations(coordinates, null) } returns
+            every { photoBoothLocationRepository.listPolygonLocations(coordinates) } returns
                 booths(1L to 1, 3L to 2)
             every { brandRepository.findAllByIds(listOf(1L, 3L)) } returns listOf(
                 aBrand(id = 1L, name = "인생네컷", code = "lifefour", mediaId = 10L),
@@ -106,7 +106,7 @@ class GetFilterUseCaseTest :
             results[1].code shouldBe "photoism"
             results[1].count shouldBe 2L
 
-            verify(exactly = 1) { photoBoothLocationRepository.listPolygonLocations(coordinates, null) }
+            verify(exactly = 1) { photoBoothLocationRepository.listPolygonLocations(coordinates) }
             verify(exactly = 1) { brandRepository.findAllByIds(listOf(1L, 3L)) }
         }
 
@@ -114,7 +114,7 @@ class GetFilterUseCaseTest :
             // Given: 사용자가 3L -> 1L 순으로 정렬을 저장한 상태
             val query = MapQuery.PolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonLocations(coordinates, null) } returns
+            every { photoBoothLocationRepository.listPolygonLocations(coordinates) } returns
                 booths(1L to 1, 2L to 2, 3L to 3)
             every { brandRepository.findAllByIds(listOf(1L, 2L, 3L)) } returns listOf(
                 aBrand(id = 1L, name = "브랜드1", code = "brand1", mediaId = null),
@@ -134,7 +134,7 @@ class GetFilterUseCaseTest :
             // Given
             val query = MapQuery.PolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonLocations(coordinates, null) } returns
+            every { photoBoothLocationRepository.listPolygonLocations(coordinates) } returns
                 booths(3L to 1, 1L to 2, 2L to 3)
             every { brandRepository.findAllByIds(listOf(3L, 1L, 2L)) } returns listOf(
                 aBrand(id = 3L, name = "브랜드3", code = "brand3", mediaId = null),
@@ -153,7 +153,7 @@ class GetFilterUseCaseTest :
             // Given: 2L 만 최상단으로 저장한 상태
             val query = MapQuery.PolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonLocations(coordinates, null) } returns
+            every { photoBoothLocationRepository.listPolygonLocations(coordinates) } returns
                 booths(1L to 1, 2L to 2, 3L to 3)
             every { brandRepository.findAllByIds(listOf(1L, 2L, 3L)) } returns listOf(
                 aBrand(id = 1L, name = "브랜드1", code = "brand1", mediaId = null),
@@ -173,7 +173,7 @@ class GetFilterUseCaseTest :
             // Given
             val query = MapQuery.PolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonLocations(coordinates, null) } returns emptyList()
+            every { photoBoothLocationRepository.listPolygonLocations(coordinates) } returns emptyList()
 
             // When
             val results = useCase.execute(query).brandFilter
@@ -188,7 +188,7 @@ class GetFilterUseCaseTest :
             // Given: 개수는 1L=10, 2L=20, 3L=30 이고 사용자는 3L -> 1L 순으로 정렬을 저장
             val query = MapQuery.PolygonFilter(userId = userId, coordinates = coordinates, brandIds = null)
 
-            every { photoBoothLocationRepository.listPolygonLocations(coordinates, null) } returns
+            every { photoBoothLocationRepository.listPolygonLocations(coordinates) } returns
                 booths(1L to 10, 2L to 20, 3L to 30)
             every { brandRepository.findAllByIds(listOf(1L, 2L, 3L)) } returns listOf(
                 aBrand(id = 1L, name = "브랜드1", code = "brand1", mediaId = null),
@@ -205,13 +205,13 @@ class GetFilterUseCaseTest :
             results.map { it.count } shouldBe listOf(30L, 10L, 20L)
         }
 
-        test("brandIds 필터 - 요청 필터가 폴리곤 조회로 그대로 전달된다") {
-            // Given: 1L, 2L 로 필터링 요청. 영역 내에 실제로 존재하는 것은 1L 뿐
+        test("brandIds 필터 - 쿼리는 영역 전체를 조회하고 필터는 메모리에서 적용된다") {
+            // Given: 영역 내에는 1L, 3L 이 있고 요청 필터는 1L, 2L
             val filter = listOf(1L, 2L)
             val query = MapQuery.PolygonFilter(userId = userId, coordinates = coordinates, brandIds = filter)
 
-            every { photoBoothLocationRepository.listPolygonLocations(coordinates, filter) } returns
-                booths(1L to 1)
+            every { photoBoothLocationRepository.listPolygonLocations(coordinates) } returns
+                booths(1L to 1, 3L to 2)
             every { brandRepository.findAllByIds(listOf(1L)) } returns listOf(
                 aBrand(id = 1L, name = "인생네컷", code = "lifefour", mediaId = null),
             )
@@ -223,6 +223,7 @@ class GetFilterUseCaseTest :
             results shouldHaveSize 1
             results[0].id shouldBe 1L
 
-            verify(exactly = 1) { photoBoothLocationRepository.listPolygonLocations(coordinates, filter) }
+            // 쿼리에는 브랜드 조건이 걸리지 않는다 (지도 조회와 동일한 쿼리를 공유)
+            verify(exactly = 1) { photoBoothLocationRepository.listPolygonLocations(coordinates) }
         }
     })

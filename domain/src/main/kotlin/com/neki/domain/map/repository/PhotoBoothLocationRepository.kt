@@ -21,7 +21,7 @@ interface PhotoBoothLocationRepository {
 
     fun existsById(locationId: Long): Boolean
 
-    fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationView>
+    fun listPolygonLocations(coordinates: List<Coordinate>): List<PhotoBoothLocationView>
 
     fun listPointLocations(
         coordinate: Coordinate,

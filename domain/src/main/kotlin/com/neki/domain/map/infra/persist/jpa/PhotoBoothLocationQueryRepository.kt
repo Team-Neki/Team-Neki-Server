@@ -26,11 +26,11 @@ class PhotoBoothLocationQueryRepository(
 ) {
 
     /**
-     * 다각형 내부의 포토부스 조회
+     * 다각형 내부의 포토부스 조회.
+     * 브랜드 필터는 PhotoBoothLocations 에서 적용하므로 여기서는 폴리곤 조건만 건다.
      * @param coordinates 다각형을 구성하는 좌표 리스트 (경도, 위도)
-     * @param brandIds 브랜드 ID 리스트 (nullable)
      */
-    fun findByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationView> {
+    fun findByPolygon(coordinates: List<Coordinate>): List<PhotoBoothLocationView> {
         // LINESTRING 생성을 위한 좌표 문자열 생성
         val lineString: String = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
 
@@ -53,7 +53,6 @@ class PhotoBoothLocationQueryRepository(
                     "ST_Contains(ST_MakePolygon(ST_GeomFromText('LINESTRING($lineString)', 4326)), {0}) = true",
                     photoBoothLocation.location,
                 ),
-                brandIds?.takeIf { it.isNotEmpty() }?.let { photoBoothLocation.brandId.`in`(it) },
             )
 
         return query.fetch()
