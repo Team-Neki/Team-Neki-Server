@@ -92,13 +92,12 @@ object MapRequest {
     )
     data class FilterGroup(
         @field:Schema(description = "조회할 다각형 영역")
-        @field:NotNull(message = "polygonFilter는 필수값입니다.")
         @field:Valid
-        val polygonFilter: PolygonFilter?,
+        val polygonFilter: PolygonFilter,
 
         @field:Schema(description = "브랜드 필터 (생략하면 모든 브랜드)")
         @field:Valid
-        val brandFilter: BrandFilter? = null,
+        val brandFilter: BrandFilter = BrandFilter(),
     ) {
         @Schema(name = "PolygonFilterRequest", description = "다각형 영역 필터")
         data class PolygonFilter(
