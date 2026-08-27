@@ -4,10 +4,8 @@ import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 import com.neki.domain.map.models.QBrand.brand
 import com.neki.domain.map.models.QPhotoBoothLocation.photoBoothLocation
-import com.querydsl.core.Tuple
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
-import com.querydsl.core.types.dsl.NumberExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
 import org.locationtech.jts.geom.Coordinate
@@ -41,6 +39,7 @@ class PhotoBoothLocationQueryRepository(
                 Projections.constructor(
                     PhotoBoothLocationView::class.java,
                     photoBoothLocation.id,
+                    photoBoothLocation.brandId,
                     brand.name,
                     photoBoothLocation.branchName,
                     photoBoothLocation.address,
@@ -58,36 +57,6 @@ class PhotoBoothLocationQueryRepository(
             )
 
         return query.fetch()
-    }
-
-    /**
-     * 다각형 내부에 존재하는 포토부스 개수를 브랜드별로 조회
-     * 브랜드 목록과 개수만 필요하므로 location row 를 가져오지 않고 DB 에서 group by 로 집계한다.
-     * @param coordinates 다각형을 구성하는 좌표 리스트 (경도, 위도)
-     * @param brandIds 브랜드 ID 리스트 (nullable)
-     * @return brandId 를 key, 영역 내 포토부스 개수를 value 로 하는 map
-     */
-    fun findBrandBoothCountsByPolygon(coordinates: List<Coordinate>, brandIds: List<Long>?): Map<Long, Long> {
-        // LINESTRING 생성을 위한 좌표 문자열 생성
-        val lineString: String = coordinates.joinToString(", ") { "${it.x} ${it.y}" }
-
-        // select 와 Tuple 조회에 동일한 표현식 인스턴스를 써야 값을 안전하게 꺼낼 수 있다
-        val boothCount: NumberExpression<Long> = photoBoothLocation.count()
-
-        val rows: List<Tuple> = queryFactory
-            .select(photoBoothLocation.brandId, boothCount)
-            .from(photoBoothLocation)
-            .where(
-                Expressions.booleanTemplate(
-                    "ST_Contains(ST_MakePolygon(ST_GeomFromText('LINESTRING($lineString)', 4326)), {0}) = true",
-                    photoBoothLocation.location,
-                ),
-                brandIds?.takeIf { it.isNotEmpty() }?.let { photoBoothLocation.brandId.`in`(it) },
-            )
-            .groupBy(photoBoothLocation.brandId)
-            .fetch()
-
-        return rows.associate { it.get(photoBoothLocation.brandId)!! to (it.get(boothCount) ?: 0L) }
     }
 
     /**

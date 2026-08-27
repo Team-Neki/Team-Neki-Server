@@ -62,6 +62,7 @@ class GetPhotoBoothLocationUseCaseTest :
             val locationDtos = listOf(
                 PhotoBoothLocationView(
                     id = 1L,
+                    brandId = 1L,
                     brandName = "인생네컷",
                     branchName = "강남점",
                     address = "서울 강남구",
@@ -69,6 +70,7 @@ class GetPhotoBoothLocationUseCaseTest :
                 ),
                 PhotoBoothLocationView(
                     id = 2L,
+                    brandId = 2L,
                     brandName = "하루필름",
                     branchName = "홍대점",
                     address = "서울 마포구",

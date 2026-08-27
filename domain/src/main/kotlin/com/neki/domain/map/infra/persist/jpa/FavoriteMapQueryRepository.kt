@@ -26,6 +26,7 @@ class FavoriteMapQueryRepository(private val queryFactory: JPAQueryFactory) {
             Projections.constructor(
                 PhotoBoothLocationView::class.java,
                 photoBoothLocation.id,
+                photoBoothLocation.brandId,
                 brand.name,
                 photoBoothLocation.branchName,
                 photoBoothLocation.address,
