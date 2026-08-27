@@ -44,11 +44,11 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
 
     // 강남역 기준 다각형 좌표
     private val gangnamPolygonCoordinates = listOf(
-        MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
-        MapRequest.GetPolygonLocation.Coordinate(127.035359, 37.502853),
-        MapRequest.GetPolygonLocation.Coordinate(127.035663, 37.494395),
-        MapRequest.GetPolygonLocation.Coordinate(127.023675, 37.494257),
-        MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
+        MapRequest.Coordinate(127.019128, 37.502456),
+        MapRequest.Coordinate(127.035359, 37.502853),
+        MapRequest.Coordinate(127.035663, 37.494395),
+        MapRequest.Coordinate(127.023675, 37.494257),
+        MapRequest.Coordinate(127.019128, 37.502456),
     )
 
     @BeforeEach
@@ -68,10 +68,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
     @DisplayName("다각형 영역 내에 포토부스가 없을 때 빈 목록을 반환한다")
     fun givenNoPhotoBooths_whenGetByPolygon_thenReturnsEmptyList() {
         // Given: 포토부스가 없는 상태
-        val request = MapRequest.GetPolygonLocation(
-            coordinates = gangnamPolygonCoordinates,
-            brandIds = null,
-        )
+        val request = filterGroupOf(gangnamPolygonCoordinates)
 
         // When: 다각형 영역 내 포토부스 조회 API 호출
         val response = RestAssured.given()
@@ -110,10 +107,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
             latitude = 37.499123,
         )
 
-        val request = MapRequest.GetPolygonLocation(
-            coordinates = gangnamPolygonCoordinates,
-            brandIds = null,
-        )
+        val request = filterGroupOf(gangnamPolygonCoordinates)
 
         // When: 다각형 영역 내 포토부스 조회 API 호출
         val response = RestAssured.given()
@@ -154,10 +148,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
             latitude = 37.498000,
         )
 
-        val request = MapRequest.GetPolygonLocation(
-            coordinates = gangnamPolygonCoordinates,
-            brandIds = listOf(testBrand.id!!),
-        )
+        val request = filterGroupOf(gangnamPolygonCoordinates, brandIds = listOf(testBrand.id!!))
 
         // When: 특정 브랜드로 필터링하여 조회
         val response = RestAssured.given()
@@ -189,10 +180,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
             latitude = 35.163574,
         )
 
-        val request = MapRequest.GetPolygonLocation(
-            coordinates = gangnamPolygonCoordinates,
-            brandIds = null,
-        )
+        val request = filterGroupOf(gangnamPolygonCoordinates)
 
         // When: 다각형 영역 내 포토부스 조회 API 호출
         val response = RestAssured.given()
@@ -213,17 +201,22 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
 
     // ── 요청 검증 (PostGIS 불필요) ─────────────────────────────────────────────
 
+    private fun filterGroupOf(coordinates: List<MapRequest.Coordinate>, brandIds: List<Long>? = null) =
+        MapRequest.FilterGroup(
+            polygonFilter = MapRequest.FilterGroup.PolygonFilter(coordinates = coordinates),
+            brandFilter = brandIds?.let { MapRequest.FilterGroup.BrandFilter(brandIds = it) },
+        )
+
     @Test
     @DisplayName("좌표가 4개 미만이면 500이 아니라 검증 에러를 반환한다")
     fun givenTooFewCoordinates_whenGetPhotoBoothsByPolygon_thenReturnsBadRequest() {
         // Given: 닫혀 있어도 3개면 PostGIS ST_MakePolygon 이 예외를 던진다
-        val request = MapRequest.GetPolygonLocation(
+        val request = filterGroupOf(
             coordinates = listOf(
-                MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
-                MapRequest.GetPolygonLocation.Coordinate(127.035359, 37.502853),
-                MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
+                MapRequest.Coordinate(127.019128, 37.502456),
+                MapRequest.Coordinate(127.035359, 37.502853),
+                MapRequest.Coordinate(127.019128, 37.502456),
             ),
-            brandIds = null,
         )
 
         // When & Then
@@ -242,10 +235,7 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
     @DisplayName("첫 좌표와 마지막 좌표가 다르면 500이 아니라 검증 에러를 반환한다")
     fun givenUnclosedPolygon_whenGetPhotoBoothsByPolygon_thenReturnsBadRequest() {
         // Given: 마지막 좌표를 빼 다각형이 닫히지 않은 상태
-        val request = MapRequest.GetPolygonLocation(
-            coordinates = gangnamPolygonCoordinates.dropLast(1),
-            brandIds = null,
-        )
+        val request = filterGroupOf(gangnamPolygonCoordinates.dropLast(1))
 
         // When & Then
         RestAssured.given()
@@ -264,10 +254,10 @@ class GetPhotoBoothsByPolygonE2ETest : MapE2ETestBase() {
     fun givenTooManyCoordinates_whenGetPhotoBoothsByPolygon_thenReturnsBadRequest() {
         // Given: 닫혀 있고 4개 이상이지만 개수 상한을 1개 초과 → Size 제약만 위반한다
         val tooManyCoordinates = (0 until MAX_POLYGON_POINTS).map {
-            MapRequest.GetPolygonLocation.Coordinate(127.0 + it * 0.00001, 37.0 + it * 0.00001)
-        } + MapRequest.GetPolygonLocation.Coordinate(127.0, 37.0)
+            MapRequest.Coordinate(127.0 + it * 0.00001, 37.0 + it * 0.00001)
+        } + MapRequest.Coordinate(127.0, 37.0)
 
-        val request = MapRequest.GetPolygonLocation(coordinates = tooManyCoordinates, brandIds = null)
+        val request = filterGroupOf(tooManyCoordinates)
 
         // When & Then
         RestAssured.given()

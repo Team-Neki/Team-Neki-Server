@@ -30,49 +30,22 @@ object MapRequest {
         val brandCode: String?,
     )
 
-    @Schema(
-        name = "GetPolygonLocationRequest",
-        description = "다각형 영역 내 포토부스 조회 요청",
-        example = """
-            {
-                "coordinates": [
-                    {"longitude": 127.019128, "latitude": 37.502456},
-                    {"longitude": 127.035359, "latitude": 37.502853},
-                    {"longitude": 127.035663, "latitude": 37.494395},
-                    {"longitude": 127.023675, "latitude": 37.494257},
-                    {"longitude": 127.019128, "latitude": 37.502456}
-                ],
-                "brandIds": []
-            }
-        """,
+    @Schema(name = "CoordinateRequest", description = "경위도 좌표")
+    data class Coordinate(
+        @field:Schema(description = "경도", example = "127.019128")
+        @field:NotNull(message = "longitude은 필수값입니다.")
+        var longitude: Double?,
+
+        @field:Schema(description = "위도", example = "37.502456")
+        @field:NotNull(message = "latitude은 필수값입니다.")
+        var latitude: Double?,
     )
-    data class GetPolygonLocation(
-        @field:Schema(
-            description = "다각형을 구성하는 좌표 리스트. 4개 이상 ${MAX_POLYGON_POINTS}개 이하이며 첫 좌표와 마지막 좌표가 동일해야 합니다.",
-        )
-        @field:NotEmpty
-        @field:Size(max = MAX_POLYGON_POINTS, message = MAX_POLYGON_POINTS_MESSAGE)
-        @field:Valid
-        @field:ClosedPolygon
-        val coordinates: List<Coordinate>,
-
-        @field:Schema(description = "브랜드 ID 리스트 (nullable [] 이면 모든 브랜드)", example = "[1, 2, 3]")
-        val brandIds: List<Long>? = null,
-    ) {
-        data class Coordinate(
-            @field:Schema(description = "경도", example = "127.019128")
-            @field:NotNull(message = "longitude은 필수값입니다.")
-            var longitude: Double?,
-
-            @field:Schema(description = "위도", example = "37.502456")
-            @field:NotNull(message = "latitude은 필수값입니다.")
-            var latitude: Double?,
-        )
-    }
 
     @Schema(
         name = "FilterGroupRequest",
-        description = "지도 필터 조회 요청. 필터가 추가되면 이 요청에 필터 필드가 늘어난다.",
+        description = "지도 조회 요청. 조회 조건을 필터별로 그룹지어 전달한다. " +
+            "필터가 추가되면 이 요청에 필드가 늘어나므로 기존 클라이언트 요청은 그대로 유효하다. " +
+            "다각형 조회(POST /polygon)와 필터 조회(POST /polygon/filter)가 동일한 body 를 사용한다.",
         example = """
             {
                 "polygonFilter": {
@@ -110,7 +83,7 @@ object MapRequest {
             @field:Size(max = MAX_POLYGON_POINTS, message = MAX_POLYGON_POINTS_MESSAGE)
             @field:Valid
             @field:ClosedPolygon
-            val coordinates: List<GetPolygonLocation.Coordinate>,
+            val coordinates: List<Coordinate>,
         )
 
         @Schema(name = "BrandFilterRequest", description = "브랜드 필터")

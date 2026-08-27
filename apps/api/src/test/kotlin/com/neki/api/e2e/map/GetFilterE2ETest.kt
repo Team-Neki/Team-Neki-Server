@@ -46,11 +46,11 @@ class GetFilterE2ETest : MapE2ETestBase() {
 
     // 강남역 기준 다각형 좌표
     private val gangnamPolygonCoordinates = listOf(
-        MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
-        MapRequest.GetPolygonLocation.Coordinate(127.035359, 37.502853),
-        MapRequest.GetPolygonLocation.Coordinate(127.035663, 37.494395),
-        MapRequest.GetPolygonLocation.Coordinate(127.023675, 37.494257),
-        MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
+        MapRequest.Coordinate(127.019128, 37.502456),
+        MapRequest.Coordinate(127.035359, 37.502853),
+        MapRequest.Coordinate(127.035663, 37.494395),
+        MapRequest.Coordinate(127.023675, 37.494257),
+        MapRequest.Coordinate(127.019128, 37.502456),
     )
 
     @BeforeEach
@@ -65,13 +65,11 @@ class GetFilterE2ETest : MapE2ETestBase() {
         testBrand = createBrand("포토이즘", "PHOTOISM")
     }
 
-    private fun filterGroupOf(
-        coordinates: List<MapRequest.GetPolygonLocation.Coordinate>,
-        brandIds: List<Long>? = null,
-    ) = MapRequest.FilterGroup(
-        polygonFilter = MapRequest.FilterGroup.PolygonFilter(coordinates = coordinates),
-        brandFilter = brandIds?.let { MapRequest.FilterGroup.BrandFilter(brandIds = it) },
-    )
+    private fun filterGroupOf(coordinates: List<MapRequest.Coordinate>, brandIds: List<Long>? = null) =
+        MapRequest.FilterGroup(
+            polygonFilter = MapRequest.FilterGroup.PolygonFilter(coordinates = coordinates),
+            brandFilter = brandIds?.let { MapRequest.FilterGroup.BrandFilter(brandIds = it) },
+        )
 
     // ── 인증·검증 (PostGIS 불필요) ──────────────────────────────────────────────
 
@@ -131,7 +129,7 @@ class GetFilterE2ETest : MapE2ETestBase() {
     fun givenCoordinateWithoutLongitude_whenGetFilter_thenReturnsBadRequest() {
         // Given
         val request = filterGroupOf(
-            listOf(MapRequest.GetPolygonLocation.Coordinate(longitude = null, latitude = 37.502456)),
+            listOf(MapRequest.Coordinate(longitude = null, latitude = 37.502456)),
         )
 
         // When & Then
@@ -151,9 +149,9 @@ class GetFilterE2ETest : MapE2ETestBase() {
         // Given: 닫혀 있어도 3개면 PostGIS ST_MakePolygon 이 예외를 던진다
         val request = filterGroupOf(
             listOf(
-                MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
-                MapRequest.GetPolygonLocation.Coordinate(127.035359, 37.502853),
-                MapRequest.GetPolygonLocation.Coordinate(127.019128, 37.502456),
+                MapRequest.Coordinate(127.019128, 37.502456),
+                MapRequest.Coordinate(127.035359, 37.502853),
+                MapRequest.Coordinate(127.019128, 37.502456),
             ),
         )
 
@@ -192,8 +190,8 @@ class GetFilterE2ETest : MapE2ETestBase() {
     fun givenTooManyCoordinates_whenGetFilter_thenReturnsBadRequest() {
         // Given: 닫혀 있고 4개 이상이지만 개수 상한을 1개 초과 → Size 제약만 위반한다
         val tooManyCoordinates = (0 until MAX_POLYGON_POINTS).map {
-            MapRequest.GetPolygonLocation.Coordinate(127.0 + it * 0.00001, 37.0 + it * 0.00001)
-        } + MapRequest.GetPolygonLocation.Coordinate(127.0, 37.0)
+            MapRequest.Coordinate(127.0 + it * 0.00001, 37.0 + it * 0.00001)
+        } + MapRequest.Coordinate(127.0, 37.0)
 
         val request = filterGroupOf(tooManyCoordinates)
 

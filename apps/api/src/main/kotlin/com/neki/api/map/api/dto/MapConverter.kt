@@ -24,15 +24,13 @@ object MapConverter {
         fun toCollectPhotoBoothCommand(request: MapRequest.CollectPhotoBooth): MapCommand.CollectPhotoBooth =
             MapCommand.CollectPhotoBooth(keyword = request.keyword!!, brandCode = request.brandCode!!)
 
-        fun toGetPolygonLocationQuery(
-            userId: Long,
-            request: MapRequest.GetPolygonLocation,
-        ): MapQuery.GetPolygonLocation {
-            val coordinates: List<Coordinate> = request.coordinates.map { Coordinate(it.longitude!!, it.latitude!!) }
+        fun toGetPolygonLocationQuery(userId: Long, request: MapRequest.FilterGroup): MapQuery.GetPolygonLocation {
+            val coordinates: List<Coordinate> = request.polygonFilter!!.coordinates
+                .map { Coordinate(it.longitude!!, it.latitude!!) }
             return MapQuery.GetPolygonLocation(
                 userId = userId,
                 coordinates = coordinates,
-                brandIds = request.brandIds,
+                brandIds = request.brandFilter?.brandIds,
             )
         }
 
