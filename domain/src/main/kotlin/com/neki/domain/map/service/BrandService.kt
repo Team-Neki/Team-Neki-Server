@@ -45,6 +45,7 @@ class BrandService(private val brandRepository: BrandRepository) {
         brand.updateInfo(
             command.name,
             command.code,
+            command.mediaId,
             command.supportAndroidQr,
             command.supportIosQr,
             command.exposeToMap,

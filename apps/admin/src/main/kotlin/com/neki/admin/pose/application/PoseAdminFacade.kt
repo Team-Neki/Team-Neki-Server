@@ -29,4 +29,9 @@ class PoseAdminFacade(private val poseService: PoseService) {
         val poses: List<Pose> = poseService.createPoses(command)
         poseService.saveAll(poses)
     }
+
+    @Transactional
+    fun updatePoseMedia(command: PoseCommand.UpdatePoseMedia) {
+        poseService.updatePoseMedia(command)
+    }
 }

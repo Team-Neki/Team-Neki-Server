@@ -21,6 +21,7 @@ fun toUpdateCommand(brandId: Long, request: BrandAdminDto.Request.UpdateBrand): 
         brandId,
         request.name,
         request.code,
+        request.mediaId,
         request.supportAndroidQr,
         request.supportIosQr,
         request.exposeToMap,

@@ -16,6 +16,8 @@ interface PoseRepository {
 
     fun getOwnedPoseWithScrap(userId: Long, poseId: Long): PoseWithScrap?
 
+    fun findById(poseId: Long): Pose
+
     fun saveAll(poses: List<Pose>): List<Pose>
 
     fun listPosesWithScrap(
