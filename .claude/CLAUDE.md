@@ -89,7 +89,11 @@ command):
 | Follow existing package structure            | Maintainability                                                                                  |
 | Run `spotlessApply` before commit            | Code style consistency                                                                           |
 | Delete dependent entities first              | Prevents orphan records and FK violations                                                        |
-| Add Flyway migration when changing DB schema | `@Column` length, type, constraint 변경 시 `modules/postgres/src/main/resources/db/migration/` 에 다음 버전의 SQL 파일 추가 필수 |
+| Add Flyway migration when changing DB schema | 컬럼 추가를 포함해 `@Column` length, type, constraint 변경 시 `modules/postgres/src/main/resources/db/migration/` 에 다음 버전의 SQL 파일 추가 필수 |
+| DB 컬럼명은 snake_case                        | `@Column(name = "support_android_qr")` 처럼 name을 명시. 카멜케이스 컬럼명 금지 (PR #313 리뷰)          |
+| Soft delete는 `deleted_at` + `@SQLRestriction` | boolean 플래그 대신 `deleted_at TIMESTAMP NULL` 컬럼과 `@SQLRestriction("deleted_at IS NULL")` 사용. PhotoImage 참조 (PR #313 리뷰) |
+| 조회 실패 예외는 Service 계층에서 던짐          | Repository 어댑터는 nullable 반환, 호출부 Service에서 `BusinessException(ResultCode.NOT_FOUND)` 던짐 (PR #313 리뷰) |
+| 유니크 제약 컬럼은 저장/수정 전 중복 검사        | DB unique constraint에만 의존하지 말고 `existsBy...`로 검사 후 `BusinessException` 던짐 (PR #313 리뷰)  |
 
 ---
 
