@@ -5,6 +5,8 @@ import com.neki.core.api.dto.BaseResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,6 +31,15 @@ class PoseAdminController(private val poseAdminFacade: PoseAdminFacade) {
     @PostMapping
     fun uploadPoses(@RequestBody @Valid request: PoseAdminDto.Request.UploadPoses): BaseResponse<Any> {
         poseAdminFacade.uploadPoses(request.toCommand())
+        return BaseResponse(data = null)
+    }
+
+    @PatchMapping("/{poseId}")
+    fun updatePoseMedia(
+        @RequestBody @Valid request: PoseAdminDto.Request.UpdatePoseMedia,
+        @PathVariable poseId: Long,
+    ): BaseResponse<Any> {
+        poseAdminFacade.updatePoseMedia(toUpdateCommand(poseId, request))
         return BaseResponse(data = null)
     }
 }

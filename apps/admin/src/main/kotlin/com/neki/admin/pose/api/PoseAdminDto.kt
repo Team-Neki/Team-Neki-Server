@@ -37,6 +37,11 @@ object PoseAdminDto {
             )
         }
 
+        data class UpdatePoseMedia(
+            @field:NotNull(message = "mediaId는 필수 입력값입니다.")
+            val mediaId: Long?,
+        )
+
         companion object {
             const val DEFAULT_PAGE = 0
             const val DEFAULT_SIZE = 10

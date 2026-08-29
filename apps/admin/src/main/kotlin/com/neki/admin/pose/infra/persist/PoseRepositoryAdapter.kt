@@ -2,12 +2,15 @@ package com.neki.admin.pose.infra.persist
 
 import com.neki.admin.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.admin.pose.infra.persist.jpa.PoseQueryRepository
+import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.SortOrder
+import com.neki.core.exception.BusinessException
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 /**
@@ -29,6 +32,9 @@ class PoseRepositoryAdapter(
     override fun getOwnedPoseWithScrap(userId: Long, poseId: Long): PoseWithScrap? = unsupported()
 
     override fun saveAll(poses: List<Pose>): List<Pose> = jpaRepository.saveAll(poses)
+
+    override fun findById(poseId: Long): Pose =
+        jpaRepository.findByIdOrNull(poseId) ?: throw BusinessException(ResultCode.NOT_FOUND)
 
     override fun listPosesWithScrap(
         userId: Long,

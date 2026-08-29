@@ -46,6 +46,7 @@ object BrandAdminDto {
             val name: String? = null,
             @field:Size(min = 1, max = 30, message = "code는 1자 이상 30자 이하여야 합니다.")
             val code: String? = null,
+            val mediaId: Long? = null,
             val supportAndroidQr: Boolean? = null,
             val supportIosQr: Boolean? = null,
             val exposeToMap: Boolean? = null,

@@ -20,3 +20,6 @@ fun PoseAdminDto.Request.UploadPoses.toCommand(): PoseCommand.UploadPoses = Pose
     userId = null,
     uploads = uploads.map { PoseCommand.UploadPoses.Item(it.mediaId!!, it.headCount, it.memo) },
 )
+
+fun toUpdateCommand(poseId: Long, request: PoseAdminDto.Request.UpdatePoseMedia): PoseCommand.UpdatePoseMedia =
+    PoseCommand.UpdatePoseMedia(poseId, request.mediaId!!)
