@@ -13,7 +13,11 @@ interface BrandRepository {
 
     fun save(brand: Brand): Brand
 
-    fun findById(id: Long): Brand
+    fun findById(id: Long): Brand?
+
+    fun existsByName(name: String): Boolean
+
+    fun existsByCode(code: String): Boolean
 
     fun getBrand(code: String): Brand?
 

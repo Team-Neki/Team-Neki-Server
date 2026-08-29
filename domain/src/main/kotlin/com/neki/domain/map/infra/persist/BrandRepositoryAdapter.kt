@@ -15,12 +15,13 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 class BrandRepositoryAdapter(private val jpaRepository: JpaBrandRepository) : BrandRepository {
-    override fun save(brand: Brand): Brand {
-        TODO("Not yet implemented")
-    }
+    override fun save(brand: Brand): Brand = jpaRepository.save(brand)
 
-    override fun findById(id: Long): Brand =
-        jpaRepository.findByIdOrNull(id) ?: throw IllegalArgumentException("Brand not found")
+    override fun findById(id: Long): Brand? = jpaRepository.findByIdOrNull(id)
+
+    override fun existsByName(name: String): Boolean = jpaRepository.existsByName(name)
+
+    override fun existsByCode(code: String): Boolean = jpaRepository.existsByCode(code)
 
     override fun getBrand(code: String): Brand? = jpaRepository.findByCode(code)
 

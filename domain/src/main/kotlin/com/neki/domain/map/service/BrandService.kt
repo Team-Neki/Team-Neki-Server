@@ -6,7 +6,6 @@ import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.BrandCommand
 import com.neki.domain.map.dto.BrandQuery
 import com.neki.domain.map.models.Brand
-import com.neki.domain.map.models.QBrand.brand
 import com.neki.domain.map.repository.BrandRepository
 import org.springframework.stereotype.Component
 
@@ -36,7 +35,13 @@ class BrandService(private val brandRepository: BrandRepository) {
             throw BusinessException(ResultCode.INVALID_PARAMETER)
         }
 
-        val brand = brandRepository.findById(command.brandId)
+        val brand: Brand = brandRepository.findById(command.brandId)
+            ?: throw BusinessException(ResultCode.NOT_FOUND)
+
+        val newName: String? = command.name.takeIf { it != brand.name }
+        val newCode: String? = command.code.takeIf { it != brand.code }
+        validateNoDuplicate(newName, newCode)
+
         brand.updateInfo(
             command.name,
             command.code,
@@ -48,11 +53,14 @@ class BrandService(private val brandRepository: BrandRepository) {
     }
 
     fun deleteBrand(command: BrandCommand.DeleteBrand) {
-        val brand = brandRepository.findById(command.brandId)
+        val brand: Brand = brandRepository.findById(command.brandId)
+            ?: throw BusinessException(ResultCode.NOT_FOUND)
         brand.softDelete()
     }
 
     fun addBrand(command: BrandCommand.AddBrand) {
+        validateNoDuplicate(command.name, command.code)
+
         val brand = Brand.of(
             command.name,
             command.code,
@@ -61,5 +69,17 @@ class BrandService(private val brandRepository: BrandRepository) {
             command.supportIosQr,
         )
         brandRepository.save(brand)
+    }
+
+    /**
+     * name, code 는 유니크 제약이 있다. null 인 인자는 검사하지 않는다.
+     */
+    private fun validateNoDuplicate(name: String?, code: String?) {
+        if (name != null && brandRepository.existsByName(name)) {
+            throw BusinessException(ResultCode.CONFLICT_BRAND)
+        }
+        if (code != null && brandRepository.existsByCode(code)) {
+            throw BusinessException(ResultCode.CONFLICT_BRAND)
+        }
     }
 }

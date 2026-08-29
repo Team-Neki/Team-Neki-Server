@@ -7,6 +7,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.SQLRestriction
+import java.time.LocalDateTime
 
 /**
  * fileName       : Brand
@@ -15,6 +17,7 @@ import jakarta.persistence.Table
  * description    : 포토부스 브랜드 엔티티
  */
 @Entity
+@SQLRestriction("deleted_at IS NULL")
 @Table(name = "TB_BRAND")
 class Brand(
     @Id
@@ -30,17 +33,17 @@ class Brand(
     @Column(name = "media_id", nullable = true)
     var mediaId: Long? = null,
 
-    @Column(name = "supportAndroidQr", nullable = false)
+    @Column(name = "support_android_qr", nullable = false)
     var supportAndroidQr: Boolean = false,
 
-    @Column(name = "supportIosQr", nullable = false)
+    @Column(name = "support_ios_qr", nullable = false)
     var supportIosQr: Boolean = false,
 
-    @Column(name = "exposeToMap", nullable = false)
+    @Column(name = "expose_to_map", nullable = false)
     var exposeToMap: Boolean = false,
 
-    @Column(name = "isDeleted", nullable = false)
-    var isDeleted: Boolean = false,
+    @Column(name = "deleted_at", nullable = true)
+    var deletedAt: LocalDateTime? = null,
 ) : BaseTimeEntity() {
     /**
      * null 인 인자는 변경하지 않는다.
@@ -60,7 +63,7 @@ class Brand(
     }
 
     fun softDelete() {
-        isDeleted = true
+        deletedAt = LocalDateTime.now()
     }
 
     companion object {
