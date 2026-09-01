@@ -96,6 +96,16 @@ command):
 | 조회 실패 예외는 Service 계층에서 던짐          | Repository 어댑터는 nullable 반환, 호출부 Service에서 `BusinessException(ResultCode.NOT_FOUND)` 던짐 (PR #313 리뷰) |
 | 유니크 제약 컬럼은 저장/수정 전 중복 검사        | DB unique constraint에만 의존하지 말고 `existsBy...`로 검사 후 `BusinessException` 던짐 (PR #313 리뷰)  |
 
+### DB/Entity 변경 체크리스트 (Mandatory)
+
+엔티티나 스키마를 변경하면 커밋 전에 반드시 아래를 전부 점검한다:
+
+1. **Flyway 마이그레이션**: 컬럼 추가/변경/제약 변경분이 다음 버전 SQL 파일로 추가됐는가
+2. **컬럼명**: 전부 snake_case인가 (`@Column(name = ...)` 명시)
+3. **기존 제약과의 충돌**: 기존 unique/FK/index가 새 동작(soft delete, `@SQLRestriction` 등)과 충돌하지 않는가. 기존 테이블 스키마는 `db/migration/`의 이전 마이그레이션에서 직접 확인
+4. **애플리케이션 검사와 DB 제약의 기준 일치**: `existsBy...` 사전 검사가 보는 범위와 DB 제약이 보는 범위가 같은가 (`@SQLRestriction`은 derived query에도 적용됨)
+5. **테스트 환경과의 정합성**: 테스트는 `ddl-auto: create-drop` + Flyway 비활성이므로, 실제 스키마(Flyway)와 다른 DDL을 만드는 엔티티 어노테이션(`unique = true` 등)이 없는가
+
 ---
 
 ## Code Modification Guidelines
