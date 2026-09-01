@@ -89,7 +89,22 @@ command):
 | Follow existing package structure            | Maintainability                                                                                  |
 | Run `spotlessApply` before commit            | Code style consistency                                                                           |
 | Delete dependent entities first              | Prevents orphan records and FK violations                                                        |
-| Add Flyway migration when changing DB schema | `@Column` length, type, constraint 변경 시 `modules/postgres/src/main/resources/db/migration/` 에 다음 버전의 SQL 파일 추가 필수 |
+| Add Flyway migration when changing DB schema | 컬럼 추가를 포함해 `@Column` length, type, constraint 변경 시 `modules/postgres/src/main/resources/db/migration/` 에 다음 버전의 SQL 파일 추가 필수 |
+| DB 컬럼명은 snake_case                        | `@Column(name = "support_android_qr")` 처럼 name을 명시. 카멜케이스 컬럼명 금지 (PR #313 리뷰)          |
+| Soft delete는 `deleted_at` + `@SQLRestriction` | boolean 플래그 대신 `deleted_at TIMESTAMP NULL` 컬럼과 `@SQLRestriction("deleted_at IS NULL")` 사용. PhotoImage 참조 (PR #313 리뷰) |
+| Soft delete 엔티티의 unique는 partial index    | 테이블 전체 unique는 삭제된 행이 값을 영구 점유. `CREATE UNIQUE INDEX ... WHERE deleted_at IS NULL`로 걸고 `@Column(unique = true)`는 제거 (PR #313 리뷰) |
+| 조회 실패 예외는 Service 계층에서 던짐          | Repository 어댑터는 nullable 반환, 호출부 Service에서 `BusinessException(ResultCode.NOT_FOUND)` 던짐 (PR #313 리뷰) |
+| 유니크 제약 컬럼은 저장/수정 전 중복 검사        | DB unique constraint에만 의존하지 말고 `existsBy...`로 검사 후 `BusinessException` 던짐 (PR #313 리뷰)  |
+
+### DB/Entity 변경 체크리스트 (Mandatory)
+
+엔티티나 스키마를 변경하면 커밋 전에 반드시 아래를 전부 점검한다:
+
+1. **Flyway 마이그레이션**: 컬럼 추가/변경/제약 변경분이 다음 버전 SQL 파일로 추가됐는가
+2. **컬럼명**: 전부 snake_case인가 (`@Column(name = ...)` 명시)
+3. **기존 제약과의 충돌**: 기존 unique/FK/index가 새 동작(soft delete, `@SQLRestriction` 등)과 충돌하지 않는가. 기존 테이블 스키마는 `db/migration/`의 이전 마이그레이션에서 직접 확인
+4. **애플리케이션 검사와 DB 제약의 기준 일치**: `existsBy...` 사전 검사가 보는 범위와 DB 제약이 보는 범위가 같은가 (`@SQLRestriction`은 derived query에도 적용됨)
+5. **테스트 환경과의 정합성**: 테스트는 `ddl-auto: create-drop` + Flyway 비활성이므로, 실제 스키마(Flyway)와 다른 DDL을 만드는 엔티티 어노테이션(`unique = true` 등)이 없는가
 
 ---
 

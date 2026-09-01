@@ -1,0 +1,9 @@
+ALTER TABLE TB_BRAND ADD COLUMN support_android_qr BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE TB_BRAND ADD COLUMN support_ios_qr BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE TB_BRAND ADD COLUMN expose_to_map BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE TB_BRAND ADD COLUMN deleted_at TIMESTAMP NULL;
+
+COMMENT ON COLUMN TB_BRAND.support_android_qr IS 'Android QR 지원 여부';
+COMMENT ON COLUMN TB_BRAND.support_ios_qr IS 'iOS QR 지원 여부';
+COMMENT ON COLUMN TB_BRAND.expose_to_map IS '지도 노출 여부';
+COMMENT ON COLUMN TB_BRAND.deleted_at IS '삭제일시 (soft delete, NULL이면 미삭제)';

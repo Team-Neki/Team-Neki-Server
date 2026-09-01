@@ -13,4 +13,8 @@ interface JpaBrandRepository : JpaRepository<Brand, Long> {
     fun findAllByOrderByIdAsc(): List<Brand>
 
     fun findByCode(code: String): Brand?
+
+    fun existsByName(name: String): Boolean
+
+    fun existsByCode(code: String): Boolean
 }
