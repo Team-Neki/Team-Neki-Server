@@ -24,10 +24,11 @@ class Brand(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name = "name", nullable = false, length = 50, unique = true)
+    // 유니크 제약은 partial index(uk_brand_name, uk_brand_code)로 살아있는 행에만 적용된다. V29 참조
+    @Column(name = "name", nullable = false, length = 50)
     var name: String,
 
-    @Column(name = "code", nullable = false, length = 30, unique = true)
+    @Column(name = "code", nullable = false, length = 30)
     var code: String,
 
     @Column(name = "media_id", nullable = true)
