@@ -9,7 +9,7 @@ import com.neki.domain.pose.models.HeadCount
  * description    : Pose domain command
  */
 object PoseCommand {
-    data class UploadPoses(val userId: Long, val uploads: List<Item>) {
+    data class UploadPoses(val userId: Long?, val uploads: List<Item>) {
         data class Item(val mediaId: Long, val headCount: HeadCount, val memo: String?)
     }
 

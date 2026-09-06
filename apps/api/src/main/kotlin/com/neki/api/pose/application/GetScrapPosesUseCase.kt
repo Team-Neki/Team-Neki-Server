@@ -9,7 +9,7 @@ import com.neki.domain.pose.client.MediaClient
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.MediaMetadata
 import com.neki.domain.pose.models.Pose
-import com.neki.domain.pose.service.PoseService
+import com.neki.domain.pose.service.PoseScrapService
 
 /**
  * fileName       : GetScrapPosesUseCase
@@ -19,14 +19,14 @@ import com.neki.domain.pose.service.PoseService
  */
 @UseCase
 class GetScrapPosesUseCase(
-    private val poseService: PoseService,
+    private val poseScrapService: PoseScrapService,
     private val mediaClient: MediaClient,
     private val transactionRunner: TransactionRunner,
 ) {
 
     fun execute(query: PoseQuery.GetScrapPoses): PoseResult.GetPoses {
         val page: Page<Pose> = transactionRunner.readOnly {
-            poseService.listOwnedScrapPoses(query)
+            poseScrapService.listOwnedScrapPoses(query)
         }
 
         if (page.items.isEmpty()) {

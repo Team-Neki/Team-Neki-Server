@@ -11,7 +11,8 @@ import com.neki.domain.pose.external.PoseViewCache
 import com.neki.domain.pose.models.MediaMetadata
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
-import com.neki.domain.pose.service.PoseService
+import com.neki.domain.pose.service.PoseScrapService
+import com.neki.domain.pose.service.PoseViewService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -37,7 +38,8 @@ class GetPoseUseCaseTest {
         poseViewCache = mockk()
         transactionRunner = FakeTransactionRunner()
         useCase = GetPoseUseCase(
-            PoseService(poseRepository, mockk(), poseViewCache, mockk()),
+            PoseScrapService(poseRepository, mockk()),
+            PoseViewService(poseRepository, poseViewCache),
             mediaClient,
             transactionRunner,
         )
