@@ -27,9 +27,13 @@ class BrandRepositoryAdapter(
     override fun findById(id: Long): Brand =
         jpaRepository.findByIdOrNull(id) ?: throw BusinessException(ResultCode.NOT_FOUND)
 
+    override fun existsByName(name: String): Boolean = jpaRepository.existsByName(name)
+
+    override fun existsByCode(code: String): Boolean = jpaRepository.existsByCode(code)
+
     override fun getBrand(code: String): Brand? = jpaRepository.findByCode(code)
 
-    override fun findAll(): List<Brand> = jpaRepository.findAllByIsDeletedFalseOrderByIdAsc()
+    override fun findAll(): List<Brand> = jpaRepository.findAllByOrderByIdAsc()
 
     override fun findAll(query: BrandQuery.GetBrands): List<Brand> = queryRepository.findAll(query)
 

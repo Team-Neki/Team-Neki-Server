@@ -3,7 +3,7 @@ package com.neki.admin.map
 import com.neki.admin.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.core.code.ResultCode
 import com.neki.domain.map.models.Brand
-import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -34,6 +35,9 @@ class BrandAdminMediaFlowTest {
 
     @Autowired
     lateinit var brandRepository: JpaBrandRepository
+
+    @Autowired
+    lateinit var jdbcTemplate: JdbcTemplate
 
     @BeforeEach
     fun setUp() {
@@ -125,8 +129,10 @@ class BrandAdminMediaFlowTest {
         mockMvc.perform(delete("/admin/v1/brand/{brandId}", brand.id))
             .andExpect(status().isOk)
 
-        val deleted: Brand = brandRepository.findById(brand.id!!).get()
-        deleted.isDeleted.shouldBeTrue()
-        deleted.mediaId shouldBe 1L
+        // soft delete된 행은 @SQLRestriction 때문에 JPA로는 보이지 않으므로 native SQL로 확인한다
+        val row: Map<String, Any?> =
+            jdbcTemplate.queryForMap("SELECT deleted_at, media_id FROM TB_BRAND WHERE id = ?", brand.id)
+        row["deleted_at"].shouldNotBeNull()
+        row["media_id"] shouldBe 1L
     }
 }
