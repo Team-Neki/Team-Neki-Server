@@ -14,12 +14,13 @@ object BrandCommand {
         val brandId: Long,
         val name: String?,
         val code: String?,
+        val mediaId: Long?,
         val supportAndroidQr: Boolean?,
         val supportIosQr: Boolean?,
         val exposeToMap: Boolean?,
     ) {
         val hasNoChanges: Boolean
-            get() = listOf(name, code, supportAndroidQr, supportIosQr, exposeToMap).all { it == null }
+            get() = listOf(name, code, mediaId, supportAndroidQr, supportIosQr, exposeToMap).all { it == null }
     }
 
     data class DeleteBrand(val brandId: Long)
