@@ -10,7 +10,11 @@ import org.springframework.data.jpa.repository.JpaRepository
  * description    : Brand JPA Repository
  */
 interface JpaBrandRepository : JpaRepository<Brand, Long> {
-    fun findAllByIsDeletedFalseOrderByIdAsc(): List<Brand>
+    fun findAllByOrderByIdAsc(): List<Brand>
 
     fun findByCode(code: String): Brand?
+
+    fun existsByName(name: String): Boolean
+
+    fun existsByCode(code: String): Boolean
 }

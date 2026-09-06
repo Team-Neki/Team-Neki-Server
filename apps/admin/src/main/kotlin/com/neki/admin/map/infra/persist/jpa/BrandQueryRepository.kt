@@ -44,18 +44,13 @@ class BrandQueryRepository(private val queryFactory: JPAQueryFactory) {
         .fetchOne() ?: 0L
 
     private fun conditions(query: BrandQuery.GetBrands): Array<Predicate?> = arrayOf(
-        notDeleted,
         query.supportsQr?.let { supportsQr(it) },
         query.exposeToMap?.let { brand.exposeToMap.eq(it) },
     )
 
     private fun conditions(query: BrandQuery.SearchBrands): Array<Predicate?> = arrayOf(
-        notDeleted,
         matchesKeyword(query.keyword),
     )
-
-    private val notDeleted: BooleanExpression
-        get() = brand.isDeleted.eq(false)
 
     // 안드로이드·iOS 중 하나라도 지원하면 QR 지원으로 본다
     private fun supportsQr(supportsQr: Boolean): BooleanExpression = if (supportsQr) {
