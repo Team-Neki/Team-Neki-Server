@@ -25,7 +25,8 @@ class Pose(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name = "user_id", nullable = false)
+    // 관리자 업로드는 귀속 사용자가 없어 null 이다
+    @Column(name = "user_id", nullable = true)
     val userId: Long? = null,
 
     @Column(name = "media_id", nullable = false)

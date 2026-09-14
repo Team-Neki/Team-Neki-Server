@@ -12,7 +12,8 @@ import com.neki.domain.pose.models.MediaMetadata
 import com.neki.domain.pose.models.ScrapPoseId
 import com.neki.domain.pose.repository.PoseRepository
 import com.neki.domain.pose.repository.ScrapPoseRepository
-import com.neki.domain.pose.service.PoseService
+import com.neki.domain.pose.service.PoseScrapService
+import com.neki.domain.pose.service.RandomPoseService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -38,7 +39,8 @@ class RandomPoseUseCaseTest {
         randomGenerator = mockk()
         useCase =
             RandomPoseUseCase(
-                PoseService(poseRepository, scrapPoseRepository, mockk(), randomGenerator),
+                RandomPoseService(poseRepository, randomGenerator),
+                PoseScrapService(poseRepository, scrapPoseRepository),
                 mediaClient,
             )
     }

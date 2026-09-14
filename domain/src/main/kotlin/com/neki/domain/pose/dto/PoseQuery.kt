@@ -12,6 +12,11 @@ import com.neki.domain.pose.models.HeadCount
 object PoseQuery {
     data class GetPoses(val userId: Long, val headCount: HeadCount?, val pagination: Pagination)
 
+    /**
+     * 사용자 컨텍스트 없이 전체 포즈를 조회한다. headCount 는 null 이면 거르지 않는다.
+     */
+    data class GetAllPoses(val headCount: HeadCount?, val pagination: Pagination)
+
     data class GetScrapPoses(val userId: Long, val headCount: HeadCount?, val pagination: Pagination)
 
     data class GetPose(val userId: Long, val poseId: Long)

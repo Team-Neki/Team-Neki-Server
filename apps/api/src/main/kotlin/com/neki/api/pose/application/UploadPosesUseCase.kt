@@ -24,15 +24,18 @@ class UploadPosesUseCase(
 ) {
 
     fun execute(command: PoseCommand.UploadPoses) {
+        // apps:api 업로드는 인증된 사용자만 호출한다. userId가 없는 업로드는 apps:admin 전용이다.
+        val userId: Long = requireNotNull(command.userId)
+
         val poses: List<Pose> = poseService.createPoses(command)
 
         val mediaIds: List<Long> = command.uploads.map { it.mediaId }
-        verifyUploadedOrRollback(command.userId, mediaIds)
+        verifyUploadedOrRollback(userId, mediaIds)
 
         try {
             transactionRunner.run { poseService.saveAll(poses) }
         } catch (e: Exception) {
-            mediaClient.rollbackMediasUploaded(command.userId, mediaIds)
+            mediaClient.rollbackMediasUploaded(userId, mediaIds)
             throw e
         }
     }

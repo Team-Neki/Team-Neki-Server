@@ -10,7 +10,7 @@ import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.MediaMetadata
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
-import com.neki.domain.pose.service.PoseService
+import com.neki.domain.pose.service.PoseScrapService
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -32,7 +32,7 @@ class GetPosesUseCaseTest {
         mediaClient = mockk()
         transactionRunner = FakeTransactionRunner()
         useCase = GetPosesUseCase(
-            PoseService(poseRepository, mockk(), mockk(), mockk()),
+            PoseScrapService(poseRepository, mockk()),
             mediaClient,
             transactionRunner,
         )

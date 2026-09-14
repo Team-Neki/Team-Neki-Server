@@ -6,15 +6,20 @@ import com.neki.domain.pose.client.MediaClient
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.MediaMetadata
 import com.neki.domain.pose.models.Pose
-import com.neki.domain.pose.service.PoseService
+import com.neki.domain.pose.service.PoseScrapService
+import com.neki.domain.pose.service.RandomPoseService
 
 @UseCase
-class RandomPoseUseCase(private val poseService: PoseService, private val mediaClient: MediaClient) {
+class RandomPoseUseCase(
+    private val randomPoseService: RandomPoseService,
+    private val poseScrapService: PoseScrapService,
+    private val mediaClient: MediaClient,
+) {
 
     fun execute(query: PoseQuery.GetRandomPose): PoseResult.GetPose {
-        val pose: Pose = poseService.pickRandomPose(query)
+        val pose: Pose = randomPoseService.pickRandomPose(query)
 
-        val isScraped: Boolean = poseService.isScraped(query, pose)
+        val isScraped: Boolean = poseScrapService.isScraped(query, pose)
 
         val mediaInfo: MediaMetadata = mediaClient.getMediaMetadata(pose.mediaId)
 

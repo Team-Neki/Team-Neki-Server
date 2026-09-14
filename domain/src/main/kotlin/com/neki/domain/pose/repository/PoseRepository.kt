@@ -1,6 +1,7 @@
 package com.neki.domain.pose.repository
 
 import com.neki.core.domain.vo.SortOrder
+import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseWithScrap
@@ -26,6 +27,10 @@ interface PoseRepository {
     ): List<PoseWithScrap>
 
     fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose>
+
+    fun findAll(query: PoseQuery.GetAllPoses): List<Pose>
+
+    fun count(query: PoseQuery.GetAllPoses): Long
 
     fun existsPose(poseId: Long): Boolean
 
