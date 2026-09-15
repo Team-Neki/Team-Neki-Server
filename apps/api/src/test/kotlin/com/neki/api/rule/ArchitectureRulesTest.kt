@@ -27,10 +27,11 @@ class ArchitectureRulesTest {
             "map",
             "support",
             "notification",
+            "search",
         )
 
         /** 격리 검증 대상 도메인 (user는 알려진 예외로 제외) */
-        private val ISOLATED_DOMAINS = listOf("photo", "media", "pose", "map", "support", "notification")
+        private val ISOLATED_DOMAINS = listOf("photo", "media", "pose", "map", "support", "notification", "search")
 
         // 앱 루트가 com.neki.api 라서 "..api.." 는 :apps:api 전체와 매칭된다.
         // 계층으로서의 api 를 가리킬 때는 반드시 아래 상수를 쓴다.
