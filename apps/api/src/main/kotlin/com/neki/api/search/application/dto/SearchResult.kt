@@ -1,5 +1,7 @@
 package com.neki.api.search.application.dto
 
+import com.neki.domain.search.models.RegionLevel
+
 /**
  * fileName       : SearchResult
  * author         : koo
@@ -7,6 +9,19 @@ package com.neki.api.search.application.dto
  * description    : Search domain result
  */
 object SearchResult {
+    data class SearchRegions(val items: List<Item>, val hasNext: Boolean, val totalCount: Long) {
+        data class Item(val code: String, val level: RegionLevel, val name: String, val fullName: String)
+    }
+
+    data class SearchStations(val items: List<Item>, val hasNext: Boolean, val totalCount: Long) {
+        data class Item(val name: String, val lineName: String)
+    }
+
+    /**
+     * 부스 검색. 지도에 필요한 값이 다 들어 있어 고른 뒤 추가 호출이 없다.
+     */
+    data class SearchPhotoBooths(val items: List<GetPhotoBooths.Item>, val hasNext: Boolean, val totalCount: Long)
+
     data class GetPhotoBooths(val items: List<Item>) {
         data class Item(
             val id: Long,

@@ -26,6 +26,15 @@ sealed interface SearchTarget {
 }
 
 /**
+ * 법정동 계층. 시도(`SIDO`)는 검색 대상이 아니라 없다.
+ */
+enum class RegionLevel {
+    SIGUNGU,
+    EUPMYEONDONG,
+    RI,
+}
+
+/**
  * 사용자 현재 위치
  */
 data class UserLocation(val latitude: Double, val longitude: Double) {

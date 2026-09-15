@@ -1,5 +1,6 @@
 package com.neki.api.search.api.dto
 
+import com.neki.domain.search.models.RegionLevel
 import io.swagger.v3.oas.annotations.media.Schema
 
 /**
@@ -9,6 +10,66 @@ import io.swagger.v3.oas.annotations.media.Schema
  * description    : Search 관련 응답 DTO
  */
 object SearchResponse {
+    @Schema(name = "SearchRegionsResponse")
+    data class SearchRegions(
+        @field:Schema(description = "지역 목록")
+        val items: List<Item>,
+
+        @field:Schema(description = "다음 페이지 존재 여부", example = "false")
+        val hasNext: Boolean,
+
+        @field:Schema(description = "검색어에 걸린 전체 건수. 탭 건수 배지용", example = "3")
+        val totalCount: Long,
+    ) {
+        @Schema(name = "SearchRegionInfo")
+        data class Item(
+            @field:Schema(description = "법정동코드 10자리. 부스 목록 요청에 넘길 값", example = "1168000000")
+            val code: String,
+
+            @field:Schema(description = "법정동 계층", example = "SIGUNGU")
+            val level: RegionLevel,
+
+            @field:Schema(description = "가장 아래 계층의 이름. 검색은 이 값으로만 한다", example = "강남구")
+            val name: String,
+
+            @field:Schema(description = "전체 경로. 같은 이름을 구분하는 용도", example = "서울특별시 강남구")
+            val fullName: String,
+        )
+    }
+
+    @Schema(name = "SearchStationsResponse")
+    data class SearchStations(
+        @field:Schema(description = "지하철역 목록. 한 역이 노선 수만큼 나온다")
+        val items: List<Item>,
+
+        @field:Schema(description = "다음 페이지 존재 여부", example = "false")
+        val hasNext: Boolean,
+
+        @field:Schema(description = "검색어에 걸린 전체 건수. 탭 건수 배지용", example = "5")
+        val totalCount: Long,
+    ) {
+        @Schema(name = "SearchStationInfo")
+        data class Item(
+            @field:Schema(description = "역명. `역` 접미사 없음", example = "강남")
+            val name: String,
+
+            @field:Schema(description = "노선명", example = "2호선")
+            val lineName: String,
+        )
+    }
+
+    @Schema(name = "SearchPhotoBoothsByKeywordResponse")
+    data class SearchPhotoBooths(
+        @field:Schema(description = "부스 목록. 지도에 필요한 값이 다 들어 있어 고른 뒤 추가 호출이 없다")
+        val items: List<GetPhotoBooths.Item>,
+
+        @field:Schema(description = "다음 페이지 존재 여부", example = "false")
+        val hasNext: Boolean,
+
+        @field:Schema(description = "검색어에 걸린 전체 건수. 탭 건수 배지용", example = "5")
+        val totalCount: Long,
+    )
+
     @Schema(name = "SearchPhotoBoothsResponse")
     data class GetPhotoBooths(
         @field:Schema(description = "부스 목록. 페이징 없이 전체를 내려준다")
@@ -37,7 +98,7 @@ object SearchResponse {
             @field:Schema(description = "경도 (소수점 7자리)", example = "127.0271830")
             val longitude: Double,
 
-            @field:Schema(description = "사용자 위치로부터의 거리(m). userLocation 없으면 null", example = "468", nullable = true)
+            @field:Schema(description = "사용자 위치로부터의 거리(m). 위치를 안 주면 null", example = "468", nullable = true)
             val distance: Int?,
 
             @field:Schema(description = "즐겨찾기 여부", example = "true")
