@@ -127,6 +127,20 @@ class SearchPhotoBoothsE2ETest : E2ETestBase() {
         }
 
         @Test
+        @DisplayName("사용자 위치 좌표가 범위를 벗어남 - D-01")
+        fun givenOutOfRangeUserLocation_whenSearch_thenReturnsInvalidParameter() {
+            post(
+                "강남",
+                SearchRequest.GetPhotoBooths(
+                    filterGroup = noFilter,
+                    userLocation = SearchRequest.UserLocation(latitude = 91.0, longitude = 127.0276),
+                ),
+            )
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
         @DisplayName("토큰 없음 - 403")
         fun givenNoToken_whenSearch_thenReturnsForbidden() {
             RestAssured.given()
