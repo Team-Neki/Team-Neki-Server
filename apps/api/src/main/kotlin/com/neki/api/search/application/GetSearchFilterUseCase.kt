@@ -2,8 +2,6 @@ package com.neki.api.search.application
 
 import com.neki.api.search.application.dto.SearchResult
 import com.neki.core.annotation.UseCase
-import com.neki.core.code.ResultCode
-import com.neki.core.exception.BusinessException
 import com.neki.domain.search.dto.SearchQuery
 
 /**
@@ -15,12 +13,10 @@ import com.neki.domain.search.dto.SearchQuery
 @UseCase
 class GetSearchFilterUseCase {
 
+    /** mock: query 와 무관하게 항상 같은 집계를 내려준다. 실제 구현은 사용자별 브랜드 정렬 순서를 따르고 mock 은 브랜드 ID 순. */
+    @Suppress("UNUSED_PARAMETER")
     fun execute(query: SearchQuery.GetFilter): SearchResult.GetFilter {
-        val booths: List<SearchMockData.PhotoBooth> = SearchMockData.findPhotoBooths(query.target, query.brandIds)
-            ?: throw BusinessException(ResultCode.NOT_FOUND)
-
-        // 실제 구현은 브랜드 전체 조회와 같이 사용자별 정렬 순서를 따른다. mock 은 브랜드 ID 순.
-        val brandFilter: List<SearchResult.GetFilter.BrandFilter> = booths
+        val brandFilter: List<SearchResult.GetFilter.BrandFilter> = SearchMockData.photoBooths
             .groupingBy { it.brand }
             .eachCount()
             .entries

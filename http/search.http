@@ -1,0 +1,208 @@
+# 통합 검색 API 배포 후 검증 요청. 기대값과 실행 방법은 docs/oracles/search-api.md 참고.
+# kakaoIdToken 은 http-client.private.env.json 에 넣는다. [AUTH] 를 먼저 실행하면 accessToken 이 전역 변수로 저장된다.
+# mock 은 입력을 무시하므로 성공 케이스는 어떤 요청이든 같은 body 가 와야 한다.
+
+### [AUTH] 카카오 idToken 으로 로그인해 accessToken 저장
+POST {{host}}/api/auth/kakao/login
+Content-Type: application/json
+
+{
+  "idToken": "{{kakaoIdToken}}"
+}
+
+> {%
+  client.test("AUTH", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.resultCode === "D-0", "resultCode " + response.body.resultCode);
+  });
+  client.global.set("accessToken", response.body.data.accessToken);
+%}
+
+### [PB-1] 강남 + 사용자 위치: 고정 6개, 가까운 순
+POST {{host}}/api/search/photo-booths?keyword=강남
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {},
+  "userLocation": { "latitude": 37.4979, "longitude": 127.0276 }
+}
+
+> {%
+  client.test("PB-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.resultCode === "D-0", "resultCode " + response.body.resultCode);
+    var ids = response.body.data.items.map(function (i) { return i.id; });
+    var distances = response.body.data.items.map(function (i) { return i.distance; });
+    client.assert(JSON.stringify(ids) === "[2591,3115,3102,2573,2604,2560]", "ids " + ids);
+    client.assert(JSON.stringify(distances) === "[175,250,288,360,416,469]", "distances " + distances);
+    client.assert(response.body.data.items[5].favorite === true, "items[5].favorite");
+  });
+  client.global.set("pb1", JSON.stringify(response.body));
+%}
+
+### [PB-2] 다른 검색어 + 브랜드 필터 + 정렬 + 사용자 위치 없음: PB-1 과 같은 body
+POST {{host}}/api/search/photo-booths?keyword=송정
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {
+    "brandFilter": { "brands": [{ "brandId": 2 }] },
+    "sortFilter": { "type": "DEFAULT", "order": "DESC" }
+  }
+}
+
+> {%
+  client.test("PB-2", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(JSON.stringify(response.body) === client.global.get("pb1"), "body differs from PB-1");
+  });
+%}
+
+### [PB-3] keyword 없음: 400 D-01
+POST {{host}}/api/search/photo-booths
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-3", function () {
+    client.assert(response.status === 400, "status " + response.status);
+    client.assert(response.body.resultCode === "D-01", "resultCode " + response.body.resultCode);
+  });
+%}
+
+### [PB-4] keyword 공백: 400 D-01
+POST {{host}}/api/search/photo-booths?keyword=%20
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-4", function () {
+    client.assert(response.status === 400, "status " + response.status);
+    client.assert(response.body.resultCode === "D-01", "resultCode " + response.body.resultCode);
+  });
+%}
+
+### [PB-5] filterGroup 없음: 400 D-01
+POST {{host}}/api/search/photo-booths?keyword=강남
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{}
+
+> {%
+  client.test("PB-5", function () {
+    client.assert(response.status === 400, "status " + response.status);
+    client.assert(response.body.resultCode === "D-01", "resultCode " + response.body.resultCode);
+  });
+%}
+
+### [PB-6] 토큰 없음: 403 D-996
+POST {{host}}/api/search/photo-booths?keyword=강남
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-6", function () {
+    client.assert(response.status === 403, "status " + response.status);
+    client.assert(response.body.resultCode === "D-996", "resultCode " + response.body.resultCode);
+  });
+%}
+
+### [FT-1] 강남: 포토이즘 4, 인생네컷 2
+POST {{host}}/api/search/filter?keyword=강남
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("FT-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.resultCode === "D-0", "resultCode " + response.body.resultCode);
+    var f = response.body.data.brandFilter;
+    client.assert(f.length === 2, "size " + f.length);
+    client.assert(f[0].id === 1 && f[0].code === "PHOTOISM" && f[0].count === 4, "brandFilter[0] " + JSON.stringify(f[0]));
+    client.assert(f[1].id === 2 && f[1].code === "LIFEFOURCUTS" && f[1].count === 2, "brandFilter[1] " + JSON.stringify(f[1]));
+  });
+  client.global.set("ft1", JSON.stringify(response.body));
+%}
+
+### [FT-2] 다른 검색어 + 브랜드 필터: FT-1 과 같은 body
+POST {{host}}/api/search/filter?keyword=송정
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {
+    "brandFilter": { "brands": [{ "brandId": 2 }] }
+  }
+}
+
+> {%
+  client.test("FT-2", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(JSON.stringify(response.body) === client.global.get("ft1"), "body differs from FT-1");
+  });
+%}
+
+### [FT-3] keyword 없음: 400 D-01
+POST {{host}}/api/search/filter
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("FT-3", function () {
+    client.assert(response.status === 400, "status " + response.status);
+    client.assert(response.body.resultCode === "D-01", "resultCode " + response.body.resultCode);
+  });
+%}
+
+### [FT-4] keyword 공백: 400 D-01
+POST {{host}}/api/search/filter?keyword=%20
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("FT-4", function () {
+    client.assert(response.status === 400, "status " + response.status);
+    client.assert(response.body.resultCode === "D-01", "resultCode " + response.body.resultCode);
+  });
+%}
+
+### [FT-5] 토큰 없음: 403 D-996
+POST {{host}}/api/search/filter?keyword=강남
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("FT-5", function () {
+    client.assert(response.status === 403, "status " + response.status);
+    client.assert(response.body.resultCode === "D-996", "resultCode " + response.body.resultCode);
+  });
+%}
