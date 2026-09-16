@@ -21,11 +21,6 @@ object SearchMockData {
         val address: String,
         val latitude: Double,
         val longitude: Double,
-        /**
-         * 원래 user 별 값이라 부스 자체의 속성이 아니다. mock 이라 여기 박아 두었을 뿐이고,
-         * 실제 구현은 조회하는 userId 로 tb_favorite_map(PK: user_id, location_id)을 봐야 한다.
-         * 그래서 쿼리에서 쓰이지 않아 보이는 userId 를 지우면 안 된다.
-         */
         val favorite: Boolean,
     )
 
