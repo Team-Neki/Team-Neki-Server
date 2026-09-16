@@ -18,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles
  * fileName       : SearchRegionsE2ETest
  * author         : koo
  * date           : 2026. 9. 15.
- * description    : GET /api/search/regions E2E 테스트 (mock 응답)
+ * description    : GET /api/search/completion/regions E2E 테스트 (mock 응답)
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -42,7 +42,7 @@ class SearchRegionsE2ETest : E2ETestBase() {
         .header("Authorization", "Bearer $accessToken")
         .queryParams(params.toMap())
         .`when`()
-        .get("/api/search/regions")
+        .get("/api/search/completion/regions")
         .then()
 
     @Nested
@@ -50,23 +50,16 @@ class SearchRegionsE2ETest : E2ETestBase() {
     inner class SuccessTests {
 
         @Test
-        @DisplayName("접두 일치로 찾고 계층이 위인 것부터 반환한다")
+        @DisplayName("접두 일치로 찾고 계층이 위인 것부터 전체 경로를 반환한다")
         fun givenKeyword_whenSearch_thenReturnsPrefixMatchedRegionsOrderedByLevel() {
             get("keyword" to "강남")
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.totalCount", equalTo(3))
                 .body("data.hasNext", equalTo(false))
-                .body("data.items[0].code", equalTo("1168000000"))
-                .body("data.items[0].level", equalTo("SIGUNGU"))
-                .body("data.items[0].name", equalTo("강남구"))
-                .body("data.items[0].fullName", equalTo("서울특별시 강남구"))
-                .body("data.items[1].code", equalTo("4817010300"))
-                .body("data.items[1].level", equalTo("EUPMYEONDONG"))
-                .body("data.items[1].fullName", equalTo("경상남도 진주시 강남동"))
-                .body("data.items[2].code", equalTo("5279033026"))
-                .body("data.items[2].level", equalTo("RI"))
-                .body("data.items[2].fullName", equalTo("전북특별자치도 고창군 무장면 강남리"))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+                .body("data.items[1].keyword", equalTo("경상남도 진주시 강남동"))
+                .body("data.items[2].keyword", equalTo("전북특별자치도 고창군 무장면 강남리"))
         }
 
         @Test
@@ -75,8 +68,7 @@ class SearchRegionsE2ETest : E2ETestBase() {
             get("keyword" to "강남동")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(1))
-                .body("data.items[0].code", equalTo("4817010300"))
-                .body("data.items[0].level", equalTo("EUPMYEONDONG"))
+                .body("data.items[0].keyword", equalTo("경상남도 진주시 강남동"))
         }
 
         @Test
@@ -115,7 +107,7 @@ class SearchRegionsE2ETest : E2ETestBase() {
                 .body("data.items.size()", equalTo(2))
                 .body("data.hasNext", equalTo(true))
                 .body("data.totalCount", equalTo(3))
-                .body("data.items[0].code", equalTo("1168000000"))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
         }
 
         @Test
@@ -126,7 +118,7 @@ class SearchRegionsE2ETest : E2ETestBase() {
                 .body("data.items.size()", equalTo(1))
                 .body("data.hasNext", equalTo(false))
                 .body("data.totalCount", equalTo(3))
-                .body("data.items[0].code", equalTo("5279033026"))
+                .body("data.items[0].keyword", equalTo("전북특별자치도 고창군 무장면 강남리"))
         }
 
         @Test
@@ -146,8 +138,8 @@ class SearchRegionsE2ETest : E2ETestBase() {
             get("keyword" to "서초")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(2))
-                .body("data.items[0].code", equalTo("1165000000"))
-                .body("data.items[1].code", equalTo("1165010800"))
+                .body("data.items[0].keyword", equalTo("서울특별시 서초구"))
+                .body("data.items[1].keyword", equalTo("서울특별시 서초구 서초동"))
         }
     }
 
@@ -201,7 +193,7 @@ class SearchRegionsE2ETest : E2ETestBase() {
             RestAssured.given()
                 .queryParam("keyword", "강남")
                 .`when`()
-                .get("/api/search/regions")
+                .get("/api/search/completion/regions")
                 .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .body("resultCode", equalTo(ResultCode.MISSING_TOKEN_ERROR.code))

@@ -15,19 +15,16 @@ import com.neki.domain.search.models.SearchTarget
 @UseCase
 class SearchStationsUseCase {
 
-    fun execute(query: SearchQuery.SearchStations): SearchResult.SearchStations {
+    fun execute(query: SearchQuery.SearchStations): SearchResult.Completion {
         val matched: List<SearchTarget.Station> = SearchMockData.searchStations(query.keyword)
 
         val page: Page<SearchTarget.Station> = query.pagination.let {
             it.slice(matched.drop(it.offset).take(it.limit))
         }
 
-        val items: List<SearchResult.SearchStations.Item> = page.items.map {
-            SearchResult.SearchStations.Item(name = it.name, lineName = it.lineName)
-        }
-
-        return SearchResult.SearchStations(
-            items = items,
+        // 저장된 역명에는 `역` 이 없다. 화면에 보일 `강남역 2호선` 형태로 맞춰 내려준다.
+        return SearchResult.Completion(
+            keywords = page.items.map { "${it.name}역 ${it.lineName}" },
             hasNext = page.hasNext,
             totalCount = matched.size.toLong(),
         )

@@ -3,11 +3,8 @@ package com.neki.api.e2e.search
 import com.neki.api.e2e.E2ETestBase
 import com.neki.core.code.ResultCode
 import io.restassured.RestAssured
-import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.everyItem
-import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -21,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles
  * fileName       : SearchPhotoBoothsByKeywordE2ETest
  * author         : koo
  * date           : 2026. 9. 15.
- * description    : GET /api/search/photo-booths E2E 테스트 (mock 응답)
+ * description    : GET /api/search/completion/photo-booths E2E 테스트 (mock 응답)
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -45,7 +42,7 @@ class SearchPhotoBoothsByKeywordE2ETest : E2ETestBase() {
         .header("Authorization", "Bearer $accessToken")
         .queryParams(params.toMap())
         .`when`()
-        .get("/api/search/photo-booths")
+        .get("/api/search/completion/photo-booths")
         .then()
 
     @Nested
@@ -53,38 +50,28 @@ class SearchPhotoBoothsByKeywordE2ETest : E2ETestBase() {
     inner class SuccessTests {
 
         @Test
-        @DisplayName("사용자 위치 없음 - 지점명 접두 일치로 찾고 distance 가 null 이며 브랜드, 지점 이름 순이다")
-        fun givenNoUserLocation_whenSearch_thenDistanceIsNullAndOrderedByBrandAndBranch() {
+        @DisplayName("사용자 위치 없음 - 지점명 접두 일치로 찾고 브랜드, 지점 이름 순이다")
+        fun givenNoUserLocation_whenSearch_thenOrderedByBrandAndBranch() {
             get("keyword" to "강남")
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.totalCount", equalTo(5))
                 .body("data.hasNext", equalTo(false))
-                .body("data.items.distance", everyItem(nullValue()))
-                .body("data.items[0].id", equalTo(3115))
-                .body("data.items[0].brandName", equalTo("인생네컷"))
-                .body("data.items[1].id", equalTo(3102))
-                .body("data.items[2].id", equalTo(2560))
-                .body("data.items[2].brandName", equalTo("포토이즘"))
-                .body("data.items[2].branchName", equalTo("강남1호점"))
-                .body("data.items[2].address", equalTo("서울 강남구 강남대로102길 16"))
-                .body("data.items[2].favorite", equalTo(true))
-                .body("data.items[3].id", equalTo(2573))
-                .body("data.items[4].id", equalTo(2591))
+                .body("data.items[0].keyword", equalTo("인생네컷 강남2호점"))
+                .body("data.items[1].keyword", equalTo("인생네컷 강남역점"))
+                .body("data.items[2].keyword", equalTo("포토이즘 강남1호점"))
+                .body("data.items[3].keyword", equalTo("포토이즘 강남2호점"))
+                .body("data.items[4].keyword", equalTo("포토이즘 강남역점"))
         }
 
         @Test
-        @DisplayName("사용자 위치 있음 - distance 가 채워지고 가까운 순으로 정렬된다")
+        @DisplayName("사용자 위치 있음 - 가까운 순으로 정렬된다")
         fun givenUserLocation_whenSearch_thenReturnsBoothsOrderedByDistance() {
-            val response = get("keyword" to "강남", "latitude" to 37.4979, "longitude" to 127.0276)
+            get("keyword" to "강남", "latitude" to 37.4979, "longitude" to 127.0276)
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(5))
-                .extract()
-
-            val distances: List<Int> = response.jsonPath().getList("data.items.distance", Integer::class.java).map {
-                it.toInt()
-            }
-            assertThat(distances).isSorted()
+                .body("data.items[0].keyword", equalTo("포토이즘 강남역점"))
+                .body("data.items[4].keyword", equalTo("포토이즘 강남1호점"))
         }
 
         @Test
@@ -116,17 +103,12 @@ class SearchPhotoBoothsByKeywordE2ETest : E2ETestBase() {
         }
 
         @Test
-        @DisplayName("고른 뒤 추가 호출이 없도록 지도에 필요한 값이 다 들어 있다")
-        fun givenKeyword_whenSearch_thenItemHasEverythingForMap() {
+        @DisplayName("keyword 는 브랜드 이름과 지점 이름을 띄어 쓴 값이다")
+        fun givenKeyword_whenSearch_thenReturnsBrandAndBranchName() {
             get("keyword" to "역삼")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(1))
-                .body("data.items[0].id", equalTo(2604))
-                .body("data.items[0].brandCode", equalTo("PHOTOISM"))
-                .body("data.items[0].branchName", equalTo("역삼점"))
-                .body("data.items[0].latitude", equalTo(37.499831f))
-                .body("data.items[0].longitude", equalTo(127.031642f))
-                .body("data.items[0].favorite", equalTo(false))
+                .body("data.items[0].keyword", equalTo("포토이즘 역삼점"))
         }
 
         @Test
@@ -155,7 +137,7 @@ class SearchPhotoBoothsByKeywordE2ETest : E2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items.size()", equalTo(1))
                 .body("data.hasNext", equalTo(false))
-                .body("data.items[0].id", equalTo(2591))
+                .body("data.items[0].keyword", equalTo("포토이즘 강남역점"))
         }
     }
 
@@ -241,7 +223,7 @@ class SearchPhotoBoothsByKeywordE2ETest : E2ETestBase() {
             RestAssured.given()
                 .queryParam("keyword", "강남")
                 .`when`()
-                .get("/api/search/photo-booths")
+                .get("/api/search/completion/photo-booths")
                 .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .body("resultCode", equalTo(ResultCode.MISSING_TOKEN_ERROR.code))

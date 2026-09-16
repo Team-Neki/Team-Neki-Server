@@ -49,29 +49,30 @@ class SearchController(
     @Operation(
         summary = "지역 검색 API (mock)",
         description = """
-            법정동 이름으로 지역을 검색합니다. 고른 결과의 code 를 부스 목록 API 에 넘깁니다.
+            법정동 이름으로 지역을 검색합니다. 고른 keyword 를 부스 목록 API 에 넘깁니다.
 
             * 접두 일치입니다. "남구" 로 "강남구" 가 나오지 않습니다
             * 검색어와 직접 매칭되는 구역만 내려갑니다. "강남" 에 강남구는 나오지만 그 아래 방배동 같은 하위 구역은 안 나옵니다
-            * 시도(SIDO)는 검색 대상이 아닙니다. "서울" 만으로는 검색되지 않습니다
+            * 시도는 검색 대상이 아닙니다. "서울" 만으로는 검색되지 않습니다
             * keyword 는 1자도 됩니다. 빈 문자열이거나 공백뿐이면 D-01
             * 결과가 없으면 빈 배열입니다. D-04 가 아닙니다
             * totalCount 는 검색어에 걸린 전체 건수입니다. 탭에 건수 배지를 다는 용도입니다
 
+            응답 keyword 는 `서울특별시 강남구` 처럼 전체 경로입니다. 같은 이름을 구분할 수 있습니다.
             현재는 mock 응답입니다. 강남역 주변과 검색 예시에 필요한 법정동만 있습니다.
             """,
     )
-    @GetMapping("/regions")
+    @GetMapping("/completion/regions")
     fun searchRegions(
         @RequestParam @NotBlank(message = "keyword는 필수값입니다.") keyword: String,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
-    ): BaseResponse<SearchResponse.SearchRegions> {
+    ): BaseResponse<SearchResponse.Completion> {
         val query: SearchQuery.SearchRegions = requestConverter.toSearchRegionsQuery(keyword, page, size)
 
-        val result: SearchResult.SearchRegions = searchRegionsUseCase.execute(query)
+        val result: SearchResult.Completion = searchRegionsUseCase.execute(query)
 
-        val response: SearchResponse.SearchRegions = responseConverter.toSearchRegionsResponse(result)
+        val response: SearchResponse.Completion = responseConverter.toCompletionResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -79,27 +80,29 @@ class SearchController(
     @Operation(
         summary = "지하철역 검색 API (mock)",
         description = """
-            역명으로 지하철역을 검색합니다. 고른 결과의 name 과 lineName 을 부스 목록 API 에 그대로 넘깁니다.
+            역명으로 지하철역을 검색합니다. 고른 keyword 를 부스 목록 API 에 넘깁니다.
 
             * 접두 일치이고 검색 규칙은 지역 검색과 같습니다
             * 한 역이 노선 수만큼 나옵니다. 노선마다 승강장 위치가 달라 주변 부스도 달라지므로 합치지 않습니다
-            * 역명에 `역` 을 붙이지 않습니다. "강남역" 으로 검색해도 "강남" 과 같은 결과입니다
-            * 같은 이름의 다른 역이 있어 lineName 으로 구분합니다
+            * 같은 이름의 다른 역이 있어 노선명까지 함께 내려줍니다
+
+            응답 keyword 는 `강남역 2호선` 형태입니다. 저장된 역명에는 `역` 이 없어 서버가 붙여 줍니다.
+            검색어에는 `역` 을 붙여도 되고 안 붙여도 됩니다. "강남역" 과 "강남" 은 같은 결과입니다.
 
             현재는 mock 응답입니다. 강남(2호선·신분당선), 강남구청(7호선·분당선), 강남대(에버라인)만 있습니다.
             """,
     )
-    @GetMapping("/stations")
+    @GetMapping("/completion/stations")
     fun searchStations(
         @RequestParam @NotBlank(message = "keyword는 필수값입니다.") keyword: String,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
-    ): BaseResponse<SearchResponse.SearchStations> {
+    ): BaseResponse<SearchResponse.Completion> {
         val query: SearchQuery.SearchStations = requestConverter.toSearchStationsQuery(keyword, page, size)
 
-        val result: SearchResult.SearchStations = searchStationsUseCase.execute(query)
+        val result: SearchResult.Completion = searchStationsUseCase.execute(query)
 
-        val response: SearchResponse.SearchStations = responseConverter.toSearchStationsResponse(result)
+        val response: SearchResponse.Completion = responseConverter.toCompletionResponse(result)
 
         return BaseResponse(data = response)
     }
@@ -108,17 +111,17 @@ class SearchController(
         summary = "부스 검색 API (mock)",
         description = """
             지점명으로 부스를 검색합니다. 브랜드명과 주소는 검색 대상이 아닙니다.
-            지도에 필요한 값이 응답에 다 들어 있어 고른 뒤 추가 호출이 없습니다.
 
             * 접두 일치이고 검색 규칙은 지역 검색과 같습니다
-            * latitude, longitude 를 주면 distance 가 그 위치로부터의 거리(m)이고 가까운 순으로 정렬됩니다.
-              생략하면 distance 가 null 이고 브랜드, 지점 이름 순입니다. 둘 중 하나만 주면 D-01
-            * 고른 대상의 부스 목록은 같은 경로의 POST /api/search/photo-booths 입니다. 이 API 는 검색어로 찾는 쪽입니다
+            * latitude, longitude 를 주면 가까운 순으로 정렬됩니다. 생략하면 브랜드, 지점 이름 순입니다.
+              둘 중 하나만 주면 D-01
+            * 고른 대상의 부스 목록은 POST /api/search/photo-booths 입니다
 
+            응답 keyword 는 `포토이즘 강남1호점` 형태입니다.
             현재는 mock 응답입니다.
             """,
     )
-    @GetMapping("/photo-booths")
+    @GetMapping("/completion/photo-booths")
     fun searchPhotoBoothsByKeyword(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @RequestParam @NotBlank(message = "keyword는 필수값입니다.") keyword: String,
@@ -126,7 +129,7 @@ class SearchController(
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(required = false) latitude: Double?,
         @RequestParam(required = false) longitude: Double?,
-    ): BaseResponse<SearchResponse.SearchPhotoBooths> {
+    ): BaseResponse<SearchResponse.Completion> {
         val query: SearchQuery.SearchPhotoBoothsByKeyword = requestConverter.toSearchPhotoBoothsByKeywordQuery(
             userId = userId,
             keyword = keyword,
@@ -136,9 +139,9 @@ class SearchController(
             longitude = longitude,
         )
 
-        val result: SearchResult.SearchPhotoBooths = searchPhotoBoothsByKeywordUseCase.execute(query)
+        val result: SearchResult.Completion = searchPhotoBoothsByKeywordUseCase.execute(query)
 
-        val response: SearchResponse.SearchPhotoBooths = responseConverter.toSearchPhotoBoothsResponse(result)
+        val response: SearchResponse.Completion = responseConverter.toCompletionResponse(result)
 
         return BaseResponse(data = response)
     }

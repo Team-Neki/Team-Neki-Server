@@ -18,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles
  * fileName       : SearchStationsE2ETest
  * author         : koo
  * date           : 2026. 9. 15.
- * description    : GET /api/search/stations E2E 테스트 (mock 응답)
+ * description    : GET /api/search/completion/stations E2E 테스트 (mock 응답)
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -42,7 +42,7 @@ class SearchStationsE2ETest : E2ETestBase() {
         .header("Authorization", "Bearer $accessToken")
         .queryParams(params.toMap())
         .`when`()
-        .get("/api/search/stations")
+        .get("/api/search/completion/stations")
         .then()
 
     @Nested
@@ -50,22 +50,18 @@ class SearchStationsE2ETest : E2ETestBase() {
     inner class SuccessTests {
 
         @Test
-        @DisplayName("한 역이 노선 수만큼 나오고 역명, 노선명 순으로 정렬된다")
+        @DisplayName("한 역이 노선 수만큼 나오고 `역명역 노선명` 으로 정렬돼 내려간다")
         fun givenKeyword_whenSearch_thenReturnsOneRowPerLine() {
             get("keyword" to "강남")
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.totalCount", equalTo(5))
                 .body("data.hasNext", equalTo(false))
-                .body("data.items[0].name", equalTo("강남"))
-                .body("data.items[0].lineName", equalTo("2호선"))
-                .body("data.items[1].name", equalTo("강남"))
-                .body("data.items[1].lineName", equalTo("신분당선"))
-                .body("data.items[2].name", equalTo("강남구청"))
-                .body("data.items[2].lineName", equalTo("7호선"))
-                .body("data.items[3].lineName", equalTo("분당선"))
-                .body("data.items[4].name", equalTo("강남대"))
-                .body("data.items[4].lineName", equalTo("에버라인"))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
+                .body("data.items[1].keyword", equalTo("강남역 신분당선"))
+                .body("data.items[2].keyword", equalTo("강남구청역 7호선"))
+                .body("data.items[3].keyword", equalTo("강남구청역 분당선"))
+                .body("data.items[4].keyword", equalTo("강남대역 에버라인"))
         }
 
         @Test
@@ -74,7 +70,7 @@ class SearchStationsE2ETest : E2ETestBase() {
             get("keyword" to "강남역")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(5))
-                .body("data.items[0].name", equalTo("강남"))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
         }
 
         @Test
@@ -93,8 +89,8 @@ class SearchStationsE2ETest : E2ETestBase() {
             get("keyword" to "강남구청")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(2))
-                .body("data.items[0].lineName", equalTo("7호선"))
-                .body("data.items[1].lineName", equalTo("분당선"))
+                .body("data.items[0].keyword", equalTo("강남구청역 7호선"))
+                .body("data.items[1].keyword", equalTo("강남구청역 분당선"))
         }
 
         @Test
@@ -114,7 +110,7 @@ class SearchStationsE2ETest : E2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items.size()", equalTo(1))
                 .body("data.hasNext", equalTo(false))
-                .body("data.items[0].name", equalTo("강남대"))
+                .body("data.items[0].keyword", equalTo("강남대역 에버라인"))
         }
     }
 
@@ -152,7 +148,7 @@ class SearchStationsE2ETest : E2ETestBase() {
             RestAssured.given()
                 .queryParam("keyword", "강남")
                 .`when`()
-                .get("/api/search/stations")
+                .get("/api/search/completion/stations")
                 .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .body("resultCode", equalTo(ResultCode.MISSING_TOKEN_ERROR.code))

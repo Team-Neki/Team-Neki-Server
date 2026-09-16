@@ -1,7 +1,5 @@
 package com.neki.api.search.application.dto
 
-import com.neki.domain.search.models.RegionLevel
-
 /**
  * fileName       : SearchResult
  * author         : koo
@@ -9,18 +7,11 @@ import com.neki.domain.search.models.RegionLevel
  * description    : Search domain result
  */
 object SearchResult {
-    data class SearchRegions(val items: List<Item>, val hasNext: Boolean, val totalCount: Long) {
-        data class Item(val code: String, val level: RegionLevel, val name: String, val fullName: String)
-    }
-
-    data class SearchStations(val items: List<Item>, val hasNext: Boolean, val totalCount: Long) {
-        data class Item(val name: String, val lineName: String)
-    }
-
     /**
-     * 부스 검색. 지도에 필요한 값이 다 들어 있어 고른 뒤 추가 호출이 없다.
+     * 검색 자동완성. 지역·역·부스 세 탭이 같은 모양을 내려준다.
+     * keyword 는 화면에 그대로 보여 주고 고른 값을 부스 목록 요청에 넘기는 문자열이다.
      */
-    data class SearchPhotoBooths(val items: List<GetPhotoBooths.Item>, val hasNext: Boolean, val totalCount: Long)
+    data class Completion(val keywords: List<String>, val hasNext: Boolean, val totalCount: Long)
 
     data class GetPhotoBooths(val items: List<Item>) {
         data class Item(

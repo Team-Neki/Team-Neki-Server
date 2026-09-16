@@ -1,6 +1,5 @@
 package com.neki.api.search.api.dto
 
-import com.neki.domain.search.models.RegionLevel
 import io.swagger.v3.oas.annotations.media.Schema
 
 /**
@@ -10,9 +9,9 @@ import io.swagger.v3.oas.annotations.media.Schema
  * description    : Search 관련 응답 DTO
  */
 object SearchResponse {
-    @Schema(name = "SearchRegionsResponse")
-    data class SearchRegions(
-        @field:Schema(description = "지역 목록")
+    @Schema(name = "SearchCompletionResponse")
+    data class Completion(
+        @field:Schema(description = "검색 결과. 지역·역·부스 세 탭이 같은 모양이다")
         val items: List<Item>,
 
         @field:Schema(description = "다음 페이지 존재 여부", example = "false")
@@ -21,54 +20,15 @@ object SearchResponse {
         @field:Schema(description = "검색어에 걸린 전체 건수. 탭 건수 배지용", example = "3")
         val totalCount: Long,
     ) {
-        @Schema(name = "SearchRegionInfo")
+        @Schema(name = "SearchCompletionInfo")
         data class Item(
-            @field:Schema(description = "법정동코드 10자리. 부스 목록 요청에 넘길 값", example = "1168000000")
-            val code: String,
-
-            @field:Schema(description = "법정동 계층", example = "SIGUNGU")
-            val level: RegionLevel,
-
-            @field:Schema(description = "가장 아래 계층의 이름. 검색은 이 값으로만 한다", example = "강남구")
-            val name: String,
-
-            @field:Schema(description = "전체 경로. 같은 이름을 구분하는 용도", example = "서울특별시 강남구")
-            val fullName: String,
+            @field:Schema(
+                description = "화면에 그대로 보여 주고, 고르면 부스 목록 요청에 넘기는 값",
+                example = "서울특별시 강남구",
+            )
+            val keyword: String,
         )
     }
-
-    @Schema(name = "SearchStationsResponse")
-    data class SearchStations(
-        @field:Schema(description = "지하철역 목록. 한 역이 노선 수만큼 나온다")
-        val items: List<Item>,
-
-        @field:Schema(description = "다음 페이지 존재 여부", example = "false")
-        val hasNext: Boolean,
-
-        @field:Schema(description = "검색어에 걸린 전체 건수. 탭 건수 배지용", example = "5")
-        val totalCount: Long,
-    ) {
-        @Schema(name = "SearchStationInfo")
-        data class Item(
-            @field:Schema(description = "역명. `역` 접미사 없음", example = "강남")
-            val name: String,
-
-            @field:Schema(description = "노선명", example = "2호선")
-            val lineName: String,
-        )
-    }
-
-    @Schema(name = "SearchPhotoBoothsByKeywordResponse")
-    data class SearchPhotoBooths(
-        @field:Schema(description = "부스 목록. 지도에 필요한 값이 다 들어 있어 고른 뒤 추가 호출이 없다")
-        val items: List<GetPhotoBooths.Item>,
-
-        @field:Schema(description = "다음 페이지 존재 여부", example = "false")
-        val hasNext: Boolean,
-
-        @field:Schema(description = "검색어에 걸린 전체 건수. 탭 건수 배지용", example = "5")
-        val totalCount: Long,
-    )
 
     @Schema(name = "SearchPhotoBoothsResponse")
     data class GetPhotoBooths(

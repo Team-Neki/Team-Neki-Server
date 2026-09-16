@@ -83,32 +83,9 @@ object SearchConverter {
 
     @Component
     class ResponseConverter {
-        fun toSearchRegionsResponse(result: SearchResult.SearchRegions): SearchResponse.SearchRegions =
-            SearchResponse.SearchRegions(
-                items = result.items.map {
-                    SearchResponse.SearchRegions.Item(
-                        code = it.code,
-                        level = it.level,
-                        name = it.name,
-                        fullName = it.fullName,
-                    )
-                },
-                hasNext = result.hasNext,
-                totalCount = result.totalCount,
-            )
-
-        fun toSearchStationsResponse(result: SearchResult.SearchStations): SearchResponse.SearchStations =
-            SearchResponse.SearchStations(
-                items = result.items.map {
-                    SearchResponse.SearchStations.Item(name = it.name, lineName = it.lineName)
-                },
-                hasNext = result.hasNext,
-                totalCount = result.totalCount,
-            )
-
-        fun toSearchPhotoBoothsResponse(result: SearchResult.SearchPhotoBooths): SearchResponse.SearchPhotoBooths =
-            SearchResponse.SearchPhotoBooths(
-                items = result.items.map(::toPhotoBoothItem),
+        fun toCompletionResponse(result: SearchResult.Completion): SearchResponse.Completion =
+            SearchResponse.Completion(
+                items = result.keywords.map { SearchResponse.Completion.Item(keyword = it) },
                 hasNext = result.hasNext,
                 totalCount = result.totalCount,
             )

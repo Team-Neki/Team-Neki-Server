@@ -14,24 +14,15 @@ import com.neki.domain.search.dto.SearchQuery
 @UseCase
 class SearchRegionsUseCase {
 
-    fun execute(query: SearchQuery.SearchRegions): SearchResult.SearchRegions {
+    fun execute(query: SearchQuery.SearchRegions): SearchResult.Completion {
         val matched: List<SearchMockData.Region> = SearchMockData.searchRegions(query.keyword)
 
         val page: Page<SearchMockData.Region> = query.pagination.let {
             it.slice(matched.drop(it.offset).take(it.limit))
         }
 
-        val items: List<SearchResult.SearchRegions.Item> = page.items.map {
-            SearchResult.SearchRegions.Item(
-                code = it.code,
-                level = it.level,
-                name = it.name,
-                fullName = it.fullName,
-            )
-        }
-
-        return SearchResult.SearchRegions(
-            items = items,
+        return SearchResult.Completion(
+            keywords = page.items.map { it.fullName },
             hasNext = page.hasNext,
             totalCount = matched.size.toLong(),
         )
