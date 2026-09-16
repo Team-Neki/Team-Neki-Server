@@ -52,3 +52,6 @@ infra/terraform/aws/staging/.terraform
 ### Firebase (FCM service account) ###
 **/firebase-service-account.json
 **/*-firebase-adminsdk-*.json
+
+# IntelliJ HTTP Client private env (tokens)
+http/http-client.private.env.json
