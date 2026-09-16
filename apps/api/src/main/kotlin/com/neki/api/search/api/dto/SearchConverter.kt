@@ -25,14 +25,12 @@ object SearchConverter {
             SearchQuery.SearchStations(keyword = keyword.trim(), pagination = Pagination(page = page, size = size))
 
         fun toSearchPhotoBoothsByKeywordQuery(
-            userId: Long,
             keyword: String,
             page: Int,
             size: Int,
             latitude: Double?,
             longitude: Double?,
         ): SearchQuery.SearchPhotoBoothsByKeyword = SearchQuery.SearchPhotoBoothsByKeyword(
-            userId = userId,
             keyword = keyword.trim(),
             pagination = Pagination(page = page, size = size),
             userLocation = toUserLocation(latitude, longitude),

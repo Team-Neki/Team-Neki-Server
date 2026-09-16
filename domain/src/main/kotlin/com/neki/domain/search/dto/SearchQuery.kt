@@ -27,7 +27,6 @@ object SearchQuery {
      * userLocation 이 있으면 distance 를 채우고 가까운 순으로 정렬한다.
      */
     data class SearchPhotoBoothsByKeyword(
-        val userId: Long,
         val keyword: String,
         val pagination: Pagination,
         val userLocation: UserLocation?,

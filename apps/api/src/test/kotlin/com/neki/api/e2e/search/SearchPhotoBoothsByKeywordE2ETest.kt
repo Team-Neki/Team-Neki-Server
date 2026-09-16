@@ -130,6 +130,15 @@ class SearchPhotoBoothsByKeywordE2ETest : E2ETestBase() {
         }
 
         @Test
+        @DisplayName("좌표 경계값 - 위도 90, 경도 180 은 유효하다")
+        fun givenBoundaryCoordinates_whenSearch_thenReturnsOk() {
+            get("keyword" to "강남", "latitude" to 90.0, "longitude" to 180.0)
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.totalCount", equalTo(5))
+        }
+
+        @Test
         @DisplayName("페이징 - 첫 페이지는 hasNext 가 true 이고 totalCount 는 전체 건수다")
         fun givenFirstPage_whenSearch_thenHasNextIsTrueAndTotalCountIsWhole() {
             get("keyword" to "강남", "page" to 0, "size" to 2)
@@ -174,6 +183,38 @@ class SearchPhotoBoothsByKeywordE2ETest : E2ETestBase() {
         @DisplayName("경도만 보냄 - D-01")
         fun givenLongitudeOnly_whenSearch_thenReturnsInvalidParameter() {
             get("keyword" to "강남", "longitude" to 127.0276)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("위도가 범위를 벗어남 - D-01")
+        fun givenLatitudeOutOfRange_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "latitude" to 90.1, "longitude" to 127.0276)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("경도가 범위를 벗어남 - D-01")
+        fun givenLongitudeOutOfRange_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "latitude" to 37.4979, "longitude" to -180.1)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("좌표가 NaN - D-01")
+        fun givenNaNCoordinate_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "latitude" to "NaN", "longitude" to "127.0276")
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("좌표가 Infinity - D-01")
+        fun givenInfiniteCoordinate_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "latitude" to "37.4979", "longitude" to "Infinity")
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
