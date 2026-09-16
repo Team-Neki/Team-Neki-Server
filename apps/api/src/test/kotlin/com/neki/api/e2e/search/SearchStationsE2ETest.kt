@@ -139,11 +139,11 @@ class SearchStationsE2ETest : E2ETestBase() {
         }
 
         @Test
-        @DisplayName("page 가 너무 커서 page * size 가 Int 를 넘음 - D-01")
-        fun givenOverflowingPage_whenSearch_thenReturnsInvalidParameter() {
+        @DisplayName("page 가 너무 커서 page * size 가 Int 를 넘음 - D-14")
+        fun givenOverflowingPage_whenSearch_thenReturnsInvalidPagination() {
             get("keyword" to "강남", "page" to Int.MAX_VALUE, "size" to 100)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+                .body("resultCode", equalTo(ResultCode.INVALID_PAGINATION.code))
         }
 
         @Test

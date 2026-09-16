@@ -130,6 +130,17 @@ class SearchRegionsE2ETest : E2ETestBase() {
         }
 
         @Test
+        @DisplayName("페이징 경계 - page * size 가 Int 최대값이면 아직 유효하고 빈 결과다")
+        fun givenMaxOffsetPage_whenSearch_thenReturnsEmptyPage() {
+            get("keyword" to "강남", "page" to Int.MAX_VALUE, "size" to 1)
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", empty<Any>())
+                .body("data.hasNext", equalTo(false))
+                .body("data.totalCount", equalTo(3))
+        }
+
+        @Test
         @DisplayName("부스 목록 API 가 아는 지역만 내려간다")
         fun givenSeochoKeyword_whenSearch_thenReturnsRegionsUsableForBoothList() {
             get("keyword" to "서초")
@@ -177,11 +188,11 @@ class SearchRegionsE2ETest : E2ETestBase() {
         }
 
         @Test
-        @DisplayName("page 가 너무 커서 page * size 가 Int 를 넘음 - D-01")
-        fun givenOverflowingPage_whenSearch_thenReturnsInvalidParameter() {
+        @DisplayName("page 가 너무 커서 page * size 가 Int 를 넘음 - D-14")
+        fun givenOverflowingPage_whenSearch_thenReturnsInvalidPagination() {
             get("keyword" to "강남", "page" to Int.MAX_VALUE, "size" to 100)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+                .body("resultCode", equalTo(ResultCode.INVALID_PAGINATION.code))
         }
 
         @Test
