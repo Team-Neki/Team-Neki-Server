@@ -43,7 +43,7 @@ data class UserLocation(val latitude: Double, val longitude: Double) {
 
     init {
         // NaN 과 ±Infinity 는 범위 비교가 항상 false 라 여기서 같이 걸린다.
-        if (latitude !in LATITUDE_RANGE || longitude !in LONGITUDE_RANGE) {
+        if (latitude !in MIN_LATITUDE..MAX_LATITUDE || longitude !in MIN_LONGITUDE..MAX_LONGITUDE) {
             throw BusinessException(ResultCode.INVALID_PARAMETER)
         }
     }
@@ -60,8 +60,10 @@ data class UserLocation(val latitude: Double, val longitude: Double) {
     }
 
     companion object {
-        private val LATITUDE_RANGE = -90.0..90.0
-        private val LONGITUDE_RANGE = -180.0..180.0
+        private const val MIN_LATITUDE = -90.0
+        private const val MAX_LATITUDE = 90.0
+        private const val MIN_LONGITUDE = -180.0
+        private const val MAX_LONGITUDE = 180.0
         private const val EARTH_RADIUS_METERS = 6_371_000.0
     }
 }
