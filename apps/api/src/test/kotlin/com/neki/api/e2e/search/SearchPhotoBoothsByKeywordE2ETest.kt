@@ -228,6 +228,14 @@ class SearchPhotoBoothsByKeywordE2ETest : E2ETestBase() {
         }
 
         @Test
+        @DisplayName("page 가 너무 커서 page * size 가 Int 를 넘음 - D-01")
+        fun givenOverflowingPage_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "page" to Int.MAX_VALUE, "size" to 100)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
         @DisplayName("토큰 없음 - 403")
         fun givenNoToken_whenSearch_thenReturnsForbidden() {
             RestAssured.given()
