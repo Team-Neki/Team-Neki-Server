@@ -12,10 +12,10 @@ object SearchResponse {
     @Schema(name = "SearchPhotoBoothsResponse")
     data class GetPhotoBooths(
         @field:Schema(description = "부스 목록. 페이징 없이 전체를 내려준다")
-        val items: List<Item>,
+        val items: List<PhotoBooth>,
     ) {
         @Schema(name = "SearchPhotoBoothInfo")
-        data class Item(
+        data class PhotoBooth(
             @field:Schema(description = "부스 ID", example = "2560")
             val id: Long,
 

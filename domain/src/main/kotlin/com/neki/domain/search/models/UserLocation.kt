@@ -8,22 +8,11 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
- * fileName       : SearchVO
+ * fileName       : UserLocation
  * author         : koo
  * date           : 2026. 9. 15.
- * description    : Search domain value objects
+ * description    : 사용자 현재 위치 (Search domain value object)
  */
-
-/**
- * 부스 목록을 조회할 대상. 지역과 역 중 하나만 고른다.
- */
-sealed interface SearchTarget {
-    /** 법정동코드 10자리 */
-    data class Region(val code: String) : SearchTarget
-
-    /** 역명(`역` 접미사 없음)과 노선명. 한 역이 노선마다 따로 존재한다. */
-    data class Station(val name: String, val lineName: String) : SearchTarget
-}
 
 /**
  * 사용자 현재 위치
