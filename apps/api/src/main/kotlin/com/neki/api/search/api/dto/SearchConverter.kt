@@ -2,6 +2,7 @@ package com.neki.api.search.api.dto
 
 import com.neki.api.search.application.dto.SearchResult
 import com.neki.core.code.ResultCode
+import com.neki.core.domain.vo.Pagination
 import com.neki.core.exception.BusinessException
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.SearchTarget
@@ -17,6 +18,35 @@ import org.springframework.stereotype.Component
 object SearchConverter {
     @Component
     class RequestConverter {
+        fun toSearchRegionsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchRegions =
+            SearchQuery.SearchRegions(keyword = keyword.trim(), pagination = Pagination(page = page, size = size))
+
+        fun toSearchStationsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchStations =
+            SearchQuery.SearchStations(keyword = keyword.trim(), pagination = Pagination(page = page, size = size))
+
+        fun toSearchPhotoBoothsByKeywordQuery(
+            userId: Long,
+            keyword: String,
+            page: Int,
+            size: Int,
+            latitude: Double?,
+            longitude: Double?,
+        ): SearchQuery.SearchPhotoBoothsByKeyword = SearchQuery.SearchPhotoBoothsByKeyword(
+            userId = userId,
+            keyword = keyword.trim(),
+            pagination = Pagination(page = page, size = size),
+            userLocation = toUserLocation(latitude, longitude),
+        )
+
+        /**
+         * 위도와 경도는 둘 다 있거나 둘 다 없어야 한다. 하나만 오면 D-01.
+         */
+        private fun toUserLocation(latitude: Double?, longitude: Double?): UserLocation? = when {
+            latitude == null && longitude == null -> null
+            latitude != null && longitude != null -> UserLocation(latitude = latitude, longitude = longitude)
+            else -> throw BusinessException(ResultCode.INVALID_PARAMETER)
+        }
+
         fun toGetPhotoBoothsQuery(userId: Long, request: SearchRequest.FilterGroup): SearchQuery.GetPhotoBooths =
             SearchQuery.GetPhotoBooths(
                 userId = userId,
@@ -53,22 +83,28 @@ object SearchConverter {
 
     @Component
     class ResponseConverter {
-        fun toGetPhotoBoothsResponse(result: SearchResult.GetPhotoBooths): SearchResponse.GetPhotoBooths {
-            val items: List<SearchResponse.GetPhotoBooths.Item> = result.items.map {
-                SearchResponse.GetPhotoBooths.Item(
-                    id = it.id,
-                    brandName = it.brandName,
-                    brandCode = it.brandCode,
-                    branchName = it.branchName,
-                    address = it.address,
-                    latitude = it.latitude,
-                    longitude = it.longitude,
-                    distance = it.distance,
-                    favorite = it.favorite,
-                )
-            }
-            return SearchResponse.GetPhotoBooths(items = items)
-        }
+        fun toCompletionResponse(result: SearchResult.Completion): SearchResponse.Completion =
+            SearchResponse.Completion(
+                items = result.keywords.map { SearchResponse.Completion.Item(keyword = it) },
+                hasNext = result.hasNext,
+                totalCount = result.totalCount,
+            )
+
+        fun toGetPhotoBoothsResponse(result: SearchResult.GetPhotoBooths): SearchResponse.GetPhotoBooths =
+            SearchResponse.GetPhotoBooths(items = result.items.map(::toPhotoBoothItem))
+
+        private fun toPhotoBoothItem(item: SearchResult.GetPhotoBooths.Item): SearchResponse.GetPhotoBooths.Item =
+            SearchResponse.GetPhotoBooths.Item(
+                id = item.id,
+                brandName = item.brandName,
+                brandCode = item.brandCode,
+                branchName = item.branchName,
+                address = item.address,
+                latitude = item.latitude,
+                longitude = item.longitude,
+                distance = item.distance,
+                favorite = item.favorite,
+            )
 
         fun toGetFilterResponse(result: SearchResult.GetFilter): SearchResponse.GetFilter {
             val brandFilter: List<SearchResponse.GetFilter.BrandFilter> = result.brandFilter.map {
