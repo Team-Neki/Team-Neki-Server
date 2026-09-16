@@ -25,8 +25,12 @@ object SearchQuery {
     /**
      * 부스 검색. keyword 는 지점명에 대한 접두 일치이고 브랜드명·주소는 보지 않는다.
      * userLocation 이 있으면 distance 를 채우고 가까운 순으로 정렬한다.
+     *
+     * userId 는 mock 에서 쓰이지 않지만 응답의 favorite 이 user 별 값이라 유지한다.
+     * 실제 구현은 이 값으로 tb_favorite_map 을 조회한다.
      */
     data class SearchPhotoBoothsByKeyword(
+        val userId: Long,
         val keyword: String,
         val pagination: Pagination,
         val userLocation: UserLocation?,

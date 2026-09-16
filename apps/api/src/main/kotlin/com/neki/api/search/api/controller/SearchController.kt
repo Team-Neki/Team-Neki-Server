@@ -120,6 +120,7 @@ class SearchController(
     )
     @GetMapping("/photo-booths")
     fun searchPhotoBoothsByKeyword(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
         @RequestParam @NotBlank(message = "keyword는 필수값입니다.") keyword: String,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
@@ -127,6 +128,7 @@ class SearchController(
         @RequestParam(required = false) longitude: Double?,
     ): BaseResponse<SearchResponse.SearchPhotoBooths> {
         val query: SearchQuery.SearchPhotoBoothsByKeyword = requestConverter.toSearchPhotoBoothsByKeywordQuery(
+            userId = userId,
             keyword = keyword,
             page = page,
             size = size,
