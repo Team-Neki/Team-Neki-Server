@@ -4,12 +4,17 @@
 # GitOps 의 images.env(NEKI_BATCH_IMAGE) 가 정한다. 여기서 그 줄을 바꾸면 ArgoCD 가 ConfigMap 을 갱신하고
 # 다음 flow run 부터 새 이미지가 쓰인다. 이미 실행 중인 Job 은 예전 이미지로 끝까지 간다.
 #
-#   dispatch -> bootJar -> 이미지 빌드/푸시 (ghcr.io/team-neki/neki-batch:<version>-<sha7>)
+#   dispatch -> 사전 검사 (ref, GitOps 토큰, images.env 줄) -> bootJar -> 이미지 빌드/푸시
 #            -> GitOps images.env 커밋 -> ArgoCD sync -> 다음 flow run 부터 반영
+#
+# 사전 검사를 이미지 push 앞에 두는 이유: GitOps 갱신이 실패하면 GitOps 가 가리키지 않는 태그와 옮겨진 :main 이
+# GHCR 에 남는다. 준비가 안 됐으면 아무것도 밀지 않고 멈춘다.
 #
 # api 배포(deploy-api-staging.yml, deploy-api-prod.yml)와는 별개다. 그쪽은 Docker Hub 와 Deployment 매니페스트를 쓴다.
 # main 머지 시 자동 배포하지 않는다. Actions > Deploy Batch > Run workflow 로만 실행한다.
 # 머지 전 브랜치를 올려 보려면 ref 에 브랜치명을 적는다. :main 태그는 main 을 배포할 때만 옮긴다.
+# batch 는 Flyway validate 만 하므로(NekiBatchApplication), 브랜치에만 있는 마이그레이션이 운영 DB 에 적용되지는
+# 않고 그 Job 이 "resolved migration not applied" 로 실패한다. 마이그레이션이 있는 변경은 api 배포 뒤에 올린다.
 #
 # 사전 준비 (Team-Neki-GitOps)
 # - overlays/prefect/images.env 에 `NEKI_BATCH_IMAGE=ghcr.io/team-neki/neki-batch:<tag>` 한 줄
@@ -29,7 +34,9 @@ permissions:
   contents: read
   packages: write
 
-# GitOps 커밋이 겹치면 rebase 로 풀리지 않는 충돌이 나므로 직렬화한다
+# GitOps 커밋이 겹치면 rebase 로 풀리지 않는 충돌이 나므로 직렬화한다.
+# GitHub 은 같은 group 의 대기 run 을 하나만 남긴다. 실행 중 1건 + 대기 1건일 때 또 dispatch 하면
+# 먼저 대기하던 run 이 취소되고 Discord 알림도 없다. 연달아 누르지 말고 앞선 run 이 끝나길 기다린다.
 concurrency:
   group: deploy-batch
   cancel-in-progress: false
@@ -45,19 +52,52 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 없는 ref 를 적으면 checkout 이 "exit code 128" 로만 끝나 원인이 안 보인다.
+      # 브랜치/태그/sha 중 하나로 풀리는지 먼저 확인한다
+      - name: Check ref exists
+        if: inputs.ref != ''
+        env:
+          REF: ${{ inputs.ref }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          if git ls-remote --exit-code --heads --tags "$REPO_URL" "$REF" >/dev/null 2>&1; then
+            exit 0
+          fi
+          if printf '%s' "$REF" | grep -Eq '^[0-9a-f]{7,40}$'; then
+            exit 0
+          fi
+          echo "::error::ref '$REF' 가 브랜치도 태그도 아니다. 브랜치명을 그대로 적는다 (예: feat/BACKEND-128). 비우면 '${GITHUB_REF_NAME}' 를 배포한다."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref || github.ref }}
 
-      # 조직 secret 이 이 저장소에 안 열려 있으면 GitOps checkout 이 "Input required and not supplied: token" 으로만 끝난다.
-      # 이미지를 밀기 전에 막아 GitOps 가 가리키지 않는 태그를 남기지 않는다
+      # 조직 secret 이 이 저장소에 안 열려 있으면 GitOps checkout 이 "Input required and not supplied: token" 으로만 끝난다
       - name: Check GitOps token
         env:
           GITOPS_PAT: ${{ secrets.GITOPS_PAT }}
         run: |
           test -n "$GITOPS_PAT" || {
             echo "::error::GITOPS_PAT 가 이 저장소에서 보이지 않는다. Team-Neki 조직 secret 을 이 저장소에 열어야 한다."
+            exit 1
+          }
+
+      - name: Checkout GitOps Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+
+      # 갱신할 줄이 정확히 하나 있는지 이미지를 밀기 전에 확인한다
+      - name: Check images.env line
+        working-directory: gitops
+        run: |
+          count=$(grep -cE "^NEKI_BATCH_IMAGE=${IMAGE}:" "$GITOPS_PATH" || true)
+          test "$count" = "1" || {
+            echo "::error::$GITOPS_PATH 에 NEKI_BATCH_IMAGE=${IMAGE}:<tag> 줄이 정확히 하나 있어야 한다 (현재 ${count}개). 사전 준비는 이 파일 머리의 주석 참고."
             exit 1
           }
 
@@ -118,25 +158,13 @@ jobs:
       # ============================================================
       # GitOps: images.env 의 NEKI_BATCH_IMAGE 갱신. ArgoCD 가 ConfigMap 을 갱신한다
       # ============================================================
-      - name: Checkout GitOps Repository
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.GITOPS_REPO }}
-          token: ${{ secrets.GITOPS_PAT }}
-          path: gitops
-
       - name: Update image tag in GitOps repo
         working-directory: gitops
         env:
           TAG: ${{ steps.tag.outputs.tag }}
           REF: ${{ steps.tag.outputs.ref }}
         run: |
-          # sed 는 대상을 못 찾아도 조용히 성공한다. 갱신할 줄이 정확히 하나 있는지 앞뒤로 센다
-          before=$(grep -cE "^NEKI_BATCH_IMAGE=${IMAGE}:" "$GITOPS_PATH" || true)
-          test "$before" = "1" || {
-            echo "::error::$GITOPS_PATH 에 NEKI_BATCH_IMAGE=${IMAGE}:<tag> 줄이 정확히 하나 있어야 한다 (현재 ${before}개). 사전 준비는 이 파일 머리의 주석 참고."
-            exit 1
-          }
+          # 줄이 하나뿐인 것은 앞 단계에서 확인했다. sed 뒤에 결과를 다시 확인한다
           sed -i -E "s#^NEKI_BATCH_IMAGE=${IMAGE}:.*#NEKI_BATCH_IMAGE=${IMAGE}:${TAG}#" "$GITOPS_PATH"
           grep -q "^NEKI_BATCH_IMAGE=${IMAGE}:${TAG}$" "$GITOPS_PATH"
           echo "Updated $GITOPS_PATH:"
@@ -159,6 +187,7 @@ jobs:
           done
           exit 1
 
+      # 알림 실패가 배포 결과를 뒤집지 않게 한다. webhook 이 없으면 건너뛰고, 전송 실패는 경고로만 남긴다
       - name: Discord notification
         if: always()
         env:
@@ -169,13 +198,17 @@ jobs:
           ACTOR: ${{ github.actor }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::warning::DISCORD_WEBHOOK_PROD_URL 이 없어 알림을 건너뛴다"
+            exit 0
+          fi
           if [ "$STATUS" = "success" ]; then
             TITLE="Batch 이미지 배포 완료"
             DESC="GitOps images.env 갱신됨. 다음 Prefect flow run 부터 이 태그를 쓴다"
             COLOR=5763719
           else
             TITLE="Batch 이미지 배포 실패 ($STATUS)"
-            DESC="빌드 또는 GitOps 갱신 중 오류. 실행 로그를 확인한다"
+            DESC="사전 검사, 빌드, GitOps 갱신 중 오류. 실행 로그를 확인한다"
             COLOR=15158332
           fi
           payload=$(jq -n \
@@ -187,4 +220,5 @@ jobs:
                        {name: "작성자", value: $actor, inline: true},
                        {name: "실행 로그", value: $url}],
               timestamp: (now | todate)}]}')
-          curl -sS -H "Content-Type: application/json" -d "$payload" "$WEBHOOK"
+          curl -sS --fail-with-body -H "Content-Type: application/json" -d "$payload" "$WEBHOOK" \
+            || echo "::warning::Discord 알림 전송 실패 (배포 결과와는 무관)"
