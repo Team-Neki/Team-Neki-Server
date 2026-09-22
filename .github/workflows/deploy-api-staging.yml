@@ -1,4 +1,4 @@
-name: Deploy to Staging (K3s + GitOps)
+name: Deploy API to Staging (K3s + GitOps)
 
 on:
   workflow_dispatch:  # 수동 실행만 가능

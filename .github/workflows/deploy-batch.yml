@@ -7,7 +7,7 @@
 #   dispatch -> bootJar -> 이미지 빌드/푸시 (ghcr.io/team-neki/neki-batch:<version>-<sha7>)
 #            -> GitOps images.env 커밋 -> ArgoCD sync -> 다음 flow run 부터 반영
 #
-# api 배포(deploy-staging.yml, deploy-prod.yml)와는 별개다. 그쪽은 Docker Hub 와 Deployment 매니페스트를 쓴다.
+# api 배포(deploy-api-staging.yml, deploy-api-prod.yml)와는 별개다. 그쪽은 Docker Hub 와 Deployment 매니페스트를 쓴다.
 # main 머지 시 자동 배포하지 않는다. Actions > Deploy Batch > Run workflow 로만 실행한다.
 # 머지 전 브랜치를 올려 보려면 ref 에 브랜치명을 적는다. :main 태그는 main 을 배포할 때만 옮긴다.
 #

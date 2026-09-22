@@ -148,7 +148,7 @@ sequenceDiagram
 
 ### 배포 워크플로
 
-`.github/workflows/deploy-batch.yml` 이 batch 전용입니다. api 의 `deploy-staging.yml`, `deploy-prod.yml` (Docker Hub, Deployment 매니페스트) 과는 별개로 둡니다.
+`.github/workflows/deploy-batch.yml` 이 batch 전용입니다. api 의 `deploy-api-staging.yml`, `deploy-api-prod.yml` (Docker Hub, Deployment 매니페스트. 이번에 `deploy-staging.yml`, `deploy-prod.yml` 에서 개명) 과는 별개로 둡니다.
 
 - `workflow_dispatch` 전용. main 머지 시 자동 배포하지 않는다. `ref` 입력으로 머지 전 브랜치를 올릴 수 있고, `:main` 태그는 main 을 배포할 때만 옮긴다
 - bootJar, `APP_MODULE=batch` 로 docker build, `GITHUB_TOKEN` 으로 GHCR push
