@@ -11,10 +11,8 @@ dependencies {
     implementation(project(":modules:jasypt"))
 
     implementation("org.springframework.boot:spring-boot-starter-batch")
-    // k8s 프로브(/actuator/health)와 수동 트리거 API 를 위한 최소 web 스택.
-    // actuator 는 NekiBatchApplication 이 ManagementWebSecurityAutoConfiguration 을 참조하므로 컴파일 의존이다
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // one-shot 프로세스라 web/actuator 가 없다. :domain 이 starter-web 을 전이로 가져오지만
+    // application.yaml 의 spring.main.web-application-type=none 으로 서버를 띄우지 않는다
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
 
     testRuntimeOnly("com.h2database:h2")

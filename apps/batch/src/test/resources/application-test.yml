@@ -8,14 +8,12 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
-    open-in-view: false
   flyway:
     enabled: false
   batch:
+    job:
+      # 테스트는 컨텍스트 기동 시 Job 을 자동 실행하지 않고 직접 기동한다
+      enabled: false
     jdbc:
       # Flyway 비활성이므로 메타 테이블은 Spring Batch 의 H2 스크립트로 만든다
       initialize-schema: always
-
-neki:
-  batch:
-    trigger-api-enabled: true

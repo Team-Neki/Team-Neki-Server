@@ -1,6 +1,9 @@
 spring:
   application:
     name: neki-batch
+  main:
+    # one-shot 프로세스. :domain 이 spring-boot-starter-web 을 전이로 가져오지만 서버는 띄우지 않는다
+    web-application-type: none
   profiles:
     active: local
   config:
@@ -9,55 +12,10 @@ spring:
       - classpath:application-jasypt.yaml
   batch:
     job:
-      # 기동 시 모든 Job 자동 실행 금지. 잡은 스케줄러/트리거 API 가 BatchJobLauncher 로 기동한다
-      enabled: false
+      # 기동 시 --spring.batch.job.name 으로 지정한 Job 하나를 실행하고 종료한다.
+      # Job 이 둘 이상 등록되면 이름 없이는 기동하지 않는다 (Boot 가 거부).
+      #   java -jar neki-batch.jar --spring.batch.job.name=sampleJob businessDate=2026-09-23
+      enabled: true
     jdbc:
       # 메타 테이블(BATCH_*)은 modules/postgres 의 Flyway V31 이 소유한다. 부팅 시 auto-DDL 금지
       initialize-schema: never
-  jpa:
-    open-in-view: false
-
-# k8s preStop + terminationGracePeriodSeconds 와 정합하는 graceful shutdown
-server:
-  shutdown: graceful
-
-# k8s 프로브: /actuator/health/liveness, /actuator/health/readiness
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      probes:
-        enabled: true
-      group:
-        readiness:
-          include: readinessState,db
-
-neki:
-  batch:
-    # Clock 과 @Scheduled cron 이 함께 쓰는 운영 타임존
-    zone: Asia/Seoul
-    # 스케줄러(@Scheduled) 빈 등록. 실제 잡이 생기면 운영에서 켠다
-    scheduling-enabled: false
-    # 수동 트리거 API(BatchJobController) 빈 등록. 인증 없음. pod 내부 전용, Service/Ingress 노출 금지
-    trigger-api-enabled: false
-    cron:
-      sample: "0 0 4 * * *"
----
-spring:
-  config:
-    activate:
-      on-profile: local
-neki:
-  batch:
-    trigger-api-enabled: true
----
-spring:
-  config:
-    activate:
-      on-profile: staging
-neki:
-  batch:
-    trigger-api-enabled: true
