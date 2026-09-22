@@ -5,11 +5,24 @@ on:
     branches:
       - main
   workflow_dispatch:  # 수동 실행 가능
+    inputs:
+      app:
+        description: '배포할 앱 (api | batch)'
+        type: choice
+        options:
+          - api
+          - batch
+        default: api
 
+# app 입력에 따라 Gradle 모듈, 이미지, GitOps 매니페스트를 분기한다. push(main) 은 입력이 없어 api 로 동작한다.
+# batch 는 수동 dispatch 전용이며, GitOps 매니페스트(overlays/prod/batch-deployment.yaml)가 먼저 있어야 한다.
+# 주의: neki-batch-prod 는 Team-Neki-Notification 레포가 쓰는 이미지 이름과 같다. 이 batch 가 Notification 을
+# 대체하기 전까지 prod dispatch 는 보류한다 (버전 태그는 다르지만 latest 가 덮여 쓰인다).
 env:
-  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/neki-prod
+  APP_MODULE: ${{ inputs.app || 'api' }}
+  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/${{ inputs.app == 'batch' && 'neki-batch-prod' || 'neki-prod' }}
   GITOPS_REPO: Team-Neki/Team-Neki-GitOps
-  GITOPS_PATH: overlays/prod/deployment.yaml
+  GITOPS_PATH: ${{ inputs.app == 'batch' && 'overlays/prod/batch-deployment.yaml' || 'overlays/prod/deployment.yaml' }}
 
 jobs:
   build-and-deploy:
@@ -31,7 +44,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew :apps:api:bootJar --no-daemon -x test
+        run: ./gradlew :apps:${{ env.APP_MODULE }}:bootJar --no-daemon -x test
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -54,6 +67,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            APP_MODULE=${{ env.APP_MODULE }}
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}
             ${{ env.DOCKER_IMAGE }}:latest
@@ -66,7 +81,7 @@ jobs:
           curl -H "Content-Type: application/json" \
                -d '{
                  "embeds": [{
-                   "title": "🚀 Prod 배포 시작 (GitOps)",
+                   "title": "🚀 Prod 배포 시작 (GitOps) ['"${{ env.APP_MODULE }}"']",
                    "description": "이미지 빌드 완료, GitOps 레포 업데이트 중...",
                    "color": 3447003,
                    "fields": [
@@ -118,8 +133,9 @@ jobs:
           NEW_IMAGE="${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}"
           echo "📦 Updating image to: $NEW_IMAGE"
 
-          # deployment.yaml의 이미지 태그 업데이트
-          sed -i "s|image: .*neki-prod:.*|image: $NEW_IMAGE|g" ${{ env.GITOPS_PATH }}
+          # 매니페스트의 이미지 태그 업데이트 (같은 이미지 이름을 가진 image 라인만 교체)
+          IMAGE_REPO="${NEW_IMAGE##*/}"; IMAGE_REPO="${IMAGE_REPO%%:*}"
+          sed -i "s|image: .*/${IMAGE_REPO}:.*|image: $NEW_IMAGE|g" ${{ env.GITOPS_PATH }}
 
           # 변경사항 확인
           echo "📄 Updated deployment.yaml:"
@@ -150,7 +166,7 @@ jobs:
           curl -H "Content-Type: application/json" \
                -d '{
                  "embeds": [{
-                   "title": "✅ Prod GitOps 업데이트 완료",
+                   "title": "✅ Prod GitOps 업데이트 완료 ['"${{ env.APP_MODULE }}"']",
                    "description": "ArgoCD가 자동으로 배포를 진행합니다",
                    "color": 5763719,
                    "fields": [
@@ -191,7 +207,7 @@ jobs:
           curl -H "Content-Type: application/json" \
                -d '{
                  "embeds": [{
-                   "title": "❌ Prod 배포 실패",
+                   "title": "❌ Prod 배포 실패 ['"${{ env.APP_MODULE }}"']",
                    "description": "빌드 또는 GitOps 업데이트 중 오류 발생",
                    "color": 15158332,
                    "fields": [

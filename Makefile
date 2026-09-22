@@ -38,12 +38,12 @@ build:
 run:
 	@echo "$(GREEN)Running with profile: $(SPRING_PROFILES)$(NC)"
 	@unset SPRING_PROFILES; \
-	$(GRADLE) bootRun --args="--server.port=$(PORT) $(if $(SPRING_PROFILES),--spring.profiles.active=$(SPRING_PROFILES)) $(EXTRA_ARGS)"
+	$(GRADLE) :apps:api:bootRun --args="--server.port=$(PORT) $(if $(SPRING_PROFILES),--spring.profiles.active=$(SPRING_PROFILES)) $(EXTRA_ARGS)"
 
 start:
 	@echo "$(GREEN)Starting with profile: $(SPRING_PROFILES)$(NC)"
 	@mkdir -p $(LOG_DIR)
-	@$(GRADLE) build
+	@$(GRADLE) :apps:api:bootJar
 	@JAR=$$(ls apps/api/build/libs/*.jar 2>/dev/null | head -n 1); \
 	if [ -z "$$JAR" ]; then \
 		echo "$(RED)Error: No jar file found in apps/api/build/libs/$(NC)"; \
