@@ -1,6 +1,10 @@
 spring:
   flyway:
     locations: classpath:db/migration
+    # postgis 이미지가 public 에 spatial_ref_sys 등을 만들어 새 DB 도 "비어 있지 않은 스키마" 로 보인다.
+    # 기본값(1)이면 baseline-on-migrate 가 V1(TB_USERS 생성)을 건너뛰어 V6 에서 실패하므로 0 으로 둔다.
+    # history 테이블이 이미 있는 DB(staging, prod, 기존 로컬)에는 영향이 없다.
+    baseline-version: "0"
 ---
 spring:
   config:
