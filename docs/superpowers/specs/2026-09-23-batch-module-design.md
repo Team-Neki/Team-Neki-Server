@@ -146,7 +146,17 @@ sequenceDiagram
 - `JASYPT_PASSWORD` 와 `SPRING_PROFILES_ACTIVE` 는 `prefect-workflow` Secret 과 Job manifest 로 넘긴다
 - 이미지는 `ghcr.io/team-neki/neki-batch`, 태그 `<version>-<sha7>`. 패키지는 public (클러스터에 pull secret 없음)
 
-Prefect flow, GitOps 매니페스트, GHCR 빌드 워크플로는 이 티켓 범위 밖이며 별도 티켓으로 진행합니다.
+### 배포 워크플로
+
+`.github/workflows/deploy-batch.yml` 이 batch 전용입니다. api 의 `deploy-staging.yml`, `deploy-prod.yml` (Docker Hub, Deployment 매니페스트) 과는 별개로 둡니다.
+
+- `workflow_dispatch` 전용. main 머지 시 자동 배포하지 않는다. `ref` 입력으로 머지 전 브랜치를 올릴 수 있고, `:main` 태그는 main 을 배포할 때만 옮긴다
+- bootJar, `APP_MODULE=batch` 로 docker build, `GITHUB_TOKEN` 으로 GHCR push
+- GitOps `overlays/prefect/images.env` 의 `NEKI_BATCH_IMAGE=` 줄이 정확히 하나 있는지 확인한 뒤 태그를 바꾸고 커밋한다. 다른 레포의 CI 도 같은 GitOps 레포에 커밋하므로 push 직전 rebase 하고 3회 재시도한다
+- GitOps 커밋이 겹치지 않도록 `concurrency` 로 직렬화한다
+- Discord 알림은 `DISCORD_WEBHOOK_PROD_URL` 하나로 성공/실패를 보낸다
+
+Prefect flow 와 GitOps `overlays/prefect` 변경(images.env, ConfigMap, base job template, flow run SA, Secret)은 이 티켓 범위 밖이며 별도 티켓으로 진행합니다. 워크플로는 images.env 가 준비되기 전에는 명시적인 오류로 멈춥니다.
 
 ---
 
@@ -161,7 +171,7 @@ Prefect flow, GitOps 매니페스트, GHCR 빌드 워크플로는 이 티켓 범
 
 ## 9. 범위 밖
 
-- Prefect flow (Team-Neki-Workflow), GitOps `overlays/prefect` 변경, GHCR `build.yml` (api 포함)
+- Prefect flow (Team-Neki-Workflow), GitOps `overlays/prefect` 변경, api 의 GHCR 이관 (deploy-batch.yml 을 본뜨면 됨)
 - 실제 배치 잡. sampleJob 은 배선 검증용이며 실제 잡이 들어오면 삭제
 - ArchUnit 규칙. Gradle 모듈 그래프가 `apps/batch -> apps/api` 의존을 이미 막고, 패키지가 하나뿐이라 지금은 검증할 경계가 없음
 - Notification 레포의 알림 잡 이관

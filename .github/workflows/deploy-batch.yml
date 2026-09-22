@@ -1,0 +1,190 @@
+# batch 이미지를 GHCR 에 올리고 GitOps 레포의 overlays/prefect/images.env 태그를 갱신한다.
+#
+# batch 는 상주 Deployment 가 없다. Prefect flow 가 k8s Job 으로 이 이미지를 띄우며, 어느 태그를 쓸지는
+# GitOps 의 images.env(NEKI_BATCH_IMAGE) 가 정한다. 여기서 그 줄을 바꾸면 ArgoCD 가 ConfigMap 을 갱신하고
+# 다음 flow run 부터 새 이미지가 쓰인다. 이미 실행 중인 Job 은 예전 이미지로 끝까지 간다.
+#
+#   dispatch -> bootJar -> 이미지 빌드/푸시 (ghcr.io/team-neki/neki-batch:<version>-<sha7>)
+#            -> GitOps images.env 커밋 -> ArgoCD sync -> 다음 flow run 부터 반영
+#
+# api 배포(deploy-staging.yml, deploy-prod.yml)와는 별개다. 그쪽은 Docker Hub 와 Deployment 매니페스트를 쓴다.
+# main 머지 시 자동 배포하지 않는다. Actions > Deploy Batch > Run workflow 로만 실행한다.
+# 머지 전 브랜치를 올려 보려면 ref 에 브랜치명을 적는다. :main 태그는 main 을 배포할 때만 옮긴다.
+#
+# 사전 준비 (Team-Neki-GitOps)
+# - overlays/prefect/images.env 에 `NEKI_BATCH_IMAGE=ghcr.io/team-neki/neki-batch:<tag>` 한 줄
+# - kustomization 의 configMapGenerator(neki-images, envs: [images.env]) 와 base job template 의 envFrom
+# - 첫 push 뒤 GHCR 패키지 neki-batch 를 public 으로 전환 (클러스터에 pull secret 이 없다)
+name: Deploy Batch (GHCR + GitOps)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "빌드해 배포할 브랜치/태그/sha. 비우면 이 워크플로를 실행한 브랜치"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+# GitOps 커밋이 겹치면 rebase 로 풀리지 않는 충돌이 나므로 직렬화한다
+concurrency:
+  group: deploy-batch
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/team-neki/neki-batch
+  GITOPS_REPO: Team-Neki/Team-Neki-GitOps
+  GITOPS_PATH: overlays/prefect/images.env
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy via GitOps
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      # 조직 secret 이 이 저장소에 안 열려 있으면 GitOps checkout 이 "Input required and not supplied: token" 으로만 끝난다.
+      # 이미지를 밀기 전에 막아 GitOps 가 가리키지 않는 태그를 남기지 않는다
+      - name: Check GitOps token
+        env:
+          GITOPS_PAT: ${{ secrets.GITOPS_PAT }}
+        run: |
+          test -n "$GITOPS_PAT" || {
+            echo "::error::GITOPS_PAT 가 이 저장소에서 보이지 않는다. Team-Neki 조직 secret 을 이 저장소에 열어야 한다."
+            exit 1
+          }
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build batch bootJar
+        run: ./gradlew :apps:batch:bootJar --no-daemon -x test
+
+      # 태그는 <version>-<sha7>. sha 는 GITHUB_SHA 가 아니라 체크아웃된 커밋에서 읽는다.
+      # ref 입력으로 다른 브랜치를 받았을 때 GITHUB_SHA 는 이 워크플로를 실행한 브랜치를 가리킨다
+      - name: Resolve image tag
+        id: tag
+        env:
+          INPUT_REF: ${{ inputs.ref }}
+        run: |
+          VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{print $2}')
+          SHA=$(git rev-parse --short=7 HEAD)
+          REF="${INPUT_REF:-$GITHUB_REF_NAME}"
+          REF="${REF#refs/heads/}"
+          echo "tag=${VERSION}-${SHA}" >> "$GITHUB_OUTPUT"
+          echo "ref=${REF}" >> "$GITHUB_OUTPUT"
+          if [ "$REF" = "main" ]; then
+            echo "tags=${IMAGE}:${VERSION}-${SHA},${IMAGE}:main" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=${IMAGE}:${VERSION}-${SHA}" >> "$GITHUB_OUTPUT"
+            echo "::notice::main 이 아닌 '${REF}' 를 배포한다. :main 태그는 옮기지 않는다. 되돌리려면 ref 를 비우고 main 에서 다시 실행."
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          build-args: |
+            APP_MODULE=batch
+          tags: ${{ steps.tag.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ============================================================
+      # GitOps: images.env 의 NEKI_BATCH_IMAGE 갱신. ArgoCD 가 ConfigMap 을 갱신한다
+      # ============================================================
+      - name: Checkout GitOps Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+
+      - name: Update image tag in GitOps repo
+        working-directory: gitops
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          REF: ${{ steps.tag.outputs.ref }}
+        run: |
+          # sed 는 대상을 못 찾아도 조용히 성공한다. 갱신할 줄이 정확히 하나 있는지 앞뒤로 센다
+          before=$(grep -cE "^NEKI_BATCH_IMAGE=${IMAGE}:" "$GITOPS_PATH" || true)
+          test "$before" = "1" || {
+            echo "::error::$GITOPS_PATH 에 NEKI_BATCH_IMAGE=${IMAGE}:<tag> 줄이 정확히 하나 있어야 한다 (현재 ${before}개). 사전 준비는 이 파일 머리의 주석 참고."
+            exit 1
+          }
+          sed -i -E "s#^NEKI_BATCH_IMAGE=${IMAGE}:.*#NEKI_BATCH_IMAGE=${IMAGE}:${TAG}#" "$GITOPS_PATH"
+          grep -q "^NEKI_BATCH_IMAGE=${IMAGE}:${TAG}$" "$GITOPS_PATH"
+          echo "Updated $GITOPS_PATH:"
+          grep "^NEKI_BATCH_IMAGE=" "$GITOPS_PATH"
+
+          if git diff --quiet; then
+            echo "already at ${TAG}"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          msg="chore(prefect): update neki-batch image to ${TAG}"
+          # 브랜치 배포는 GitOps 이력에서 구분되게 남긴다. 다음 main 배포가 덮는다
+          [ "$REF" = "main" ] || msg="$msg (from ${REF}, 머지 전 테스트 배포)"
+          git commit -am "$msg"
+          # 다른 레포의 CI 도 같은 GitOps 레포에 커밋하므로 push 직전에 rebase 한다
+          for i in 1 2 3; do
+            git pull --rebase && git push && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
+
+      - name: Discord notification
+        if: always()
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PROD_URL }}
+          STATUS: ${{ job.status }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          REF: ${{ steps.tag.outputs.ref }}
+          ACTOR: ${{ github.actor }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$STATUS" = "success" ]; then
+            TITLE="Batch 이미지 배포 완료"
+            DESC="GitOps images.env 갱신됨. 다음 Prefect flow run 부터 이 태그를 쓴다"
+            COLOR=5763719
+          else
+            TITLE="Batch 이미지 배포 실패 ($STATUS)"
+            DESC="빌드 또는 GitOps 갱신 중 오류. 실행 로그를 확인한다"
+            COLOR=15158332
+          fi
+          payload=$(jq -n \
+            --arg title "$TITLE" --arg desc "$DESC" --argjson color "$COLOR" \
+            --arg ref "${REF:-?}" --arg tag "${TAG:-?}" --arg actor "$ACTOR" --arg url "$RUN_URL" \
+            '{embeds: [{title: $title, description: $desc, color: $color,
+              fields: [{name: "브랜치", value: $ref, inline: true},
+                       {name: "태그", value: $tag, inline: true},
+                       {name: "작성자", value: $actor, inline: true},
+                       {name: "실행 로그", value: $url}],
+              timestamp: (now | todate)}]}')
+          curl -sS -H "Content-Type: application/json" -d "$payload" "$WEBHOOK"
