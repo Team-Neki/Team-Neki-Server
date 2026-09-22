@@ -12,6 +12,8 @@
 
 **티켓:** BACKEND-128
 
+> **변경 이력:** 이 플랜은 상주 프로세스(스케줄러, 트리거 API, 프로브) 전제로 실행됐다. 같은 날 Prefect 가 k8s Job 으로 띄우는 one-shot 프로세스로 방향을 바꾸면서 Task 2, 3 의 산출물(`SchedulingConfig`, `BatchJobLauncher`, `BatchJobController`, `SampleJobScheduler`)과 Task 5 의 워크플로 분기는 제거됐다. 현행 설계는 스펙 문서를 기준으로 한다. 메타 테이블 마이그레이션은 V10 이 아니라 V31 이다.
+
 ---
 
 ## 파일 맵

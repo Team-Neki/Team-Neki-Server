@@ -17,7 +17,7 @@ Load this context when designing features, creating new domains, or refactoring.
 core/          공유 커널. annotation, code, exception, transaction, domain/vo
 domain/        도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
 apps/api/      api + application + (교차 도메인 호출 어댑터). 실행 모듈(bootJar)
-apps/batch/    Spring Batch 잡 + 스케줄러 + 수동 트리거 API. 실행 모듈(bootJar). domain 을 재사용하며 스캔 범위는 앱 클래스에 명시
+apps/batch/    Spring Batch 잡. one-shot 실행 모듈(bootJar). Prefect 가 k8s Job 으로 띄우며 --spring.batch.job.name 으로 잡 하나를 돌리고 종료. domain 을 재사용하며 스캔 범위는 앱 클래스에 명시
 modules/       외부 의존성 연결 설정 전용 (postgres, redis, aws, kakao, apple, discord, jasypt, firebase)
 ```
 
