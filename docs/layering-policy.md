@@ -8,6 +8,7 @@
 core/                    공유 커널. 모든 모듈이 의존할 수 있음
 domain/                  도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
 apps/api/                api + application + 교차 도메인 호출 어댑터. 실행 모듈
+apps/batch/              Spring Batch 잡 + 스케줄러 + 수동 트리거 API. 실행 모듈. domain 을 재사용하며 스캔 범위는 앱 클래스에 명시
 modules/                 외부 의존성 연결 설정 전용
 ```
 

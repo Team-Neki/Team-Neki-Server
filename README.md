@@ -61,6 +61,7 @@ domain       Command/Query, 모델, 도메인 서비스와 flat 인터페이스
 
 Gradle 멀티 모듈로 구성되어 있습니다. `core`는 공유 커널, `domain`은 JPA 엔티티,
 `apps/api`은 api·application·infra 어댑터를 담는 실행 모듈이며,
+`apps/batch`는 Spring Batch 잡과 스케줄러를 담는 실행 모듈,
 `modules/*`는 외부 의존성의 연결 설정만 관리합니다.
 
 ```
@@ -98,9 +99,11 @@ PostgreSQL(5432), Redis(6379), LocalStack S3(4566)가 함께 올라옵니다.
 ### 2. 애플리케이션 실행
 
 ```bash
-./gradlew bootRun
+./gradlew :apps:api:bootRun      # API 서버
+./gradlew :apps:batch:bootRun    # 배치 앱 (선택)
 ```
 
+루트에서 `./gradlew bootRun` 을 실행하면 두 앱이 같은 포트로 함께 뜨므로 모듈을 지정합니다.
 `local` 프로파일이 기본으로 적용됩니다. 의존성별 설정은 `modules/{module}/src/main/resources/application-{module}.yaml` 에 프로파일 문서로 나뉘어 있습니다. 환경변수나 추가 설정이 필요한 경우 팀 노션을 참고하세요.
 
 ### 3. 빌드 및 테스트
