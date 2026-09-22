@@ -6,7 +6,7 @@
 
 **Architecture:** `:apps:batch` 는 `:core`, `:domain`, `:modules:postgres`, `:modules:jasypt` 만 의존하는 두 번째 bootJar 다. 컴포넌트 스캔을 `com.neki.batch`, `com.neki.core`, `com.neki.config.{postgres,jasypt}` 로 좁히고, `:domain` 의 runtime classpath 로 딸려오는 Security/Redis 자동 설정을 제외한다. Spring Batch 메타 테이블은 `modules/postgres` 의 Flyway V31 이 `IF NOT EXISTS` 로 소유한다 (Notification 앱이 prod 에 이미 만든 동일 스키마 편입).
 
-**Tech Stack:** Kotlin 2.0, Spring Boot 3.5.8, Spring Batch 5.2.2, JPA/H2(test), Flyway, Kotest + MockK, GitHub Actions.
+**Tech Stack:** Kotlin 2.0, Spring Boot 3.5.8, Spring Batch 5.2.4, JPA/H2(test), Flyway, Kotest + MockK, GitHub Actions.
 
 **설계 문서:** `docs/superpowers/specs/2026-09-23-batch-module-design.md`
 
@@ -34,7 +34,7 @@
 | `apps/batch/src/test/resources/application-test.yml` | H2, Flyway off, 메타 테이블 auto-DDL |
 | `apps/batch/src/test/kotlin/com/neki/batch/NekiBatchApplicationTest.kt` | 컨텍스트, 프로브 무인증, sampleJob 완료, 트리거 API |
 | `apps/batch/src/test/kotlin/com/neki/batch/common/job/BatchJobLauncherTest.kt` | 런처 단위 테스트 (MockK) |
-| `modules/postgres/src/main/resources/db/migration/V31__create_spring_batch_meta_tables.sql` | Spring Batch 5.2.2 메타 테이블 (`IF NOT EXISTS`) |
+| `modules/postgres/src/main/resources/db/migration/V31__create_spring_batch_meta_tables.sql` | Spring Batch 5.2.4 메타 테이블 (`IF NOT EXISTS`) |
 | `Dockerfile` | `ARG APP_MODULE=api` |
 | `.github/workflows/deploy-staging.yml`, `deploy-prod.yml` | `app` 입력으로 모듈/이미지/GitOps 경로 분기 |
 | `Makefile`, `README.md`, `.claude/CLAUDE.md`, `.claude/skills/architecture/SKILL.md`, `docs/layering-policy.md` | `apps/batch` 반영, `bootRun` 을 `:apps:api:bootRun` 으로 한정 |
@@ -644,10 +644,10 @@ git commit -m "feat/BACKEND-128 sampleJob 과 스케줄러, 수동 트리거 API
 
 - [ ] **Step 1: 마이그레이션 작성**
 
-Spring Batch 5.2.2 의 `org/springframework/batch/core/schema-postgresql.sql` 을 그대로 쓰되 `IF NOT EXISTS` 를 붙인다. Notification 앱의 `V2__spring_batch_schema.sql` 과 공백 외 동일함을 확인했다.
+Spring Batch 5.2.4 의 `org/springframework/batch/core/schema-postgresql.sql` 을 그대로 쓰되 `IF NOT EXISTS` 를 붙인다. Notification 앱의 `V2__spring_batch_schema.sql` 과 공백 외 동일함을 확인했다.
 
 ```sql
--- Spring Batch 5.2.2 메타 테이블 (org/springframework/batch/core/schema-postgresql.sql 미러).
+-- Spring Batch 5.2.4 메타 테이블 (org/springframework/batch/core/schema-postgresql.sql 미러).
 -- apps/batch 의 spring.batch.jdbc.initialize-schema=never 와 정합 — 이 레포의 Flyway 가 메타 스키마를 소유한다.
 --
 -- IF NOT EXISTS 인 이유: Team-Neki-Notification 앱이 같은 prod DB 에 자기 전용 history 테이블

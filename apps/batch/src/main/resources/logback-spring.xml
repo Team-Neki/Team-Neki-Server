@@ -5,7 +5,7 @@
     <!-- 로그 패턴 정의 -->
     <!-- 개발 환경 (local, test): 색상이 포함된 읽기 쉬운 형식 -->
     <property name="CONSOLE_LOG_PATTERN_DEV"
-              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} [%X{requestId:-NO_REQUEST_ID}] [%X{userId:-ANONYMOUS}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 
     <!-- 개발 환경용 콘솔 출력 (사람이 읽기 좋은 형식) -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -20,16 +20,6 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <!-- 타임스탬프 형식 -->
             <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</timestampPattern>
-
-            <!-- MDC 값을 JSON 필드로 포함 -->
-            <includeMdcKeyName>requestId</includeMdcKeyName>
-            <includeMdcKeyName>userId</includeMdcKeyName>
-            <includeMdcKeyName>requestMethod</includeMdcKeyName>
-            <includeMdcKeyName>requestUri</includeMdcKeyName>
-            <includeMdcKeyName>clientIp</includeMdcKeyName>
-            <includeMdcKeyName>logCategory</includeMdcKeyName>
-            <includeMdcKeyName>durationMs</includeMdcKeyName>
-            <includeMdcKeyName>responseStatus</includeMdcKeyName>
 
             <!-- 기본 필드명 커스터마이징 -->
             <fieldNames>
@@ -63,8 +53,6 @@
 
         <!-- 개발 시 디버그 로그 활성화 -->
         <logger name="com.neki" level="DEBUG"/>
-        <logger name="org.springframework.web" level="DEBUG"/>
-        <logger name="org.springframework.security" level="DEBUG"/>
     </springProfile>
 
     <!-- test 프로파일: 테스트 환경 -->

@@ -1,4 +1,4 @@
--- Spring Batch 5.2.2 메타 테이블 (org/springframework/batch/core/schema-postgresql.sql 미러).
+-- Spring Batch 5.2.4 메타 테이블 (org/springframework/batch/core/schema-postgresql.sql 미러).
 -- apps/batch 의 spring.batch.jdbc.initialize-schema=never 와 정합 — 이 레포의 Flyway 가 메타 스키마를 소유한다.
 --
 -- IF NOT EXISTS 인 이유: Team-Neki-Notification 앱이 같은 prod DB 에 자기 전용 history 테이블
