@@ -185,22 +185,23 @@ class Auth(
 
 ## Terraform (Infrastructure as Code)
 
-Staging infrastructure managed via Terraform:
+**이 저장소는 AWS 인프라를 관리하지 않습니다.** Team-Neki-Platform 저장소의
+`infra/` 가 계정의 IAM 과 S3 버킷을 통합 관리합니다.
 
-```
-infra/terraform/
-├── aws/
-│   ├── staging/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   └── modules/
-│       └── s3/
-│           └── README.md
-└── CICD_SETUP.md
-```
+이 앱이 쓰는 버킷도 그쪽에 있습니다.
 
-Reference: `infra/terraform/CICD_SETUP.md` for CI/CD setup guide.
+| 버킷 | 용도 |
+|---|---|
+| `yapp-neki-ap-northeast-2` | prod 미디어 |
+| `yapp-neki-staging-ap-northeast-2` | staging 미디어 |
+
+예전에는 `infra/terraform/aws/staging` 이 staging 버킷을 관리했지만 state 가
+로컬 파일이라 맥북 한 대에만 있었습니다. 잃으면 버킷이 고아가 되는 구조였습니다.
+Platform 의 S3 백엔드로 옮겼습니다 (BACKEND-136).
+
+버킷 설정을 바꾸려면 Platform 저장소에서 PR 을 올립니다. 여기서 `terraform` 을
+다시 만들지 마세요. 같은 리소스를 두 state 가 관리하면 한쪽 apply 가 다른 쪽을
+덮습니다.
 
 ---
 
