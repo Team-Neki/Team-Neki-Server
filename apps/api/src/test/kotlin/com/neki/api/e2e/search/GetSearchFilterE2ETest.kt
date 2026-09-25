@@ -5,7 +5,7 @@ import com.neki.api.search.api.dto.SearchRequest
 import com.neki.core.code.ResultCode
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
-import org.hamcrest.Matchers.empty
+import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeEach
@@ -32,8 +32,7 @@ class GetSearchFilterE2ETest : E2ETestBase() {
 
     private lateinit var accessToken: String
 
-    private val gangnamGu = SearchRequest.FilterGroup.RegionFilter(code = "1168000000")
-    private val gangnamStation = SearchRequest.FilterGroup.StationFilter(name = "강남", lineName = "신분당선")
+    private val noFilter = SearchRequest.FilterGroup()
 
     @BeforeEach
     fun setUp() {
@@ -44,69 +43,50 @@ class GetSearchFilterE2ETest : E2ETestBase() {
         accessToken = token
     }
 
-    private fun post(request: SearchRequest.FilterGroup) = RestAssured.given()
-        .header("Authorization", "Bearer $accessToken")
-        .contentType(ContentType.JSON)
-        .body(request)
-        .`when`()
-        .post("/api/search/filter")
-        .then()
+    private fun post(keyword: String?, request: Any = SearchRequest.GetFilter(filterGroup = noFilter)) =
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .contentType(ContentType.JSON)
+            .apply { keyword?.let { queryParam("keyword", it) } }
+            .body(request)
+            .`when`()
+            .post("/api/search/filter")
+            .then()
 
     @Nested
     @DisplayName("성공 케이스")
     inner class SuccessTests {
 
         @Test
-        @DisplayName("지역 선택 - 목록에 있는 브랜드만 부스 개수와 함께 브랜드 ID 순으로 반환한다")
-        fun givenRegion_whenGetFilter_thenReturnsBrandsWithCount() {
-            post(SearchRequest.FilterGroup(regionFilter = gangnamGu))
+        @DisplayName("검색어 - 고정된 브랜드 집계를 브랜드 ID 순으로 반환한다")
+        fun givenKeyword_whenGetFilter_thenReturnsFixedBrandsWithCount() {
+            post("강남")
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.brandFilter", hasSize<Int>(2))
                 .body("data.brandFilter[0].id", equalTo(1))
                 .body("data.brandFilter[0].code", equalTo("PHOTOISM"))
-                .body("data.brandFilter[0].count", equalTo(3))
+                .body("data.brandFilter[0].count", equalTo(4))
                 .body("data.brandFilter[1].id", equalTo(2))
                 .body("data.brandFilter[1].code", equalTo("LIFEFOURCUTS"))
-                .body("data.brandFilter[1].count", equalTo(1))
-        }
-
-        @Test
-        @DisplayName("역 선택 + userLocation - userLocation 은 무시되고 역에 딸린 부스로 집계한다")
-        fun givenStationWithUserLocation_whenGetFilter_thenIgnoresUserLocation() {
-            post(
-                SearchRequest.FilterGroup(
-                    stationFilter = gangnamStation,
-                    userLocation = SearchRequest.FilterGroup.UserLocation(latitude = 37.4979, longitude = 127.0276),
-                ),
-            )
-                .statusCode(HttpStatus.OK.value())
-                .body("data.brandFilter", hasSize<Int>(2))
-                .body("data.brandFilter[0].count", equalTo(4))
                 .body("data.brandFilter[1].count", equalTo(2))
         }
 
         @Test
-        @DisplayName("브랜드 필터 - 그 브랜드만 집계한다")
-        fun givenBrandIds_whenGetFilter_thenCountsOnlyThatBrand() {
-            post(
-                SearchRequest.FilterGroup(
-                    regionFilter = gangnamGu,
-                    brandFilter = SearchRequest.FilterGroup.BrandFilter(brandIds = listOf(1)),
+        @DisplayName("검색어·브랜드 필터가 달라도 같은 응답을 반환한다")
+        fun givenDifferentInputs_whenGetFilter_thenReturnsSameResponse() {
+            val filterGroup = SearchRequest.FilterGroup(
+                brandFilter = SearchRequest.FilterGroup.BrandFilter(
+                    brands = listOf(SearchRequest.FilterGroup.BrandFilter.Brand(brandId = 2)),
                 ),
             )
-                .statusCode(HttpStatus.OK.value())
-                .body("data.brandFilter", hasSize<Int>(1))
-                .body("data.brandFilter[0].id", equalTo(1))
-                .body("data.brandFilter[0].count", equalTo(3))
-        }
 
-        @Test
-        @DisplayName("부스가 없는 지역 - 빈 배열을 반환한다")
-        fun givenRegionWithoutBooths_whenGetFilter_thenReturnsEmptyList() {
-            post(SearchRequest.FilterGroup(regionFilter = SearchRequest.FilterGroup.RegionFilter(code = "5279033026")))
+            val base: String = post("강남").statusCode(HttpStatus.OK.value()).extract().body().asString()
+            val other: String = post("송정", SearchRequest.GetFilter(filterGroup = filterGroup))
                 .statusCode(HttpStatus.OK.value())
-                .body("data.brandFilter", empty<Any>())
+                .extract().body().asString()
+
+            assertThat(other).isEqualTo(base)
         }
     }
 
@@ -115,29 +95,17 @@ class GetSearchFilterE2ETest : E2ETestBase() {
     inner class FailureTests {
 
         @Test
-        @DisplayName("없는 역 - D-04")
-        fun givenUnknownStation_whenGetFilter_thenReturnsNotFound() {
-            post(
-                SearchRequest.FilterGroup(
-                    stationFilter = SearchRequest.FilterGroup.StationFilter(name = "송정", lineName = "동해선"),
-                ),
-            )
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
-        }
-
-        @Test
-        @DisplayName("지역과 역을 둘 다 보냄 - D-01")
-        fun givenBothRegionAndStation_whenGetFilter_thenReturnsInvalidParameter() {
-            post(SearchRequest.FilterGroup(regionFilter = gangnamGu, stationFilter = gangnamStation))
+        @DisplayName("keyword 없음 - D-01")
+        fun givenNoKeyword_whenGetFilter_thenReturnsInvalidParameter() {
+            post(null)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
 
         @Test
-        @DisplayName("지역과 역을 둘 다 안 보냄 - D-01")
-        fun givenNeitherRegionNorStation_whenGetFilter_thenReturnsInvalidParameter() {
-            post(SearchRequest.FilterGroup())
+        @DisplayName("keyword 가 공백 - D-01")
+        fun givenBlankKeyword_whenGetFilter_thenReturnsInvalidParameter() {
+            post(" ")
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
@@ -147,7 +115,8 @@ class GetSearchFilterE2ETest : E2ETestBase() {
         fun givenNoToken_whenGetFilter_thenReturnsForbidden() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(SearchRequest.FilterGroup(regionFilter = gangnamGu))
+                .queryParam("keyword", "강남")
+                .body(SearchRequest.GetFilter(filterGroup = noFilter))
                 .`when`()
                 .post("/api/search/filter")
                 .then()
