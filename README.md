@@ -100,7 +100,7 @@ PostgreSQL(5432), Redis(6379), LocalStack S3(4566)가 함께 올라옵니다.
 
 ```bash
 ./gradlew :apps:api:bootRun      # API 서버
-./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=sampleJob businessDate=2026-09-23"  # 배치 잡 1회 실행
+./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=searchIndexJob businessDate=2026-09-25"  # 배치 잡 1회 실행
 ```
 
 루트에서 `./gradlew bootRun` 을 실행하면 두 앱이 함께 실행되므로 모듈을 지정합니다.
