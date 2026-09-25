@@ -28,7 +28,7 @@ class PhotoBoothSearchRepositoryAdapter(
 
     override fun count(): Long = searchRepository.count()
 
-    // 트랜잭션은 호출자(SearchIndexService)가 연다. 여기서 열면 DELETE 와 INSERT 가 한 트랜잭션이라는 보장이 흐려진다
+    // 트랜잭션은 호출자(SearchIndexUseCase)가 연다. 여기서 열면 DELETE 와 INSERT 가 한 트랜잭션이라는 보장이 흐려진다
     override fun replaceAll(cards: List<PhotoBoothSearch>) {
         searchRepository.deleteAllStations()
         searchRepository.deleteAllInBatch()

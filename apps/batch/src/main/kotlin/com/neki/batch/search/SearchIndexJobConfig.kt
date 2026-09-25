@@ -1,7 +1,5 @@
 package com.neki.batch.search
 
-import com.neki.domain.search.service.SearchIndexResult
-import com.neki.domain.search.service.SearchIndexService
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
@@ -19,7 +17,7 @@ import java.time.LocalDate
  * fileName       : SearchIndexJobConfig
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : 검색 카드 전량 재생성 잡. tasklet 하나가 SearchIndexService.rebuild 를 부른다.
+ * description    : 검색 카드 전량 재생성 잡. tasklet 하나가 SearchIndexUseCase.rebuild 를 부른다.
  *
  * RunIdIncrementer: 같은 파라미터(businessDate)로 다시 기동해도 항상 새 JobInstance 로 처음부터 돈다.
  * 없으면 두 번째 기동이 JobInstanceAlreadyCompleteException 으로 죽는다.
@@ -29,7 +27,7 @@ import java.time.LocalDate
  * 예외는 tasklet 밖으로 그대로 던져 step FAILED -> job FAILED -> 종료 코드 0 이 아님 (BACKEND-128 계약).
  */
 @Configuration
-class SearchIndexJobConfig(private val searchIndexService: SearchIndexService) {
+class SearchIndexJobConfig(private val searchIndexUseCase: SearchIndexUseCase) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -47,7 +45,7 @@ class SearchIndexJobConfig(private val searchIndexService: SearchIndexService) {
                     "businessDate 파라미터가 없습니다 (예: businessDate=2026-09-25)"
                 }
                 val businessDate: LocalDate = LocalDate.parse(raw.toString())
-                val result: SearchIndexResult = searchIndexService.rebuild(businessDate)
+                val result: SearchIndexResult = searchIndexUseCase.rebuild(businessDate)
                 log.info("searchIndexJob 완료 (businessDate={}, result={})", businessDate, result)
                 RepeatStatus.FINISHED
             }, transactionManager)

@@ -13,7 +13,7 @@
 
 ```text
 tb_photo_booth_enriched (8열)  ─┐
-tb_brand (platform 으로 조인)    ├─> SearchIndexService.rebuild(businessDate) ─> DELETE + INSERT (한 트랜잭션)
+tb_brand (platform 으로 조인)    ├─> SearchIndexUseCase.rebuild(businessDate) ─> DELETE + INSERT (한 트랜잭션)
 tb_subway_station (좌표)        ─┘        │                                        tb_photo_booth_search
                                           └ SearchNormalizer (branchName, normalize, searchText, regionIds, siteKey)
                                                                                     tb_photo_booth_search_station
@@ -27,6 +27,7 @@ tb_subway_station (좌표)        ─┘        │                             
 - 연결 테이블의 `station_name VARCHAR(60)`, `line_name VARCHAR(40)` : 원천 `tb_subway_station` 과 같은 길이
 - 연결 테이블은 별도 엔티티가 아니라 `PhotoBoothSearch` 의 `@ElementCollection` : 복합키 엔티티의 merge-select 를 피하고 부모와 함께 INSERT 됨
 - 입력이 0건이면 실패 (직전 카드 수와 무관). enrich 가 아직 안 돈 상태를 0건 카드로 덮지 않기 위함
+- 재생성 조립은 `domain/search` 의 `@Service` 가 아니라 `apps/batch` 의 `@UseCase` : 처음 C 는 domain 에 `SearchIndexService` + `BrandClient` 포트를 두고 batch 가 어댑터를 냈는데, apps/api 가 `com.neki` 전체를 스캔해 그 서비스를 올리면서 `BrandClient` 빈이 없어 api 컨텍스트가 깨졌다(통합 검증에서 api 테스트 276건 실패). api 의 UseCase 처럼 두 도메인 포트를 앱 계층에서 잇는 것이 이 레포의 패턴이라 옮겼고 `BrandClient`, `SearchBrand`, `BrandClientAdapter` 는 지웠다
 
 ## DAG
 
@@ -211,10 +212,7 @@ object SearchNormalizer {
 A, B 병합 뒤 시작합니다.
 
 **Files**
-- Create `domain/src/main/kotlin/com/neki/domain/search/client/BrandClient.kt` (`interface BrandClient { fun findAll(): List<SearchBrand> }`)
-- Create `domain/src/main/kotlin/com/neki/domain/search/models/SearchBrand.kt` (`data class SearchBrand(val id: Long, val name: String, val code: String, val platform: String?)`)
-- Create `domain/src/main/kotlin/com/neki/domain/search/service/SearchIndexService.kt` (`@Service`, `@Transactional fun rebuild(businessDate: LocalDate): SearchIndexResult`)
-- Create `apps/batch/src/main/kotlin/com/neki/batch/search/BrandClientAdapter.kt` (`@Component`, `com.neki.domain.map.repository.BrandRepository.findAll()` 을 `SearchBrand` 로. 다른 도메인 연결은 앱 모듈이 맡는 기존 패턴, `apps/api/.../map/infra/client/MapMediaClient.kt` 참조)
+- Create `apps/batch/src/main/kotlin/com/neki/batch/search/SearchIndexUseCase.kt` (`@UseCase`, `@Transactional fun rebuild(businessDate: LocalDate): SearchIndexResult`. `PhotoBoothSearchRepository` 와 map 의 `BrandRepository` 두 포트를 잇는 조립이라 앱 계층)
 - Create `apps/batch/src/main/kotlin/com/neki/batch/search/SearchIndexJobConfig.kt` (`searchIndexJob`, `RunIdIncrementer`, tasklet step 하나)
 - Delete `apps/batch/src/main/kotlin/com/neki/batch/sample/SampleJobConfig.kt`
 - Delete `apps/batch/src/test/kotlin/com/neki/batch/NekiBatchApplicationTest.kt` (두 케이스는 아래 새 테스트가 대신함)
@@ -223,9 +221,9 @@ A, B 병합 뒤 시작합니다.
 - Modify `apps/batch/src/main/kotlin/com/neki/batch/NekiBatchApplication.kt` (`scanBasePackages` 에 `"com.neki.domain.search"`, `"com.neki.domain.map.infra.persist"` 추가, 21행·26행 주석 갱신)
 - Modify `apps/batch/src/main/resources/application.yaml` 17행 주석, `.claude/CLAUDE.md` 11행, `README.md` 103행의 `sampleJob` -> `searchIndexJob`
 
-**SearchIndexService.rebuild 알고리즘**
+**SearchIndexUseCase.rebuild 알고리즘**
 
-1. `brands = brandClient.findAll().filter { it.platform != null }.associateBy { it.platform!! }`
+1. `brands = brandRepository.findAll().filter { it.platform != null }.associateBy { it.platform!! }`
 2. `enriched = repository.findAllEnriched()`, `stations = repository.findAllStations()` (역 좌표는 `location.y` 위도, `location.x` 경도)
 3. 행마다
    - `brands[platform]` 이 없으면 건너뛰고 platform 별 건수 집계 (경고 로그는 platform 당 한 번)
@@ -238,7 +236,7 @@ A, B 병합 뒤 시작합니다.
 
 예외는 tasklet 밖으로 그대로 던져 step FAILED -> job FAILED -> 종료 코드 0 이 아님 (BACKEND-128 계약). `@Transactional` 이 tasklet 의 트랜잭션에 참여하므로 DELETE 와 INSERT 는 한 트랜잭션입니다.
 
-**SearchIndexJobConfig** : `SampleJobConfig` 와 같은 골격. tasklet 은 `jobParameters["businessDate"]` 를 `LocalDate.parse` 하고(없으면 `IllegalArgumentException`) `searchIndexService.rebuild(...)` 를 부른 뒤 결과를 `log.info` 로 남김. `JOB_NAME = "searchIndexJob"`.
+**SearchIndexJobConfig** : `SampleJobConfig` 와 같은 골격. tasklet 은 `jobParameters["businessDate"]` 를 `LocalDate.parse` 하고(없으면 `IllegalArgumentException`) `searchIndexUseCase.rebuild(...)` 를 부른 뒤 결과를 `log.info` 로 남김. `JOB_NAME = "searchIndexJob"`.
 
 **SearchIndexJobTest** (`@SpringBootTest`, `@ActiveProfiles("test")`, H2). `JpaBrandRepository`, `JpaPhotoBoothEnrichedRepository`, `JpaSubwayStationRepository`, `JpaPhotoBoothSearchRepository` 로 준비하고 `@AfterEach` 에서 전부 지움. `NekiBatchApplicationTest.launch` 의 파라미터 구성(`JobParametersBuilder(jobExplorer).getNextJobParameters(job).addString("businessDate", ...)`) 을 그대로 씀. 케이스 :
 

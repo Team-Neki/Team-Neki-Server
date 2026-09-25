@@ -1,11 +1,12 @@
-package com.neki.domain.search.service
+package com.neki.batch.search
 
+import com.neki.core.annotation.UseCase
+import com.neki.domain.map.models.Brand
+import com.neki.domain.map.repository.BrandRepository
 import com.neki.domain.search.SearchNormalizer
-import com.neki.domain.search.client.BrandClient
 import com.neki.domain.search.models.NearbyStation
 import com.neki.domain.search.models.PhotoBoothEnriched
 import com.neki.domain.search.models.PhotoBoothSearch
-import com.neki.domain.search.models.SearchBrand
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.UserLocation
 import com.neki.domain.search.repository.PhotoBoothSearchRepository
@@ -13,19 +14,23 @@ import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.PrecisionModel
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * fileName       : SearchIndexService
+ * fileName       : SearchIndexUseCase
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : tb_photo_booth_enriched 8열을 검색 카드로 전량 재생성한다. 외부 호출 없이 DB 만 읽고 쓴다
+ * description    : tb_photo_booth_enriched 8열을 검색 카드로 전량 재생성한다. 외부 호출 없이 DB 만 읽고 쓴다.
+ *                  search 와 map 두 도메인의 포트를 잇는 조립이라 domain 이 아니라 앱 계층에 둔다
+ *                  (domain 에 @Service 로 두면 apps/api 의 전체 스캔에도 올라와 api 기동을 깨뜨린다)
  */
-@Service
-class SearchIndexService(private val repository: PhotoBoothSearchRepository, private val brandClient: BrandClient) {
+@UseCase
+class SearchIndexUseCase(
+    private val repository: PhotoBoothSearchRepository,
+    private val brandRepository: BrandRepository,
+) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -37,7 +42,8 @@ class SearchIndexService(private val repository: PhotoBoothSearchRepository, pri
      */
     @Transactional
     fun rebuild(businessDate: LocalDate): SearchIndexResult {
-        val brands: Map<String, SearchBrand> = brandClient.findAll()
+        // tb_brand.platform 이 NULL 인 브랜드는 수집 대상이 아니므로 매핑에서 뺀다
+        val brands: Map<String, Brand> = brandRepository.findAll()
             .filter { it.platform != null }
             .associateBy { it.platform!! }
         val enriched: List<PhotoBoothEnriched> = repository.findAllEnriched()
@@ -47,7 +53,7 @@ class SearchIndexService(private val repository: PhotoBoothSearchRepository, pri
         val skippedNoBrand = mutableMapOf<String, Int>()
         var skippedNoCoordinate = 0
         val cards: List<PhotoBoothSearch> = enriched.mapNotNull { row ->
-            val brand: SearchBrand? = brands[row.id.platform]
+            val brand: Brand? = brands[row.id.platform]
             if (brand == null) {
                 skippedNoBrand.merge(row.id.platform, 1, Int::plus)
                 return@mapNotNull null
@@ -82,7 +88,7 @@ class SearchIndexService(private val repository: PhotoBoothSearchRepository, pri
 
     private fun toCard(
         row: PhotoBoothEnriched,
-        brand: SearchBrand,
+        brand: Brand,
         longitude: Double,
         latitude: Double,
         stations: List<SubwayStation>,
@@ -99,7 +105,7 @@ class SearchIndexService(private val repository: PhotoBoothSearchRepository, pri
         return PhotoBoothSearch(
             platform = row.id.platform,
             idx = row.id.idx,
-            brandId = brand.id,
+            brandId = brand.id!!,
             brandName = brand.name,
             brandCode = brand.code,
             branchName = branchName,
