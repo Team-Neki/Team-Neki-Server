@@ -1,5 +1,6 @@
 package com.neki.domain.search.dto
 
+import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.UserLocation
 
@@ -10,6 +11,17 @@ import com.neki.domain.search.models.UserLocation
  * description    : Search domain query
  */
 object SearchQuery {
+
+    /**
+     * 지역 검색. keyword 는 법정동 최하위 계층 이름에 대한 접두 일치다.
+     */
+    data class SearchRegions(val keyword: String, val pagination: Pagination)
+
+    /**
+     * 지하철역 검색. 한 역이 노선 수만큼 나온다.
+     */
+    data class SearchStations(val keyword: String, val pagination: Pagination)
+
     /**
      * 고른 지역·역의 부스 목록. brandIds 가 null 이거나 비어 있으면 모든 브랜드.
      */

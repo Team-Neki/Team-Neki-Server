@@ -2,6 +2,7 @@ package com.neki.api.search.api.dto
 
 import com.neki.api.search.application.dto.SearchResult
 import com.neki.core.code.ResultCode
+import com.neki.core.domain.vo.Pagination
 import com.neki.core.exception.BusinessException
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.SearchTarget
@@ -17,6 +18,12 @@ import org.springframework.stereotype.Component
 object SearchConverter {
     @Component
     class RequestConverter {
+        fun toSearchRegionsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchRegions =
+            SearchQuery.SearchRegions(keyword = keyword.trim(), pagination = Pagination(page = page, size = size))
+
+        fun toSearchStationsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchStations =
+            SearchQuery.SearchStations(keyword = keyword.trim(), pagination = Pagination(page = page, size = size))
+
         fun toGetPhotoBoothsQuery(userId: Long, request: SearchRequest.FilterGroup): SearchQuery.GetPhotoBooths =
             SearchQuery.GetPhotoBooths(
                 userId = userId,
@@ -53,6 +60,13 @@ object SearchConverter {
 
     @Component
     class ResponseConverter {
+        fun toCompletionResponse(result: SearchResult.Completion): SearchResponse.Completion =
+            SearchResponse.Completion(
+                items = result.keywords.map { SearchResponse.Completion.Item(keyword = it) },
+                hasNext = result.hasNext,
+                totalCount = result.totalCount,
+            )
+
         fun toGetPhotoBoothsResponse(result: SearchResult.GetPhotoBooths): SearchResponse.GetPhotoBooths {
             val items: List<SearchResponse.GetPhotoBooths.Item> = result.items.map {
                 SearchResponse.GetPhotoBooths.Item(
