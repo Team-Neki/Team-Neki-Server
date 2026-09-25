@@ -16,5 +16,10 @@ UPDATE TB_BRAND SET platform = 'PHOTO_GRAY'      WHERE deleted_at IS NULL AND co
 UPDATE TB_BRAND SET platform = 'PHOTO_SIGNATURE' WHERE deleted_at IS NULL AND code = 'PHOTOSIGNATURE';
 UPDATE TB_BRAND SET platform = 'HARU_FILM'       WHERE deleted_at IS NULL AND code = 'HARUFILM';
 
--- 아래 5개 platform 은 대응하는 tb_brand.code 를 알 수 없어 NULL 로 둔다. 운영에서 UPDATE 로 채운다.
--- BROOM_STUDIO, DONT_LXXK_UP, MONO_MANSION, PHOTO_LAB_PLUS, PICDOT
+-- 나머지 5개는 마이그레이션이 아니라 운영 데이터로 들어온 브랜드라 code 가 환경마다 다를 수 있다.
+-- 아래 code 는 staging tb_brand 의 값(2026-09-25)이다. 맞는 행이 없으면 0건 갱신이고 잡이 경고 후 건너뛴다.
+UPDATE TB_BRAND SET platform = 'BROOM_STUDIO'    WHERE deleted_at IS NULL AND code = 'BROOM_STUDIO';
+UPDATE TB_BRAND SET platform = 'DONT_LXXK_UP'    WHERE deleted_at IS NULL AND code = 'DONT_LXXK_UP';
+UPDATE TB_BRAND SET platform = 'MONO_MANSION'    WHERE deleted_at IS NULL AND code = 'MONO_MANSION';
+UPDATE TB_BRAND SET platform = 'PHOTO_LAB_PLUS'  WHERE deleted_at IS NULL AND code = 'PHOTOLAB_PLUS';
+UPDATE TB_BRAND SET platform = 'PICDOT'          WHERE deleted_at IS NULL AND code = 'PIC_DOT';

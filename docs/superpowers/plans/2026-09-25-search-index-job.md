@@ -23,7 +23,7 @@ tb_subway_station (좌표)        ─┘        │                             
 
 - `region_ids` 는 `CHAR(10)[]` 대신 `VARCHAR(10)[]` : Hibernate 가 `Array<String>` 을 `varchar[]` 로 바인딩함. `tb_legal_dong.code`(CHAR(10)) 와의 `@>` 비교는 PostgreSQL 이 text 로 맞춰 주므로 질의에 영향 없음
 - 역 매핑은 PostGIS `ST_DWithin` 대신 Kotlin 의 `UserLocation.distanceTo`(haversine, 이미 `domain/search` 에 있음) : 카드 수천 x 역 수천의 전수 비교로 충분하고, H2 테스트에서 그대로 검증되며, 검색 API 가 사용자 거리에 쓰는 함수와 같음. 1km 경계에서 spheroid 와 수 m 차이가 날 수 있음
-- `platform -> brand` 매핑은 Kotlin 상수표가 아니라 `tb_brand.platform` 컬럼(V32) : 브랜드 목록은 DB 에 있으므로 매핑도 DB 에 둠. Workflow 의 `Platform` 값과 `tb_brand.code` 가 다름(`LIFE_FOUR_CUT` vs `LIFEFOURCUTS`). V3 가 넣은 브랜드 6개는 마이그레이션이 채우고, 나머지 5개(`BROOM_STUDIO`, `DONT_LXXK_UP`, `MONO_MANSION`, `PHOTO_LAB_PLUS`, `PICDOT`)는 운영에서 `UPDATE` 로 채움. 비어 있는 platform 은 잡이 경고하고 건너뜀
+- `platform -> brand` 매핑은 Kotlin 상수표가 아니라 `tb_brand.platform` 컬럼(V32) : 브랜드 목록은 DB 에 있으므로 매핑도 DB 에 둠. Workflow 의 `Platform` 값과 `tb_brand.code` 가 다름(`LIFE_FOUR_CUT` vs `LIFEFOURCUTS`). V3 가 넣은 브랜드 6개와 운영 데이터로 들어온 5개(`BROOM_STUDIO`, `DONT_LXXK_UP`, `MONO_MANSION`, `PHOTO_LAB_PLUS`, `PICDOT`) 모두 마이그레이션이 code 로 채움. 뒤의 5개는 staging 의 code 기준이라 code 가 다른 환경은 NULL 로 남음. 비어 있는 platform 은 잡이 경고하고 건너뜀
 - 연결 테이블의 `station_name VARCHAR(60)`, `line_name VARCHAR(40)` : 원천 `tb_subway_station` 과 같은 길이
 - 연결 테이블은 별도 엔티티가 아니라 `PhotoBoothSearch` 의 `@ElementCollection` : 복합키 엔티티의 merge-select 를 피하고 부모와 함께 INSERT 됨
 - 입력이 0건이면 실패 (직전 카드 수와 무관). enrich 가 아직 안 돈 상태를 0건 카드로 덮지 않기 위함
