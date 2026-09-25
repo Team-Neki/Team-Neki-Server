@@ -94,13 +94,7 @@ class SearchIndexService(private val repository: PhotoBoothSearchRepository, pri
         // ponytail: 카드 x 역 전수 비교. 수천 x 수천이면 충분하고, 그 이상이면 PostGIS ST_DWithin 으로 올린다
         val nearby: List<NearbyStation> = stations.mapNotNull { station ->
             val distance: Int = here.distanceTo(station.location.y, station.location.x)
-            if (distance <=
-                STATION_RADIUS_METERS
-            ) {
-                NearbyStation(station.id.name, station.id.lineName, distance)
-            } else {
-                null
-            }
+            NearbyStation(station.id.name, station.id.lineName, distance).takeIf { distance <= STATION_RADIUS_METERS }
         }
         return PhotoBoothSearch(
             platform = row.id.platform,
