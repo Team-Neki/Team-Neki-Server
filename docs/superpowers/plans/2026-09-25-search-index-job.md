@@ -27,6 +27,7 @@ tb_subway_station (좌표)        ─┘        │                             
 - 연결 테이블의 `station_name VARCHAR(60)`, `line_name VARCHAR(40)` : 원천 `tb_subway_station` 과 같은 길이
 - 연결 테이블은 별도 엔티티가 아니라 `PhotoBoothSearch` 의 `@ElementCollection` : 복합키 엔티티의 merge-select 를 피하고 부모와 함께 INSERT 됨
 - 입력이 0건이면 실패 (직전 카드 수와 무관). enrich 가 아직 안 돈 상태를 0건 카드로 덮지 않기 위함
+- `apps/batch/.../search` 하위 패키지는 `job`(Job 빈, 파라미터 키 상수), `tasklet`(Tasklet 과 Step 빈, step 이름 상수), `application`(UseCase), `application/dto`(결과 DTO) 로 나눔. 문자열 리터럴(`searchIndexJob`, `searchIndexStep`, `businessDate`)은 각 companion 의 상수
 - 재생성 조립은 `domain/search` 의 `@Service` 가 아니라 `apps/batch` 의 `@UseCase` : 처음 C 는 domain 에 `SearchIndexService` + `BrandClient` 포트를 두고 batch 가 어댑터를 냈는데, apps/api 가 `com.neki` 전체를 스캔해 그 서비스를 올리면서 `BrandClient` 빈이 없어 api 컨텍스트가 깨졌다(통합 검증에서 api 테스트 276건 실패). api 의 UseCase 처럼 두 도메인 포트를 앱 계층에서 잇는 것이 이 레포의 패턴이라 옮겼고 `BrandClient`, `SearchBrand`, `BrandClientAdapter` 는 지웠다
 
 ## DAG
@@ -212,11 +213,11 @@ object SearchNormalizer {
 A, B 병합 뒤 시작합니다.
 
 **Files**
-- Create `apps/batch/src/main/kotlin/com/neki/batch/search/SearchIndexUseCase.kt` (`@UseCase`, `@Transactional fun rebuild(businessDate: LocalDate): SearchIndexResult`. `PhotoBoothSearchRepository` 와 map 의 `BrandRepository` 두 포트를 잇는 조립이라 앱 계층)
-- Create `apps/batch/src/main/kotlin/com/neki/batch/search/SearchIndexJobConfig.kt` (`searchIndexJob`, `RunIdIncrementer`, tasklet step 하나)
+- Create `apps/batch/src/main/kotlin/com/neki/batch/search/application/SearchIndexUseCase.kt` (`@UseCase`, `@Transactional fun rebuild(businessDate: LocalDate): SearchIndexResult`. `PhotoBoothSearchRepository` 와 map 의 `BrandRepository` 두 포트를 잇는 조립이라 앱 계층)
+- Create `apps/batch/src/main/kotlin/com/neki/batch/search/job/SearchIndexJobConfig.kt` (`searchIndexJob`, `RunIdIncrementer`, `PARAM_BUSINESS_DATE`), `tasklet/SearchIndexStepConfig.kt` (`searchIndexStep`), `tasklet/SearchIndexTasklet.kt`, `application/dto/SearchIndexResult.kt`
 - Delete `apps/batch/src/main/kotlin/com/neki/batch/sample/SampleJobConfig.kt`
 - Delete `apps/batch/src/test/kotlin/com/neki/batch/NekiBatchApplicationTest.kt` (두 케이스는 아래 새 테스트가 대신함)
-- Create `apps/batch/src/test/kotlin/com/neki/batch/search/SearchIndexJobTest.kt`
+- Create `apps/batch/src/test/kotlin/com/neki/batch/search/job/SearchIndexJobTest.kt`
 - Modify `apps/batch/src/test/kotlin/com/neki/batch/ExitCodeTest.kt` (`sampleJob` -> 테스트 설정 안의 `succeedingJob`. `FailingJobConfig` 를 `TestJobsConfig` 로 바꿔 두 잡을 둠)
 - Modify `apps/batch/src/main/kotlin/com/neki/batch/NekiBatchApplication.kt` (`scanBasePackages` 에 `"com.neki.domain.search"`, `"com.neki.domain.map.infra.persist"` 추가, 21행·26행 주석 갱신)
 - Modify `apps/batch/src/main/resources/application.yaml` 17행 주석, `.claude/CLAUDE.md` 11행, `README.md` 103행의 `sampleJob` -> `searchIndexJob`

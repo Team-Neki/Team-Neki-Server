@@ -1,5 +1,6 @@
-package com.neki.batch.search
+package com.neki.batch.search.application
 
+import com.neki.batch.search.application.dto.SearchIndexResult
 import com.neki.core.annotation.UseCase
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.repository.BrandRepository
@@ -127,13 +128,3 @@ class SearchIndexUseCase(
         private const val STATION_RADIUS_METERS = 1000
     }
 }
-
-/**
- * 재생성 결과. 잡이 로그로 남긴다
- */
-data class SearchIndexResult(
-    val indexed: Int,
-    val stationLinks: Int,
-    val skippedNoCoordinate: Int,
-    val skippedNoBrand: Map<String, Int>,
-)

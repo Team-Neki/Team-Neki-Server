@@ -1,4 +1,4 @@
-package com.neki.batch.search
+package com.neki.batch.search.job
 
 import com.neki.domain.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.domain.map.models.Brand
@@ -72,7 +72,7 @@ class SearchIndexJobTest {
         givenBrand()
         givenEnriched("포토시그니처 고현점", bCode = "1168010100", address = "서울 강남구 역삼동 1")
 
-        launch("2026-09-25").status shouldBe BatchStatus.COMPLETED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.COMPLETED
 
         val card: PhotoBoothSearch = searchRepository.findAll().single()
         card.branchName shouldBe "고현점"
@@ -81,7 +81,7 @@ class SearchIndexJobTest {
         card.searchText shouldBe "포토시그니처고현점서울강남구역삼동1"
         card.regionIds.toList() shouldContainExactly listOf("1100000000", "1168000000", "1168010100")
         card.siteKey shouldBe "1168010100:127.02760,37.49790"
-        card.businessDate shouldBe LocalDate.parse("2026-09-25")
+        card.businessDate shouldBe LocalDate.parse(BUSINESS_DATE)
         card.sourceDt shouldBe SOURCE_DT
     }
 
@@ -91,7 +91,7 @@ class SearchIndexJobTest {
         givenEnriched("포토시그니처 고현점")
         givenStations()
 
-        launch("2026-09-25").status shouldBe BatchStatus.COMPLETED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.COMPLETED
 
         countStationLinks() shouldBe 1
         val distance: Int = jdbcTemplate.queryForObject(
@@ -107,7 +107,7 @@ class SearchIndexJobTest {
         givenEnriched("포토시그니처 고현점", bCode = null)
         givenStations()
 
-        launch("2026-09-25").status shouldBe BatchStatus.COMPLETED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.COMPLETED
 
         val card: PhotoBoothSearch = searchRepository.findAll().single()
         card.regionIds.toList() shouldBe emptyList()
@@ -121,7 +121,7 @@ class SearchIndexJobTest {
         givenEnriched("포토시그니처 고현점")
         givenEnriched("포토시그니처 좌표없음점", idx = "2", longitude = null, latitude = null)
 
-        launch("2026-09-25").status shouldBe BatchStatus.COMPLETED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.COMPLETED
 
         searchRepository.findAll().map { it.idx } shouldContainExactly listOf("1")
     }
@@ -132,7 +132,7 @@ class SearchIndexJobTest {
         givenEnriched("포토시그니처 고현점")
         givenEnriched("모르는브랜드 지점", platform = "UNKNOWN", idx = "2")
 
-        launch("2026-09-25").status shouldBe BatchStatus.COMPLETED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.COMPLETED
 
         searchRepository.findAll().map { it.platform } shouldContainExactly listOf(PLATFORM)
     }
@@ -144,12 +144,12 @@ class SearchIndexJobTest {
         givenEnriched("포토시그니처 강남점", idx = "2", bCode = null)
         givenStations()
 
-        val first: JobExecution = launch("2026-09-25")
+        val first: JobExecution = launch(BUSINESS_DATE)
         val cardsAfterFirst: Long = searchRepository.count()
         val linksAfterFirst: Int = countStationLinks()
         val siteKeysAfterFirst: List<String> = searchRepository.findAll().map { it.siteKey }
 
-        val second: JobExecution = launch("2026-09-25")
+        val second: JobExecution = launch(BUSINESS_DATE)
 
         first.status shouldBe BatchStatus.COMPLETED
         second.status shouldBe BatchStatus.COMPLETED
@@ -163,10 +163,10 @@ class SearchIndexJobTest {
     fun `enriched 가 비면 job 은 FAILED 이고 직전 카드가 남는다`() {
         givenBrand()
         givenEnriched("포토시그니처 고현점")
-        launch("2026-09-25").status shouldBe BatchStatus.COMPLETED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.COMPLETED
         enrichedRepository.deleteAllInBatch()
 
-        launch("2026-09-25").status shouldBe BatchStatus.FAILED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.FAILED
 
         searchRepository.findAll().single().siteKey shouldBe "1168010100:127.02760,37.49790"
     }
@@ -175,11 +175,11 @@ class SearchIndexJobTest {
     fun `입력이 직전 카드 수의 절반 미만이면 job 은 FAILED 이고 직전 카드가 남는다`() {
         givenBrand()
         (1..3).forEach { givenEnriched("포토시그니처 ${it}호점", idx = it.toString()) }
-        launch("2026-09-25").status shouldBe BatchStatus.COMPLETED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.COMPLETED
         enrichedRepository.deleteAllInBatch()
         givenEnriched("포토시그니처 1호점", idx = "1")
 
-        launch("2026-09-25").status shouldBe BatchStatus.FAILED
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.FAILED
 
         searchRepository.count() shouldBe 3
     }
@@ -188,7 +188,7 @@ class SearchIndexJobTest {
     private fun launch(businessDate: String): JobExecution {
         val params: JobParameters = JobParametersBuilder(jobExplorer)
             .getNextJobParameters(job)
-            .addString("businessDate", businessDate)
+            .addString(SearchIndexJobConfig.PARAM_BUSINESS_DATE, businessDate)
             .toJobParameters()
 
         return jobLauncher.run(job, params)
@@ -238,6 +238,7 @@ class SearchIndexJobTest {
 
     companion object {
         private const val PLATFORM = "PHOTO_SIGNATURE"
+        private const val BUSINESS_DATE = "2026-09-25"
         private val SOURCE_DT: LocalDate = LocalDate.parse("2026-09-24")
     }
 }
