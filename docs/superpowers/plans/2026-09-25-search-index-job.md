@@ -9,14 +9,13 @@
 
 ## 무엇을 만드나
 
-`tb_photo_booth_enriched`(Workflow 소유, 현재 세대) 의 8열을 읽어 검색 카드 `tb_photo_booth_search` 와 1km 안 역 연결 테이블 `tb_photo_booth_search_station` 을 한 트랜잭션에서 전량 재생성하는 Spring Batch 잡입니다. 외부 호출은 없습니다. 정규화 규칙은 `domain/search` 의 Kotlin 함수 한 곳에 두어 뒤에 검색 API 가 질의 시점에 같은 함수를 씁니다.
+`tb_photo_booth_enriched`(Workflow 소유, 현재 세대) 의 8열을 읽어 검색 카드 `tb_photo_booth_search` 와 1km 안 역 연결 테이블 `tb_photo_booth_search_station` 을 전량 재생성하는 Spring Batch 잡입니다. `_write` 에 만들어 두고 `_read` 와 이름을 맞바꾸는 핑퐁이라, 검색 API 는 rename 순간에만 새 세대로 넘어갑니다. 외부 호출은 없습니다. 정규화 규칙은 `domain/search` 의 Kotlin 함수 한 곳에 두어 뒤에 검색 API 가 질의 시점에 같은 함수를 씁니다.
 
 ```text
 tb_photo_booth_enriched (8열)  ─┐
-tb_brand (platform 으로 조인)    ├─> SearchIndexUseCase.rebuild(businessDate) ─> DELETE + INSERT (한 트랜잭션)
-tb_subway_station (좌표)        ─┘        │                                        tb_photo_booth_search
-                                          └ SearchNormalizer (branchName, normalize, searchText, regionIds, siteKey)
-                                                                                    tb_photo_booth_search_station
+tb_brand (platform 으로 조인)    ├─> buildStep  SearchIndexUseCase.build   -> _write 비우고 채움 (PhotoBoothSearchWrite.of 가 카드 조립)
+tb_subway_station (좌표)        ─┘   swapStep   SearchIndexUseCase.swap    -> _read <-> _write 이름 맞바꿈 (한 트랜잭션, lock_timeout 1s)
+                                       검색 API 는 tb_photo_booth_search_read 만 읽음. 직전 세대는 다음 build 전까지 _write 에 남음
 ```
 
 ## 티켓 스펙과 다르게 정한 것
@@ -27,6 +26,8 @@ tb_subway_station (좌표)        ─┘        │                             
 - 연결 테이블의 `station_name VARCHAR(60)`, `line_name VARCHAR(40)` : 원천 `tb_subway_station` 과 같은 길이
 - 연결 테이블은 별도 엔티티가 아니라 `PhotoBoothSearch` 의 `@ElementCollection` : 복합키 엔티티의 merge-select 를 피하고 부모와 함께 INSERT 됨
 - 입력이 0건이면 실패 (직전 카드 수와 무관). enrich 가 아직 안 돈 상태를 0건 카드로 덮지 않기 위함
+- 재생성은 티켓의 "한 트랜잭션 DELETE+INSERT" 대신 **read/write 두 벌 핑퐁** (2026-09-25 오후, 사용자 결정) : V33 이 `tb_photo_booth_search_read`/`_write`(+`_station`) 두 벌을 한 번만 만들고, buildStep 이 `_write` 를 비우고 채운 뒤 swapStep 이 한 트랜잭션에서 `_read -> _tmp -> ...` 로 이름을 회전한다. 매 실행 CREATE/DROP 이 없어 Flyway 소유와 충돌하지 않고, 직전 세대가 `_write` 에 남아 swap 한 번으로 되돌린다. 인덱스·제약 이름은 테이블 객체를 따라가므로 슬롯(a/b)으로 짓고, 컬럼 변경 마이그레이션은 두 벌에 같이 적용한다. rename 은 ACCESS EXCLUSIVE 라 `lock_timeout` 1초로 기다림을 묶고, 갓 채운 테이블은 swap 전에 `ANALYZE` 한다
+- 캡슐화 : 파생 필드(지점명, 정규화 문자열, region_ids, site_key, 역 연결, location)는 `PhotoBoothSearchWrite.of()` 만 계산한다 (생성자 private). 역 반경은 `NearbyStation.within`, 거리는 `SubwayStation.distanceFrom`, 좌표 유무는 `PhotoBoothEnriched.coordinateOrNull()` 이 답한다. UseCase 는 브랜드 매핑과 하한 검사, 건너뛴 건수 집계만 한다
 - `apps/batch/.../search` 하위 패키지는 `job`(Job 빈, 파라미터 키 상수), `tasklet`(Tasklet 과 Step 빈, step 이름 상수), `application`(UseCase), `application/dto`(결과 DTO) 로 나눔. 문자열 리터럴(`searchIndexJob`, `searchIndexStep`, `businessDate`)은 각 companion 의 상수
 - 재생성 조립은 `domain/search` 의 `@Service` 가 아니라 `apps/batch` 의 `@UseCase` : 처음 C 는 domain 에 `SearchIndexService` + `BrandClient` 포트를 두고 batch 가 어댑터를 냈는데, apps/api 가 `com.neki` 전체를 스캔해 그 서비스를 올리면서 `BrandClient` 빈이 없어 api 컨텍스트가 깨졌다(통합 검증에서 api 테스트 276건 실패). api 의 UseCase 처럼 두 도메인 포트를 앱 계층에서 잇는 것이 이 레포의 패턴이라 옮겼고 `BrandClient`, `SearchBrand`, `BrandClientAdapter` 는 지웠다
 
@@ -265,3 +266,15 @@ A, B 병합 뒤 시작합니다.
 - `tb_brand.platform` 5개 브랜드의 값 (운영 UPDATE). 채우기 전까지 그 브랜드는 색인에서 빠짐
 - 검색 API 가 mock 대신 `tb_photo_booth_search` 를 읽는 작업 (통합 검색 API 에픽, 별도 티켓)
 - 지점 마스터(`TB_PHOTO_BOOTH_LOCATION`) 교체 여부 (티켓의 열어 둔 결정 그대로)
+
+---
+
+## 변경 이력 : read/write 핑퐁 (2026-09-25 오후)
+
+노드 C 병합 뒤 사용자 결정으로 재생성 방식을 바꿨습니다. 위 Task A/C 의 "DELETE 뒤 INSERT", `replaceAll`, `SearchIndexTasklet` 서술은 이 절이 대신합니다.
+
+- **Task A 산출물 변경** : V33 은 `tb_photo_booth_search_read`/`_write` 와 각 `_station` 네 테이블 (identity id, 슬롯 a/b 이름). 엔티티는 읽기용 `PhotoBoothSearch`(`_read`, `@Immutable`) 와 쓰기용 `PhotoBoothSearchWrite`(`_write`, `of()` 팩토리) 로 나뉘고 `NearbyStation` 은 별도 파일. 포트는 `countCurrent()`, `replaceWrite(cards)`, `swap()`. 어댑터는 JPA 로 채우고 `flush` 뒤 `ANALYZE`, swap 만 JdbcTemplate (`SET LOCAL lock_timeout` / H2 `SET LOCK_TIMEOUT`, `RENAME TO` 6문장)
+- **Task C 산출물 변경** : `SearchIndexUseCase.build(businessDate)` 와 `swap()`. step 은 `buildSearchCardsStep`(`BuildSearchCardsTasklet`) -> `swapSearchTablesStep`(`SwapSearchTablesTasklet`). 하한 검사는 `_write` 를 비우기 전에 하므로 실패해도 직전 세대가 남는다
+- **테스트** : `SearchIndexJobTest` 는 결과를 `_read` 로 읽어 swap 까지 검증하고, 두 번 실행 뒤 직전 세대가 `_write` 에 남는 것을 확인한다. H2 에서 두 물리 테이블의 DDL 이 같아야 하므로 읽기 엔티티에도 `@GeneratedValue(IDENTITY)` 를 둔다 (한쪽만 identity 가 없으면 첫 swap 뒤 INSERT 가 NULL id 로 실패)
+- **서빙 영향** : rename 은 ACCESS EXCLUSIVE 락을 몇 ms 잡고, 그 앞에 긴 조회가 있으면 뒤따르는 검색 요청이 `lock_timeout`(1초) 까지 줄을 선다. 실패하면 `_read` 는 그대로이고 잡을 다시 돌린다
+- **실패 알림** : 잡 안에 tasklet 을 두지 않는다. 종료 코드 0 아님 -> Prefect flow 실패 -> Automation(BACKEND-142) 이 Discord 로 보낸다

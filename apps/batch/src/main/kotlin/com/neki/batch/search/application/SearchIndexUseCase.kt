@@ -4,16 +4,10 @@ import com.neki.batch.search.application.dto.SearchIndexResult
 import com.neki.core.annotation.UseCase
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.repository.BrandRepository
-import com.neki.domain.search.SearchNormalizer
-import com.neki.domain.search.models.NearbyStation
 import com.neki.domain.search.models.PhotoBoothEnriched
-import com.neki.domain.search.models.PhotoBoothSearch
+import com.neki.domain.search.models.PhotoBoothSearchWrite
 import com.neki.domain.search.models.SubwayStation
-import com.neki.domain.search.models.UserLocation
 import com.neki.domain.search.repository.PhotoBoothSearchRepository
-import org.locationtech.jts.geom.Coordinate
-import org.locationtech.jts.geom.GeometryFactory
-import org.locationtech.jts.geom.PrecisionModel
 import org.slf4j.LoggerFactory
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -23,9 +17,8 @@ import java.time.LocalDateTime
  * fileName       : SearchIndexUseCase
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : tb_photo_booth_enriched 8열을 검색 카드로 전량 재생성한다. 외부 호출 없이 DB 만 읽고 쓴다.
- *                  search 와 map 두 도메인의 포트를 잇는 조립이라 domain 이 아니라 앱 계층에 둔다
- *                  (domain 에 @Service 로 두면 apps/api 의 전체 스캔에도 올라와 api 기동을 깨뜨린다)
+ * description    : tb_photo_booth_enriched 8열로 검색 카드를 만들어 _write 에 채우고(build), _read 와 맞바꾼다(swap).
+ *                  외부 호출 없이 DB 만 읽고 쓴다. search 와 map 두 도메인의 포트를 잇는 조립이라 앱 계층에 둔다
  */
 @UseCase
 class SearchIndexUseCase(
@@ -35,14 +28,11 @@ class SearchIndexUseCase(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
-
     /**
-     * 카드가 0건이거나 직전 카드 수의 절반 미만이면 예외로 끝내고 직전 카드를 그대로 둔다.
-     * DELETE 와 INSERT 가 한 트랜잭션이라 중간에 죽어도 직전 카드가 남는다.
+     * 카드가 0건이거나 지금 서빙 중인 카드 수의 절반 미만이면 예외로 끝낸다. _write 를 비우기 전이라 직전 세대도 남는다.
      */
     @Transactional
-    fun rebuild(businessDate: LocalDate): SearchIndexResult {
+    fun build(businessDate: LocalDate): SearchIndexResult {
         // tb_brand.platform 이 NULL 인 브랜드는 수집 대상이 아니므로 매핑에서 뺀다
         val brands: Map<String, Brand> = brandRepository.findAll()
             .filter { it.platform != null }
@@ -53,26 +43,24 @@ class SearchIndexUseCase(
 
         val skippedNoBrand = mutableMapOf<String, Int>()
         var skippedNoCoordinate = 0
-        val cards: List<PhotoBoothSearch> = enriched.mapNotNull { row ->
+        val cards: List<PhotoBoothSearchWrite> = enriched.mapNotNull { row ->
             val brand: Brand? = brands[row.id.platform]
             if (brand == null) {
                 skippedNoBrand.merge(row.id.platform, 1, Int::plus)
                 return@mapNotNull null
             }
-            val longitude: Double? = row.longitude
-            val latitude: Double? = row.latitude
-            if (longitude == null || latitude == null) {
+            if (row.coordinateOrNull() == null) {
                 skippedNoCoordinate++
                 return@mapNotNull null
             }
-            toCard(row, brand, longitude, latitude, stations, businessDate, indexedAt)
+            PhotoBoothSearchWrite.of(row, brand.id!!, brand.name, brand.code, stations, businessDate, indexedAt)
         }
 
-        val previous: Long = repository.count()
-        check(cards.isNotEmpty()) { "색인할 지점이 없습니다. enriched 가 비어 있거나 전부 건너뛰었습니다 (직전 카드 ${previous}건)" }
-        check(cards.size * 2 >= previous) { "색인 건수 ${cards.size}건이 직전 카드 ${previous}건의 절반 미만이라 교체하지 않습니다" }
+        val current: Long = repository.countCurrent()
+        check(cards.isNotEmpty()) { "색인할 지점이 없습니다. enriched 가 비어 있거나 전부 건너뛰었습니다 (서빙 중 카드 ${current}건)" }
+        check(cards.size * 2 >= current) { "색인 건수 ${cards.size}건이 서빙 중 카드 ${current}건의 절반 미만이라 교체하지 않습니다" }
 
-        repository.replaceAll(cards)
+        repository.replaceWrite(cards)
 
         skippedNoBrand.forEach { (platform, count) ->
             log.warn("tb_brand.platform 에 없는 platform 이라 건너뜀 (platform={}, count={})", platform, count)
@@ -81,50 +69,16 @@ class SearchIndexUseCase(
             indexed = cards.size,
             stationLinks = cards.sumOf { it.stations.size },
             skippedNoCoordinate = skippedNoCoordinate,
-            skippedNoBrand = skippedNoBrand,
+            skippedNoBrand = skippedNoBrand.toMap(),
         )
-        log.info("검색 카드 재생성 완료 (businessDate={}, previous={}, result={})", businessDate, previous, result)
+        log.info("검색 카드 build 완료 (businessDate={}, current={}, result={})", businessDate, current, result)
         return result
     }
 
-    private fun toCard(
-        row: PhotoBoothEnriched,
-        brand: Brand,
-        longitude: Double,
-        latitude: Double,
-        stations: List<SubwayStation>,
-        businessDate: LocalDate,
-        indexedAt: LocalDateTime,
-    ): PhotoBoothSearch {
-        val branchName: String = SearchNormalizer.branchName(brand.name, row.name)
-        val here = UserLocation(latitude, longitude)
-        // ponytail: 카드 x 역 전수 비교. 수천 x 수천이면 충분하고, 그 이상이면 PostGIS ST_DWithin 으로 올린다
-        val nearby: List<NearbyStation> = stations.mapNotNull { station ->
-            val distance: Int = here.distanceTo(station.location.y, station.location.x)
-            NearbyStation(station.id.name, station.id.lineName, distance).takeIf { distance <= STATION_RADIUS_METERS }
-        }
-        return PhotoBoothSearch(
-            platform = row.id.platform,
-            idx = row.id.idx,
-            brandId = brand.id!!,
-            brandName = brand.name,
-            brandCode = brand.code,
-            branchName = branchName,
-            address = row.address,
-            location = geometryFactory.createPoint(Coordinate(longitude, latitude)),
-            normalizedBrandName = SearchNormalizer.normalize(brand.name),
-            normalizedBranchName = SearchNormalizer.normalize(branchName),
-            searchText = SearchNormalizer.searchText(brand.name, branchName, row.address),
-            regionIds = SearchNormalizer.regionIds(row.bCode).toTypedArray(),
-            siteKey = SearchNormalizer.siteKey(row.bCode, longitude, latitude),
-            sourceDt = row.sourceDt,
-            businessDate = businessDate,
-            indexedAt = indexedAt,
-            stations = nearby,
-        )
-    }
-
-    companion object {
-        private const val STATION_RADIUS_METERS = 1000
+    /** _write 를 _read 로 올린다. 실패하면 _read 는 그대로다 */
+    @Transactional
+    fun swap() {
+        repository.swap()
+        log.info("검색 카드 swap 완료 (_write -> _read)")
     }
 }

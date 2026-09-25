@@ -14,14 +14,15 @@ import org.springframework.context.annotation.Configuration
  * fileName       : SearchIndexJobConfig
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : 검색 카드 전량 재생성 잡. step 하나(SearchIndexStepConfig)로 끝난다.
+ * description    : 검색 카드 재생성 잡. build(_write 채움) -> swap(_read 와 맞바꿈) 두 step 이다.
  *
  * RunIdIncrementer: 같은 파라미터(businessDate)로 다시 기동해도 항상 새 JobInstance 로 처음부터 돈다.
  * 없으면 두 번째 기동이 JobInstanceAlreadyCompleteException 으로 죽는다.
  * 직전 실행이 FAILED 여도 같은 인스턴스를 재시작(restart)하지 않으므로 (Spring Batch 5.2 의
  * getNextJobParameters 가 무조건 run.id 를 올림) 잡은 처음부터 다시 돌아도 되게 멱등해야 한다.
- * rebuild 는 DELETE + INSERT 를 한 트랜잭션에서 하므로 그 조건을 만족한다.
+ * build 는 _write 만 갈아엎고 swap 은 이름만 바꾸므로 어느 step 에서 죽어도 _read 는 그대로다.
  * 예외는 tasklet 밖으로 그대로 던져 step FAILED -> job FAILED -> 종료 코드 0 이 아님 (BACKEND-128 계약).
+ * 실패 알림은 그 종료 코드를 받은 Prefect Automation 이 보낸다 (BACKEND-142).
  */
 @Configuration
 class SearchIndexJobConfig {
@@ -29,10 +30,12 @@ class SearchIndexJobConfig {
     @Bean(JOB_NAME)
     fun searchIndexJob(
         jobRepository: JobRepository,
-        @Qualifier(SearchIndexStepConfig.STEP_NAME) searchIndexStep: Step,
+        @Qualifier(SearchIndexStepConfig.BUILD_STEP_NAME) buildSearchCardsStep: Step,
+        @Qualifier(SearchIndexStepConfig.SWAP_STEP_NAME) swapSearchTablesStep: Step,
     ): Job = JobBuilder(JOB_NAME, jobRepository)
         .incrementer(RunIdIncrementer())
-        .start(searchIndexStep)
+        .start(buildSearchCardsStep)
+        .next(swapSearchTablesStep)
         .build()
 
     companion object {

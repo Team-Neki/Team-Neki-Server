@@ -11,21 +11,31 @@ import org.springframework.transaction.PlatformTransactionManager
  * fileName       : SearchIndexStepConfig
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : 검색 카드 재생성 step. tasklet 하나가 전부이며 step 의 트랜잭션 안에서 돈다
+ * description    : 검색 카드 재생성 step 둘. 각 step 은 tasklet 하나이고 자기 트랜잭션 안에서 돈다
  */
 @Configuration
 class SearchIndexStepConfig {
 
-    @Bean(STEP_NAME)
-    fun searchIndexStep(
+    @Bean(BUILD_STEP_NAME)
+    fun buildSearchCardsStep(
         jobRepository: JobRepository,
         transactionManager: PlatformTransactionManager,
-        searchIndexTasklet: SearchIndexTasklet,
-    ): Step = StepBuilder(STEP_NAME, jobRepository)
-        .tasklet(searchIndexTasklet, transactionManager)
+        buildSearchCardsTasklet: BuildSearchCardsTasklet,
+    ): Step = StepBuilder(BUILD_STEP_NAME, jobRepository)
+        .tasklet(buildSearchCardsTasklet, transactionManager)
+        .build()
+
+    @Bean(SWAP_STEP_NAME)
+    fun swapSearchTablesStep(
+        jobRepository: JobRepository,
+        transactionManager: PlatformTransactionManager,
+        swapSearchTablesTasklet: SwapSearchTablesTasklet,
+    ): Step = StepBuilder(SWAP_STEP_NAME, jobRepository)
+        .tasklet(swapSearchTablesTasklet, transactionManager)
         .build()
 
     companion object {
-        const val STEP_NAME = "searchIndexStep"
+        const val BUILD_STEP_NAME = "buildSearchCardsStep"
+        const val SWAP_STEP_NAME = "swapSearchTablesStep"
     }
 }

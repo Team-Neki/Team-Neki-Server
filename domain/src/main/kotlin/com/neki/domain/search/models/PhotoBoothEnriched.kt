@@ -6,6 +6,7 @@ import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
+import org.locationtech.jts.geom.Coordinate
 import java.io.Serializable
 import java.time.LocalDate
 
@@ -39,7 +40,11 @@ class PhotoBoothEnriched(
 
     @Column(name = "b_code", columnDefinition = "CHAR(10)")
     val bCode: String?,
-)
+) {
+    /** 경도/위도가 둘 다 있을 때만 좌표. 없으면 카드를 만들 수 없다 */
+    fun coordinateOrNull(): Coordinate? =
+        if (longitude != null && latitude != null) Coordinate(longitude, latitude) else null
+}
 
 @Embeddable
 data class PhotoBoothEnrichedId(

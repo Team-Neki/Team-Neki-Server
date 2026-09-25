@@ -12,14 +12,14 @@ import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 /**
- * fileName       : SearchIndexTasklet
+ * fileName       : BuildSearchCardsTasklet
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : 잡 파라미터 businessDate 를 읽어 SearchIndexUseCase.rebuild 를 한 번 부른다.
+ * description    : 잡 파라미터 businessDate 를 읽어 SearchIndexUseCase.build 를 한 번 부른다 (_write 채움).
  *                  예외는 그대로 올려 step 을 FAILED 로 만든다
  */
 @Component
-class SearchIndexTasklet(private val searchIndexUseCase: SearchIndexUseCase) : Tasklet {
+class BuildSearchCardsTasklet(private val searchIndexUseCase: SearchIndexUseCase) : Tasklet {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -29,8 +29,8 @@ class SearchIndexTasklet(private val searchIndexUseCase: SearchIndexUseCase) : T
                 "${SearchIndexJobConfig.PARAM_BUSINESS_DATE} 파라미터가 없습니다 (예: ${SearchIndexJobConfig.PARAM_BUSINESS_DATE}=2026-09-25)"
             }
         val businessDate: LocalDate = LocalDate.parse(raw.toString())
-        val result: SearchIndexResult = searchIndexUseCase.rebuild(businessDate)
-        log.info("{} 완료 (businessDate={}, result={})", SearchIndexJobConfig.JOB_NAME, businessDate, result)
+        val result: SearchIndexResult = searchIndexUseCase.build(businessDate)
+        log.info("{} 완료 (businessDate={}, result={})", SearchIndexStepConfig.BUILD_STEP_NAME, businessDate, result)
         return RepeatStatus.FINISHED
     }
 }

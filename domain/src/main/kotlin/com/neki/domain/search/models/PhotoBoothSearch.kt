@@ -3,7 +3,6 @@ package com.neki.domain.search.models
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
-import jakarta.persistence.Embeddable
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
@@ -11,6 +10,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.Table
+import org.hibernate.annotations.Immutable
 import org.locationtech.jts.geom.Point
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -19,13 +19,17 @@ import java.time.LocalDateTime
  * fileName       : PhotoBoothSearch
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : 검색 카드 엔티티. searchIndexJob 이 tb_photo_booth_enriched 에서 전량 재생성한다
+ * description    : 검색 API 가 읽는 검색 카드 (_read). 쓰기는 PhotoBoothSearchWrite 가 _write 에 하고
+ *                  searchIndexJob 이 두 테이블의 이름을 맞바꾼다. 컬럼은 PhotoBoothSearchWrite 와 같아야 한다
  */
 @Entity
-@Table(name = "tb_photo_booth_search")
+@Immutable
+@Table(name = PhotoBoothSearch.TABLE)
 class PhotoBoothSearch(
+    // 읽기 전용이지만 _write 와 물리 DDL 이 같아야 이름을 맞바꿔도 한쪽만 identity 가 없는 일이 없다 (테스트의 H2 도 마찬가지)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     val id: Long? = null,
 
     @Column(name = "platform", nullable = false, length = 32)
@@ -61,7 +65,6 @@ class PhotoBoothSearch(
     @Column(name = "search_text", nullable = false, columnDefinition = "TEXT")
     val searchText: String,
 
-    // Hibernate 가 Array<String> 을 PostgreSQL varchar[] 로 바인딩한다 (V33 의 VARCHAR(10)[])
     @Column(name = "region_ids", nullable = false)
     val regionIds: Array<String>,
 
@@ -77,23 +80,12 @@ class PhotoBoothSearch(
     @Column(name = "indexed_at", nullable = false)
     val indexedAt: LocalDateTime,
 
-    // 별도 엔티티가 아니라 컬렉션이라 부모와 함께 INSERT 되고 복합키 merge-select 가 없다
     @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "tb_photo_booth_search_station", joinColumns = [JoinColumn(name = "search_id")])
+    @CollectionTable(name = PhotoBoothSearch.STATION_TABLE, joinColumns = [JoinColumn(name = "search_id")])
     val stations: List<NearbyStation> = emptyList(),
-)
-
-/**
- * 카드에서 1km 안에 있는 지하철역
- */
-@Embeddable
-class NearbyStation(
-    @Column(name = "station_name", nullable = false, length = 60)
-    val stationName: String,
-
-    @Column(name = "line_name", nullable = false, length = 40)
-    val lineName: String,
-
-    @Column(name = "distance_m", nullable = false)
-    val distanceM: Int,
-)
+) {
+    companion object {
+        const val TABLE = "tb_photo_booth_search_read"
+        const val STATION_TABLE = "tb_photo_booth_search_read_station"
+    }
+}

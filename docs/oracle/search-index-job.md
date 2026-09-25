@@ -21,7 +21,8 @@
 | O-A-1 | auto | `ls modules/postgres/src/main/resources/db/migration/V32__add_platform_to_brand.sql modules/postgres/src/main/resources/db/migration/V33__create_photo_booth_search_tables.sql` 종료코드 0 |
 | O-A-2 | auto | `grep -c "WHERE deleted_at IS NULL" modules/postgres/src/main/resources/db/migration/V32__add_platform_to_brand.sql` >= 7 (partial unique index 1 + UPDATE 6) |
 | O-A-3 | auto | `grep -c "LIFE_FOUR_CUT" modules/postgres/src/main/resources/db/migration/V32__add_platform_to_brand.sql` >= 1 |
-| O-A-4 | auto | `grep -cE "ON DELETE CASCADE|USING GIN|USING GIST" modules/postgres/src/main/resources/db/migration/V33__create_photo_booth_search_tables.sql` = 3 |
+| O-A-4 | auto | `grep -cE "ON DELETE CASCADE|USING GIN|USING GIST" modules/postgres/src/main/resources/db/migration/V33__create_photo_booth_search_tables.sql` = 6 (두 벌) |
+| O-A-10 | auto | 카드·연결 테이블이 read/write 두 벌 : `grep -c "^CREATE TABLE tb_photo_booth_search_" modules/postgres/src/main/resources/db/migration/V33__create_photo_booth_search_tables.sql` = 4 |
 | O-A-5 | auto | `grep -c 'name = "platform"' domain/src/main/kotlin/com/neki/domain/map/models/Brand.kt` = 1 |
 | O-A-6 | auto | 컬럼명 전부 snake_case : `grep -ohE 'name = "[^"]+"' domain/src/main/kotlin/com/neki/domain/search/models/*.kt \| grep -c "[A-Z]"` = 0 |
 | O-A-7 | auto | 엔티티에 `unique = true` 없음 : `grep -rc "unique = true" domain/src/main/kotlin/com/neki/domain/search/models/ \| grep -v ":0" \| wc -l` = 0 |
@@ -44,12 +45,15 @@
 | O-C-1 | auto | `./gradlew :apps:batch:test -q` 종료코드 0, batch 테스트 수 >= 13 : `grep -ho 'tests="[0-9]*"' apps/batch/build/test-results/test/*.xml \| grep -o '[0-9]*' \| paste -sd+ - \| bc` |
 | O-C-2 | auto | `grep -rn sampleJob --exclude-dir=build --exclude-dir=.git --exclude-dir=docs --exclude-dir=.worktrees . \| wc -l` = 0 |
 | O-C-3 | auto | `grep -c '"com.neki.domain.search"' apps/batch/src/main/kotlin/com/neki/batch/NekiBatchApplication.kt` = 1 |
-| O-C-4 | auto | `grep -c "@Transactional" apps/batch/src/main/kotlin/com/neki/batch/search/application/SearchIndexUseCase.kt` = 1 |
+| O-C-4 | auto | `grep -c "@Transactional" apps/batch/src/main/kotlin/com/neki/batch/search/application/SearchIndexUseCase.kt` = 2 (build, swap) |
 | O-C-5 | auto | `grep -c "RunIdIncrementer()" apps/batch/src/main/kotlin/com/neki/batch/search/job/SearchIndexJobConfig.kt` = 1 |
-| O-C-6 | auto | `grep -c "distanceTo" apps/batch/src/main/kotlin/com/neki/batch/search/application/SearchIndexUseCase.kt` >= 1 (기존 haversine 재사용) |
-| O-C-7 | auto | `grep -c "ponytail:" apps/batch/src/main/kotlin/com/neki/batch/search/application/SearchIndexUseCase.kt` >= 1 (전수 비교 상한 표시) |
+| O-C-6 | auto | `grep -c "distanceTo" domain/src/main/kotlin/com/neki/domain/search/models/SubwayStation.kt` >= 1 (기존 haversine 재사용, 도메인이 계산) |
+| O-C-7 | auto | `grep -c "ponytail:" domain/src/main/kotlin/com/neki/domain/search/models/NearbyStation.kt` >= 1 (전수 비교 상한 표시) |
 | O-C-8 | auto | `test ! -e apps/batch/src/main/kotlin/com/neki/batch/sample/SampleJobConfig.kt` 종료코드 0 |
 | O-C-9 | auto | `grep -c "searchIndexJob" .claude/CLAUDE.md README.md apps/batch/src/main/resources/application.yaml` 세 파일 모두 >= 1 |
+| O-C-10 | auto | swap 은 _tmp 를 거치는 회전 : `grep -c "RENAME TO" domain/src/main/kotlin/com/neki/domain/search/infra/persist/PhotoBoothSearchRepositoryAdapter.kt` = 3 |
+| O-C-11 | auto | 파생 필드는 도메인 팩토리만 만든다 : `grep -c "private constructor" domain/src/main/kotlin/com/neki/domain/search/models/PhotoBoothSearchWrite.kt` = 1, `grep -c "SearchNormalizer" apps/batch/src/main/kotlin/com/neki/batch/search/application/SearchIndexUseCase.kt` = 0 |
+| O-C-12 | auto | 두 step : `grep -cE "BUILD_STEP_NAME|SWAP_STEP_NAME" apps/batch/src/main/kotlin/com/neki/batch/search/job/SearchIndexJobConfig.kt` >= 2 |
 
 ## O-R. 릴리스
 

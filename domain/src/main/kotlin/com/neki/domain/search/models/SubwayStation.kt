@@ -6,6 +6,7 @@ import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
+import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Point
 import java.io.Serializable
 
@@ -24,7 +25,15 @@ class SubwayStation(
 
     @Column(name = "location", nullable = false, columnDefinition = "geometry(Point, 4326)")
     val location: Point,
-)
+) {
+    /** coordinate(경도 x, 위도 y)에서 이 역까지의 거리(m). 검색 API 의 사용자 거리와 같은 haversine */
+    fun distanceFrom(coordinate: Coordinate): Int =
+        UserLocation(latitude = coordinate.y, longitude = coordinate.x).distanceTo(location.y, location.x)
+
+    companion object {
+        const val TABLE = "tb_subway_station"
+    }
+}
 
 @Embeddable
 data class SubwayStationId(
