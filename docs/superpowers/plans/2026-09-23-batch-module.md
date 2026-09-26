@@ -735,7 +735,13 @@ CREATE SEQUENCE IF NOT EXISTS BATCH_JOB_SEQ MAXVALUE 9223372036854775807 NO CYCL
 
 - [ ] **Step 2: 로컬 PostgreSQL 로 검증** (Docker 필요)
 
-Run: `docker compose up -d && ./gradlew :apps:batch:bootRun` 후 `psql` 로 `\dt batch_*`, 그리고 두 번째 기동에서 Flyway 가 V31 을 건너뛰는지 확인. Docker 를 못 쓰는 환경이면 api 앱 기동으로 대체 (같은 마이그레이션을 실행한다).
+Run: `docker compose up -d` 후 `./gradlew :apps:api:bootRun`으로 먼저 Flyway V31을 적용합니다.
+`psql`로 `\dt batch_*`와 `flyway_schema_history`의 V31을 확인한 뒤 API를 종료합니다.
+그다음 `./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=sampleJob businessDate=2026-09-23"`을
+두 번 실행해 정상 종료와 Flyway 검증 성공을 확인합니다. Batch는 `validate()`만 수행하므로
+새 DB에 V31을 적용하거나 두 번째 기동에서 마이그레이션을 실행하지 않습니다.
+Docker를 못 쓰는 환경에서는 별도로 준비한 개발용 PostgreSQL에 연결해 같은
+API → Batch 순서로 확인합니다. API도 DB 연결이 필요하므로 API 기동만으로 Docker를 대체할 수는 없습니다.
 
 - [ ] **Step 3: 커밋**
 
