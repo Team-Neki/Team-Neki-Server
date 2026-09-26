@@ -19,7 +19,7 @@ object SearchRequest {
             {
                 "filterGroup": {
                     "brandFilter": { "brands": [] },
-                    "sortFilter": { "type": "DEFAULT", "order": "NONE" }
+                    "sortFilter": { "type": "DEFAULT" }
                 },
                 "userLocation": { "latitude": 37.4979, "longitude": 127.0276 }
             }
@@ -87,7 +87,7 @@ object SearchRequest {
             @field:Schema(description = "정렬 기준", example = "DEFAULT")
             val type: SortType = SortType.DEFAULT,
 
-            @field:Schema(description = "정렬 방향", example = "NONE")
+            @field:Schema(description = "정렬 방향. 지정하지 않으면 필드를 생략합니다", example = "ASC")
             val order: Order? = null,
         ) {
             enum class SortType {

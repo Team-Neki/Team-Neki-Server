@@ -60,7 +60,7 @@ Content-Type: application/json
 {
   "filterGroup": {
     "brandFilter": { "brands": [{ "brandId": 2 }] },
-    "sortFilter": { "type": "DEFAULT", "order": "NONE" }
+    "sortFilter": { "type": "DEFAULT" }
   },
   "userLocation": { "latitude": 37.4979, "longitude": 127.0276 }
 }

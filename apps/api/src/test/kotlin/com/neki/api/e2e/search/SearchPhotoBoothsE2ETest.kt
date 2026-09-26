@@ -5,6 +5,7 @@ import com.neki.api.search.api.dto.SearchRequest
 import com.neki.core.code.ResultCode
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
+import io.swagger.v3.oas.annotations.media.Schema
 import org.assertj.core.api.Assertions.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasSize
@@ -59,6 +60,16 @@ class SearchPhotoBoothsE2ETest : E2ETestBase() {
     inner class SuccessTests {
 
         @Test
+        @DisplayName("OpenAPI 요청 예제를 그대로 보내면 정상 응답한다")
+        fun givenOpenApiExample_whenSearch_thenReturnsSuccess() {
+            val example: String = SearchRequest.GetPhotoBooths::class.java.getAnnotation(Schema::class.java).example
+            post("강남", example)
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.items", hasSize<Int>(6))
+        }
+
+        @Test
         @DisplayName("검색어 + 사용자 위치 - 고정된 부스 6개를 가까운 순으로 반환한다")
         fun givenKeywordAndUserLocation_whenSearch_thenReturnsFixedBoothsOrderedByDistance() {
             post("강남", SearchRequest.GetPhotoBooths(filterGroup = noFilter, userLocation = gangnamLocation))
@@ -101,6 +112,14 @@ class SearchPhotoBoothsE2ETest : E2ETestBase() {
     @Nested
     @DisplayName("실패 케이스")
     inner class FailureTests {
+
+        @Test
+        @DisplayName("정의되지 않은 NONE 정렬 방향 - D-01")
+        fun givenUnknownSortOrder_whenSearch_thenReturnsInvalidParameter() {
+            post("강남", """{"filterGroup":{"sortFilter":{"type":"DEFAULT","order":"NONE"}}}""")
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
 
         @Test
         @DisplayName("keyword 없음 - D-01")
