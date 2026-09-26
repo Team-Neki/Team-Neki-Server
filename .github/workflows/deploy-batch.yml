@@ -4,8 +4,9 @@
 # GitOps 의 images.env(NEKI_BATCH_IMAGE) 가 정한다. 여기서 그 줄을 바꾸면 ArgoCD 가 ConfigMap 을 갱신하고
 # 다음 flow run 부터 새 이미지가 쓰인다. 이미 실행 중인 Job 은 예전 이미지로 끝까지 간다.
 #
-#   dispatch -> 사전 검사 (ref, GitOps 토큰, images.env 줄) -> bootJar -> 이미지 빌드/푸시
-#            -> GitOps images.env 커밋 -> ArgoCD sync -> 다음 flow run 부터 반영
+#   dispatch -> preflight (ref, GitOps 토큰, images.env 줄) -> build (bootJar, 이미지 빌드/푸시)
+#            -> deploy (격리된 runner에서 GitOps 커밋) -> ArgoCD sync -> 다음 flow run 부터 반영
+# 선택 ref의 빌드 runner에는 GitOps PAT와 Discord webhook을 제공하지 않는다.
 #
 # 사전 검사를 이미지 push 앞에 두는 이유: GitOps 갱신이 실패하면 GitOps 가 가리키지 않는 태그와 옮겨진 :main 이
 # GHCR 에 남는다. 준비가 안 됐으면 아무것도 밀지 않고 멈춘다.
@@ -32,7 +33,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 # GitOps 커밋이 겹치면 rebase 로 풀리지 않는 충돌이 나므로 직렬화한다.
 # GitHub 은 같은 group 의 대기 run 을 하나만 남긴다. 실행 중 1건 + 대기 1건일 때 또 dispatch 하면
@@ -47,8 +47,8 @@ env:
   GITOPS_PATH: overlays/prefect/images.env
 
 jobs:
-  build-and-deploy:
-    name: Build and Deploy via GitOps
+  preflight:
+    name: Validate deployment prerequisites
     runs-on: ubuntu-latest
 
     steps:
@@ -69,11 +69,6 @@ jobs:
           echo "::error::ref '$REF' 가 브랜치도 태그도 아니다. 브랜치명을 그대로 적는다 (예: feat/BACKEND-128). 비우면 '${GITHUB_REF_NAME}' 를 배포한다."
           exit 1
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-
       # 조직 secret 이 이 저장소에 안 열려 있으면 GitOps checkout 이 "Input required and not supplied: token" 으로만 끝난다
       - name: Check GitOps token
         env:
@@ -85,11 +80,12 @@ jobs:
           }
 
       - name: Checkout GitOps Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: ${{ env.GITOPS_REPO }}
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops
+          persist-credentials: false
 
       # 갱신할 줄이 정확히 하나 있는지 이미지를 밀기 전에 확인한다
       - name: Check images.env line
@@ -101,8 +97,25 @@ jobs:
             exit 1
           }
 
+  build:
+    name: Build and push batch image
+    needs: preflight
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      ref: ${{ steps.tag.outputs.ref }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: 21
           distribution: 'temurin'
@@ -135,17 +148,17 @@ jobs:
           fi
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
         with:
           context: .
           push: true
@@ -155,14 +168,44 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  deploy:
+    name: Update GitOps in an isolated workspace
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitOps Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+          # 선택 ref의 코드는 이 runner에서 checkout하거나 실행하지 않는다.
+          # 이 자격증명은 아래 GitOps pull/push에만 사용한다.
+          persist-credentials: true
+
+      - name: Recheck deployment target
+        working-directory: gitops
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          printf '%s' "$TAG" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9._-]*-[0-9a-f]{7}$' || {
+            echo "::error::잘못된 이미지 태그"
+            exit 1
+          }
+          count=$(grep -cE "^NEKI_BATCH_IMAGE=${IMAGE}:" "$GITOPS_PATH" || true)
+          test "$count" = "1" || {
+            echo "::error::GitOps 대상 줄이 변경됐습니다. 정확히 한 줄이어야 합니다."
+            exit 1
+          }
+
       # ============================================================
       # GitOps: images.env 의 NEKI_BATCH_IMAGE 갱신. ArgoCD 가 ConfigMap 을 갱신한다
       # ============================================================
       - name: Update image tag in GitOps repo
         working-directory: gitops
         env:
-          TAG: ${{ steps.tag.outputs.tag }}
-          REF: ${{ steps.tag.outputs.ref }}
+          TAG: ${{ needs.build.outputs.tag }}
+          REF: ${{ needs.build.outputs.ref }}
         run: |
           # 줄이 하나뿐인 것은 앞 단계에서 확인했다. sed 뒤에 결과를 다시 확인한다
           sed -i -E "s#^NEKI_BATCH_IMAGE=${IMAGE}:.*#NEKI_BATCH_IMAGE=${IMAGE}:${TAG}#" "$GITOPS_PATH"
@@ -187,14 +230,21 @@ jobs:
           done
           exit 1
 
-      # 알림 실패가 배포 결과를 뒤집지 않게 한다. webhook 이 없으면 건너뛰고, 전송 실패는 경고로만 남긴다
+  notify:
+    name: Notify deployment result
+    needs: [preflight, build, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      # 빌드 코드가 webhook을 읽지 못하도록 별도 runner에서 전송한다.
+      # 알림 실패가 배포 결과를 뒤집지 않게 한다. webhook이 없으면 건너뛴다.
       - name: Discord notification
         if: always()
         env:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PROD_URL }}
-          STATUS: ${{ job.status }}
-          TAG: ${{ steps.tag.outputs.tag }}
-          REF: ${{ steps.tag.outputs.ref }}
+          STATUS: ${{ contains(needs.*.result, 'failure') && 'failure' || contains(needs.*.result, 'cancelled') && 'cancelled' || needs.deploy.result }}
+          TAG: ${{ needs.build.outputs.tag }}
+          REF: ${{ needs.build.outputs.ref }}
           ACTOR: ${{ github.actor }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
