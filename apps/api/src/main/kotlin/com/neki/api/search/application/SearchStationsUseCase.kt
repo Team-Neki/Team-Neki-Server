@@ -7,6 +7,7 @@ import com.neki.core.domain.vo.PageWithTotalCount
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.service.StationSearchService
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * fileName       : SearchStationsUseCase
@@ -17,6 +18,7 @@ import com.neki.domain.search.service.StationSearchService
 @UseCase
 class SearchStationsUseCase(private val stationSearchService: StationSearchService) {
 
+    @Transactional(readOnly = true)
     fun execute(query: SearchQuery.SearchStations): SearchResult.Completion {
         val stations: PageWithTotalCount<SubwayStation> = stationSearchService.search(query)
 

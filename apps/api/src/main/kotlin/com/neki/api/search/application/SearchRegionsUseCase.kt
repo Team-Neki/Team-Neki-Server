@@ -7,6 +7,7 @@ import com.neki.core.domain.vo.PageWithTotalCount
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.LegalDong
 import com.neki.domain.search.service.RegionSearchService
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * fileName       : SearchRegionsUseCase
@@ -17,6 +18,7 @@ import com.neki.domain.search.service.RegionSearchService
 @UseCase
 class SearchRegionsUseCase(private val regionSearchService: RegionSearchService) {
 
+    @Transactional(readOnly = true)
     fun execute(query: SearchQuery.SearchRegions): SearchResult.Completion {
         val regions: PageWithTotalCount<LegalDong> = regionSearchService.search(query)
 
