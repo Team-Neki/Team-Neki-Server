@@ -14,4 +14,6 @@ object PoseCommand {
     }
 
     data class UpdatePoseScrap(val userId: Long, val poseId: Long, val scrap: Boolean)
+
+    data class UpdatePoseMedia(val poseId: Long, val mediaId: Long)
 }
