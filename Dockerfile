@@ -1,10 +1,13 @@
 # Layer extraction stage
 FROM eclipse-temurin:21-jre-alpine AS builder
 
+# 빌드할 실행 모듈 (api | batch). 배포 워크플로가 docker build-args 로 넘긴다
+ARG APP_MODULE=api
+
 WORKDIR /app
 
-# GitHub Actions에서 빌드된 JAR 파일 복사 (실행 모듈은 :apps:api)
-COPY apps/api/build/libs/*.jar app.jar
+# GitHub Actions에서 빌드된 JAR 파일 복사 (실행 모듈은 :apps:${APP_MODULE})
+COPY apps/${APP_MODULE}/build/libs/*.jar app.jar
 
 # Spring Boot Layered JAR에서 레이어 추출
 RUN java -Djarmode=layertools -jar app.jar extract
