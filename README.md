@@ -142,6 +142,14 @@ fix/#이슈번호   버그 수정
 
 <br>
 
+## 배포 알림
+
+Staging과 Prod의 배포 시작·성공·실패 알림은 Discord `prod-git-cicd-noti` 채널로 통합합니다.
+두 배포 워크플로 모두 GitHub Actions Secret `DISCORD_WEBHOOK_PROD_URL`을 사용하며,
+알림 제목의 `Staging`·`Prod`로 배포 환경을 구분합니다.
+
+<br>
+
 ## 커밋 컨벤션
 
 ```
