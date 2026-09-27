@@ -27,7 +27,7 @@ import org.springframework.transaction.PlatformTransactionManager
 @Configuration
 class SampleJobConfig {
 
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     @Bean(JOB_NAME)
     fun sampleJob(jobRepository: JobRepository, transactionManager: PlatformTransactionManager): Job =
