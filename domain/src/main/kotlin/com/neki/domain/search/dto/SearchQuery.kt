@@ -12,6 +12,9 @@ import com.neki.domain.search.models.UserLocation
  */
 object SearchQuery {
 
+    /** 지역·역 자동완성 검색어의 최소 길이. 1자는 걸리는 것이 너무 많아 조회하지 않고 빈 결과를 준다 */
+    const val MIN_COMPLETION_KEYWORD_LENGTH = 2
+
     /**
      * 지역 검색. keyword 는 법정동 최하위 계층 이름 또는 전체 경로에 대한 접두 일치다.
      */

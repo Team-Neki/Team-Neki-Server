@@ -102,12 +102,16 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
-        @DisplayName("한 글자 `역` 은 떼지 않고 `역` 으로 시작하는 역을 찾는다")
-        fun givenStationSuffixOnly_whenSearch_thenSearchesAsPrefix() {
-            get("keyword" to "역")
-                .statusCode(HttpStatus.OK.value())
-                .body("data.totalCount", equalTo(1))
-                .body("data.items[0].keyword", equalTo("역삼역 2호선"))
+        @DisplayName("1자 검색은 빈 결과다")
+        fun givenSingleCharKeyword_whenSearch_thenReturnsEmptyList() {
+            listOf("강", "역").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                    .body("data.items", empty<Any>())
+                    .body("data.totalCount", equalTo(0))
+                    .body("data.hasNext", equalTo(false))
+            }
         }
 
         @Test

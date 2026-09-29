@@ -17,6 +17,8 @@ class StationSearchService(private val subwayStationRepository: SubwayStationRep
 
     fun search(query: SearchQuery.SearchStations): PageWithTotalCount<SubwayStation> {
         val keyword: String = query.keyword
+        if (keyword.length < SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH) return query.pagination.slice(emptyList(), 0L)
+
         val namePrefix: String = keyword.substringBefore(' ').removeStationSuffix()
 
         val fetched: List<SubwayStation> =

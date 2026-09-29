@@ -18,7 +18,7 @@ class RegionSearchService(private val legalDongRepository: LegalDongRepository) 
 
     fun search(query: SearchQuery.SearchRegions): PageWithTotalCount<LegalDong> {
         val name: String = query.keyword
-        if (name.length < MIN_KEYWORD_LENGTH) return query.pagination.slice(emptyList(), 0L)
+        if (name.length < SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH) return query.pagination.slice(emptyList(), 0L)
 
         // 전체 경로는 시도 이름으로 시작하고 공백 뒤에 다음 계층이 온다. 공백이 없으면 아직 시도 이름을
         // 치는 중이라 경로로 찾지 않는다. `서울`, `충청북도` 만으로 시도 아래 구역이 다 쏟아지지 않게 한다.
@@ -29,10 +29,5 @@ class RegionSearchService(private val legalDongRepository: LegalDongRepository) 
         val totalCount: Long = legalDongRepository.countByNameOrPathPrefix(name, path)
 
         return query.pagination.slice(fetched, totalCount)
-    }
-
-    companion object {
-        /** 1자는 걸리는 구역이 너무 많아 조회하지 않고 빈 결과를 준다 */
-        private const val MIN_KEYWORD_LENGTH = 2
     }
 }
