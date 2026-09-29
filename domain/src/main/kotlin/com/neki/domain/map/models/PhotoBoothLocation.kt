@@ -24,13 +24,13 @@ class PhotoBoothLocation(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name = "map_id", nullable = false)
+    @Column(name = "map_id", nullable = false, length = 128)
     val mapId: String,
 
     @Column(name = "brand_id", nullable = false)
     var brandId: Long,
 
-    @Column(name = "branch_name", nullable = false, length = 100)
+    @Column(name = "branch_name", nullable = false)
     var branchName: String,
 
     @Column(name = "address", nullable = false, length = 255)

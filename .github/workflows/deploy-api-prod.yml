@@ -1,4 +1,4 @@
-name: Deploy to Prod (K3s + GitOps)
+name: Deploy API to Prod (K3s + GitOps)
 
 on:
   push:
