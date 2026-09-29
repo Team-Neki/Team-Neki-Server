@@ -17,10 +17,12 @@ import org.springframework.stereotype.Component
 class RegionSearchService(private val legalDongRepository: LegalDongRepository) {
 
     fun search(query: SearchQuery.SearchRegions): PageWithTotalCount<LegalDong> {
-        val keyword: String = SidoAlias.expand(query.keyword)
+        // 이름 검색은 원래 검색어로 한다. `광주` 를 바꿔 버리면 경기도 광주시가 이름으로 걸리지 않는다
+        val name: String = query.keyword
+        val path: String = SidoAlias.expand(query.keyword)
 
-        val fetched: List<LegalDong> = legalDongRepository.findByNamePrefix(keyword, query.pagination)
-        val totalCount: Long = legalDongRepository.countByNamePrefix(keyword)
+        val fetched: List<LegalDong> = legalDongRepository.findByNameOrPathPrefix(name, path, query.pagination)
+        val totalCount: Long = legalDongRepository.countByNameOrPathPrefix(name, path)
 
         return query.pagination.slice(fetched, totalCount)
     }

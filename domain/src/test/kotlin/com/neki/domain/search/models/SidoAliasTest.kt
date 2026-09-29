@@ -31,9 +31,14 @@ class SidoAliasTest :
             SidoAlias.expand("전남 목포") shouldBe "전남광주통합특별시 목포"
         }
 
-        test("expand - 공백이 없으면 바꾸지 않는다") {
-            SidoAlias.expand("서울") shouldBe "서울"
+        test("expand - 공백이 없어도 줄임말 한 낱말이면 바꾼다") {
+            SidoAlias.expand("충북") shouldBe "충청북도"
+            SidoAlias.expand("광주") shouldBe "전남광주통합특별시"
+        }
+
+        test("expand - 줄임말로 시작할 뿐 다른 낱말이면 바꾸지 않는다") {
             SidoAlias.expand("부산진구") shouldBe "부산진구"
+            SidoAlias.expand("광주시") shouldBe "광주시"
         }
 
         test("expand - 첫 낱말이 줄임말이 아니면 바꾸지 않는다") {

@@ -12,11 +12,11 @@ import com.neki.domain.search.models.LegalDong
 interface LegalDongRepository {
 
     /**
-     * 이름이 prefix 로 시작하거나, 전체 경로가 prefix 로 시작하면서 prefix 가 이 구역 이름까지 들어온 시군구 이하 법정동.
-     * 계층이 위인 것부터, 같은 계층이면 법정동코드 순.
+     * 이름이 namePrefix 로 시작하거나 전체 경로가 pathPrefix 로 시작하는 시군구 이하 법정동.
+     * 전체 경로로 걸리면 그 아래 구역도 함께 나온다. 계층이 위인 것부터, 같은 계층이면 법정동코드 순.
      * 다음 페이지 판단을 위해 [Pagination.limit] 만큼 조회한다.
      */
-    fun findByNamePrefix(prefix: String, pagination: Pagination): List<LegalDong>
+    fun findByNameOrPathPrefix(namePrefix: String, pathPrefix: String, pagination: Pagination): List<LegalDong>
 
-    fun countByNamePrefix(prefix: String): Long
+    fun countByNameOrPathPrefix(namePrefix: String, pathPrefix: String): Long
 }
