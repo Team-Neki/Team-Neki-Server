@@ -43,6 +43,7 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         createSubwayStation("강남구청", "7호선", 127.0411, 37.5170)
         createSubwayStation("강남대", "에버라인", 127.1339, 37.2702)
         createSubwayStation("역삼", "2호선", 127.0364, 37.5006)
+        createSubwayStation("북구청 (대구iM뱅크파크)", "대구 도시철도 3호선", 128.5829, 35.8853)
     }
 
     private fun get(vararg params: Pair<String, Any>) = RestAssured.given()
@@ -116,6 +117,52 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(1))
                 .body("data.items[0].keyword", equalTo("역삼역 2호선"))
+        }
+
+        @Test
+        @DisplayName("노선명까지 적으면 그 노선만 나온다")
+        fun givenKeywordWithLineName_whenSearch_thenReturnsThatLine() {
+            get("keyword" to "강남역 2호선")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
+        }
+
+        @Test
+        @DisplayName("`역` 없이 노선명 접두만 적어도 된다")
+        fun givenKeywordWithLinePrefixWithoutSuffix_whenSearch_thenReturnsThatLine() {
+            get("keyword" to "강남 신분당")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("강남역 신분당선"))
+
+            get("keyword" to "강남구청역 7")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("강남구청역 7호선"))
+        }
+
+        @Test
+        @DisplayName("연속 공백은 한 칸으로 보고 찾는다")
+        fun givenKeywordWithRepeatedSpaces_whenSearch_thenCollapsesSpaces() {
+            get("keyword" to "강남역   2호선")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
+        }
+
+        @Test
+        @DisplayName("역명과 노선명에 공백이 있어도 찾는다")
+        fun givenNamesWithSpaces_whenSearch_thenReturnsStation() {
+            get("keyword" to "북구청 (대구")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("북구청 (대구iM뱅크파크)역 대구 도시철도 3호선"))
+
+            get("keyword" to "북구청 (대구iM뱅크파크)역 대구 도시")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("북구청 (대구iM뱅크파크)역 대구 도시철도 3호선"))
         }
 
         @Test

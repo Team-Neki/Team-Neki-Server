@@ -15,25 +15,40 @@ import org.springframework.stereotype.Repository
  * author         : darren
  * date           : 2026. 9. 25.
  * description    : 지하철역 접두 검색. startsWith 는 `LIKE 'prefix%'` 로 나가 name 의 text_pattern_ops 인덱스를 탄다.
+ *                  `강남역 2호선` 처럼 노선명까지 적으면 역명 접두로 인덱스에서 후보를 좁힌 뒤 이어 붙인 이름으로 거른다.
  */
 @Repository
 class SubwayStationQueryRepository(private val queryFactory: JPAQueryFactory) {
 
-    fun findByNamePrefix(prefix: String, pagination: Pagination): List<SubwayStation> = queryFactory
-        .selectFrom(subwayStation)
-        .where(nameStartsWith(prefix))
-        .orderBy(codePointOrder(subwayStation.id.name), codePointOrder(subwayStation.id.lineName))
-        .offset(pagination.offset.toLong())
-        .limit(pagination.limit.toLong())
-        .fetch()
+    fun findByKeywordPrefix(keyword: String, namePrefix: String, pagination: Pagination): List<SubwayStation> =
+        queryFactory
+            .selectFrom(subwayStation)
+            .where(keywordStartsWith(keyword, namePrefix))
+            .orderBy(codePointOrder(subwayStation.id.name), codePointOrder(subwayStation.id.lineName))
+            .offset(pagination.offset.toLong())
+            .limit(pagination.limit.toLong())
+            .fetch()
 
-    fun countByNamePrefix(prefix: String): Long = queryFactory
+    fun countByKeywordPrefix(keyword: String, namePrefix: String): Long = queryFactory
         .select(subwayStation.count())
         .from(subwayStation)
-        .where(nameStartsWith(prefix))
+        .where(keywordStartsWith(keyword, namePrefix))
         .fetchOne() ?: 0L
 
-    private fun nameStartsWith(prefix: String): BooleanExpression = subwayStation.id.name.startsWith(prefix)
+    /**
+     * 공백이 없으면 역명 접두만 본다. 공백이 있으면 노선명까지 적은 것으로 보고 `강남역 2호선`, `강남 2호선` 두 모양을 모두 받는다.
+     * 노선명(`부산 도시철도 2호선`)과 역명(`북구청 (대구iM뱅크파크)`)에도 공백이 있어 검색어를 쪼개지 않고 이어 붙인 이름과 비교한다.
+     */
+    private fun keywordStartsWith(keyword: String, namePrefix: String): BooleanExpression {
+        val name: StringPath = subwayStation.id.name
+        val lineName: StringPath = subwayStation.id.lineName
+        val nameStartsWith: BooleanExpression = name.startsWith(namePrefix)
+        if (!keyword.contains(' ')) return nameStartsWith
+
+        val withSuffix: BooleanExpression = name.concat("$STATION_SUFFIX ").concat(lineName).startsWith(keyword)
+        val withoutSuffix: BooleanExpression = name.concat(" ").concat(lineName).startsWith(keyword)
+        return nameStartsWith.and(withSuffix.or(withoutSuffix))
+    }
 
     /**
      * DB 기본 collation(en_US.utf8)은 `강남대` 를 `강남구청` 앞에, `신분당선` 을 `2호선` 앞에 둔다.
@@ -42,4 +57,8 @@ class SubwayStationQueryRepository(private val queryFactory: JPAQueryFactory) {
      */
     private fun codePointOrder(path: StringPath): OrderSpecifier<String> =
         Expressions.stringTemplate("code_point_collate({0})", path).asc()
+
+    companion object {
+        private const val STATION_SUFFIX = "역"
+    }
 }

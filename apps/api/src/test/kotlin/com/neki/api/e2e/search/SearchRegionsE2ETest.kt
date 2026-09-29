@@ -45,6 +45,7 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         createLegalDong("1168010100", 3, "역삼동", "서울특별시 강남구 역삼동")
         createLegalDong("4817010300", 3, "강남동", "경상남도 진주시 강남동")
         createLegalDong("5279033026", 4, "강남리", "전북특별자치도 고창군 무장면 강남리")
+        createLegalDong("4111100000", 2, "수원시 장안구", "경기도 수원시 장안구")
     }
 
     private fun get(vararg params: Pair<String, Any>) = RestAssured.given()
@@ -129,6 +130,61 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(1))
                 .body("data.items[0].keyword", equalTo("경상남도 진주시 강남동"))
+        }
+
+        @Test
+        @DisplayName("전체 경로로 찾으면 그 구역만 나오고 하위 구역은 빠진다")
+        fun givenFullPathKeyword_whenSearch_thenReturnsOnlyThatRegion() {
+            get("keyword" to "서울특별시 강남구")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+        }
+
+        @Test
+        @DisplayName("전체 경로의 마지막 이름은 접두만 적어도 된다")
+        fun givenFullPathWithLeafPrefix_whenSearch_thenReturnsMatchedRegion() {
+            get("keyword" to "서울특별시 강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+
+            get("keyword" to "서울특별시 강남구 역")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구 역삼동"))
+        }
+
+        @Test
+        @DisplayName("상위 경로만 적으면 하위 구역을 늘어놓지 않는다")
+        fun givenParentPathOnly_whenSearch_thenReturnsEmptyList() {
+            get("keyword" to "서울특별시 ")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+                .body("data.totalCount", equalTo(0))
+        }
+
+        @Test
+        @DisplayName("연속 공백은 한 칸으로 보고 찾는다")
+        fun givenKeywordWithRepeatedSpaces_whenSearch_thenCollapsesSpaces() {
+            get("keyword" to "서울특별시   강남구")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+        }
+
+        @Test
+        @DisplayName("이름에 공백이 든 구역도 이름이나 전체 경로로 찾는다")
+        fun givenLeafNameWithSpace_whenSearch_thenReturnsRegion() {
+            get("keyword" to "수원시 장안")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("경기도 수원시 장안구"))
+
+            get("keyword" to "경기도 수원시 장안")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("경기도 수원시 장안구"))
         }
 
         @Test

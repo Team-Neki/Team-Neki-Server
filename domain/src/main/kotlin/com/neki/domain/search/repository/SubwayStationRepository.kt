@@ -12,10 +12,10 @@ import com.neki.domain.search.models.SubwayStation
 interface SubwayStationRepository {
 
     /**
-     * 역명이 prefix 로 시작하는 역. 역명, 노선명 순.
-     * 다음 페이지 판단을 위해 [Pagination.limit] 만큼 조회한다.
+     * 역명이 namePrefix 로 시작하는 역. keyword 에 공백이 있으면 `역명역 노선명` 또는 `역명 노선명` 이 keyword 로 시작해야 한다.
+     * 역명, 노선명 순. 다음 페이지 판단을 위해 [Pagination.limit] 만큼 조회한다.
      */
-    fun findByNamePrefix(prefix: String, pagination: Pagination): List<SubwayStation>
+    fun findByKeywordPrefix(keyword: String, namePrefix: String, pagination: Pagination): List<SubwayStation>
 
-    fun countByNamePrefix(prefix: String): Long
+    fun countByKeywordPrefix(keyword: String, namePrefix: String): Long
 }

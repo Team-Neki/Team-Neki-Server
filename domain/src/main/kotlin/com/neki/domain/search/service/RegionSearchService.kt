@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component
  * fileName       : RegionSearchService
  * author         : darren
  * date           : 2026. 9. 25.
- * description    : 법정동 이름 접두 검색
+ * description    : 법정동 이름·전체 경로 접두 검색
  */
 @Component
 class RegionSearchService(private val legalDongRepository: LegalDongRepository) {
 
     fun search(query: SearchQuery.SearchRegions): PageWithTotalCount<LegalDong> {
-        val fetched: List<LegalDong> = legalDongRepository.findByLeafNamePrefix(query.keyword, query.pagination)
-        val totalCount: Long = legalDongRepository.countByLeafNamePrefix(query.keyword)
+        val fetched: List<LegalDong> = legalDongRepository.findByNamePrefix(query.keyword, query.pagination)
+        val totalCount: Long = legalDongRepository.countByNamePrefix(query.keyword)
 
         return query.pagination.slice(fetched, totalCount)
     }

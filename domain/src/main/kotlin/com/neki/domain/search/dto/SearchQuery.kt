@@ -13,12 +13,12 @@ import com.neki.domain.search.models.UserLocation
 object SearchQuery {
 
     /**
-     * 지역 검색. keyword 는 법정동 최하위 계층 이름에 대한 접두 일치다.
+     * 지역 검색. keyword 는 법정동 최하위 계층 이름 또는 전체 경로에 대한 접두 일치다.
      */
     data class SearchRegions(val keyword: String, val pagination: Pagination)
 
     /**
-     * 지하철역 검색. 한 역이 노선 수만큼 나온다.
+     * 지하철역 검색. keyword 는 역명 또는 `역명역 노선명` 에 대한 접두 일치다. 한 역이 노선 수만큼 나온다.
      */
     data class SearchStations(val keyword: String, val pagination: Pagination)
 

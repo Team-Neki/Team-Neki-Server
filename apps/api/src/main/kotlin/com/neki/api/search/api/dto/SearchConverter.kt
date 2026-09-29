@@ -19,10 +19,16 @@ object SearchConverter {
     @Component
     class RequestConverter {
         fun toSearchRegionsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchRegions =
-            SearchQuery.SearchRegions(keyword = keyword.trim(), pagination = Pagination(page = page, size = size))
+            SearchQuery.SearchRegions(
+                keyword = keyword.normalizeSpaces(),
+                pagination = Pagination(page = page, size = size),
+            )
 
         fun toSearchStationsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchStations =
-            SearchQuery.SearchStations(keyword = keyword.trim(), pagination = Pagination(page = page, size = size))
+            SearchQuery.SearchStations(
+                keyword = keyword.normalizeSpaces(),
+                pagination = Pagination(page = page, size = size),
+            )
 
         fun toGetPhotoBoothsQuery(userId: Long, request: SearchRequest.FilterGroup): SearchQuery.GetPhotoBooths =
             SearchQuery.GetPhotoBooths(
@@ -42,6 +48,12 @@ object SearchConverter {
             )
 
         /**
+         * 저장된 지역·역 이름은 낱말 사이가 공백 한 칸이라, 검색어도 앞뒤를 자르고 연속 공백을 한 칸으로 맞춘다.
+         * DB 쪽 값을 가공하지 않아야 접두 검색이 인덱스를 탄다.
+         */
+        private fun String.normalizeSpaces(): String = trim().replace(WHITESPACES, " ")
+
+        /**
          * regionFilter 와 stationFilter 중 정확히 하나만 있어야 한다. 둘 다 없거나 둘 다 있으면 D-01.
          */
         private fun toTarget(request: SearchRequest.FilterGroup): SearchTarget {
@@ -55,6 +67,10 @@ object SearchConverter {
                 )
                 else -> throw BusinessException(ResultCode.INVALID_PARAMETER)
             }
+        }
+
+        companion object {
+            private val WHITESPACES = Regex("\\s+")
         }
     }
 

@@ -27,11 +27,11 @@ class LegalDong(
     @Column(name = "level", nullable = false, columnDefinition = "smallint")
     val level: Int,
 
-    /** 가장 아래 계층의 이름. 검색은 이 값으로만 한다. e.g. `강남구` */
+    /** 가장 아래 계층의 이름. e.g. `강남구`. 공백이 든 이름도 있다. e.g. `수원시 장안구` */
     @Column(name = "leaf_name", nullable = false, length = 30)
     val leafName: String,
 
-    /** 시도부터 이어 붙인 전체 경로. e.g. `서울특별시 강남구` */
+    /** 시도부터 공백 한 칸으로 이어 붙인 전체 경로. e.g. `서울특별시 강남구` */
     @Column(name = "full_name", nullable = false, length = 60)
     val fullName: String,
 ) {

@@ -16,8 +16,9 @@ import org.springframework.stereotype.Repository
 class SubwayStationRepositoryAdapter(private val queryRepository: SubwayStationQueryRepository) :
     SubwayStationRepository {
 
-    override fun findByNamePrefix(prefix: String, pagination: Pagination): List<SubwayStation> =
-        queryRepository.findByNamePrefix(prefix, pagination)
+    override fun findByKeywordPrefix(keyword: String, namePrefix: String, pagination: Pagination): List<SubwayStation> =
+        queryRepository.findByKeywordPrefix(keyword, namePrefix, pagination)
 
-    override fun countByNamePrefix(prefix: String): Long = queryRepository.countByNamePrefix(prefix)
+    override fun countByKeywordPrefix(keyword: String, namePrefix: String): Long =
+        queryRepository.countByKeywordPrefix(keyword, namePrefix)
 }
