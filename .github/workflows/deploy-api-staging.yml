@@ -1,4 +1,4 @@
-name: Deploy to Staging (K3s + GitOps)
+name: Deploy API to Staging (K3s + GitOps)
 
 on:
   workflow_dispatch:  # 수동 실행만 가능
@@ -96,7 +96,7 @@ jobs:
                    "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'"
                  }]
                }' \
-               ${{ secrets.DISCORD_WEBHOOK_URL }}
+               ${{ secrets.DISCORD_WEBHOOK_PROD_URL }}
 
       # ============================================================
       # GitOps: GitOps 레포의 이미지 태그 업데이트
@@ -180,7 +180,7 @@ jobs:
                    "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'"
                  }]
                }' \
-               ${{ secrets.DISCORD_WEBHOOK_URL }}
+               ${{ secrets.DISCORD_WEBHOOK_PROD_URL }}
 
       - name: Discord notification - Deployment failed
         if: failure()
@@ -216,4 +216,4 @@ jobs:
                    "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"'"
                  }]
                }' \
-               ${{ secrets.DISCORD_WEBHOOK_URL }}
+               ${{ secrets.DISCORD_WEBHOOK_PROD_URL }}
