@@ -54,7 +54,10 @@ class PhotoBoothSearchRepositoryAdapter(
     /**
      * 두 테이블이 같은 이름을 동시에 가질 수 없어 _tmp 를 거쳐 셋이 돌아간다. 한 트랜잭션이라 밖에서는 _tmp 가 보이지 않는다.
      * RENAME 은 ACCESS EXCLUSIVE 락이라 긴 조회 하나가 물려 있으면 뒤따르는 검색 요청까지 줄을 세운다.
-     * 그래서 락을 LOCK_TIMEOUT 만 기다리고 실패한다. 실패해도 _read 는 그대로이고 다시 돌리면 된다.
+     * 각 RENAME 의 락 획득은 LOCK_TIMEOUT 만 기다리고 실패한다. PostgreSQL 에서는 실패 시 회전 전체가 롤백된다.
+     * 획득한 락은 swap() 반환이 아니라 TaskletStep 의 BATCH_STEP_EXECUTION 갱신과 커밋이 끝날 때 해제된다.
+     * lock_timeout 은 락 보유 시간을 제한하지 않는다. 커밋 경로에 외부 호출이나 추가 DB 작업을 넣지 않는다.
+     * staging/운영의 락 보유 시간과 검색 API 대기는 docs/oracle/search-index-job.md 의 O-R-7 로 확인한다.
      * 인덱스·제약 이름은 테이블 객체를 따라가므로 이름이 오가도 부딪히지 않는다 (V33 이 슬롯 a/b 로 지었다).
      */
     override fun swap() {
