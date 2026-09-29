@@ -8,7 +8,7 @@ Instructions for Claude Code when working with this repository.
 # Build & Run
 ./gradlew build                    # Build project
 ./gradlew :apps:api:bootRun        # Run API locally (requires Docker). 루트 bootRun 은 api/batch 를 둘 다 실행하므로 금지
-./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=sampleJob businessDate=2026-09-23"  # 배치 잡 1회 실행 후 종료
+./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=searchIndexJob businessDate=2026-09-25"  # 배치 잡 1회 실행 후 종료
 ./gradlew test                     # Run all tests
 ./gradlew spotlessApply            # Format code (ktlint)
 
@@ -177,3 +177,4 @@ SPEC_MISMATCH → 요구사항 재확인
 | Result codes       | `core/src/main/kotlin/com/neki/common/code/ResultCode.kt`             |
 | Business exception | `core/src/main/kotlin/com/neki/common/exception/BusinessException.kt` |
 | E2E test base      | `apps/api/src/test/kotlin/com/neki/e2e/E2ETestBase.kt`                    |
+| 완료 판정 오라클    | `docs/oracle/<topic>.md` (auto 항목은 명령으로 재검증, manual 은 배포 후 확인) |

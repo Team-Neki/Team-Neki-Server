@@ -3,6 +3,7 @@ plugins {
 }
 
 val logstashEncoderVersion = "8.0"
+val jtsVersion = "1.19.0"
 
 dependencies {
     implementation(project(":core"))
@@ -11,6 +12,8 @@ dependencies {
     implementation(project(":modules:jasypt"))
 
     implementation("org.springframework.boot:spring-boot-starter-batch")
+    // 검색 카드의 location(Point) 을 만든다. :domain 이 implementation 으로 갖고 있어 전이되지 않는다 (apps/api 와 같은 선언)
+    implementation("org.locationtech.jts:jts-core:$jtsVersion")
     // FlywayMigrationStrategy 가 Flyway 타입을 직접 참조한다 (modules:postgres 는 implementation 이라 전이되지 않음)
     implementation("org.flywaydb:flyway-core")
     // one-shot 프로세스라 web/actuator 가 없다. :domain 이 starter-web 을 전이로 가져오지만

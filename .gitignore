@@ -52,3 +52,6 @@ infra/terraform/aws/staging/.terraform
 ### Firebase (FCM service account) ###
 **/firebase-service-account.json
 **/*-firebase-adminsdk-*.json
+
+### Worktrees (dag-worktree-delivery)
+.worktrees/

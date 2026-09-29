@@ -11,6 +11,7 @@ import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.launch.support.RunIdIncrementer
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.core.step.builder.StepBuilder
+import org.springframework.batch.repeat.RepeatStatus
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.test.context.TestConfiguration
@@ -27,24 +28,24 @@ class ExitCodeTest {
 
     @Test
     fun `완료된 Job 은 종료 코드 0`() {
-        val context: ConfigurableApplicationContext = boot("sampleJob", db = "ok")
+        val context: ConfigurableApplicationContext = boot(TestJobsConfig.SUCCEEDING_JOB, db = "ok")
 
         SpringApplication.exit(context) shouldBe 0
     }
 
     @Test
     fun `실패한 Job 은 0 이 아닌 종료 코드`() {
-        val context: ConfigurableApplicationContext = boot(FailingJobConfig.JOB_NAME, db = "fail")
+        val context: ConfigurableApplicationContext = boot(TestJobsConfig.FAILING_JOB, db = "fail")
 
         SpringApplication.exit(context) shouldNotBe 0
     }
 
     @Test
     fun `같은 businessDate 로 두 번 기동하면 둘 다 성공하고 새 JobInstance 로 돈다`() {
-        SpringApplication.exit(boot("sampleJob", db = "rerun")) shouldBe 0
+        SpringApplication.exit(boot(TestJobsConfig.SUCCEEDING_JOB, db = "rerun")) shouldBe 0
 
-        val second: ConfigurableApplicationContext = boot("sampleJob", db = "rerun")
-        val instances: Long = second.getBean(JobExplorer::class.java).getJobInstanceCount("sampleJob")
+        val second: ConfigurableApplicationContext = boot(TestJobsConfig.SUCCEEDING_JOB, db = "rerun")
+        val instances: Long = second.getBean(JobExplorer::class.java).getJobInstanceCount(TestJobsConfig.SUCCEEDING_JOB)
         SpringApplication.exit(second) shouldBe 0
 
         instances shouldBe 2
@@ -52,11 +53,11 @@ class ExitCodeTest {
 
     @Test
     fun `실패한 뒤 같은 인자로 다시 기동해도 재시작이 아니라 새 JobInstance 로 돈다`() {
-        SpringApplication.exit(boot(FailingJobConfig.JOB_NAME, db = "retry")) shouldNotBe 0
+        SpringApplication.exit(boot(TestJobsConfig.FAILING_JOB, db = "retry")) shouldNotBe 0
 
-        val second: ConfigurableApplicationContext = boot(FailingJobConfig.JOB_NAME, db = "retry")
+        val second: ConfigurableApplicationContext = boot(TestJobsConfig.FAILING_JOB, db = "retry")
         val instances: Long =
-            second.getBean(JobExplorer::class.java).getJobInstanceCount(FailingJobConfig.JOB_NAME)
+            second.getBean(JobExplorer::class.java).getJobInstanceCount(TestJobsConfig.FAILING_JOB)
         SpringApplication.exit(second) shouldNotBe 0
 
         instances shouldBe 2
@@ -73,7 +74,7 @@ class ExitCodeTest {
     // profiles() 는 application.yaml 의 local 을 대체하지 않고 더하므로 둘 다 쓰지 않는다.
     // --옵션은 JobParameters 에서 빠지고 businessDate=… 만 들어간다
     private fun boot(jobName: String, db: String): ConfigurableApplicationContext =
-        SpringApplicationBuilder(NekiBatchApplication::class.java, FailingJobConfig::class.java)
+        SpringApplicationBuilder(NekiBatchApplication::class.java, TestJobsConfig::class.java)
             .run(
                 "--spring.profiles.active=test",
                 "--spring.batch.job.enabled=true",
@@ -85,13 +86,25 @@ class ExitCodeTest {
     /**
      * 실제 잡과 같이 RunIdIncrementer 를 둔다. incrementer 가 없는 잡은 반대로 FAILED 인스턴스를 같은 인자로
      * 재시작(restart)하므로, 이 설정이 빠지면 "새 JobInstance" 테스트가 의미를 잃는다.
+     * 종료 코드 계약만 보는 테스트라 실제 잡(searchIndexJob) 대신 no-op 잡과 실패 잡을 쓴다.
      */
     @TestConfiguration
-    class FailingJobConfig {
+    class TestJobsConfig {
 
-        @Bean(JOB_NAME)
+        @Bean(SUCCEEDING_JOB)
+        fun succeedingJob(jobRepository: JobRepository, transactionManager: PlatformTransactionManager): Job =
+            JobBuilder(SUCCEEDING_JOB, jobRepository)
+                .incrementer(RunIdIncrementer())
+                .start(
+                    StepBuilder("succeedingStep", jobRepository)
+                        .tasklet({ _, _ -> RepeatStatus.FINISHED }, transactionManager)
+                        .build(),
+                )
+                .build()
+
+        @Bean(FAILING_JOB)
         fun failingJob(jobRepository: JobRepository, transactionManager: PlatformTransactionManager): Job =
-            JobBuilder(JOB_NAME, jobRepository)
+            JobBuilder(FAILING_JOB, jobRepository)
                 .incrementer(RunIdIncrementer())
                 .start(
                     StepBuilder("failingStep", jobRepository)
@@ -101,7 +114,8 @@ class ExitCodeTest {
                 .build()
 
         companion object {
-            const val JOB_NAME = "failingJob"
+            const val SUCCEEDING_JOB = "succeedingJob"
+            const val FAILING_JOB = "failingJob"
         }
     }
 }
