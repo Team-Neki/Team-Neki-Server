@@ -30,7 +30,7 @@ class PhotoBoothLocation(
     @Column(name = "brand_id", nullable = false)
     var brandId: Long,
 
-    @Column(name = "branch_name", nullable = false, length = 100)
+    @Column(name = "branch_name", nullable = false)
     var branchName: String,
 
     @Column(name = "address", nullable = false, length = 255)

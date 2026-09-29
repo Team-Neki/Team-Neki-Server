@@ -25,6 +25,7 @@ import java.time.LocalDateTime
  *
  * TaskletStep 이 execute() 를 step 트랜잭션 안에서 돌리므로 비우기와 채우기가 한 트랜잭션이다. 별도 트랜잭션 선언은 두지 않는다.
  * 카드가 0건이거나 서빙 중(_read) 카드의 절반 미만이면 _write 를 건드리기 전에 예외로 끝낸다. 직전 세대가 그대로 남는다.
+ * 절반 검사는 force=true 로만 건너뛴다. 0건 검사는 force 여도 막는다.
  * 예외는 그대로 올려 step FAILED -> job FAILED -> 종료 코드 0 아님 (BACKEND-128 계약).
  */
 @Component
@@ -37,6 +38,8 @@ class BuildSearchCardsTasklet(
 
     override fun execute(contribution: StepContribution, chunkContext: ChunkContext): RepeatStatus {
         val businessDate: LocalDate = businessDate(chunkContext)
+        val force: Boolean =
+            chunkContext.stepContext.jobParameters[SearchIndexJobConfig.PARAM_FORCE]?.toString() == "true"
 
         // tb_brand.platform 이 NULL 인 브랜드는 수집 대상이 아니므로 매핑에서 뺀다
         val brands: Map<String, Brand> = brandRepository.findAll()
@@ -63,7 +66,12 @@ class BuildSearchCardsTasklet(
 
         val current: Long = repository.countCurrent()
         check(cards.isNotEmpty()) { "색인할 지점이 없습니다. enriched 가 비어 있거나 전부 건너뛰었습니다 (서빙 중 카드 ${current}건)" }
-        check(cards.size * 2 >= current) { "색인 건수 ${cards.size}건이 서빙 중 카드 ${current}건의 절반 미만이라 교체하지 않습니다" }
+        if (cards.size * 2 < current) {
+            check(force) {
+                "색인 건수 ${cards.size}건이 서빙 중 카드 ${current}건의 절반 미만이라 교체하지 않습니다. 의도한 감소면 force=true 로 다시 실행하세요"
+            }
+            log.warn("force=true 라 절반 하한 검사를 건너뜀 (indexed={}, current={})", cards.size, current)
+        }
 
         repository.replaceWrite(cards)
 

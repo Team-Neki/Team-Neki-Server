@@ -201,12 +201,26 @@ class SearchIndexJobTest {
         writeRepository.count() shouldBe 0
     }
 
-    /** 기동 시 JobLauncherApplicationRunner 가 하는 것과 같은 파라미터 구성 (incrementer 적용 뒤 인자 병합) */
-    private fun launch(businessDate: String): JobExecution {
-        val params: JobParameters = JobParametersBuilder(jobExplorer)
+    @Test
+    fun `force=true 면 절반 미만이어도 교체한다`() {
+        givenBrand()
+        (1..3).forEach { givenEnriched("포토시그니처 ${it}호점", idx = it.toString()) }
+        launch(BUSINESS_DATE).status shouldBe BatchStatus.COMPLETED
+        enrichedRepository.deleteAllInBatch()
+        givenEnriched("포토시그니처 1호점", idx = "1")
+
+        launch(BUSINESS_DATE, force = true).status shouldBe BatchStatus.COMPLETED
+
+        readRepository.count() shouldBe 1
+    }
+
+    /** 기동 시 JobLauncherApplicationRunner 가 하는 것과 같은 파라미터 구성 (incrementer 적용 뒤 인자 병합). 명령줄 인자는 문자열로 들어온다 */
+    private fun launch(businessDate: String, force: Boolean? = null): JobExecution {
+        val builder: JobParametersBuilder = JobParametersBuilder(jobExplorer)
             .getNextJobParameters(job)
             .addString(SearchIndexJobConfig.PARAM_BUSINESS_DATE, businessDate)
-            .toJobParameters()
+        force?.let { builder.addString(SearchIndexJobConfig.PARAM_FORCE, it.toString()) }
+        val params: JobParameters = builder.toJobParameters()
 
         return jobLauncher.run(job, params)
     }

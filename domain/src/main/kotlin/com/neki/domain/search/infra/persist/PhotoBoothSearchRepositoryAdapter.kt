@@ -28,6 +28,7 @@ class PhotoBoothSearchRepositoryAdapter(
 ) : PhotoBoothSearchRepository {
 
     // 운영은 PostgreSQL, 테스트는 H2. lock_timeout 과 ANALYZE 문법만 다르다
+    // H2 분기는 테스트 전용이다. 그래서 테스트는 운영과 다른 SQL 을 돈다. Testcontainers 로 옮기면 지운다
     private val postgres: Boolean by lazy {
         jdbcTemplate.dataSource!!.connection.use { it.metaData.databaseProductName == "PostgreSQL" }
     }

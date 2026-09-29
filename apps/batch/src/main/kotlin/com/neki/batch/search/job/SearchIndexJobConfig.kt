@@ -43,5 +43,8 @@ class SearchIndexJobConfig {
 
         /** Prefect 가 넘기는 잡 파라미터. 어느 수집 사이클의 카드인지 (businessDate=2026-09-25) */
         const val PARAM_BUSINESS_DATE = "businessDate"
+
+        /** force=true 면 절반 하한 검사만 건너뛴다. 브랜드 계약 종료처럼 정상적인 대량 감소를 반영할 때 수동으로 넘긴다 */
+        const val PARAM_FORCE = "force"
     }
 }
