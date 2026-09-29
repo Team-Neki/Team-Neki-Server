@@ -24,7 +24,7 @@ class PhotoBoothLocation(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name = "map_id", nullable = false)
+    @Column(name = "map_id", nullable = false, length = 128)
     val mapId: String,
 
     @Column(name = "brand_id", nullable = false)
