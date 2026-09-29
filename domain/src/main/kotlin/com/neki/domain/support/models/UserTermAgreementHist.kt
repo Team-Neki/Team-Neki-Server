@@ -49,3 +49,8 @@ class UserTermAgreementHist(
             UserTermAgreementHist(userId = userId, termId = termId, action = TermAgreementAction.WITHDRAWN)
     }
 }
+
+enum class TermAgreementAction {
+    AGREED,
+    WITHDRAWN,
+}
