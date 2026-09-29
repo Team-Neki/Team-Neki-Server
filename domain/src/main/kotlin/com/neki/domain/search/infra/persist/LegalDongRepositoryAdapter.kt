@@ -17,10 +17,10 @@ class LegalDongRepositoryAdapter(private val queryRepository: LegalDongQueryRepo
 
     override fun findByNameOrPathPrefix(
         namePrefix: String,
-        pathPrefix: String,
+        pathPrefix: String?,
         pagination: Pagination,
     ): List<LegalDong> = queryRepository.findByNameOrPathPrefix(namePrefix, pathPrefix, pagination)
 
-    override fun countByNameOrPathPrefix(namePrefix: String, pathPrefix: String): Long =
+    override fun countByNameOrPathPrefix(namePrefix: String, pathPrefix: String?): Long =
         queryRepository.countByNameOrPathPrefix(namePrefix, pathPrefix)
 }

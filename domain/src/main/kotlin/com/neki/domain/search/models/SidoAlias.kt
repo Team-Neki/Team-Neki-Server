@@ -5,7 +5,7 @@ package com.neki.domain.search.models
  * author         : darren
  * date           : 2026. 9. 30.
  * description    : 지역 검색어 첫 낱말의 시도 줄임말·옛 이름을 법정동 원천의 시도 이름으로 바꾼다.
- *                  `서울 강남` 을 `서울특별시 강남` 으로, `충북` 을 `충청북도` 로 바꿔 전체 경로 접두 검색에 태운다.
+ *                  `서울 강남` 을 `서울특별시 강남` 으로 바꿔 전체 경로 접두 검색에 태운다.
  *                  검색어 쪽만 바꾸므로 full_name 의 text_pattern_ops 인덱스를 그대로 탄다.
  */
 object SidoAlias {
@@ -33,11 +33,13 @@ object SidoAlias {
     }
 
     /**
-     * 첫 낱말이 줄임말이면 시도 이름으로 바꾼다. `충북` 은 `충청북도`, `서울 강남` 은 `서울특별시 강남`.
+     * 공백이 있고 첫 낱말이 줄임말이면 시도 이름으로 바꾼다. 공백이 없으면 그대로 둔다.
      * 전체 경로 검색에만 쓴다. 이름 검색까지 바꾸면 `광주` 로 경기도 광주시를 못 찾는다.
      */
     fun expand(keyword: String): String {
         val first: String = keyword.substringBefore(' ')
+        if (first == keyword) return keyword
+
         val fullName: String = FULL_NAMES[first] ?: return keyword
         return fullName + keyword.substring(first.length)
     }

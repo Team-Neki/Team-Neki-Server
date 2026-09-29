@@ -17,7 +17,7 @@ import org.springframework.stereotype.Repository
 @Repository
 class LegalDongQueryRepository(private val queryFactory: JPAQueryFactory) {
 
-    fun findByNameOrPathPrefix(namePrefix: String, pathPrefix: String, pagination: Pagination): List<LegalDong> =
+    fun findByNameOrPathPrefix(namePrefix: String, pathPrefix: String?, pagination: Pagination): List<LegalDong> =
         queryFactory
             .selectFrom(legalDong)
             .where(nameOrPathStartsWith(namePrefix, pathPrefix))
@@ -26,7 +26,7 @@ class LegalDongQueryRepository(private val queryFactory: JPAQueryFactory) {
             .limit(pagination.limit.toLong())
             .fetch()
 
-    fun countByNameOrPathPrefix(namePrefix: String, pathPrefix: String): Long = queryFactory
+    fun countByNameOrPathPrefix(namePrefix: String, pathPrefix: String?): Long = queryFactory
         .select(legalDong.count())
         .from(legalDong)
         .where(nameOrPathStartsWith(namePrefix, pathPrefix))
@@ -36,7 +36,11 @@ class LegalDongQueryRepository(private val queryFactory: JPAQueryFactory) {
      * `강남` 처럼 이 구역 이름으로 찾거나, `서울특별시 강남` 처럼 상위 경로부터 적어 찾는다.
      * 전체 경로로 찾으면 그 아래 구역도 함께 걸린다 (`서울특별시 강남구` 에 역삼동도 나온다).
      */
-    private fun nameOrPathStartsWith(namePrefix: String, pathPrefix: String): BooleanExpression =
-        legalDong.leafName.startsWith(namePrefix).or(legalDong.fullName.startsWith(pathPrefix))
-            .and(legalDong.level.gt(LegalDong.SIDO_LEVEL))
+    private fun nameOrPathStartsWith(namePrefix: String, pathPrefix: String?): BooleanExpression {
+        val nameStartsWith: BooleanExpression = legalDong.leafName.startsWith(namePrefix)
+        val matched: BooleanExpression =
+            pathPrefix?.let { nameStartsWith.or(legalDong.fullName.startsWith(it)) } ?: nameStartsWith
+
+        return matched.and(legalDong.level.gt(LegalDong.SIDO_LEVEL))
+    }
 }
