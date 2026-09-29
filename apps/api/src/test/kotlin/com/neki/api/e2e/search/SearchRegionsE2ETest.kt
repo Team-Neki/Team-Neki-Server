@@ -46,6 +46,7 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         createLegalDong("4817010300", 3, "강남동", "경상남도 진주시 강남동")
         createLegalDong("5279033026", 4, "강남리", "전북특별자치도 고창군 무장면 강남리")
         createLegalDong("4111100000", 2, "수원시 장안구", "경기도 수원시 장안구")
+        createLegalDong("1230000000", 2, "북구", "전남광주통합특별시 북구")
     }
 
     private fun get(vararg params: Pair<String, Any>) = RestAssured.given()
@@ -185,6 +186,38 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(1))
                 .body("data.items[0].keyword", equalTo("경기도 수원시 장안구"))
+        }
+
+        @Test
+        @DisplayName("시도 줄임말로 전체 경로를 적어도 찾는다")
+        fun givenSidoAlias_whenSearch_thenExpandsToFullSidoName() {
+            get("keyword" to "서울 강남구")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+
+            get("keyword" to "서울시 강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+        }
+
+        @Test
+        @DisplayName("광주는 통합된 시도 이름으로 찾는다")
+        fun givenGwangjuAlias_whenSearch_thenReturnsMergedSidoRegion() {
+            get("keyword" to "광주 북구")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("전남광주통합특별시 북구"))
+        }
+
+        @Test
+        @DisplayName("시도 줄임말만 적으면 시도 검색이 되지 않는다")
+        fun givenSidoAliasOnly_whenSearch_thenReturnsEmptyList() {
+            get("keyword" to "서울 ")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+                .body("data.totalCount", equalTo(0))
         }
 
         @Test

@@ -3,6 +3,7 @@ package com.neki.domain.search.service
 import com.neki.core.domain.vo.PageWithTotalCount
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.LegalDong
+import com.neki.domain.search.models.SidoAlias
 import com.neki.domain.search.repository.LegalDongRepository
 import org.springframework.stereotype.Component
 
@@ -16,8 +17,10 @@ import org.springframework.stereotype.Component
 class RegionSearchService(private val legalDongRepository: LegalDongRepository) {
 
     fun search(query: SearchQuery.SearchRegions): PageWithTotalCount<LegalDong> {
-        val fetched: List<LegalDong> = legalDongRepository.findByNamePrefix(query.keyword, query.pagination)
-        val totalCount: Long = legalDongRepository.countByNamePrefix(query.keyword)
+        val keyword: String = SidoAlias.expand(query.keyword)
+
+        val fetched: List<LegalDong> = legalDongRepository.findByNamePrefix(keyword, query.pagination)
+        val totalCount: Long = legalDongRepository.countByNamePrefix(keyword)
 
         return query.pagination.slice(fetched, totalCount)
     }
