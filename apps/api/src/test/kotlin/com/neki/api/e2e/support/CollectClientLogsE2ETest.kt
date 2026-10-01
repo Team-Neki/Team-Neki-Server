@@ -60,16 +60,21 @@ class CollectClientLogsE2ETest : E2ETestBase() {
     @DisplayName("로그 배치를 보내면 토큰의 userId 와 함께 원본 JSON 그대로 전달된다")
     fun givenLogs_whenCollect_thenSentWithUserId() {
         val logs: List<Map<String, Any?>> = listOf(
-            mapOf("level" to "ERROR", "message" to "upload failed", "extra" to mapOf("code" to 500)),
-            mapOf("event" to "tap_pose"),
+            mapOf(
+                "appVersion" to "1.4.0",
+                "level" to "ERROR",
+                "message" to "upload failed",
+                "extra" to mapOf("code" to 500),
+            ),
+            mapOf("appVersion" to "1.3.9", "event" to "tap_pose"),
         )
 
-        post(mapOf("platform" to "IOS", "appVersion" to "1.4.0", "logs" to logs))
+        post(mapOf("platform" to "IOS", "logs" to logs))
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
         assertEquals(
-            listOf(ClientLogCommand.Collect(testUser.id!!, Platform.IOS, "1.4.0", logs)),
+            listOf(ClientLogCommand.Collect(testUser.id!!, Platform.IOS, logs)),
             fakeClientLogSender.sent,
         )
     }
@@ -79,7 +84,7 @@ class CollectClientLogsE2ETest : E2ETestBase() {
     fun givenNoToken_whenCollect_thenRejected() {
         RestAssured.given()
             .contentType(ContentType.JSON)
-            .body(mapOf("platform" to "IOS", "appVersion" to "1.4.0", "logs" to listOf(mapOf("a" to 1))))
+            .body(mapOf("platform" to "IOS", "logs" to listOf(mapOf("a" to 1))))
             .`when`()
             .post("/api/logs")
             .then()
@@ -93,7 +98,7 @@ class CollectClientLogsE2ETest : E2ETestBase() {
     @DisplayName("로그가 비었거나 500건을 넘으면 400 을 반환한다")
     fun givenEmptyOrTooManyLogs_whenCollect_thenBadRequest() {
         listOf(emptyList(), List(501) { mapOf("i" to it) }).forEach { logs ->
-            post(mapOf("platform" to "ANDROID", "appVersion" to "1.4.0", "logs" to logs))
+            post(mapOf("platform" to "ANDROID", "logs" to logs))
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
@@ -104,9 +109,9 @@ class CollectClientLogsE2ETest : E2ETestBase() {
     @Test
     @DisplayName("지원하지 않는 플랫폼이거나 로그 원소가 객체가 아니면 400 을 반환한다")
     fun givenInvalidPlatformOrNonObjectLog_whenCollect_thenBadRequest() {
-        post(mapOf("platform" to "WEB", "appVersion" to "1.4.0", "logs" to listOf(mapOf("a" to 1))))
+        post(mapOf("platform" to "WEB", "logs" to listOf(mapOf("a" to 1))))
             .statusCode(HttpStatus.BAD_REQUEST.value())
-        post(mapOf("platform" to "IOS", "appVersion" to "1.4.0", "logs" to listOf("plain string")))
+        post(mapOf("platform" to "IOS", "logs" to listOf("plain string")))
             .statusCode(HttpStatus.BAD_REQUEST.value())
 
         assertTrue(fakeClientLogSender.sent.isEmpty())

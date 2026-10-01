@@ -33,7 +33,6 @@ Content-Type: application/json
 
 {
   "platform": "IOS",
-  "appVersion": "0.0.0-oracle",
   "logs": [{"oracle": "BACKEND-166"}]
 }
 
@@ -51,7 +50,6 @@ Content-Type: application/json
 
 {
   "platform": "IOS",
-  "appVersion": "0.0.0-oracle",
   "logs": []
 }
 
@@ -69,8 +67,7 @@ Content-Type: application/json
 
 {
   "platform": "IOS",
-  "appVersion": "0.0.0-oracle",
-  "logs": [{"oracle": "BACKEND-166", "phase": "before-stream", "sentAt": "{{$isoTimestamp}}"}]
+  "logs": [{"oracle": "BACKEND-166", "appVersion": "0.0.0-oracle", "phase": "before-stream", "sentAt": "{{$isoTimestamp}}"}]
 }
 
 > {%
@@ -87,10 +84,9 @@ Content-Type: application/json
 
 {
   "platform": "IOS",
-  "appVersion": "0.0.0-oracle",
   "logs": [
-    {"oracle": "BACKEND-166", "seq": 1, "userId": -1, "sentAt": "{{$isoTimestamp}}"},
-    {"oracle": "BACKEND-166", "seq": 2, "nested": {"level": "ERROR", "tags": ["a", "b"]}, "sentAt": "{{$isoTimestamp}}"}
+    {"oracle": "BACKEND-166", "appVersion": "0.0.0-oracle", "seq": 1, "userId": -1, "sentAt": "{{$isoTimestamp}}"},
+    {"oracle": "BACKEND-166", "appVersion": "0.0.0-oracle", "seq": 2, "nested": {"level": "ERROR", "tags": ["a", "b"]}, "sentAt": "{{$isoTimestamp}}"}
   ]
 }
 

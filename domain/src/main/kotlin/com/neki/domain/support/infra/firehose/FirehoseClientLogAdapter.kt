@@ -76,7 +76,6 @@ class FirehoseClientLogAdapter(
         val record: Map<String, Any?> = mapOf(
             "userId" to command.userId,
             "platform" to command.platform,
-            "appVersion" to command.appVersion,
             "receivedAt" to receivedAt,
             "log" to clientLog,
         )

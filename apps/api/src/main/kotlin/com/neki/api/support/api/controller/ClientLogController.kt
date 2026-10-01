@@ -33,9 +33,10 @@ class ClientLogController(
     @Operation(
         summary = "클라이언트 로그 수집 API",
         description = """
-            앱 로그를 모아 한 번에 보냅니다. 서버는 로그마다 userId, platform, appVersion, receivedAt 을 붙여
+            앱 로그를 모아 한 번에 보냅니다. 서버는 로그마다 userId, platform, receivedAt 을 붙여
             Kinesis Firehose 로 전달합니다. logs 의 각 원소는 형식 제한이 없는 JSON 객체입니다.
 
+            - 각 로그에 appVersion(로그가 발생한 시점의 앱 버전)을 넣어 주세요. 쌓아 둔 로그를 업데이트 뒤에 보내도 버전이 틀어지지 않습니다
             - 요청당 1~500건, 직렬화 후 로그 1건 1,000KiB · 요청 전체 4MiB 이하
             - D-14 (LOG_SEND_FAILED): 일시적 실패. 같은 배치를 나중에 다시 보내세요 (일부 중복 적재될 수 있음)
             - D-01 (INVALID_PARAMETER): 형식·크기 오류. 다시 보내도 실패하므로 버리세요

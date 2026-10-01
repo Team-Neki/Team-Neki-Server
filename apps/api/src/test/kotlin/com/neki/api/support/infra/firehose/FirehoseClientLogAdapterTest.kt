@@ -28,7 +28,7 @@ class FirehoseClientLogAdapterTest {
     private val adapter = FirehoseClientLogAdapter(firehoseClient, objectMapper, "team-neki-log-raw-test")
 
     private fun command(vararg logs: Map<String, Any?>) =
-        ClientLogCommand.Collect(userId = 7, platform = Platform.ANDROID, appVersion = "1.4.0", logs = logs.toList())
+        ClientLogCommand.Collect(userId = 7, platform = Platform.ANDROID, logs = logs.toList())
 
     @Test
     @DisplayName("로그 1건을 서버 필드와 원본 log 를 담은 NDJSON 한 줄로 보낸다")
@@ -37,7 +37,14 @@ class FirehoseClientLogAdapterTest {
         every { firehoseClient.putRecordBatch(capture(request)) } returns
             PutRecordBatchResponse.builder().failedPutCount(0).build()
 
-        adapter.send(command(mapOf("userId" to 999, "message" to "boom"), mapOf("event" to "tap")))
+        adapter.send(
+            command(
+                mapOf("userId" to 999, "appVersion" to "1.4.0", "message" to "boom"),
+                mapOf(
+                    "event" to "tap",
+                ),
+            ),
+        )
 
         assertEquals("team-neki-log-raw-test", request.captured.deliveryStreamName())
         val lines: List<String> = request.captured.records().map { it.data().asUtf8String() }
@@ -47,8 +54,8 @@ class FirehoseClientLogAdapterTest {
         val first: Map<*, *> = objectMapper.readValue(lines[0], Map::class.java)
         assertEquals(7, first["userId"]) // 클라이언트가 보낸 userId 는 log 아래에 남고 덮어쓰지 못한다
         assertEquals("ANDROID", first["platform"])
-        assertEquals("1.4.0", first["appVersion"])
-        assertEquals(mapOf("userId" to 999, "message" to "boom"), first["log"])
+        assertEquals(setOf("userId", "platform", "receivedAt", "log"), first.keys)
+        assertEquals(mapOf("userId" to 999, "appVersion" to "1.4.0", "message" to "boom"), first["log"])
         assertTrue(first["receivedAt"] is String)
     }
 

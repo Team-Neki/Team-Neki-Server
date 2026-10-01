@@ -16,7 +16,6 @@ object ClientLogConverter {
             ClientLogCommand.Collect(
                 userId = userId,
                 platform = request.platform,
-                appVersion = request.appVersion,
                 logs = request.logs,
             )
     }
