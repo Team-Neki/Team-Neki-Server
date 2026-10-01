@@ -27,8 +27,9 @@ object SearchQuery {
     data class SearchStations(val keyword: String, val pagination: Pagination, val userLocation: UserLocation?)
 
     /**
-     * 부스 검색. keyword 는 지점명, 브랜드명, `브랜드명 지점명` 에 대한 접두 일치다.
-     * userLocation 이 있으면 가까운 순, 없으면 브랜드명, 지점명 순.
+     * 부스 검색. keyword 전체가 지점명, 브랜드명, `브랜드명 지점명` 의 앞부분이거나,
+     * 낱말마다 브랜드명·지점명·주소 중 하나에 들어 있는 부스 (CompletionKeyword.boothTerms).
+     * 이름 앞부분 일치가 먼저 오고, 그 안에서 userLocation 이 있으면 가까운 순, 없으면 브랜드명, 지점명 순.
      */
     data class SearchPhotoBoothsByKeyword(
         val keyword: String,
