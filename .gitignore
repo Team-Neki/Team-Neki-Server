@@ -55,3 +55,6 @@ infra/terraform/aws/staging/.terraform
 
 ### Worktrees (dag-worktree-delivery)
 .worktrees/
+
+# IntelliJ HTTP Client 비공개 env (accessToken)
+http/http-client.private.env.json
