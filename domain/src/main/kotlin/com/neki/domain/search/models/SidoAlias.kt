@@ -44,6 +44,15 @@ object SidoAlias {
         return fullName + keyword.substring(first.length)
     }
 
+    /**
+     * 낱말이 시도 이름이나 줄임말이면 같은 시도를 부르는 이름 전부, 아니면 낱말 하나.
+     * 부스 주소는 `서울 강남구`, `강원특별자치도 춘천시` 처럼 표기가 섞여 있어 어느 쪽으로 쳐도 맞게 비교하는 데 쓴다.
+     */
+    fun equivalents(word: String): List<String> {
+        val fullName: String = FULL_NAMES[word] ?: word.takeIf { it in FULL_NAMES.values } ?: return listOf(word)
+        return listOf(fullName) + FULL_NAMES.filterValues { it == fullName }.keys
+    }
+
     private fun MutableMap<String, String>.alias(fullName: String, vararg aliases: String) {
         aliases.forEach { put(it, fullName) }
     }

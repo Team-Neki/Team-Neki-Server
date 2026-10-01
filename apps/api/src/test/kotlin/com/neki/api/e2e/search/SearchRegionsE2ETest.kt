@@ -38,6 +38,9 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         accessToken = token
 
         // tb_legal_dong 의 실제 행. 시도·하위 계층·접두가 아닌 이름이 섞이도록 골랐다.
+        createBrand("포토그레이", "PHOTOGRAY")
+        createBrand("플랜비 스튜디오", "PLANB_STUDIO")
+
         createLegalDong("1100000000", 1, "서울특별시", "서울특별시")
         createLegalDong("1165000000", 2, "서초구", "서울특별시 서초구")
         createLegalDong("1165010100", 3, "방배동", "서울특별시 서초구 방배동")
@@ -86,6 +89,34 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
                 .body("data.totalCount", equalTo(2))
                 .body("data.items[0].keyword", equalTo("서울특별시 강서구 화곡동"))
                 .body("data.items[1].keyword", equalTo("경기도 안성시 일죽면 화곡리"))
+        }
+
+        @Test
+        @DisplayName("부스 탭과 같은 검색어에서 브랜드 낱말은 빼고 찾는다")
+        fun givenKeywordWithBrandWord_whenSearch_thenIgnoresBrandWord() {
+            listOf("강남 포토그레이", "포토그레이 강남", "강남 플랜비 스튜디오").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("data.totalCount", equalTo(3))
+                    .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+            }
+
+            get("keyword" to "포토그레이 서울 강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(2))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+                .body("data.items[1].keyword", equalTo("서울특별시 강남구 역삼동"))
+        }
+
+        @Test
+        @DisplayName("브랜드만 적으면 빈 결과다")
+        fun givenBrandOnly_whenSearch_thenReturnsEmptyList() {
+            listOf("포토그레이", "포토그레이 플랜비").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("data.items", empty<Any>())
+                    .body("data.totalCount", equalTo(0))
+            }
         }
 
         @Test

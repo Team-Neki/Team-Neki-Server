@@ -53,6 +53,7 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         val lifeFourCut: Brand = createBrand("인생네컷", "LIFEFOURCUTS")
         val planB: Brand = createBrand("플랜비 스튜디오", "PLANB_STUDIO")
         val photoSignature: Brand = createBrand("포토시그니처", "PHOTOSIGNATURE")
+        val photoGray: Brand = createBrand("포토그레이", "PHOTOGRAY")
         val deleted: Brand = brandRepository.save(
             Brand(name = "삭제브랜드", code = "DELETED", deletedAt = LocalDateTime.now()),
         )
@@ -66,6 +67,10 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         // 수집한 지점명에는 브랜드명이 붙어 있는 것이 있다
         createPhotoBoothLocation(photoSignature.id!!, "포토시그니처 고현점", "경남 거제시", 128.6213, 34.8806)
         createPhotoBoothLocation(deleted.id!!, "강남삭제점", "서울 강남구", 127.0300, 37.5000)
+        // 낱말 검색: 지점명 중간에 `강남` (서초구), 주소만 강남구, 강남과 무관
+        createPhotoBoothLocation(photoGray.id!!, "서울강남점", "서울 서초구 서초대로77길 37", 127.0200, 37.4900)
+        createPhotoBoothLocation(photoGray.id!!, "대치동점", "서울 강남구 도곡로78길 6", 127.0600, 37.4950)
+        createPhotoBoothLocation(photoGray.id!!, "홍대점", "서울 마포구 와우산로 1", 126.9230, 37.5560)
         // 지점명이 비었거나 브랜드명과 같은 부스는 검색에서 빠진다
         createPhotoBoothLocation(photoism.id!!, "", "서울 중구", 126.9780, 37.5665)
         createPhotoBoothLocation(photoism.id!!, "  ", "서울 중구", 126.9781, 37.5666)
@@ -91,17 +96,40 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
     inner class SuccessTests {
 
         @Test
-        @DisplayName("지점명 접두로 찾고 브랜드명, 지점명 순으로 `브랜드명 지점명` 을 반환한다")
-        fun givenBranchPrefix_whenSearch_thenReturnsOrderedByBrandAndBranch() {
+        @DisplayName("지점명 접두로 걸린 것이 브랜드명, 지점명 순으로 먼저 오고 지점명 중간·주소로 걸린 것이 뒤에 온다")
+        fun givenBranchPrefix_whenSearch_thenPrefixMatchesComeFirst() {
             get("keyword" to "강남")
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-                .body("data.totalCount", equalTo(4))
+                .body("data.totalCount", equalTo(6))
                 .body("data.hasNext", equalTo(false))
                 .body("data.items[0].keyword", equalTo("인생네컷 강남구청점"))
                 .body("data.items[1].keyword", equalTo("포토이즘 강남역2호점"))
                 .body("data.items[2].keyword", equalTo("포토이즘 강남점"))
                 .body("data.items[3].keyword", equalTo("플랜비 스튜디오 강남점"))
+                .body("data.items[4].keyword", equalTo("포토그레이 서울강남점"))
+                .body("data.items[5].keyword", equalTo("포토그레이 대치동점"))
+        }
+
+        @Test
+        @DisplayName("지역과 브랜드를 섞어 순서 없이 적어도 낱말이 모두 맞는 부스를 찾는다")
+        fun givenRegionAndBrandWords_whenSearch_thenReturnsBoothsMatchingEveryWord() {
+            listOf("강남 포토그레이", "포토그레이 강남").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("data.totalCount", equalTo(2))
+                    .body("data.items[0].keyword", equalTo("포토그레이 서울강남점"))
+                    .body("data.items[1].keyword", equalTo("포토그레이 대치동점"))
+            }
+        }
+
+        @Test
+        @DisplayName("주소의 시도는 줄임말과 정식 이름 어느 쪽으로 적어도 맞는다")
+        fun givenFullSidoName_whenSearch_thenMatchesShortAddress() {
+            get("keyword" to "서울특별시 강남구 포토그레이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("포토그레이 대치동점"))
         }
 
         @Test
@@ -191,7 +219,7 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
             // 가까운 순 정렬은 PostgreSQL 전용이라 순서 대신 항목별 거리만 본다
             get("keyword" to "강남", "latitude" to 37.4979, "longitude" to 127.0276)
                 .statusCode(HttpStatus.OK.value())
-                .body("data.totalCount", equalTo(4))
+                .body("data.totalCount", equalTo(6))
                 .body("data.items.find { it.keyword == '포토이즘 강남점' }.distanceKm", equalTo(0.0f))
                 .body("data.items.find { it.keyword == '포토이즘 강남역2호점' }.distanceKm", equalTo(0.1f))
                 .body("data.items.find { it.keyword == '플랜비 스튜디오 강남점' }.distanceKm", equalTo(0.2f))
@@ -222,17 +250,17 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items.size()", equalTo(3))
                 .body("data.hasNext", equalTo(true))
-                .body("data.totalCount", equalTo(4))
+                .body("data.totalCount", equalTo(6))
         }
 
         @Test
         @DisplayName("페이징 - 마지막 페이지는 hasNext 가 false 다")
         fun givenLastPage_whenSearch_thenHasNextIsFalse() {
-            get("keyword" to "강남", "page" to 1, "size" to 3)
+            get("keyword" to "강남", "page" to 1, "size" to 4)
                 .statusCode(HttpStatus.OK.value())
-                .body("data.items.size()", equalTo(1))
+                .body("data.items.size()", equalTo(2))
                 .body("data.hasNext", equalTo(false))
-                .body("data.items[0].keyword", equalTo("플랜비 스튜디오 강남점"))
+                .body("data.items[0].keyword", equalTo("포토그레이 서울강남점"))
         }
     }
 

@@ -8,6 +8,7 @@ import com.neki.domain.map.models.QPhotoBoothLocation.photoBoothLocation
 import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.BooleanExpression
+import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.core.types.dsl.NumberExpression
 import com.querydsl.core.types.dsl.StringExpression
@@ -69,7 +70,7 @@ class PhotoBoothLocationQueryRepository(
      * 지점명, 브랜드명, `브랜드명 지점명` 중 하나가 keyword 로 시작하는 포토부스.
      * 위치가 있으면 가까운 순, 없으면 브랜드명, 지점명 순이고 같은 값이면 id 순이다.
      */
-    fun findByNamePrefix(query: MapQuery.SearchPhotoBooths): List<PhotoBoothLocationView> = queryFactory
+    fun findByKeyword(query: MapQuery.SearchPhotoBooths): List<PhotoBoothLocationView> = queryFactory
         .select(
             Projections.constructor(
                 PhotoBoothLocationView::class.java,
@@ -82,21 +83,60 @@ class PhotoBoothLocationQueryRepository(
         )
         .from(photoBoothLocation)
         .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.deletedAt.isNull)
-        .where(nameStartsWith(query.keyword), hasOwnBranchName())
-        .orderBy(*nameSearchOrder(query.coordinate))
+        .where(matches(query))
+        .orderBy(relevance(query).asc(), *nameSearchOrder(query.coordinate))
         .offset(query.pagination.offset.toLong())
         .limit(query.pagination.limit.toLong())
         .fetch()
 
-    fun countByNamePrefix(keyword: String): Long = queryFactory
+    fun countByKeyword(query: MapQuery.SearchPhotoBooths): Long = queryFactory
         .select(photoBoothLocation.count())
         .from(photoBoothLocation)
         .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.deletedAt.isNull)
-        .where(nameStartsWith(keyword), hasOwnBranchName())
+        .where(matches(query))
         .fetchOne() ?: 0L
 
     /**
-     * `강남` 처럼 지점명, `포토이즘` 처럼 브랜드명, `포토이즘 강남` 처럼 둘을 이어 적어도 찾는다.
+     * 지점명이 있고, 검색어 전체가 이름 앞부분이거나 낱말마다 브랜드명·지점명·주소 중 하나에 들어 있는 부스.
+     * `강남 포토그레이` 는 브랜드명에 `포토그레이`, 지점명이나 주소에 `강남` 이 있는 부스다. 낱말 순서는 상관없다.
+     * 중간 일치라 인덱스를 못 타지만 이 쿼리는 원래 전체를 훑는다.
+     */
+    private fun matches(query: MapQuery.SearchPhotoBooths): BooleanExpression {
+        val nameStartsWith: BooleanExpression = nameStartsWith(query.keyword)
+        val termsMatched: BooleanExpression = everyTermIn(query.terms, withAddress = true) ?: return nameStartsWith
+        return hasOwnBranchName().and(nameStartsWith.or(termsMatched))
+    }
+
+    /**
+     * 0 : 검색어 전체가 이름 앞부분 (낱말 검색을 넣기 전 결과. 이 순서 그대로 맨 위에 온다)
+     * 1 : 낱말이 전부 브랜드명·지점명에 있음 (`서울강남점`)
+     * 2 : 주소까지 봐야 맞음 (강남구의 `대치동점`)
+     */
+    private fun relevance(query: MapQuery.SearchPhotoBooths): NumberExpression<Int> {
+        val startsWith = CaseBuilder().`when`(nameStartsWith(query.keyword)).then(0)
+        val inName: BooleanExpression = everyTermIn(query.terms, withAddress = false) ?: return startsWith.otherwise(2)
+        return startsWith.`when`(inName).then(1).otherwise(2)
+    }
+
+    /** 낱말마다 같은 뜻의 이름 중 하나가 브랜드명·지점명(·주소)에 들어 있는가. 낱말이 없으면 null */
+    private fun everyTermIn(terms: List<List<String>>, withAddress: Boolean): BooleanExpression? {
+        if (terms.isEmpty()) return null
+
+        val perTerm: List<BooleanExpression> = terms.map { names ->
+            val matched: List<BooleanExpression> = names.flatMap { name ->
+                listOfNotNull(
+                    brand.name.containsIgnoreCase(name),
+                    photoBoothLocation.branchName.containsIgnoreCase(name),
+                    photoBoothLocation.address.containsIgnoreCase(name).takeIf { withAddress },
+                )
+            }
+            Expressions.anyOf(*matched.toTypedArray())
+        }
+        return Expressions.allOf(*perTerm.toTypedArray())
+    }
+
+    /**
+     * 검색어 전체가 이름 앞부분인가. `강남` 은 지점명, `포토이즘` 은 브랜드명, `포토이즘 강남` 은 둘을 이은 것.
      * branch_name 에 인덱스가 없어 어차피 전체를 훑으므로 대소문자를 무시한다 (`서울NC송파점` 을 `서울nc` 로).
      */
     private fun nameStartsWith(keyword: String): BooleanExpression =

@@ -23,7 +23,7 @@ class SearchPhotoBoothsByKeywordUseCase(private val photoBoothClient: PhotoBooth
             if (query.keyword.length < SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH) {
                 query.pagination.slice(emptyList(), 0L)
             } else {
-                photoBoothClient.searchByName(query)
+                photoBoothClient.searchByKeyword(query)
             }
 
         return SearchAssembler.toPhotoBoothCompletion(booths, query.userLocation)

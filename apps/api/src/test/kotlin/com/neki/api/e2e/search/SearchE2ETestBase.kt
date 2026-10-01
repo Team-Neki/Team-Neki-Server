@@ -1,6 +1,8 @@
 package com.neki.api.e2e.search
 
 import com.neki.api.e2e.E2ETestBase
+import com.neki.domain.map.infra.persist.jpa.JpaBrandRepository
+import com.neki.domain.map.models.Brand
 import com.neki.domain.search.infra.persist.jpa.JpaLegalDongRepository
 import com.neki.domain.search.infra.persist.jpa.JpaSubwayStationRepository
 import com.neki.domain.search.models.LegalDong
@@ -26,17 +28,24 @@ abstract class SearchE2ETestBase : E2ETestBase() {
     @Autowired
     protected lateinit var subwayStationRepository: JpaSubwayStationRepository
 
+    /** 지역·역 검색은 검색어에서 브랜드 낱말을 빼므로 브랜드가 필요하다 */
+    @Autowired
+    protected lateinit var brandRepository: JpaBrandRepository
+
     private val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
 
     @AfterEach
     override fun tearDown() {
         legalDongRepository.deleteAllInBatch()
         subwayStationRepository.deleteAllInBatch()
+        brandRepository.deleteAllInBatch()
         super.tearDown()
     }
 
     protected fun createLegalDong(code: String, level: Int, leafName: String, fullName: String): LegalDong =
         legalDongRepository.save(LegalDong(code = code, level = level, leafName = leafName, fullName = fullName))
+
+    protected fun createBrand(name: String, code: String): Brand = brandRepository.save(Brand(name = name, code = code))
 
     protected fun createSubwayStation(
         name: String,

@@ -46,4 +46,14 @@ class SidoAliasTest :
             SidoAlias.expand("수원시 장안") shouldBe "수원시 장안"
             SidoAlias.expand("광주시 오포") shouldBe "광주시 오포"
         }
+
+        test("equivalents - 시도 이름이나 줄임말이면 같은 시도를 부르는 이름 전부") {
+            SidoAlias.equivalents("서울특별시") shouldBe listOf("서울특별시", "서울", "서울시")
+            SidoAlias.equivalents("강원") shouldBe listOf("강원특별자치도", "강원", "강원도")
+        }
+
+        test("equivalents - 시도 이름이 아니면 낱말 하나") {
+            SidoAlias.equivalents("강남") shouldBe listOf("강남")
+            SidoAlias.equivalents("광주시") shouldBe listOf("광주시")
+        }
     })

@@ -38,10 +38,10 @@ class PhotoBoothLocationRepositoryAdapter(
         brandIds: List<Long>?,
     ): List<PhotoBoothLocationView> = queryRepository.findByPolygon(coordinates, brandIds)
 
-    override fun findByNamePrefix(query: MapQuery.SearchPhotoBooths): List<PhotoBoothLocationView> =
-        queryRepository.findByNamePrefix(query)
+    override fun findByKeyword(query: MapQuery.SearchPhotoBooths): List<PhotoBoothLocationView> =
+        queryRepository.findByKeyword(query)
 
-    override fun countByNamePrefix(keyword: String): Long = queryRepository.countByNamePrefix(keyword)
+    override fun countByKeyword(query: MapQuery.SearchPhotoBooths): Long = queryRepository.countByKeyword(query)
 
     override fun listPointLocations(
         coordinate: Coordinate,

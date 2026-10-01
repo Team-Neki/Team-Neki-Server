@@ -21,8 +21,8 @@ class SearchPhotoBoothLocationsUseCase(
 ) {
 
     fun execute(query: MapQuery.SearchPhotoBooths): MapResult.SearchPhotoBooths = transactionRunner.readOnly {
-        val fetched: List<PhotoBoothLocationView> = photoBoothLocationRepository.findByNamePrefix(query)
-        val totalCount: Long = photoBoothLocationRepository.countByNamePrefix(query.keyword)
+        val fetched: List<PhotoBoothLocationView> = photoBoothLocationRepository.findByKeyword(query)
+        val totalCount: Long = photoBoothLocationRepository.countByKeyword(query)
 
         val page: PageWithTotalCount<PhotoBoothLocationView> = query.pagination.slice(fetched, totalCount)
         MapResult.SearchPhotoBooths(locations = page.items, hasNext = page.hasNext, totalCount = page.totalCount)

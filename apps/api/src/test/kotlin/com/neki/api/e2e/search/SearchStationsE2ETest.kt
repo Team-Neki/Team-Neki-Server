@@ -37,6 +37,8 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         val (_, token) = createTestUserAndToken()
         accessToken = token
 
+        createBrand("포토그레이", "PHOTOGRAY")
+
         // tb_subway_station 의 실제 행. 같은 역이 노선마다 따로 있다.
         createSubwayStation("강남", "신분당선", 127.0278, 37.4966)
         createSubwayStation("강남", "2호선", 127.0276, 37.4979)
@@ -96,6 +98,20 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
             get("keyword" to "강남")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items[0].distanceKm", nullValue())
+        }
+
+        @Test
+        @DisplayName("부스 탭과 같은 검색어에서 브랜드 낱말은 빼고 찾는다")
+        fun givenKeywordWithBrandWord_whenSearch_thenIgnoresBrandWord() {
+            get("keyword" to "강남 포토그레이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(5))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
+
+            get("keyword" to "포토그레이 강남역 2호선")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
         }
 
         @Test
