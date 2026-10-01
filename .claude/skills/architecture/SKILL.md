@@ -237,6 +237,16 @@ UserTermAgreementHist.withdrawn(userId, termId)
 
 ---
 
+## 모델 파일 구성
+
+한 파일 한 타입이 기본이고, 주인 없이 안 쓰이는 타입만 주인 파일에 둔다. 같은 패키지라 import 는 안 바뀐다.
+
+- 일급 컬렉션 : 원소가 VO 면 원소 파일에 (`MediaMetadatas`, `MediaUploadTickets`), 엔티티면 분리 (`ActiveTerms` / `Term`)
+- enum : 엔티티·자기 도메인 서비스·infra 에서만 쓰면 엔티티 파일에 (`MediaStatus`, `RoleType`). Command·Query·Request·Result 나 도메인 인터페이스에 드러나면 별도 파일 (`UploadMethod`, `HeadCount`)
+- `@Embeddable` 복합 키 : 엔티티 파일에 (`FavoritePhotoId`)
+
+---
+
 ## Shared Kernel
 
 `core` 의 `com.neki.common.domain.vo` 에 도메인 무관한 값 객체를 둔다.
