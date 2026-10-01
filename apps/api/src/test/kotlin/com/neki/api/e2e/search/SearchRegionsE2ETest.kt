@@ -48,6 +48,8 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         createLegalDong("4111100000", 2, "수원시 장안구", "경기도 수원시 장안구")
         createLegalDong("1230000000", 2, "북구", "전남광주통합특별시 북구")
         createLegalDong("4161000000", 2, "광주시", "경기도 광주시")
+        createLegalDong("1150010300", 3, "화곡동", "서울특별시 강서구 화곡동")
+        createLegalDong("4155039030", 4, "화곡리", "경기도 안성시 일죽면 화곡리")
     }
 
     private fun get(vararg params: Pair<String, Any>) = RestAssured.given()
@@ -62,16 +64,37 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
     inner class SuccessTests {
 
         @Test
-        @DisplayName("접두 일치로 찾고 계층이 위인 것부터 전체 경로를 반환한다")
-        fun givenKeyword_whenSearch_thenReturnsPrefixMatchedRegionsOrderedByLevel() {
+        @DisplayName("이름 접두로 찾은 구역과 그 하위 구역을 계층이 위인 것부터 전체 경로로 반환한다")
+        fun givenKeyword_whenSearch_thenReturnsMatchedRegionsAndDescendantsOrderedByLevel() {
             get("keyword" to "강남")
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-                .body("data.totalCount", equalTo(3))
+                .body("data.totalCount", equalTo(4))
                 .body("data.hasNext", equalTo(false))
                 .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
-                .body("data.items[1].keyword", equalTo("경상남도 진주시 강남동"))
-                .body("data.items[2].keyword", equalTo("전북특별자치도 고창군 무장면 강남리"))
+                .body("data.items[1].keyword", equalTo("서울특별시 강남구 역삼동"))
+                .body("data.items[2].keyword", equalTo("경상남도 진주시 강남동"))
+                .body("data.items[3].keyword", equalTo("전북특별자치도 고창군 무장면 강남리"))
+        }
+
+        @Test
+        @DisplayName("시군구 이름으로 찾으면 그 아래 읍면동도 함께 나온다")
+        fun givenSggName_whenSearch_thenReturnsDescendants() {
+            get("keyword" to "강남구")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(2))
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+                .body("data.items[1].keyword", equalTo("서울특별시 강남구 역삼동"))
+        }
+
+        @Test
+        @DisplayName("읍면동·리 이름 앞부분으로 찾는다")
+        fun givenDongPrefix_whenSearch_thenReturnsDongAndRi() {
+            get("keyword" to "화곡")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(2))
+                .body("data.items[0].keyword", equalTo("서울특별시 강서구 화곡동"))
+                .body("data.items[1].keyword", equalTo("경기도 안성시 일죽면 화곡리"))
         }
 
         @Test
@@ -236,18 +259,18 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items.size()", equalTo(2))
                 .body("data.hasNext", equalTo(true))
-                .body("data.totalCount", equalTo(3))
+                .body("data.totalCount", equalTo(4))
                 .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
         }
 
         @Test
         @DisplayName("페이징 - 마지막 페이지는 hasNext 가 false 다")
         fun givenLastPage_whenSearch_thenHasNextIsFalse() {
-            get("keyword" to "강남", "page" to 1, "size" to 2)
+            get("keyword" to "강남", "page" to 1, "size" to 3)
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items.size()", equalTo(1))
                 .body("data.hasNext", equalTo(false))
-                .body("data.totalCount", equalTo(3))
+                .body("data.totalCount", equalTo(4))
                 .body("data.items[0].keyword", equalTo("전북특별자치도 고창군 무장면 강남리"))
         }
 
@@ -259,7 +282,7 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.items", empty<Any>())
                 .body("data.hasNext", equalTo(false))
-                .body("data.totalCount", equalTo(3))
+                .body("data.totalCount", equalTo(4))
         }
 
         @Test
@@ -267,9 +290,10 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         fun givenSeochoKeyword_whenSearch_thenReturnsRegionsUsableForBoothList() {
             get("keyword" to "서초")
                 .statusCode(HttpStatus.OK.value())
-                .body("data.totalCount", equalTo(2))
+                .body("data.totalCount", equalTo(3))
                 .body("data.items[0].keyword", equalTo("서울특별시 서초구"))
-                .body("data.items[1].keyword", equalTo("서울특별시 서초구 서초동"))
+                .body("data.items[1].keyword", equalTo("서울특별시 서초구 방배동"))
+                .body("data.items[2].keyword", equalTo("서울특별시 서초구 서초동"))
         }
     }
 
