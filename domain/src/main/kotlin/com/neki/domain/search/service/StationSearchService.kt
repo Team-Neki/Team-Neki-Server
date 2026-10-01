@@ -22,7 +22,7 @@ class StationSearchService(private val subwayStationRepository: SubwayStationRep
         val namePrefix: String = keyword.substringBefore(' ').removeStationSuffix()
 
         val fetched: List<SubwayStation> =
-            subwayStationRepository.findByKeywordPrefix(keyword, namePrefix, query.pagination)
+            subwayStationRepository.findByKeywordPrefix(keyword, namePrefix, query.userLocation, query.pagination)
         val totalCount: Long = subwayStationRepository.countByKeywordPrefix(keyword, namePrefix)
 
         return query.pagination.slice(fetched, totalCount)

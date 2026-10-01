@@ -74,8 +74,9 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
-        @DisplayName("위치를 주면 정렬은 그대로이고 각 역까지의 거리를 km 로, 소수 둘째 자리에서 반올림해 내려준다")
+        @DisplayName("위치를 주면 각 역까지의 거리를 km 로, 소수 둘째 자리에서 반올림해 내려준다")
         fun givenUserLocation_whenSearch_thenReturnsDistanceKm() {
+            // 가까운 순 정렬은 PostgreSQL 전용이라 H2 에서는 역명, 노선명 순으로 나온다. 이 위치에서는 두 순서가 같다
             get("keyword" to "강남", "latitude" to 37.4979, "longitude" to 127.0276)
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(5))
