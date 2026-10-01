@@ -25,12 +25,8 @@ class RegionSearchService(private val legalDongRepository: LegalDongRepository) 
         // 이름 검색은 원래 검색어로 한다. 줄임말을 바꾸면 `광주` 로 경기도 광주시를 못 찾는다
         val path: String? = if (name.contains(' ')) SidoAlias.expand(name) else null
 
-        // 이름으로 걸린 구역은 그 아래 구역까지 함께 내려준다 (`강서구` → 강서구, 화곡동, ...)
-        val fullNames: List<String> = legalDongRepository.findFullNamesByNamePrefix(name)
-        if (fullNames.isEmpty() && path == null) return query.pagination.slice(emptyList(), 0L)
-
-        val fetched: List<LegalDong> = legalDongRepository.findSelfOrDescendants(fullNames, path, query.pagination)
-        val totalCount: Long = legalDongRepository.countSelfOrDescendants(fullNames, path)
+        val fetched: List<LegalDong> = legalDongRepository.findByNameOrPathPrefix(name, path, query.pagination)
+        val totalCount: Long = legalDongRepository.countByNameOrPathPrefix(name, path)
 
         return query.pagination.slice(fetched, totalCount)
     }

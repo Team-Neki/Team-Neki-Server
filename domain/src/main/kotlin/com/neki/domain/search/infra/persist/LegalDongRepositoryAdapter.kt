@@ -15,15 +15,12 @@ import org.springframework.stereotype.Repository
 @Repository
 class LegalDongRepositoryAdapter(private val queryRepository: LegalDongQueryRepository) : LegalDongRepository {
 
-    override fun findFullNamesByNamePrefix(prefix: String): List<String> =
-        queryRepository.findFullNamesByNamePrefix(prefix)
-
-    override fun findSelfOrDescendants(
-        fullNames: List<String>,
+    override fun findByNameOrPathPrefix(
+        namePrefix: String,
         pathPrefix: String?,
         pagination: Pagination,
-    ): List<LegalDong> = queryRepository.findSelfOrDescendants(fullNames, pathPrefix, pagination)
+    ): List<LegalDong> = queryRepository.findByNameOrPathPrefix(namePrefix, pathPrefix, pagination)
 
-    override fun countSelfOrDescendants(fullNames: List<String>, pathPrefix: String?): Long =
-        queryRepository.countSelfOrDescendants(fullNames, pathPrefix)
+    override fun countByNameOrPathPrefix(namePrefix: String, pathPrefix: String?): Long =
+        queryRepository.countByNameOrPathPrefix(namePrefix, pathPrefix)
 }
