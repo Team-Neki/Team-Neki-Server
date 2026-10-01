@@ -5,6 +5,7 @@ import com.neki.api.search.api.dto.SearchConverter
 import com.neki.api.search.api.dto.SearchRequest
 import com.neki.api.search.api.dto.SearchResponse
 import com.neki.api.search.application.GetSearchFilterUseCase
+import com.neki.api.search.application.SearchPhotoBoothsByKeywordUseCase
 import com.neki.api.search.application.SearchPhotoBoothsUseCase
 import com.neki.api.search.application.SearchRegionsUseCase
 import com.neki.api.search.application.SearchStationsUseCase
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController
 class SearchController(
     private val searchRegionsUseCase: SearchRegionsUseCase,
     private val searchStationsUseCase: SearchStationsUseCase,
+    private val searchPhotoBoothsByKeywordUseCase: SearchPhotoBoothsByKeywordUseCase,
     private val searchPhotoBoothsUseCase: SearchPhotoBoothsUseCase,
     private val getSearchFilterUseCase: GetSearchFilterUseCase,
     private val requestConverter: SearchConverter.RequestConverter,
@@ -102,6 +104,45 @@ class SearchController(
         val query: SearchQuery.SearchStations = requestConverter.toSearchStationsQuery(keyword, page, size)
 
         val result: SearchResult.Completion = searchStationsUseCase.execute(query)
+
+        val response: SearchResponse.Completion = responseConverter.toCompletionResponse(result)
+
+        return BaseResponse(data = response)
+    }
+
+    @Operation(
+        summary = "부스 검색 API",
+        description = """
+            지점명이나 브랜드명으로 부스를 검색합니다. 주소는 검색 대상이 아닙니다.
+
+            * 접두 일치입니다. "강남" 은 지점명, "포토이즘" 은 브랜드명, "포토이즘 강남" 은 둘을 이어 적은 것으로 찾습니다
+            * 대소문자는 구분하지 않습니다
+            * 1자면 조회하지 않고 빈 결과입니다. 빈 문자열이거나 공백뿐이면 D-01
+            * latitude, longitude 를 주면 가까운 순으로 정렬됩니다. 생략하면 브랜드, 지점 이름 순입니다.
+              둘 중 하나만 주면 D-01
+            * 결과가 없으면 빈 배열입니다. D-04 가 아닙니다
+            * 고른 대상의 부스 목록 연동은 후속 PR 에서 붙습니다
+
+            응답 keyword 는 `포토이즘 강남1호점` 형태입니다.
+            """,
+    )
+    @GetMapping("/completion/photo-booths")
+    fun searchPhotoBoothsByKeyword(
+        @RequestParam @NotBlank(message = "keyword는 필수값입니다.") keyword: String,
+        @RequestParam(defaultValue = "0") @Min(0) page: Int,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
+        @RequestParam(required = false) latitude: Double?,
+        @RequestParam(required = false) longitude: Double?,
+    ): BaseResponse<SearchResponse.Completion> {
+        val query: SearchQuery.SearchPhotoBoothsByKeyword = requestConverter.toSearchPhotoBoothsByKeywordQuery(
+            keyword = keyword,
+            page = page,
+            size = size,
+            latitude = latitude,
+            longitude = longitude,
+        )
+
+        val result: SearchResult.Completion = searchPhotoBoothsByKeywordUseCase.execute(query)
 
         val response: SearchResponse.Completion = responseConverter.toCompletionResponse(result)
 

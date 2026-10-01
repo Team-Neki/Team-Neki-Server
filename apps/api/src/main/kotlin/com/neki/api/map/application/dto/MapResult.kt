@@ -24,4 +24,10 @@ object MapResult {
     )
 
     data class GetFavoriteMap(val locations: List<PhotoBoothLocationView>)
+
+    data class SearchPhotoBooths(
+        val locations: List<PhotoBoothLocationView>,
+        val hasNext: Boolean,
+        val totalCount: Long,
+    )
 }

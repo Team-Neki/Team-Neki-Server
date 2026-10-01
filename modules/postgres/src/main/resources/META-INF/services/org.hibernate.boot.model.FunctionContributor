@@ -1,1 +1,2 @@
 com.neki.config.postgres.CodePointCollationFunctionContributor
+com.neki.config.postgres.ApproxDistanceFunctionContributor

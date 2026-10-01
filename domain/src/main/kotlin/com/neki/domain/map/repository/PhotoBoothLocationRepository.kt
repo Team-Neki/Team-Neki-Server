@@ -1,5 +1,7 @@
 package com.neki.domain.map.repository
 
+import com.neki.core.domain.vo.Pagination
+import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
@@ -22,6 +24,14 @@ interface PhotoBoothLocationRepository {
     fun existsById(locationId: Long): Boolean
 
     fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationView>
+
+    /**
+     * 지점명, 브랜드명, `브랜드명 지점명` 중 하나가 keyword 로 시작하는 포토부스. 대소문자는 구분하지 않는다.
+     * 다음 페이지 판단을 위해 [Pagination.limit] 만큼 조회한다.
+     */
+    fun findByNamePrefix(query: MapQuery.SearchPhotoBooths): List<PhotoBoothLocationView>
+
+    fun countByNamePrefix(keyword: String): Long
 
     fun listPointLocations(
         coordinate: Coordinate,

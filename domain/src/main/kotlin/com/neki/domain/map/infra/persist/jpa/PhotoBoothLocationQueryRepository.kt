@@ -1,17 +1,23 @@
 package com.neki.domain.map.infra.persist.jpa
 
+import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 import com.neki.domain.map.models.QBrand.brand
 import com.neki.domain.map.models.QPhotoBoothLocation.photoBoothLocation
+import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.Projections
+import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.Expressions
+import com.querydsl.core.types.dsl.NumberExpression
+import com.querydsl.core.types.dsl.StringPath
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Point
 import org.locationtech.jts.io.WKTReader
 import org.springframework.stereotype.Repository
+import kotlin.math.cos
 
 /**
  * fileName       : PhotoBoothLocationQueryRepository
@@ -57,6 +63,68 @@ class PhotoBoothLocationQueryRepository(
 
         return query.fetch()
     }
+
+    /**
+     * 지점명, 브랜드명, `브랜드명 지점명` 중 하나가 keyword 로 시작하는 포토부스.
+     * 위치가 있으면 가까운 순, 없으면 브랜드명, 지점명 순이고 같은 값이면 id 순이다.
+     */
+    fun findByNamePrefix(query: MapQuery.SearchPhotoBooths): List<PhotoBoothLocationView> = queryFactory
+        .select(
+            Projections.constructor(
+                PhotoBoothLocationView::class.java,
+                photoBoothLocation.id,
+                brand.name,
+                photoBoothLocation.branchName,
+                photoBoothLocation.address,
+                photoBoothLocation.location,
+            ),
+        )
+        .from(photoBoothLocation)
+        .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.deletedAt.isNull)
+        .where(nameStartsWith(query.keyword))
+        .orderBy(*nameSearchOrder(query.coordinate))
+        .offset(query.pagination.offset.toLong())
+        .limit(query.pagination.limit.toLong())
+        .fetch()
+
+    fun countByNamePrefix(keyword: String): Long = queryFactory
+        .select(photoBoothLocation.count())
+        .from(photoBoothLocation)
+        .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.deletedAt.isNull)
+        .where(nameStartsWith(keyword))
+        .fetchOne() ?: 0L
+
+    /**
+     * `강남` 처럼 지점명, `포토이즘` 처럼 브랜드명, `포토이즘 강남` 처럼 둘을 이어 적어도 찾는다.
+     * branch_name 에 인덱스가 없어 어차피 전체를 훑으므로 대소문자를 무시한다 (`서울NC송파점` 을 `서울nc` 로).
+     */
+    private fun nameStartsWith(keyword: String): BooleanExpression =
+        photoBoothLocation.branchName.startsWithIgnoreCase(keyword)
+            .or(brand.name.startsWithIgnoreCase(keyword))
+            .or(brand.name.concat(" ").concat(photoBoothLocation.branchName).startsWithIgnoreCase(keyword))
+
+    private fun nameSearchOrder(coordinate: Coordinate?): Array<OrderSpecifier<*>> {
+        val byId: OrderSpecifier<Long> = photoBoothLocation.id.asc()
+        if (coordinate == null) {
+            return arrayOf(codePointOrder(brand.name), codePointOrder(photoBoothLocation.branchName), byId)
+        }
+
+        // 경도 1도의 길이는 위도에 따라 줄어든다. cos(위도)를 곱해 위도 1도와 같은 척도로 맞춘다
+        val longitudeScale: Double = cos(Math.toRadians(coordinate.y))
+        val distance: NumberExpression<Double> = Expressions.numberTemplate(
+            Double::class.java,
+            "approx_distance_order({0}, {1}, {2}, {3})",
+            photoBoothLocation.location,
+            coordinate.x,
+            coordinate.y,
+            longitudeScale,
+        )
+        return arrayOf(distance.asc(), byId)
+    }
+
+    /** DB 기본 collation 대신 코드포인트 순. modules/postgres 의 CodePointCollationFunctionContributor 참조 */
+    private fun codePointOrder(path: StringPath): OrderSpecifier<String> =
+        Expressions.stringTemplate("code_point_collate({0})", path).asc()
 
     /**
      * geography문법이 Hibernate/QueryDSL에서 파싱 불가 따라서 Native Query 작성

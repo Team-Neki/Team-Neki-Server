@@ -26,6 +26,16 @@ object SearchQuery {
     data class SearchStations(val keyword: String, val pagination: Pagination)
 
     /**
+     * 부스 검색. keyword 는 지점명, 브랜드명, `브랜드명 지점명` 에 대한 접두 일치다.
+     * userLocation 이 있으면 가까운 순, 없으면 브랜드명, 지점명 순.
+     */
+    data class SearchPhotoBoothsByKeyword(
+        val keyword: String,
+        val pagination: Pagination,
+        val userLocation: UserLocation?,
+    )
+
+    /**
      * 고른 지역·역의 부스 목록. brandIds 가 null 이거나 비어 있으면 모든 브랜드.
      */
     data class GetPhotoBooths(
