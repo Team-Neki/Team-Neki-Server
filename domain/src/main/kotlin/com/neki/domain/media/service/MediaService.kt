@@ -64,6 +64,15 @@ class MediaService(private val mediaRepository: MediaRepository, private val med
         return MediaUploadTickets(tickets)
     }
 
+    /**
+     * QR 파싱 실패 HTML 덤프용 업로드 티켓. 확인 단계가 없는 디버그 덤프라 Media 행을 만들지 않는다.
+     */
+    fun issueQrDumpUploadTicket(command: MediaCommand.GenerateQrDumpUploadTicket): MediaStorageUploadTicket =
+        mediaStorage.generateUploadTicket(
+            key = MediaKey.generateQrDump(command.ownerId),
+            contentType = MediaKey.QR_DUMP_CONTENT_TYPE,
+        )
+
     fun getExistsMap(command: MediaCommand.ConfirmMediasUploaded): Map<Long, Boolean> {
         val medias: List<Media> = mediaRepository.getMediaForUploadConfirmation(command.ownerId, command.mediaIds)
 
