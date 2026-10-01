@@ -60,6 +60,9 @@ management:
   metrics:
     tags:
       application: neki
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
 ---
 spring:
   config:
