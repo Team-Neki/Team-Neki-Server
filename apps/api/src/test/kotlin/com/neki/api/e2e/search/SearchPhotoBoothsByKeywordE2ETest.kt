@@ -249,6 +249,14 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         }
 
         @Test
+        @DisplayName("위도와 경도를 바꿔 보내 위도가 범위를 벗어남 - D-01")
+        fun givenSwappedCoordinates_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "latitude" to 127.0276, "longitude" to 37.4979)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
         @DisplayName("위도와 경도 중 하나만 줌 - D-01")
         fun givenOnlyLatitude_whenSearch_thenReturnsInvalidParameter() {
             get("keyword" to "강남", "latitude" to 37.4979)

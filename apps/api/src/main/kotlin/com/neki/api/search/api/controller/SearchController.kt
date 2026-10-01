@@ -15,6 +15,8 @@ import com.neki.domain.search.dto.SearchQuery
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import jakarta.validation.constraints.DecimalMax
+import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -92,7 +94,7 @@ class SearchController(
             * 정렬은 역명, 노선명 순입니다
 
             * latitude, longitude 를 주면 각 역까지의 거리(distanceKm)를 내려줍니다. 정렬은 바뀌지 않습니다.
-              둘 중 하나만 주면 D-01
+              둘 중 하나만 주거나 범위(위도 -90~90, 경도 -180~180)를 벗어나면 D-01
 
             응답 keyword 는 `강남역 2호선` 형태입니다. 저장된 역명에는 `역` 이 없어 서버가 붙여 줍니다.
             검색어에는 `역` 을 붙여도 되고 안 붙여도 됩니다. "강남역" 과 "강남" 은 같은 결과입니다.
@@ -103,8 +105,8 @@ class SearchController(
         @RequestParam @NotBlank(message = "keyword는 필수값입니다.") keyword: String,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
-        @RequestParam(required = false) latitude: Double?,
-        @RequestParam(required = false) longitude: Double?,
+        @RequestParam(required = false) @DecimalMin("-90") @DecimalMax("90") latitude: Double?,
+        @RequestParam(required = false) @DecimalMin("-180") @DecimalMax("180") longitude: Double?,
     ): BaseResponse<SearchResponse.Completion> {
         val query: SearchQuery.SearchStations = requestConverter.toSearchStationsQuery(
             keyword = keyword,
@@ -130,7 +132,7 @@ class SearchController(
             * 대소문자는 구분하지 않습니다
             * 1자면 조회하지 않고 빈 결과입니다. 빈 문자열이거나 공백뿐이면 D-01
             * latitude, longitude 를 주면 가까운 순으로 정렬되고 각 부스까지의 거리(distanceKm)를 내려줍니다.
-              생략하면 브랜드, 지점 이름 순입니다. 둘 중 하나만 주면 D-01
+              생략하면 브랜드, 지점 이름 순입니다. 둘 중 하나만 주거나 범위(위도 -90~90, 경도 -180~180)를 벗어나면 D-01
             * 지점명이 비었거나 브랜드명과 같은 부스는 나오지 않습니다
             * 결과가 없으면 빈 배열입니다. D-04 가 아닙니다
             * 고른 대상의 부스 목록 연동은 후속 PR 에서 붙습니다
@@ -143,8 +145,8 @@ class SearchController(
         @RequestParam @NotBlank(message = "keyword는 필수값입니다.") keyword: String,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
-        @RequestParam(required = false) latitude: Double?,
-        @RequestParam(required = false) longitude: Double?,
+        @RequestParam(required = false) @DecimalMin("-90") @DecimalMax("90") latitude: Double?,
+        @RequestParam(required = false) @DecimalMin("-180") @DecimalMax("180") longitude: Double?,
     ): BaseResponse<SearchResponse.Completion> {
         val query: SearchQuery.SearchPhotoBoothsByKeyword = requestConverter.toSearchPhotoBoothsByKeywordQuery(
             keyword = keyword,
