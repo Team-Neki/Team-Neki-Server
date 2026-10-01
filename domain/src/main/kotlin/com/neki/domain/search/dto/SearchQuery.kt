@@ -22,8 +22,9 @@ object SearchQuery {
 
     /**
      * 지하철역 검색. keyword 는 역명 또는 `역명역 노선명` 에 대한 접두 일치다. 한 역이 노선 수만큼 나온다.
+     * userLocation 은 정렬에 쓰지 않고 각 역까지의 거리를 내려주는 데만 쓴다.
      */
-    data class SearchStations(val keyword: String, val pagination: Pagination)
+    data class SearchStations(val keyword: String, val pagination: Pagination, val userLocation: UserLocation?)
 
     /**
      * 부스 검색. keyword 는 지점명, 브랜드명, `브랜드명 지점명` 에 대한 접두 일치다.

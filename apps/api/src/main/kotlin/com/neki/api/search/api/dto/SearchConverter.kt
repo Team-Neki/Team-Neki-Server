@@ -25,11 +25,17 @@ object SearchConverter {
                 pagination = Pagination(page = page, size = size),
             )
 
-        fun toSearchStationsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchStations =
-            SearchQuery.SearchStations(
-                keyword = SearchNormalizer.collapseSpaces(keyword),
-                pagination = Pagination(page = page, size = size),
-            )
+        fun toSearchStationsQuery(
+            keyword: String,
+            page: Int,
+            size: Int,
+            latitude: Double?,
+            longitude: Double?,
+        ): SearchQuery.SearchStations = SearchQuery.SearchStations(
+            keyword = SearchNormalizer.collapseSpaces(keyword),
+            pagination = Pagination(page = page, size = size),
+            userLocation = toUserLocation(latitude, longitude),
+        )
 
         fun toSearchPhotoBoothsByKeywordQuery(
             keyword: String,
@@ -90,7 +96,9 @@ object SearchConverter {
     class ResponseConverter {
         fun toCompletionResponse(result: SearchResult.Completion): SearchResponse.Completion =
             SearchResponse.Completion(
-                items = result.keywords.map { SearchResponse.Completion.Item(keyword = it) },
+                items = result.items.map {
+                    SearchResponse.Completion.Item(keyword = it.keyword, distanceKm = it.distanceKm)
+                },
                 hasNext = result.hasNext,
                 totalCount = result.totalCount,
             )

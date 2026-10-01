@@ -4,6 +4,7 @@ import com.neki.core.code.ResultCode
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -72,6 +73,7 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
                 .body("data.totalCount", equalTo(3))
                 .body("data.hasNext", equalTo(false))
                 .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+                .body("data.items[0].distanceKm", nullValue())
                 .body("data.items[1].keyword", equalTo("경상남도 진주시 강남동"))
                 .body("data.items[2].keyword", equalTo("전북특별자치도 고창군 무장면 강남리"))
         }

@@ -6,6 +6,9 @@ import com.neki.domain.map.models.Brand
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.not
+import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -63,6 +66,10 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         // 수집한 지점명에는 브랜드명이 붙어 있는 것이 있다
         createPhotoBoothLocation(photoSignature.id!!, "포토시그니처 고현점", "경남 거제시", 128.6213, 34.8806)
         createPhotoBoothLocation(deleted.id!!, "강남삭제점", "서울 강남구", 127.0300, 37.5000)
+        // 지점명이 비었거나 브랜드명과 같은 부스는 검색에서 빠진다
+        createPhotoBoothLocation(photoism.id!!, "", "서울 중구", 126.9780, 37.5665)
+        createPhotoBoothLocation(photoism.id!!, "  ", "서울 중구", 126.9781, 37.5666)
+        createPhotoBoothLocation(photoism.id!!, "포토 이즘", "서울 중구", 126.9782, 37.5667)
     }
 
     @AfterEach
@@ -179,12 +186,33 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         }
 
         @Test
-        @DisplayName("위치를 주면 가까운 순 정렬로 조회한다")
-        fun givenUserLocation_whenSearch_thenReturnsMatches() {
+        @DisplayName("위치를 주면 각 부스까지의 거리를 km 로, 소수 둘째 자리에서 반올림해 내려준다")
+        fun givenUserLocation_whenSearch_thenReturnsDistanceKm() {
+            // 가까운 순 정렬은 PostgreSQL 전용이라 순서 대신 항목별 거리만 본다
             get("keyword" to "강남", "latitude" to 37.4979, "longitude" to 127.0276)
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(4))
-                .body("data.items.size()", equalTo(4))
+                .body("data.items.find { it.keyword == '포토이즘 강남점' }.distanceKm", equalTo(0.0f))
+                .body("data.items.find { it.keyword == '포토이즘 강남역2호점' }.distanceKm", equalTo(0.1f))
+                .body("data.items.find { it.keyword == '플랜비 스튜디오 강남점' }.distanceKm", equalTo(0.2f))
+                .body("data.items.find { it.keyword == '인생네컷 강남구청점' }.distanceKm", equalTo(2.5f))
+        }
+
+        @Test
+        @DisplayName("위치를 안 주면 거리는 null 이다")
+        fun givenNoUserLocation_whenSearch_thenDistanceIsNull() {
+            get("keyword" to "강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items[0].distanceKm", nullValue())
+        }
+
+        @Test
+        @DisplayName("지점명이 비었거나 브랜드명과 같은 부스는 나오지 않는다")
+        fun givenBoothWithoutOwnBranchName_whenSearch_thenExcludesBooth() {
+            get("keyword" to "포토이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(3))
+                .body("data.items.keyword", not(hasItem("포토이즘 포토 이즘")))
         }
 
         @Test

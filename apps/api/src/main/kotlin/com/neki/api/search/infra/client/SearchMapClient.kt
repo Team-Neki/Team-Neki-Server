@@ -6,7 +6,7 @@ import com.neki.core.domain.vo.PageWithTotalCount
 import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.search.client.PhotoBoothClient
 import com.neki.domain.search.dto.SearchQuery
-import com.neki.domain.search.models.PhotoBoothName
+import com.neki.domain.search.models.PhotoBoothSummary
 import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Component
 
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 class SearchMapClient(private val searchPhotoBoothLocationsUseCase: SearchPhotoBoothLocationsUseCase) :
     PhotoBoothClient {
 
-    override fun searchByName(query: SearchQuery.SearchPhotoBoothsByKeyword): PageWithTotalCount<PhotoBoothName> {
+    override fun searchByName(query: SearchQuery.SearchPhotoBoothsByKeyword): PageWithTotalCount<PhotoBoothSummary> {
         val result: MapResult.SearchPhotoBooths = searchPhotoBoothLocationsUseCase.execute(
             MapQuery.SearchPhotoBooths(
                 keyword = query.keyword,
@@ -31,7 +31,14 @@ class SearchMapClient(private val searchPhotoBoothLocationsUseCase: SearchPhotoB
         )
 
         return PageWithTotalCount(
-            items = result.locations.map { PhotoBoothName(brandName = it.brandName, branchName = it.branchName) },
+            items = result.locations.map {
+                PhotoBoothSummary(
+                    brandName = it.brandName,
+                    branchName = it.branchName,
+                    latitude = it.location.y,
+                    longitude = it.location.x,
+                )
+            },
             hasNext = result.hasNext,
             totalCount = result.totalCount,
         )

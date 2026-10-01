@@ -22,6 +22,6 @@ class SearchStationsUseCase(private val stationSearchService: StationSearchServi
     fun execute(query: SearchQuery.SearchStations): SearchResult.Completion {
         val stations: PageWithTotalCount<SubwayStation> = stationSearchService.search(query)
 
-        return SearchAssembler.toStationCompletion(stations)
+        return SearchAssembler.toStationCompletion(stations, query.userLocation)
     }
 }

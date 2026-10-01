@@ -10,6 +10,7 @@ import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.core.types.dsl.NumberExpression
+import com.querydsl.core.types.dsl.StringExpression
 import com.querydsl.core.types.dsl.StringPath
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager
@@ -81,7 +82,7 @@ class PhotoBoothLocationQueryRepository(
         )
         .from(photoBoothLocation)
         .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.deletedAt.isNull)
-        .where(nameStartsWith(query.keyword))
+        .where(nameStartsWith(query.keyword), hasOwnBranchName())
         .orderBy(*nameSearchOrder(query.coordinate))
         .offset(query.pagination.offset.toLong())
         .limit(query.pagination.limit.toLong())
@@ -91,7 +92,7 @@ class PhotoBoothLocationQueryRepository(
         .select(photoBoothLocation.count())
         .from(photoBoothLocation)
         .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.deletedAt.isNull)
-        .where(nameStartsWith(keyword))
+        .where(nameStartsWith(keyword), hasOwnBranchName())
         .fetchOne() ?: 0L
 
     /**
@@ -102,6 +103,18 @@ class PhotoBoothLocationQueryRepository(
         photoBoothLocation.branchName.startsWithIgnoreCase(keyword)
             .or(brand.name.startsWithIgnoreCase(keyword))
             .or(brand.name.concat(" ").concat(photoBoothLocation.branchName).startsWithIgnoreCase(keyword))
+
+    /**
+     * 지점명이 비었거나 브랜드명과 같은 부스는 어느 지점인지 알 수 없어 검색에서 뺀다.
+     * 브랜드명과의 비교는 검색 색인(SearchNormalizer.normalize)처럼 대소문자와 공백·`-`·`_` 를 무시한다.
+     */
+    private fun hasOwnBranchName(): BooleanExpression {
+        val branchName: StringExpression = normalized(photoBoothLocation.branchName)
+        return branchName.ne("").and(branchName.ne(normalized(brand.name)))
+    }
+
+    private fun normalized(path: StringPath): StringExpression =
+        Expressions.stringTemplate("lower(replace(replace(replace({0}, ' ', ''), '-', ''), '_', ''))", path)
 
     private fun nameSearchOrder(coordinate: Coordinate?): Array<OrderSpecifier<*>> {
         val byId: OrderSpecifier<Long> = photoBoothLocation.id.asc()

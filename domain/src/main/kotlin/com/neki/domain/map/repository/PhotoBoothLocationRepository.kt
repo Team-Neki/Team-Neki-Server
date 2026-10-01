@@ -27,6 +27,7 @@ interface PhotoBoothLocationRepository {
 
     /**
      * 지점명, 브랜드명, `브랜드명 지점명` 중 하나가 keyword 로 시작하는 포토부스. 대소문자는 구분하지 않는다.
+     * 지점명이 비었거나 브랜드명과 같은 부스는 뺀다.
      * 다음 페이지 판단을 위해 [Pagination.limit] 만큼 조회한다.
      */
     fun findByNamePrefix(query: MapQuery.SearchPhotoBooths): List<PhotoBoothLocationView>

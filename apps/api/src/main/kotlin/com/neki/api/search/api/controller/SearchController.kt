@@ -91,6 +91,9 @@ class SearchController(
             * 같은 이름의 다른 역이 있어 노선명까지 함께 내려줍니다
             * 정렬은 역명, 노선명 순입니다
 
+            * latitude, longitude 를 주면 각 역까지의 거리(distanceKm)를 내려줍니다. 정렬은 바뀌지 않습니다.
+              둘 중 하나만 주면 D-01
+
             응답 keyword 는 `강남역 2호선` 형태입니다. 저장된 역명에는 `역` 이 없어 서버가 붙여 줍니다.
             검색어에는 `역` 을 붙여도 되고 안 붙여도 됩니다. "강남역" 과 "강남" 은 같은 결과입니다.
             """,
@@ -100,8 +103,16 @@ class SearchController(
         @RequestParam @NotBlank(message = "keyword는 필수값입니다.") keyword: String,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
+        @RequestParam(required = false) latitude: Double?,
+        @RequestParam(required = false) longitude: Double?,
     ): BaseResponse<SearchResponse.Completion> {
-        val query: SearchQuery.SearchStations = requestConverter.toSearchStationsQuery(keyword, page, size)
+        val query: SearchQuery.SearchStations = requestConverter.toSearchStationsQuery(
+            keyword = keyword,
+            page = page,
+            size = size,
+            latitude = latitude,
+            longitude = longitude,
+        )
 
         val result: SearchResult.Completion = searchStationsUseCase.execute(query)
 
@@ -118,8 +129,9 @@ class SearchController(
             * 접두 일치입니다. "강남" 은 지점명, "포토이즘" 은 브랜드명, "포토이즘 강남" 은 둘을 이어 적은 것으로 찾습니다
             * 대소문자는 구분하지 않습니다
             * 1자면 조회하지 않고 빈 결과입니다. 빈 문자열이거나 공백뿐이면 D-01
-            * latitude, longitude 를 주면 가까운 순으로 정렬됩니다. 생략하면 브랜드, 지점 이름 순입니다.
-              둘 중 하나만 주면 D-01
+            * latitude, longitude 를 주면 가까운 순으로 정렬되고 각 부스까지의 거리(distanceKm)를 내려줍니다.
+              생략하면 브랜드, 지점 이름 순입니다. 둘 중 하나만 주면 D-01
+            * 지점명이 비었거나 브랜드명과 같은 부스는 나오지 않습니다
             * 결과가 없으면 빈 배열입니다. D-04 가 아닙니다
             * 고른 대상의 부스 목록 연동은 후속 PR 에서 붙습니다
 

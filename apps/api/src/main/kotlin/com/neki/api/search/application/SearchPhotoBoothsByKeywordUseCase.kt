@@ -6,7 +6,7 @@ import com.neki.core.annotation.UseCase
 import com.neki.core.domain.vo.PageWithTotalCount
 import com.neki.domain.search.client.PhotoBoothClient
 import com.neki.domain.search.dto.SearchQuery
-import com.neki.domain.search.models.PhotoBoothName
+import com.neki.domain.search.models.PhotoBoothSummary
 
 /**
  * fileName       : SearchPhotoBoothsByKeywordUseCase
@@ -19,13 +19,13 @@ class SearchPhotoBoothsByKeywordUseCase(private val photoBoothClient: PhotoBooth
 
     fun execute(query: SearchQuery.SearchPhotoBoothsByKeyword): SearchResult.Completion {
         // 지역·역 검색과 같이 1자는 조회하지 않는다
-        val booths: PageWithTotalCount<PhotoBoothName> =
+        val booths: PageWithTotalCount<PhotoBoothSummary> =
             if (query.keyword.length < SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH) {
                 query.pagination.slice(emptyList(), 0L)
             } else {
                 photoBoothClient.searchByName(query)
             }
 
-        return SearchAssembler.toPhotoBoothCompletion(booths)
+        return SearchAssembler.toPhotoBoothCompletion(booths, query.userLocation)
     }
 }
