@@ -4,6 +4,7 @@ import com.neki.core.code.ResultCode
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -35,6 +36,8 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
 
         val (_, token) = createTestUserAndToken()
         accessToken = token
+
+        createBrand("포토그레이", "PHOTOGRAY")
 
         // tb_subway_station 의 실제 행. 같은 역이 노선마다 따로 있다.
         createSubwayStation("강남", "신분당선", 127.0278, 37.4966)
@@ -73,6 +76,45 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
+        @DisplayName("위치를 주면 각 역까지의 거리를 km 로, 소수 둘째 자리에서 반올림해 내려준다")
+        fun givenUserLocation_whenSearch_thenReturnsDistanceKm() {
+            // 가까운 순 정렬은 PostgreSQL 전용이라 H2 에서는 역명, 노선명 순으로 나온다. 이 위치에서는 두 순서가 같다
+            get("keyword" to "강남", "latitude" to 37.4979, "longitude" to 127.0276)
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(5))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
+                .body("data.items[0].distanceKm", equalTo(0.0f))
+                .body("data.items[1].keyword", equalTo("강남역 신분당선"))
+                .body("data.items[1].distanceKm", equalTo(0.1f))
+                .body("data.items[2].distanceKm", equalTo(2.4f))
+                .body("data.items[3].distanceKm", equalTo(2.5f))
+                .body("data.items[4].keyword", equalTo("강남대역 에버라인"))
+                .body("data.items[4].distanceKm", equalTo(27.0f))
+        }
+
+        @Test
+        @DisplayName("위치를 안 주면 거리는 null 이다")
+        fun givenNoUserLocation_whenSearch_thenDistanceIsNull() {
+            get("keyword" to "강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items[0].distanceKm", nullValue())
+        }
+
+        @Test
+        @DisplayName("부스 탭과 같은 검색어에서 브랜드 낱말은 빼고 찾는다")
+        fun givenKeywordWithBrandWord_whenSearch_thenIgnoresBrandWord() {
+            get("keyword" to "강남 포토그레이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(5))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
+
+            get("keyword" to "포토그레이 강남역 2호선")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
+        }
+
+        @Test
         @DisplayName("`역` 을 붙여 검색해도 같은 결과다")
         fun givenKeywordWithStationSuffix_whenSearch_thenReturnsSameResult() {
             get("keyword" to "강남역")
@@ -102,12 +144,16 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
-        @DisplayName("한 글자 `역` 은 떼지 않고 `역` 으로 시작하는 역을 찾는다")
-        fun givenStationSuffixOnly_whenSearch_thenSearchesAsPrefix() {
-            get("keyword" to "역")
-                .statusCode(HttpStatus.OK.value())
-                .body("data.totalCount", equalTo(1))
-                .body("data.items[0].keyword", equalTo("역삼역 2호선"))
+        @DisplayName("1자 검색은 빈 결과다")
+        fun givenSingleCharKeyword_whenSearch_thenReturnsEmptyList() {
+            listOf("강", "역").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                    .body("data.items", empty<Any>())
+                    .body("data.totalCount", equalTo(0))
+                    .body("data.hasNext", equalTo(false))
+            }
         }
 
         @Test
@@ -203,6 +249,22 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         @DisplayName("공백뿐인 검색어 - D-01")
         fun givenBlankKeyword_whenSearch_thenReturnsInvalidParameter() {
             get("keyword" to " ")
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("위도와 경도를 바꿔 보내 위도가 범위를 벗어남 - D-01")
+        fun givenSwappedCoordinates_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "latitude" to 127.0276, "longitude" to 37.4979)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("위도와 경도 중 하나만 줌 - D-01")
+        fun givenOnlyLongitude_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "longitude" to 127.0276)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }

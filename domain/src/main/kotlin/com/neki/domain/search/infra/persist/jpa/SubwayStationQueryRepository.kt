@@ -4,12 +4,15 @@ import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.models.QSubwayStation.subwayStation
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.SubwayStationId
+import com.neki.domain.search.models.UserLocation
 import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.Expressions
+import com.querydsl.core.types.dsl.NumberExpression
 import com.querydsl.core.types.dsl.StringPath
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
+import kotlin.math.cos
 
 /**
  * fileName       : SubwayStationQueryRepository
@@ -17,18 +20,23 @@ import org.springframework.stereotype.Repository
  * date           : 2026. 9. 25.
  * description    : 지하철역 접두 검색. startsWith 는 `LIKE 'prefix%'` 로 나가 name 의 text_pattern_ops 인덱스를 탄다.
  *                  `강남역 2호선` 처럼 노선명까지 적으면 역명 접두로 인덱스에서 후보를 좁힌 뒤 이어 붙인 이름으로 거른다.
+ *                  위치가 있으면 가까운 순으로 정렬한다.
  */
 @Repository
 class SubwayStationQueryRepository(private val queryFactory: JPAQueryFactory) {
 
-    fun findByKeywordPrefix(keyword: String, namePrefix: String, pagination: Pagination): List<SubwayStation> =
-        queryFactory
-            .selectFrom(subwayStation)
-            .where(keywordStartsWith(keyword, namePrefix))
-            .orderBy(codePointOrder(subwayStation.id.name), codePointOrder(subwayStation.id.lineName))
-            .offset(pagination.offset.toLong())
-            .limit(pagination.limit.toLong())
-            .fetch()
+    fun findByKeywordPrefix(
+        keyword: String,
+        namePrefix: String,
+        userLocation: UserLocation?,
+        pagination: Pagination,
+    ): List<SubwayStation> = queryFactory
+        .selectFrom(subwayStation)
+        .where(keywordStartsWith(keyword, namePrefix))
+        .orderBy(*order(userLocation))
+        .offset(pagination.offset.toLong())
+        .limit(pagination.limit.toLong())
+        .fetch()
 
     fun countByKeywordPrefix(keyword: String, namePrefix: String): Long = queryFactory
         .select(subwayStation.count())
@@ -55,6 +63,27 @@ class SubwayStationQueryRepository(private val queryFactory: JPAQueryFactory) {
         val withSuffix: BooleanExpression = name.concat("$STATION_SUFFIX ").concat(lineName).startsWith(keyword)
         val withoutSuffix: BooleanExpression = name.concat(" ").concat(lineName).startsWith(keyword)
         return nameStartsWith.and(withSuffix.or(withoutSuffix))
+    }
+
+    /**
+     * userLocation 이 있으면 가까운 순, 같거나 없으면 역명, 노선명 순.
+     * 가까운 순은 modules/postgres 의 ApproxDistanceFunctionContributor 가 등록한 `approx_distance_order` 로,
+     * 경도 차이에 cos(위도)를 곱해 위도와 같은 척도로 맞춘 평면 거리의 제곱이다. 정렬에만 쓴다.
+     */
+    private fun order(userLocation: UserLocation?): Array<OrderSpecifier<*>> {
+        val byName: Array<OrderSpecifier<String>> =
+            arrayOf(codePointOrder(subwayStation.id.name), codePointOrder(subwayStation.id.lineName))
+        if (userLocation == null) return arrayOf(*byName)
+
+        val distance: NumberExpression<Double> = Expressions.numberTemplate(
+            Double::class.java,
+            "approx_distance_order({0}, {1}, {2}, {3})",
+            subwayStation.location,
+            userLocation.longitude,
+            userLocation.latitude,
+            cos(Math.toRadians(userLocation.latitude)),
+        )
+        return arrayOf(distance.asc(), *byName)
     }
 
     /**

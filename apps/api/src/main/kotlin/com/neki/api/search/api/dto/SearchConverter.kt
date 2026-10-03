@@ -1,7 +1,10 @@
 package com.neki.api.search.api.dto
 
 import com.neki.api.search.application.dto.SearchResult
+import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.Pagination
+import com.neki.core.exception.BusinessException
+import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.UserLocation
 import org.springframework.stereotype.Component
@@ -17,15 +20,33 @@ object SearchConverter {
     class RequestConverter {
         fun toSearchRegionsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchRegions =
             SearchQuery.SearchRegions(
-                keyword = keyword.normalizeSpaces(),
+                keyword = SearchNormalizer.collapseSpaces(keyword),
                 pagination = Pagination(page = page, size = size),
             )
 
-        fun toSearchStationsQuery(keyword: String, page: Int, size: Int): SearchQuery.SearchStations =
-            SearchQuery.SearchStations(
-                keyword = keyword.normalizeSpaces(),
-                pagination = Pagination(page = page, size = size),
-            )
+        fun toSearchStationsQuery(
+            keyword: String,
+            page: Int,
+            size: Int,
+            latitude: Double?,
+            longitude: Double?,
+        ): SearchQuery.SearchStations = SearchQuery.SearchStations(
+            keyword = SearchNormalizer.collapseSpaces(keyword),
+            pagination = Pagination(page = page, size = size),
+            userLocation = toUserLocation(latitude, longitude),
+        )
+
+        fun toSearchPhotoBoothsByKeywordQuery(
+            keyword: String,
+            page: Int,
+            size: Int,
+            latitude: Double?,
+            longitude: Double?,
+        ): SearchQuery.SearchPhotoBoothsByKeyword = SearchQuery.SearchPhotoBoothsByKeyword(
+            keyword = SearchNormalizer.collapseSpaces(keyword),
+            pagination = Pagination(page = page, size = size),
+            userLocation = toUserLocation(latitude, longitude),
+        )
 
         fun toGetPhotoBoothsQuery(
             userId: Long,
@@ -51,13 +72,12 @@ object SearchConverter {
             filterGroup.brandFilter?.brands?.map { it.brandId }
 
         /**
-         * 저장된 지역·역 이름은 낱말 사이가 공백 한 칸이라, 검색어도 앞뒤를 자르고 연속 공백을 한 칸으로 맞춘다.
-         * DB 쪽 값을 가공하지 않아야 접두 검색이 인덱스를 탄다.
+         * 위도와 경도는 둘 다 있거나 둘 다 없어야 한다. 하나만 오면 D-01.
          */
-        private fun String.normalizeSpaces(): String = trim().replace(WHITESPACES, " ")
-
-        companion object {
-            private val WHITESPACES = Regex("\\s+")
+        private fun toUserLocation(latitude: Double?, longitude: Double?): UserLocation? = when {
+            latitude == null && longitude == null -> null
+            latitude != null && longitude != null -> UserLocation(latitude = latitude, longitude = longitude)
+            else -> throw BusinessException(ResultCode.INVALID_PARAMETER)
         }
     }
 
@@ -65,7 +85,9 @@ object SearchConverter {
     class ResponseConverter {
         fun toCompletionResponse(result: SearchResult.Completion): SearchResponse.Completion =
             SearchResponse.Completion(
-                items = result.keywords.map { SearchResponse.Completion.Item(keyword = it) },
+                items = result.items.map {
+                    SearchResponse.Completion.Item(keyword = it.keyword, distanceKm = it.distanceKm)
+                },
                 hasNext = result.hasNext,
                 totalCount = result.totalCount,
             )

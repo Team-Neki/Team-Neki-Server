@@ -27,6 +27,13 @@ object SearchResponse {
                 example = "서울특별시 강남구",
             )
             val keyword: String,
+
+            @field:Schema(
+                description = "입력 좌표에서의 거리(km). 소수 둘째 자리에서 반올림. 역·부스 검색에서 위치를 줬을 때만 있고 그 밖에는 null",
+                example = "1.3",
+                nullable = true,
+            )
+            val distanceKm: Double?,
         )
     }
 

@@ -89,7 +89,7 @@ abstract class SearchE2ETestBase : E2ETestBase() {
         ),
     )
 
-    protected fun createBrand(name: String, code: String, platform: String): Brand =
+    protected fun createBrand(name: String, code: String, platform: String? = null): Brand =
         brandRepository.save(Brand(name = name, code = code, platform = platform))
 
     /**

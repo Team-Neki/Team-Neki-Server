@@ -12,11 +12,9 @@ import java.io.Serializable
 
 /**
  * fileName       : SubwayStation
- * author         : darren
+ * author         : koo
  * date           : 2026. 9. 25.
- * description    : 지하철역. 한 역이 노선마다 따로 존재한다. 적재한 참조 테이블이라 애플리케이션에서 수정하지 않는다.
- *                  테이블은 데이터 적재 워크플로가 새 테이블을 만든 뒤 이름을 바꿔치기하는 식으로 관리한다.
- *                  이 저장소는 참조만 하므로 Flyway 마이그레이션을 두지 않고, 인덱스도 워크플로 쪽에서 건다.
+ * description    : Workflow 가 소유하는 tb_subway_station 의 읽기 전용 매핑. 한 역이 노선마다 따로 있다
  */
 @Entity
 @Immutable

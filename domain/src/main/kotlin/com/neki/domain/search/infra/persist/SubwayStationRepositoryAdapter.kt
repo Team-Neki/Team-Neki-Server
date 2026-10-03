@@ -4,6 +4,7 @@ import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.infra.persist.jpa.SubwayStationQueryRepository
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.SubwayStationId
+import com.neki.domain.search.models.UserLocation
 import com.neki.domain.search.repository.SubwayStationRepository
 import org.springframework.stereotype.Repository
 
@@ -17,8 +18,12 @@ import org.springframework.stereotype.Repository
 class SubwayStationRepositoryAdapter(private val queryRepository: SubwayStationQueryRepository) :
     SubwayStationRepository {
 
-    override fun findByKeywordPrefix(keyword: String, namePrefix: String, pagination: Pagination): List<SubwayStation> =
-        queryRepository.findByKeywordPrefix(keyword, namePrefix, pagination)
+    override fun findByKeywordPrefix(
+        keyword: String,
+        namePrefix: String,
+        userLocation: UserLocation?,
+        pagination: Pagination,
+    ): List<SubwayStation> = queryRepository.findByKeywordPrefix(keyword, namePrefix, userLocation, pagination)
 
     override fun countByKeywordPrefix(keyword: String, namePrefix: String): Long =
         queryRepository.countByKeywordPrefix(keyword, namePrefix)
