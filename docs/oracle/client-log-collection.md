@@ -20,13 +20,13 @@
 | O-A-2 | auto | staging·prod 스트림 이름이 Platform ADR-0004 와 같음 : `grep -cE "delivery-stream: team-neki-log-raw-(staging\|production)-client-log$" modules/aws/src/main/resources/application-s3.yaml` = 2 |
 | O-A-3 | auto | 실제 어댑터는 staging·prod 에서만 뜸 : `grep -l '@Profile("!test & !local")' modules/aws/src/main/kotlin/com/neki/config/aws/FirehoseConfig.kt domain/src/main/kotlin/com/neki/domain/support/infra/firehose/FirehoseClientLogAdapter.kt \| wc -l` = 2 |
 | O-A-4 | auto | fake 는 test·local 에서만 뜸 : `grep -c '@Profile("test \| local")' domain/src/main/kotlin/com/neki/domain/support/infra/firehose/fake/FakeClientLogSender.kt` = 1 |
-| O-A-5 | auto | 결과 코드 D-14 가 하나뿐 : `grep -c '"D-14"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 1 |
+| O-A-5 | auto | 결과 코드 D-15 가 하나뿐 : `grep -c '"D-15"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 1 |
 | O-A-6 | auto | `/api/logs` 가 인증 예외 목록에 없음 (JWT 필수) : `grep -c "/api/logs" domain/src/main/kotlin/com/neki/domain/user/infra/security/config/SecurityConfig.kt` = 0 |
 | O-A-7 | auto | support 도메인 밖으로 새지 않음 (새 도메인 패키지 없음) : `test ! -e domain/src/main/kotlin/com/neki/domain/clientlog && test ! -e apps/api/src/main/kotlin/com/neki/api/clientlog` 종료코드 0 |
 
 ## O-D. dev 배포 후 검증
 
-dev 검증은 두 단계로 나뉩니다. staging 전송 스트림이 아직 없으므로, 먼저 스트림 없이 배포해 실제 Firehose 어댑터가 붙었는지와 실패 계약(D-14)을 확인합니다. 그 다음 스트림을 만들고 S3 적재까지 확인합니다. 배포 전에 스트림을 이미 만들었다면 O-D-5 는 건너뛰고 "해당 없음" 으로 기록합니다.
+dev 검증은 두 단계로 나뉩니다. staging 전송 스트림이 아직 없으므로, 먼저 스트림 없이 배포해 실제 Firehose 어댑터가 붙었는지와 실패 계약(D-15)을 확인합니다. 그 다음 스트림을 만들고 S3 적재까지 확인합니다. 배포 전에 스트림을 이미 만들었다면 O-D-5 는 건너뛰고 "해당 없음" 으로 기록합니다.
 
 ### 준비
 
@@ -45,7 +45,7 @@ dev 검증은 두 단계로 나뉩니다. staging 전송 스트림이 아직 없
 | O-D-2 | manual | 토큰 유효, userId 기록 | O-D-2 통과. 로그에 찍힌 `userId` 를 O-D-7 에서 사용 |
 | O-D-3 | manual | 토큰 없으면 403 D-996 | O-D-3 통과 |
 | O-D-4 | manual | 빈 배치는 400 D-01 | O-D-4 통과 |
-| O-D-5 | manual | 스트림이 없으면 400 D-14 (fake 가 아니라 실제 어댑터가 붙었다는 증거) | O-D-5 통과. staging pod 로그에 `Firehose putRecordBatch failed: stream=team-neki-log-raw-staging-client-log` 1건 |
+| O-D-5 | manual | 스트림이 없으면 400 D-15 (fake 가 아니라 실제 어댑터가 붙었다는 증거) | O-D-5 통과. staging pod 로그에 `Firehose putRecordBatch failed: stream=team-neki-log-raw-staging-client-log` 1건 |
 
 ### 2단계 : 스트림 생성 후
 
@@ -67,7 +67,7 @@ Platform ADR-0004 에 따라 GZIP 으로 적재되므로 O-D-7, O-D-8 은 `gunzi
 | O-R-1 | auto | `gh pr view feat/BACKEND-166 --json state,baseRefName --jq '.state + " " + .baseRefName'` = `OPEN main` (머지 전) |
 | O-R-2 | auto | CI 통과 : `gh pr checks feat/BACKEND-166 --json name,state --jq '.[] \| select(.name=="Test") \| .state'` = `SUCCESS` |
 | O-R-3 | manual | O-D 전부 통과 (O-D-5 는 해당 없음 허용) |
-| O-R-4 | manual | main 머지 전 prod 스트림 확인. main push 는 `deploy-api-prod.yml` 로 prod 에 바로 배포되므로, `aws firehose describe-delivery-stream --delivery-stream-name team-neki-log-raw-production-client-log` 이 `ACTIVE` 가 아니면 (Platform#23 apply 전) prod 의 `/api/logs` 는 D-14 를 반환함. 클라이언트 연동 전이라 허용한다면 PR 본문에 기록 |
+| O-R-4 | manual | main 머지 전 prod 스트림 확인. main push 는 `deploy-api-prod.yml` 로 prod 에 바로 배포되므로, `aws firehose describe-delivery-stream --delivery-stream-name team-neki-log-raw-production-client-log` 이 `ACTIVE` 가 아니면 (Platform#23 apply 전) prod 의 `/api/logs` 는 D-15 를 반환함. 클라이언트 연동 전이라 허용한다면 PR 본문에 기록 |
 | O-R-5 | manual | 티켓 BACKEND-166 DONE (O-R-3 통과 뒤) |
 
 ## 검증 기록
@@ -97,7 +97,7 @@ Platform#23 apply 직후 기록입니다. Server 는 아직 staging 에 배포�
 | O-R-1 | 통과 | `OPEN main` |
 | O-R-2 | 통과 | `Test` = `SUCCESS` (Spotless, CodeRabbit 도 통과) |
 | O-R-3 | 미검증 | O-D 미완 |
-| O-R-4 | 통과 | prod 스트림 `ACTIVE`, 목적지 `team-neki-log-production`. main 머지 후에도 D-14 를 반환하지 않음 |
+| O-R-4 | 통과 | prod 스트림 `ACTIVE`, 목적지 `team-neki-log-production`. main 머지 후에도 D-15 를 반환하지 않음 |
 | O-R-5 | 미검증 | |
 
 **참고 : Platform 측 스모크 테스트.** staging 스트림에 레코드 1건을 직접 `put-record` 했더니 약 320초 뒤 `s3://team-neki-log-staging/raw/client-log/year=2026/month=10/day=03/...gz` 에 쌓였고, 압축을 푼 내용이 보낸 것과 같았습니다. `raw/client-log-errors/` 는 0건입니다. Server 를 거치지 않은 검증이라 O-D-7 을 대신하지는 않지만, 스트림에서 S3 까지의 구간(전송 역할 권한, prefix, GZIP)은 동작함을 보여 줍니다. 날짜 폴더는 UTC 도착 시각 기준이라 KST 10/4 05:20 전송분이 `day=03` 에 들어갔습니다. 이 레코드에는 `"oracle":"BACKEND-166"` 표시가 없어 O-D-7 의 grep 에는 잡히지 않습니다.

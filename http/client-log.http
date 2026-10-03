@@ -60,7 +60,7 @@ Content-Type: application/json
     });
 %}
 
-### O-D-5 [스트림 생성 전] 실제 Firehose 어댑터가 붙어 D-14 를 돌려준다
+### O-D-5 [스트림 생성 전] 실제 Firehose 어댑터가 붙어 D-15 를 돌려준다
 POST {{host}}/api/logs
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
@@ -71,9 +71,9 @@ Content-Type: application/json
 }
 
 > {%
-    client.test("O-D-5 스트림 없음 -> D-14", () => {
+    client.test("O-D-5 스트림 없음 -> D-15", () => {
         client.assert(response.status === 400, "status=" + response.status);
-        client.assert(response.body.resultCode === "D-14", "resultCode=" + response.body.resultCode + ". D-0 이면 fake 가 붙었거나 스트림이 이미 있음");
+        client.assert(response.body.resultCode === "D-15", "resultCode=" + response.body.resultCode + ". D-0 이면 fake 가 붙었거나 스트림이 이미 있음");
     });
 %}
 

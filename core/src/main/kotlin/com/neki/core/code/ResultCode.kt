@@ -24,7 +24,7 @@ enum class ResultCode(val code: String, val message: String) {
     PUSH_NOT_CONFIGURED("D-11", "푸시 알림이 설정되지 않았습니다."),
     PUSH_SEND_FAILED("D-12", "푸시 알림 발송에 실패했습니다."),
     CONFLICT_BRAND("D-13", "이미 존재하는 브랜드입니다."),
-    LOG_SEND_FAILED("D-14", "로그 전송에 실패했습니다. 잠시 후 다시 시도해주세요."),
+    LOG_SEND_FAILED("D-15", "로그 전송에 실패했습니다. 잠시 후 다시 시도해주세요."),
 
     ACCESS_DENIED_ERROR("D-995", "토큰 권한이 없습니다."),
     MISSING_TOKEN_ERROR("D-996", "토큰이 존재하지 않습니다."),
