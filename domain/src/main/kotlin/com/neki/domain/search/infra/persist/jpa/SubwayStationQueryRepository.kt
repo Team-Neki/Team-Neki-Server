@@ -3,6 +3,7 @@ package com.neki.domain.search.infra.persist.jpa
 import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.models.QSubwayStation.subwayStation
 import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.models.SubwayStationId
 import com.neki.domain.search.models.UserLocation
 import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.dsl.BooleanExpression
@@ -42,6 +43,12 @@ class SubwayStationQueryRepository(private val queryFactory: JPAQueryFactory) {
         .from(subwayStation)
         .where(keywordStartsWith(keyword, namePrefix))
         .fetchOne() ?: 0L
+
+    /** PK (name, line_name) 조회 */
+    fun findById(id: SubwayStationId): SubwayStation? = queryFactory
+        .selectFrom(subwayStation)
+        .where(subwayStation.id.name.eq(id.name), subwayStation.id.lineName.eq(id.lineName))
+        .fetchOne()
 
     /**
      * 공백이 없으면 역명 접두만 본다. 공백이 있으면 노선명까지 적은 것으로 보고 `강남역 2호선`, `강남 2호선` 두 모양을 모두 받는다.

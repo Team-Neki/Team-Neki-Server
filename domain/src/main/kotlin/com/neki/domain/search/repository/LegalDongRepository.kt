@@ -19,4 +19,10 @@ interface LegalDongRepository {
     fun findByNameOrPathPrefix(namePrefix: String, pathPrefix: String?, pagination: Pagination): List<LegalDong>
 
     fun countByNameOrPathPrefix(namePrefix: String, pathPrefix: String?): Long
+
+    /** 전체 경로가 fullName 인 시군구 이하 법정동. 자동완성 응답의 지역 keyword 를 되돌린다 */
+    fun findByFullName(fullName: String): LegalDong?
+
+    /** 서울 자치구 25개. NER 사전의 지역 원천 */
+    fun findSeoulDistricts(): List<LegalDong>
 }
