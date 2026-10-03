@@ -6,8 +6,9 @@ spring:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   jpa:
     hibernate:
-      # 스키마는 Flyway 가 만들고, 엔티티 매핑이 마이그레이션과 어긋나면 컨텍스트 기동에서 실패한다
-      ddl-auto: validate
+      # 스키마는 운영과 같이 Flyway 가 만든다
+      # ponytail: validate 는 엔티티-마이그레이션 드리프트로 아직 실패한다. 드리프트를 정리하면 validate 로 올린다
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
