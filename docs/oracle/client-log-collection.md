@@ -70,6 +70,38 @@ Platform ADR-0004 에 따라 GZIP 으로 적재되므로 O-D-7, O-D-8 은 `gunzi
 | O-R-4 | manual | main 머지 전 prod 스트림 확인. main push 는 `deploy-api-prod.yml` 로 prod 에 바로 배포되므로, `aws firehose describe-delivery-stream --delivery-stream-name team-neki-log-raw-production-client-log` 이 `ACTIVE` 가 아니면 (Platform#23 apply 전) prod 의 `/api/logs` 는 D-14 를 반환함. 클라이언트 연동 전이라 허용한다면 PR 본문에 기록 |
 | O-R-5 | manual | 티켓 BACKEND-166 DONE (O-R-3 통과 뒤) |
 
+## 검증 기록
+
+### 2026-10-04 (코드 기준 커밋 `48dd836c`)
+
+Platform#23 apply 직후 기록입니다. Server 는 아직 staging 에 배포하지 않았습니다 (staging 이미지 `1.0.0-88c3b93`, OpenAPI 에 `/api/logs` 없음).
+
+| id | 결과 | 근거 |
+|---|---|---|
+| O-0-1 | 통과 | `spotlessCheck` 종료코드 0 |
+| O-0-2 | 통과 | tests/failures : domain 32/0, apps/batch 18/0, apps/api 585/0 |
+| O-0-3 | 통과 | `:apps:api:bootJar` 종료코드 0 |
+| O-0-4 | 통과 | 0 |
+| O-0-5 | 통과 | 추적 0, ignore 대상 |
+| O-A-1 | 통과 | 종료코드 0 |
+| O-A-2 | 통과 | 2 |
+| O-A-3 | 통과 | 2 |
+| O-A-4 | 통과 | 1 |
+| O-A-5 | 통과 | 1 |
+| O-A-6 | 통과 | 0 |
+| O-A-7 | 통과 | 종료코드 0 |
+| O-D-0 ~ O-D-4 | 미검증 | staging 배포 전 |
+| O-D-5 | 해당 없음 | Server 배포 전에 스트림이 생성됨 (Platform#23 apply) |
+| O-D-S | 통과 | `ACTIVE`, `arn:aws:s3:::team-neki-log-staging`, `raw/client-log/year=...`, `GZIP`, 300초 |
+| O-D-6 ~ O-D-10 | 미검증 | staging 배포 후 |
+| O-R-1 | 통과 | `OPEN main` |
+| O-R-2 | 통과 | `Test` = `SUCCESS` (Spotless, CodeRabbit 도 통과) |
+| O-R-3 | 미검증 | O-D 미완 |
+| O-R-4 | 통과 | prod 스트림 `ACTIVE`, 목적지 `team-neki-log-production`. main 머지 후에도 D-14 를 반환하지 않음 |
+| O-R-5 | 미검증 | |
+
+**참고 : Platform 측 스모크 테스트.** staging 스트림에 레코드 1건을 직접 `put-record` 했더니 약 320초 뒤 `s3://team-neki-log-staging/raw/client-log/year=2026/month=10/day=03/...gz` 에 쌓였고, 압축을 푼 내용이 보낸 것과 같았습니다. `raw/client-log-errors/` 는 0건입니다. Server 를 거치지 않은 검증이라 O-D-7 을 대신하지는 않지만, 스트림에서 S3 까지의 구간(전송 역할 권한, prefix, GZIP)은 동작함을 보여 줍니다. 날짜 폴더는 UTC 도착 시각 기준이라 KST 10/4 05:20 전송분이 `day=03` 에 들어갔습니다. 이 레코드에는 `"oracle":"BACKEND-166"` 표시가 없어 O-D-7 의 grep 에는 잡히지 않습니다.
+
 ## 판정 규칙
 
 - auto 하나라도 실패 = 미완료
