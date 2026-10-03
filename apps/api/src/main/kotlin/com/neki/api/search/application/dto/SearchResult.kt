@@ -7,6 +7,15 @@ package com.neki.api.search.application.dto
  * description    : Search domain result
  */
 object SearchResult {
+    /**
+     * 검색 자동완성. 지역·역·부스 세 탭이 같은 모양을 내려준다.
+     * keyword 는 화면에 그대로 보여 주고 고른 값을 부스 목록 요청에 넘기는 문자열이다.
+     */
+    data class Completion(val items: List<Item>, val hasNext: Boolean, val totalCount: Long) {
+        /** distanceKm 는 사용자 위치에서의 거리(km, 소수 첫째 자리). 위치를 안 줬거나 지역 검색이면 null */
+        data class Item(val keyword: String, val distanceKm: Double? = null)
+    }
+
     data class GetPhotoBooths(val items: List<Item>) {
         data class Item(
             val id: Long,
