@@ -31,8 +31,8 @@ class FirehoseClientLogAdapterTest {
         ClientLogCommand.Collect(userId = 7, platform = Platform.ANDROID, logs = logs.toList())
 
     @Test
-    @DisplayName("로그 1건을 서버 필드와 원본 log 를 담은 NDJSON 한 줄로 보낸다")
-    fun sendsOneNdjsonLinePerLog() {
+    @DisplayName("로그마다 서버 필드와 원본 log 를 담은 NDJSON 줄을 만들어 레코드 하나에 이어 붙인다")
+    fun packsNdjsonLinesIntoOneRecord() {
         val request = slot<PutRecordBatchRequest>()
         every { firehoseClient.putRecordBatch(capture(request)) } returns
             PutRecordBatchResponse.builder().failedPutCount(0).build()
@@ -40,16 +40,16 @@ class FirehoseClientLogAdapterTest {
         adapter.send(
             command(
                 mapOf("userId" to 999, "appVersion" to "1.4.0", "message" to "boom"),
-                mapOf(
-                    "event" to "tap",
-                ),
+                mapOf("event" to "tap"),
             ),
         )
 
         assertEquals("team-neki-log-raw-test", request.captured.deliveryStreamName())
-        val lines: List<String> = request.captured.records().map { it.data().asUtf8String() }
+        assertEquals(1, request.captured.records().size)
+        val data: String = request.captured.records().single().data().asUtf8String()
+        assertTrue(data.endsWith("\n"))
+        val lines: List<String> = data.removeSuffix("\n").split("\n")
         assertEquals(2, lines.size)
-        assertTrue(lines.all { it.endsWith("\n") && it.count { c -> c == '\n' } == 1 })
 
         val first: Map<*, *> = objectMapper.readValue(lines[0], Map::class.java)
         assertEquals(7, first["userId"]) // 클라이언트가 보낸 userId 는 log 아래에 남고 덮어쓰지 못한다
@@ -57,6 +57,27 @@ class FirehoseClientLogAdapterTest {
         assertEquals(setOf("userId", "platform", "receivedAt", "log"), first.keys)
         assertEquals(mapOf("userId" to 999, "appVersion" to "1.4.0", "message" to "boom"), first["log"])
         assertTrue(first["receivedAt"] is String)
+        assertEquals(mapOf("event" to "tap"), objectMapper.readValue(lines[1], Map::class.java)["log"])
+    }
+
+    @Test
+    @DisplayName("레코드 한도(1,000KiB)를 넘으면 줄 순서를 지키며 레코드를 나눈다")
+    fun splitsRecordsAtLimitKeepingOrder() {
+        val request = slot<PutRecordBatchRequest>()
+        every { firehoseClient.putRecordBatch(capture(request)) } returns
+            PutRecordBatchResponse.builder().failedPutCount(0).build()
+        val big = "x".repeat(400 * 1024)
+
+        adapter.send(
+            command(mapOf("seq" to 1, "m" to big), mapOf("seq" to 2, "m" to big), mapOf("seq" to 3, "m" to big)),
+        )
+
+        val records: List<ByteArray> = request.captured.records().map { it.data().asByteArray() }
+        assertEquals(2, records.size)
+        assertTrue(records.all { it.size <= 1_000 * 1024 })
+        val seqs: List<Any?> = records.flatMap { it.decodeToString().removeSuffix("\n").split("\n") }
+            .map { (objectMapper.readValue(it, Map::class.java)["log"] as Map<*, *>)["seq"] }
+        assertEquals(listOf(1, 2, 3), seqs)
     }
 
     @Test

@@ -15,13 +15,16 @@ import software.amazon.awssdk.services.firehose.FirehoseClient
 import software.amazon.awssdk.services.firehose.model.PutRecordBatchRequest
 import software.amazon.awssdk.services.firehose.model.PutRecordBatchResponse
 import software.amazon.awssdk.services.firehose.model.Record
+import java.io.ByteArrayOutputStream
 import java.time.Instant
 
 /**
  * fileName       : FirehoseClientLogAdapter
  * author         : koo
  * date           : 2026. 10. 2.
- * description    : 클라이언트 로그를 Kinesis Firehose 로 보내는 어댑터. 로그 1건을 개행으로 끝나는 JSON 한 줄(NDJSON)로 만든다.
+ * description    : 클라이언트 로그를 Kinesis Firehose 로 보내는 어댑터. 로그 1건을 개행으로 끝나는 JSON 한 줄(NDJSON)로 만들고,
+ *                  줄들을 레코드 한도까지 이어 붙여 보낸다. Firehose 는 레코드마다 5KB 로 올려 과금하므로
+ *                  로그 1건 = 레코드 1건이면 수백 바이트 로그도 5KB 값을 낸다 (Platform ADR-0004).
  *                  클라이언트 JSON 은 log 필드 아래에 그대로 둬서 서버가 붙이는 userId 등을 덮어쓰지 못하게 한다.
  */
 @Profile("!test & !local")
@@ -35,7 +38,7 @@ class FirehoseClientLogAdapter(
     private val log = LoggerFactory.getLogger(javaClass)
 
     private companion object {
-        // PutRecordBatch 한도. 건수(500)는 요청 검증에서 막는다
+        // PutRecordBatch 한도. 레코드 수는 로그 수(최대 500, 요청 검증) 이하라 따로 보지 않는다
         const val MAX_RECORD_BYTES = 1_000 * 1024
         const val MAX_BATCH_BYTES = 4 * 1024 * 1024
     }
@@ -51,25 +54,42 @@ class FirehoseClientLogAdapter(
 
         val request: PutRecordBatchRequest = PutRecordBatchRequest.builder()
             .deliveryStreamName(deliveryStream)
-            .records(lines.map { Record.builder().data(SdkBytes.fromByteArray(it)).build() })
+            .records(pack(lines).map { Record.builder().data(SdkBytes.fromByteArray(it)).build() })
             .build()
 
         val response: PutRecordBatchResponse = try {
             firehoseClient.putRecordBatch(request)
         } catch (e: SdkException) {
-            log.error("Firehose putRecordBatch failed: stream={}, records={}", deliveryStream, lines.size, e)
+            log.error("Firehose putRecordBatch failed: stream={}, logs={}", deliveryStream, lines.size, e)
             throw BusinessException(ResultCode.LOG_SEND_FAILED)
         }
 
         if (response.failedPutCount() > 0) {
             log.error(
-                "Firehose putRecordBatch partially failed: stream={}, failed={}/{}",
+                "Firehose putRecordBatch partially failed: stream={}, failedRecords={}/{}",
                 deliveryStream,
                 response.failedPutCount(),
-                lines.size,
+                request.records().size,
             )
             throw BusinessException(ResultCode.LOG_SEND_FAILED)
         }
+    }
+
+    /** 줄 순서를 지키며 레코드 한도까지 이어 붙인다. 줄 하나는 한도 이하임이 보장된 상태로 들어온다. */
+    private fun pack(lines: List<ByteArray>): List<ByteArray> {
+        val records = mutableListOf<ByteArray>()
+        val current = ByteArrayOutputStream()
+
+        for (line in lines) {
+            if (current.size() + line.size > MAX_RECORD_BYTES) {
+                records += current.toByteArray()
+                current.reset()
+            }
+            current.write(line)
+        }
+        records += current.toByteArray()
+
+        return records
     }
 
     private fun toLine(command: ClientLogCommand.Collect, clientLog: Map<String, Any?>, receivedAt: String): ByteArray {

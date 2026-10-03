@@ -25,7 +25,7 @@ aws:
     secret-key: ENC(/rlccjRKWaheGJ2eDHBAnTMKu6pWkQ6D4LhrKjniCKMMHH8tkoQ7l0VpZEr9UO8GmiMdmjrcK5pGznCZlzVGSf/9mGAcxa9Ezdoql7A/B2c=)
     bucket: yapp-neki-staging-ap-northeast-2
   firehose:
-    delivery-stream: team-neki-log-raw-staging
+    delivery-stream: team-neki-log-raw-staging-client-log
 ---
 spring:
   config:
@@ -37,4 +37,4 @@ aws:
     secret-key: ENC(fForFnB09QU6M/KucKAYQxA/3uTF6SdbFx0xsXKBu6xIkd4PZczva1cndzOE3tOEY/+7eExzRE8p85q2FYJUTsgtFVo6sHqQ9Tauf8rjI7g=)
     bucket: yapp-neki-ap-northeast-2
   firehose:
-    delivery-stream: team-neki-log-raw-production
+    delivery-stream: team-neki-log-raw-production-client-log

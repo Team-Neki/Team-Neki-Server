@@ -17,7 +17,7 @@ object ClientLogRequest {
         @field:Schema(description = "앱 플랫폼", example = "IOS")
         val platform: Platform,
 
-        // 500 은 Firehose PutRecordBatch 한 번에 넣을 수 있는 최대 건수
+        // 요청 하나의 건수 상한. 바이트 상한(로그 1,000KiB, 요청 4MiB)은 Firehose 어댑터가 본다
         @field:Size(min = 1, max = 500, message = "로그는 1건 이상 500건 이하로 보내야 합니다.")
         @field:ArraySchema(
             arraySchema = Schema(

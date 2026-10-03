@@ -77,7 +77,7 @@ Content-Type: application/json
     });
 %}
 
-### O-D-6 [스트림 생성 후] 2건을 보내면 D-0. 이어서 문서의 O-D-7~9 로 S3 를 확인한다
+### O-D-6 [스트림 생성 후] 2건을 보내면 D-0. 이어서 문서의 O-D-7~10 으로 S3 와 레코드 묶음을 확인한다
 POST {{host}}/api/logs
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
