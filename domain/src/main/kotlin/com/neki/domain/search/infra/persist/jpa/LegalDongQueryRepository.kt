@@ -45,4 +45,15 @@ class LegalDongQueryRepository(private val queryFactory: JPAQueryFactory) {
         return legalDong.leafName.startsWith(prefix).or(fullNameStartsWith)
             .and(legalDong.level.gt(LegalDong.SIDO_LEVEL))
     }
+
+    fun findByFullName(fullName: String): LegalDong? = queryFactory
+        .selectFrom(legalDong)
+        .where(legalDong.fullName.eq(fullName), legalDong.level.gt(LegalDong.SIDO_LEVEL))
+        .orderBy(legalDong.code.asc())
+        .fetchFirst()
+
+    fun findSeoulDistricts(): List<LegalDong> = queryFactory
+        .selectFrom(legalDong)
+        .where(legalDong.level.eq(LegalDong.SIGUNGU_LEVEL), legalDong.code.startsWith(LegalDong.SEOUL_CODE_PREFIX))
+        .fetch()
 }

@@ -11,9 +11,17 @@ import java.util.Locale
 object SearchNormalizer {
 
     private val STRIPPED = setOf('-', '_')
+    private val WHITESPACES = Regex("\\s+")
 
     /** 소문자, 공백·`-`·`_` 제거. 색인과 질의가 같은 함수를 쓴다 */
     fun normalize(text: String): String = text.lowercase().filterNot { it.isWhitespace() || it in STRIPPED }
+
+    /**
+     * 앞뒤 공백을 자르고 연속 공백을 한 칸으로. 지역·역 자동완성 검색어에 쓴다.
+     * 법정동·역 이름은 낱말 사이가 공백 한 칸으로 저장돼 있어, DB 값을 가공하지 않고 검색어만 맞춰야 접두 검색이 인덱스를 탄다.
+     * 그래서 공백을 지우는 [normalize] 를 쓰지 않는다.
+     */
+    fun collapseSpaces(text: String): String = text.trim().replace(WHITESPACES, " ")
 
     /**
      * name 에서 브랜드명 접두를 뗀 지점명. 접두가 없으면 원문 trim. 떼고 나서 비면 원문 trim.

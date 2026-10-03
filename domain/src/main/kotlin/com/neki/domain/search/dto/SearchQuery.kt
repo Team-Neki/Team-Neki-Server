@@ -1,7 +1,6 @@
 package com.neki.domain.search.dto
 
 import com.neki.core.domain.vo.Pagination
-import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.UserLocation
 
 /**
@@ -23,17 +22,27 @@ object SearchQuery {
     data class SearchStations(val keyword: String, val pagination: Pagination)
 
     /**
-     * 고른 지역·역의 부스 목록. brandIds 가 null 이거나 비어 있으면 모든 브랜드.
+     * 부스 목록과 필터가 같이 쓰는 범위. keyword 는 자동완성 keyword 이거나 자치구·역 + 브랜드 검색어이며 QU 가 이해한다.
+     * brandIds 가 null 이거나 비어 있으면 모든 브랜드.
+     */
+    interface PhotoBoothScope {
+        val keyword: String
+        val brandIds: List<Long>?
+    }
+
+    /**
+     * 고른 지역·역의 부스 목록.
      */
     data class GetPhotoBooths(
         val userId: Long,
-        val target: SearchTarget,
-        val brandIds: List<Long>?,
+        override val keyword: String,
+        override val brandIds: List<Long>?,
         val userLocation: UserLocation?,
-    )
+    ) : PhotoBoothScope
 
     /**
-     * 부스 목록에서 쓸 수 있는 브랜드 필터. 요청 body 는 [GetPhotoBooths] 와 같고 userLocation 만 쓰지 않는다.
+     * 부스 목록에서 쓸 수 있는 브랜드 필터. 범위는 [GetPhotoBooths] 와 같고 userLocation 만 쓰지 않는다.
      */
-    data class GetFilter(val userId: Long, val target: SearchTarget, val brandIds: List<Long>?)
+    data class GetFilter(val userId: Long, override val keyword: String, override val brandIds: List<Long>?) :
+        PhotoBoothScope
 }

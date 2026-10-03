@@ -19,4 +19,8 @@ class LegalDongRepositoryAdapter(private val queryRepository: LegalDongQueryRepo
         queryRepository.findByNamePrefix(prefix, pagination)
 
     override fun countByNamePrefix(prefix: String): Long = queryRepository.countByNamePrefix(prefix)
+
+    override fun findByFullName(fullName: String): LegalDong? = queryRepository.findByFullName(fullName)
+
+    override fun findSeoulDistricts(): List<LegalDong> = queryRepository.findSeoulDistricts()
 }

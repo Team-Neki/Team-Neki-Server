@@ -1,11 +1,8 @@
 package com.neki.api.search.api.dto
 
 import com.neki.api.search.application.dto.SearchResult
-import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.Pagination
-import com.neki.core.exception.BusinessException
 import com.neki.domain.search.dto.SearchQuery
-import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.UserLocation
 import org.springframework.stereotype.Component
 
@@ -30,44 +27,34 @@ object SearchConverter {
                 pagination = Pagination(page = page, size = size),
             )
 
-        fun toGetPhotoBoothsQuery(userId: Long, request: SearchRequest.FilterGroup): SearchQuery.GetPhotoBooths =
-            SearchQuery.GetPhotoBooths(
-                userId = userId,
-                target = toTarget(request),
-                brandIds = request.brandFilter?.brandIds,
-                userLocation = request.userLocation?.let {
-                    UserLocation(latitude = it.latitude!!, longitude = it.longitude!!)
-                },
-            )
+        fun toGetPhotoBoothsQuery(
+            userId: Long,
+            keyword: String,
+            request: SearchRequest.GetPhotoBooths,
+        ): SearchQuery.GetPhotoBooths = SearchQuery.GetPhotoBooths(
+            userId = userId,
+            keyword = keyword,
+            brandIds = toBrandIds(request.filterGroup),
+            userLocation = request.userLocation?.let {
+                UserLocation(latitude = it.latitude!!, longitude = it.longitude!!)
+            },
+        )
 
-        fun toGetFilterQuery(userId: Long, request: SearchRequest.FilterGroup): SearchQuery.GetFilter =
+        fun toGetFilterQuery(userId: Long, keyword: String, request: SearchRequest.GetFilter): SearchQuery.GetFilter =
             SearchQuery.GetFilter(
                 userId = userId,
-                target = toTarget(request),
-                brandIds = request.brandFilter?.brandIds,
+                keyword = keyword,
+                brandIds = toBrandIds(request.filterGroup),
             )
+
+        private fun toBrandIds(filterGroup: SearchRequest.FilterGroup): List<Long>? =
+            filterGroup.brandFilter?.brands?.map { it.brandId }
 
         /**
          * 저장된 지역·역 이름은 낱말 사이가 공백 한 칸이라, 검색어도 앞뒤를 자르고 연속 공백을 한 칸으로 맞춘다.
          * DB 쪽 값을 가공하지 않아야 접두 검색이 인덱스를 탄다.
          */
         private fun String.normalizeSpaces(): String = trim().replace(WHITESPACES, " ")
-
-        /**
-         * regionFilter 와 stationFilter 중 정확히 하나만 있어야 한다. 둘 다 없거나 둘 다 있으면 D-01.
-         */
-        private fun toTarget(request: SearchRequest.FilterGroup): SearchTarget {
-            val region: SearchRequest.FilterGroup.RegionFilter? = request.regionFilter
-            val station: SearchRequest.FilterGroup.StationFilter? = request.stationFilter
-            return when {
-                region != null && station == null -> SearchTarget.Region(code = region.code!!)
-                station != null && region == null -> SearchTarget.Station(
-                    name = station.name!!,
-                    lineName = station.lineName!!,
-                )
-                else -> throw BusinessException(ResultCode.INVALID_PARAMETER)
-            }
-        }
 
         companion object {
             private val WHITESPACES = Regex("\\s+")
