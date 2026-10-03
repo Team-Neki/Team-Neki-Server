@@ -22,5 +22,7 @@ object MediaCommand {
         )
     }
 
+    data class GenerateQrDumpUploadTicket(val ownerId: Long)
+
     data class DeleteMedias(val ownerId: Long, val mediaIds: List<Long>)
 }
