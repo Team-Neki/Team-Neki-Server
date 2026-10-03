@@ -1,10 +1,13 @@
 package com.neki.domain.map.infra.persist.jpa
 
 import com.neki.domain.map.dto.MapQuery
+import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
+import com.neki.domain.map.models.PhotoBoothSource
 import com.neki.domain.map.models.QBrand.brand
 import com.neki.domain.map.models.QPhotoBoothLocation.photoBoothLocation
+import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.BooleanExpression
@@ -242,5 +245,23 @@ class PhotoBoothLocationQueryRepository(
                 distance = (row[5] as Number).toInt(),
             )
         }
+    }
+
+    /**
+     * 원천 키 (platform, idx) 로 지점을 찾는다. platform 은 브랜드 수만큼이라 platform 별 IN 을 OR 로 잇는다.
+     * uq_photo_booth_location_source (source_platform, source_idx) 인덱스를 탄다.
+     */
+    fun findVisibleBySources(sources: Collection<PhotoBoothSource>): List<PhotoBoothLocation> {
+        if (sources.isEmpty()) return emptyList()
+
+        val anySource = BooleanBuilder()
+        sources.groupBy({ it.platform }, { it.idx }).forEach { (platform, idxs) ->
+            anySource.or(photoBoothLocation.sourcePlatform.eq(platform).and(photoBoothLocation.sourceIdx.`in`(idxs)))
+        }
+
+        return queryFactory
+            .selectFrom(photoBoothLocation)
+            .where(anySource, photoBoothLocation.adminHidden.isFalse)
+            .fetch()
     }
 }

@@ -2,6 +2,7 @@ package com.neki.domain.search.repository
 
 import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.models.SubwayStationId
 import com.neki.domain.search.models.UserLocation
 
 /**
@@ -24,4 +25,6 @@ interface SubwayStationRepository {
     ): List<SubwayStation>
 
     fun countByKeywordPrefix(keyword: String, namePrefix: String): Long
+
+    fun findById(id: SubwayStationId): SubwayStation?
 }

@@ -6,7 +6,6 @@ import com.neki.core.domain.vo.Pagination
 import com.neki.core.exception.BusinessException
 import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.dto.SearchQuery
-import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.UserLocation
 import org.springframework.stereotype.Component
 
@@ -49,22 +48,28 @@ object SearchConverter {
             userLocation = toUserLocation(latitude, longitude),
         )
 
-        fun toGetPhotoBoothsQuery(userId: Long, request: SearchRequest.FilterGroup): SearchQuery.GetPhotoBooths =
-            SearchQuery.GetPhotoBooths(
-                userId = userId,
-                target = toTarget(request),
-                brandIds = request.brandFilter?.brandIds,
-                userLocation = request.userLocation?.let {
-                    UserLocation(latitude = it.latitude!!, longitude = it.longitude!!)
-                },
-            )
+        fun toGetPhotoBoothsQuery(
+            userId: Long,
+            keyword: String,
+            request: SearchRequest.GetPhotoBooths,
+        ): SearchQuery.GetPhotoBooths = SearchQuery.GetPhotoBooths(
+            userId = userId,
+            keyword = keyword,
+            brandIds = toBrandIds(request.filterGroup),
+            userLocation = request.userLocation?.let {
+                UserLocation(latitude = it.latitude!!, longitude = it.longitude!!)
+            },
+        )
 
-        fun toGetFilterQuery(userId: Long, request: SearchRequest.FilterGroup): SearchQuery.GetFilter =
+        fun toGetFilterQuery(userId: Long, keyword: String, request: SearchRequest.GetFilter): SearchQuery.GetFilter =
             SearchQuery.GetFilter(
                 userId = userId,
-                target = toTarget(request),
-                brandIds = request.brandFilter?.brandIds,
+                keyword = keyword,
+                brandIds = toBrandIds(request.filterGroup),
             )
+
+        private fun toBrandIds(filterGroup: SearchRequest.FilterGroup): List<Long>? =
+            filterGroup.brandFilter?.brands?.map { it.brandId }
 
         /**
          * 위도와 경도는 둘 다 있거나 둘 다 없어야 한다. 하나만 오면 D-01.
@@ -73,22 +78,6 @@ object SearchConverter {
             latitude == null && longitude == null -> null
             latitude != null && longitude != null -> UserLocation(latitude = latitude, longitude = longitude)
             else -> throw BusinessException(ResultCode.INVALID_PARAMETER)
-        }
-
-        /**
-         * regionFilter 와 stationFilter 중 정확히 하나만 있어야 한다. 둘 다 없거나 둘 다 있으면 D-01.
-         */
-        private fun toTarget(request: SearchRequest.FilterGroup): SearchTarget {
-            val region: SearchRequest.FilterGroup.RegionFilter? = request.regionFilter
-            val station: SearchRequest.FilterGroup.StationFilter? = request.stationFilter
-            return when {
-                region != null && station == null -> SearchTarget.Region(code = region.code!!)
-                station != null && region == null -> SearchTarget.Station(
-                    name = station.name!!,
-                    lineName = station.lineName!!,
-                )
-                else -> throw BusinessException(ResultCode.INVALID_PARAMETER)
-            }
         }
     }
 

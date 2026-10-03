@@ -38,5 +38,10 @@ class LegalDong(
     companion object {
         /** 시도는 검색 대상이 아니다. */
         const val SIDO_LEVEL: Int = 1
+
+        const val SIGUNGU_LEVEL: Int = 2
+
+        /** 서울특별시 법정동코드 앞 두 자리 */
+        const val SEOUL_CODE_PREFIX: String = "11"
     }
 }

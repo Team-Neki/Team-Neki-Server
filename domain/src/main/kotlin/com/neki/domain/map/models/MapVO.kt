@@ -13,6 +13,11 @@ import org.locationtech.jts.geom.PrecisionModel
  */
 
 /**
+ * 수집 원천 키. 포토부스 위치(TB_PHOTO_BOOTH_LOCATION)의 (source_platform, source_idx) 와 같다
+ */
+data class PhotoBoothSource(val platform: String, val idx: String)
+
+/**
  * 지리적 좌표를 나타내는 Value Object
  */
 data class GeoPoint(val point: Point) {

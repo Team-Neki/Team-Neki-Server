@@ -3,6 +3,7 @@ package com.neki.domain.search.infra.persist
 import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.infra.persist.jpa.SubwayStationQueryRepository
 import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.models.SubwayStationId
 import com.neki.domain.search.models.UserLocation
 import com.neki.domain.search.repository.SubwayStationRepository
 import org.springframework.stereotype.Repository
@@ -26,4 +27,6 @@ class SubwayStationRepositoryAdapter(private val queryRepository: SubwayStationQ
 
     override fun countByKeywordPrefix(keyword: String, namePrefix: String): Long =
         queryRepository.countByKeywordPrefix(keyword, namePrefix)
+
+    override fun findById(id: SubwayStationId): SubwayStation? = queryRepository.findById(id)
 }

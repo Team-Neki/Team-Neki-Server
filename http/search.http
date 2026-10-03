@@ -1,0 +1,364 @@
+# 검색 부스 목록·브랜드 필터(BACKEND-123) staging 검증 요청. 위에서부터 순서대로 실행한다.
+# 판정 기준과 함께 볼 SQL 은 docs/oracle/search-api.md 의 "staging 검증 절차" 참고.
+# accessToken 은 http/http-client.private.env.json 에 둔다 (.gitignore 대상).
+#   { "staging": { "accessToken": "<JWT>" } }
+# 앞 요청이 client.global 에 남긴 값(브랜드 id, 건수, 부스 id)을 뒤 요청이 쓴다.
+
+### [B-1] 브랜드 목록 : 포토이즘·인생네컷 id 와 사용자 브랜드 순서 저장
+GET {{host}}/api/photo-booths/brand
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("B-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var brands = response.body.data;
+    var photoism = brands.filter(function (b) { return b.code === "PHOTOISM"; })[0];
+    var lifeFourCut = brands.filter(function (b) { return b.code === "LIFEFOURCUTS"; })[0];
+    client.assert(photoism !== undefined && lifeFourCut !== undefined, "PHOTOISM, LIFEFOURCUTS 브랜드가 있어야 함");
+    client.global.set("photoismId", String(photoism.id));
+    client.global.set("lifeFourCutId", String(lifeFourCut.id));
+    client.global.set("brandOrder", JSON.stringify(brands.map(function (b) { return b.id; })));
+  });
+%}
+
+### [C-1] 지역 자동완성 : "서울특별시 강남구" 가 후보에 있다
+GET {{host}}/api/search/completion/regions?keyword=강남
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("C-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var keywords = response.body.data.items.map(function (i) { return i.keyword; });
+    client.assert(keywords.indexOf("서울특별시 강남구") >= 0, "keywords " + keywords);
+  });
+%}
+
+### [C-2] 역 자동완성 : "강남역 2호선" 이 후보에 있다
+GET {{host}}/api/search/completion/stations?keyword=강남
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("C-2", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var keywords = response.body.data.items.map(function (i) { return i.keyword; });
+    client.assert(keywords.indexOf("강남역 2호선") >= 0, "keywords " + keywords);
+  });
+%}
+
+### [PB-1] 지역 keyword + 사용자 위치 : 가까운 순, 거리가 같으면 지점명 순
+POST {{host}}/api/search/photo-booths?keyword=서울특별시%20강남구
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {},
+  "userLocation": { "latitude": 37.4979, "longitude": 127.0276 }
+}
+
+> {%
+  client.test("PB-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.resultCode === "D-0", "resultCode " + response.body.resultCode);
+    var items = response.body.data.items;
+    client.assert(items.length > 0, "items 가 비어 있음. 선행 데이터(S-1 ~ S-3) 확인");
+    for (var i = 1; i < items.length; i++) {
+      var a = items[i - 1], b = items[i];
+      client.assert(typeof b.distance === "number", "distance 가 숫자가 아님 : " + b.id);
+      client.assert(a.distance < b.distance || (a.distance === b.distance && a.branchName <= b.branchName),
+        "정렬 위반 : " + a.id + " -> " + b.id);
+    }
+    var ids = items.map(function (i) { return i.id; });
+    client.global.set("regionCount", String(items.length));
+    client.global.set("regionIds", JSON.stringify(ids.slice().sort()));
+    var target = items.filter(function (i) { return i.favorite === false; })[0];
+    client.assert(target !== undefined, "즐겨찾기 안 한 부스가 하나는 있어야 FAV 검증 가능");
+    client.global.set("favTargetId", String(target.id));
+    client.log("PB-1 count=" + items.length + " ids=" + ids.join(","));
+  });
+%}
+
+### [PB-2] 같은 keyword, 사용자 위치 없음 : distance 는 null, 브랜드명·지점명 순, PB-1 과 같은 부스
+POST {{host}}/api/search/photo-booths?keyword=서울특별시%20강남구
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-2", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    for (var i = 0; i < items.length; i++) {
+      client.assert(items[i].distance === null, "distance 가 null 이 아님 : " + items[i].id);
+      if (i > 0) {
+        var a = items[i - 1], b = items[i];
+        client.assert(a.brandName < b.brandName || (a.brandName === b.brandName && a.branchName <= b.branchName),
+          "정렬 위반 : " + a.id + " -> " + b.id);
+      }
+    }
+    var ids = items.map(function (i) { return i.id; }).sort();
+    client.assert(JSON.stringify(ids) === client.global.get("regionIds"), "PB-1 과 부스 집합이 다름");
+  });
+%}
+
+### [F-1] 지역 필터 : count 합계 = PB-1 건수, 칩 순서 = 사용자 브랜드 순서
+POST {{host}}/api/search/filter?keyword=서울특별시%20강남구
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("F-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var chips = response.body.data.brandFilter;
+    var sum = chips.reduce(function (acc, c) { return acc + c.count; }, 0);
+    client.assert(String(sum) === client.global.get("regionCount"), "count 합계 " + sum + " != 목록 " + client.global.get("regionCount"));
+    var order = JSON.parse(client.global.get("brandOrder"));
+    var positions = chips.map(function (c) { return order.indexOf(c.id); });
+    for (var i = 1; i < positions.length; i++) {
+      client.assert(positions[i - 1] < positions[i], "칩 순서가 브랜드 순서와 다름 : " + JSON.stringify(chips));
+    }
+  });
+%}
+
+### [PB-3] 역 keyword : 강남역 2호선 1km 안 부스
+POST {{host}}/api/search/photo-booths?keyword=강남역%202호선
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-3", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    client.assert(items.length > 0, "items 가 비어 있음");
+    client.global.set("stationCount", String(items.length));
+    client.log("PB-3 count=" + items.length + " ids=" + items.map(function (i) { return i.id; }).join(","));
+  });
+%}
+
+### [F-2] 역 필터 : count 합계 = PB-3 건수
+POST {{host}}/api/search/filter?keyword=강남역%202호선
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("F-2", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var sum = response.body.data.brandFilter.reduce(function (acc, c) { return acc + c.count; }, 0);
+    client.assert(String(sum) === client.global.get("stationCount"), "count 합계 " + sum + " != 목록 " + client.global.get("stationCount"));
+  });
+%}
+
+### [PB-4] 자유 검색어 "강남구 포토이즘" : 강남구의 포토이즘만
+POST {{host}}/api/search/photo-booths?keyword=강남구%20포토이즘
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-4", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    client.assert(items.length > 0, "items 가 비어 있음");
+    items.forEach(function (i) { client.assert(i.brandCode === "PHOTOISM", "포토이즘이 아닌 부스 : " + i.id); });
+    client.assert(items.length <= Number(client.global.get("regionCount")), "강남구 전체보다 많음");
+    client.global.set("freeTextIds", JSON.stringify(items.map(function (i) { return i.id; }).sort()));
+  });
+%}
+
+### [PB-5] 단어 순서를 바꾼 "포토이즘 강남구" : PB-4 와 같은 부스
+POST {{host}}/api/search/photo-booths?keyword=포토이즘%20강남구
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-5", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var ids = response.body.data.items.map(function (i) { return i.id; }).sort();
+    client.assert(JSON.stringify(ids) === client.global.get("freeTextIds"), "PB-4 와 부스 집합이 다름");
+  });
+%}
+
+### [PB-6] 자유 검색어 "인생네컷 강남역" : 인생네컷만 (강남역의 모든 노선)
+POST {{host}}/api/search/photo-booths?keyword=인생네컷%20강남역
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-6", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    response.body.data.items.forEach(function (i) {
+      client.assert(i.brandCode === "LIFEFOURCUTS", "인생네컷이 아닌 부스 : " + i.id);
+    });
+    client.log("PB-6 count=" + response.body.data.items.length);
+  });
+%}
+
+### [PB-7] 검색어 브랜드(포토이즘)와 겹치지 않는 브랜드 필터(인생네컷) : 빈 목록
+POST {{host}}/api/search/photo-booths?keyword=강남구%20포토이즘
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {
+    "brandFilter": { "brands": [{ "brandId": {{lifeFourCutId}} }] }
+  }
+}
+
+> {%
+  client.test("PB-7", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.data.items.length === 0, "빈 목록이어야 함");
+  });
+%}
+
+### [PB-8a] 서울 밖 자치구 + 브랜드 : 에러가 아니라 빈 목록
+POST {{host}}/api/search/photo-booths?keyword=부산진구%20포토이즘
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-8a", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.resultCode === "D-0", "resultCode " + response.body.resultCode);
+    client.assert(response.body.data.items.length === 0, "빈 목록이어야 함");
+  });
+%}
+
+### [PB-8b] 브랜드만 : 범위(지역·역)가 없어 빈 목록
+POST {{host}}/api/search/photo-booths?keyword=포토이즘
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-8b", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.data.items.length === 0, "빈 목록이어야 함");
+  });
+%}
+
+### [PB-8c] 없는 지역 : 빈 목록
+POST {{host}}/api/search/photo-booths?keyword=서울특별시%20없는구
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-8c", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.data.items.length === 0, "빈 목록이어야 함");
+  });
+%}
+
+### [PB-9] 공백 keyword : 400 D-01
+POST {{host}}/api/search/photo-booths?keyword=%20
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-9", function () {
+    client.assert(response.status === 400, "status " + response.status);
+    client.assert(response.body.resultCode === "D-01", "resultCode " + response.body.resultCode);
+  });
+%}
+
+### [PB-10] 토큰 없음 : 403
+POST {{host}}/api/search/photo-booths?keyword=서울특별시%20강남구
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-10", function () {
+    client.assert(response.status === 403, "status " + response.status);
+  });
+%}
+
+### [FAV-1] PB-1 에서 즐겨찾기 안 한 부스를 즐겨찾기 (FAV-3 에서 되돌림)
+PATCH {{host}}/api/photo-booths/{{favTargetId}}/favorite
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "favorite": true
+}
+
+> {%
+  client.test("FAV-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+  });
+%}
+
+### [FAV-2] 다시 조회하면 그 부스의 favorite = true
+POST {{host}}/api/search/photo-booths?keyword=서울특별시%20강남구
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("FAV-2", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var targetId = Number(client.global.get("favTargetId"));
+    var target = response.body.data.items.filter(function (i) { return i.id === targetId; })[0];
+    client.assert(target !== undefined && target.favorite === true, "favorite 가 반영되지 않음 : " + targetId);
+  });
+%}
+
+### [FAV-3] 즐겨찾기를 되돌린다
+PATCH {{host}}/api/photo-booths/{{favTargetId}}/favorite
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "favorite": false
+}
+
+> {%
+  client.test("FAV-3", function () {
+    client.assert(response.status === 200, "status " + response.status);
+  });
+%}
