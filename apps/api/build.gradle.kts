@@ -36,7 +36,8 @@ dependencies {
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
 
-    testRuntimeOnly("com.h2database:h2")
+    // application-test.yml 의 jdbc:tc: URL 로 postgis 컨테이너를 띄운다
+    testRuntimeOnly("org.testcontainers:postgresql")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }
