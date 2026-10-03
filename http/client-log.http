@@ -1,0 +1,99 @@
+# 클라이언트 로그 수집 API dev 검증 (BACKEND-166, docs/oracle/client-log-collection.md)
+#
+# 실행 환경: dev. accessToken 은 http/http-client.private.env.json 에 둔다 (gitignore 대상)
+#   { "dev": { "accessToken": "<dev 앱 로그인 accessToken>" } }
+#
+# O-D-5 와 O-D-6 은 같은 요청이고 staging 스트림 생성 전후로 기대값만 다르다. 단계에 맞는 것 하나만 실행한다.
+
+### O-D-1 배포 확인: /api/logs 가 OpenAPI 문서에 있다
+GET {{host}}/v3/api-docs
+
+> {%
+    client.test("O-D-1 /api/logs 노출", () => {
+        client.assert(response.status === 200, "status=" + response.status);
+        client.assert(response.body.paths["/api/logs"] !== undefined, "/api/logs 가 없음. 배포 이미지 확인");
+    });
+%}
+
+### O-D-2 토큰 유효 확인, S3 대조용 userId 기록
+GET {{host}}/api/users/info
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("O-D-2 토큰 유효", () => {
+        client.assert(response.status === 200, "status=" + response.status + ". accessToken 재발급 필요");
+    });
+    client.global.set("userId", response.body.data.userId);
+    client.log("S3 대조용 userId = " + response.body.data.userId);
+%}
+
+### O-D-3 토큰 없으면 403 D-996
+POST {{host}}/api/logs
+Content-Type: application/json
+
+{
+  "platform": "IOS",
+  "logs": [{"oracle": "BACKEND-166"}]
+}
+
+> {%
+    client.test("O-D-3 토큰 없음 거부", () => {
+        client.assert(response.status === 403, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-996", "resultCode=" + response.body.resultCode);
+    });
+%}
+
+### O-D-4 빈 배치는 400 D-01
+POST {{host}}/api/logs
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "platform": "IOS",
+  "logs": []
+}
+
+> {%
+    client.test("O-D-4 빈 배치 거부", () => {
+        client.assert(response.status === 400, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-01", "resultCode=" + response.body.resultCode);
+    });
+%}
+
+### O-D-5 [스트림 생성 전] 실제 Firehose 어댑터가 붙어 D-15 를 돌려준다
+POST {{host}}/api/logs
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "platform": "IOS",
+  "logs": [{"oracle": "BACKEND-166", "appVersion": "0.0.0-oracle", "phase": "before-stream", "sentAt": "{{$isoTimestamp}}"}]
+}
+
+> {%
+    client.test("O-D-5 스트림 없음 -> D-15", () => {
+        client.assert(response.status === 400, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-15", "resultCode=" + response.body.resultCode + ". D-0 이면 fake 가 붙었거나 스트림이 이미 있음");
+    });
+%}
+
+### O-D-6 [스트림 생성 후] 2건을 보내면 D-0. 이어서 문서의 O-D-7~10 으로 S3 와 레코드 묶음을 확인한다
+POST {{host}}/api/logs
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "platform": "IOS",
+  "logs": [
+    {"oracle": "BACKEND-166", "appVersion": "0.0.0-oracle", "seq": 1, "userId": -1, "sentAt": "{{$isoTimestamp}}"},
+    {"oracle": "BACKEND-166", "appVersion": "0.0.0-oracle", "seq": 2, "nested": {"level": "ERROR", "tags": ["a", "b"]}, "sentAt": "{{$isoTimestamp}}"}
+  ]
+}
+
+> {%
+    client.test("O-D-6 Firehose 전달 성공", () => {
+        client.assert(response.status === 200, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-0", "resultCode=" + response.body.resultCode);
+    });
+    client.log("S3 에서 userId=" + client.global.get("userId") + ", log.userId=-1 인 줄 2개를 찾는다");
+%}
