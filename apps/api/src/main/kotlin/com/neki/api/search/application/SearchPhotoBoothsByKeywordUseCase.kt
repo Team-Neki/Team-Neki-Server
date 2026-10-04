@@ -4,28 +4,29 @@ import com.neki.api.search.application.dto.SearchAssembler
 import com.neki.api.search.application.dto.SearchResult
 import com.neki.core.annotation.UseCase
 import com.neki.core.domain.vo.PageWithTotalCount
-import com.neki.domain.search.client.PhotoBoothClient
 import com.neki.domain.search.dto.SearchQuery
-import com.neki.domain.search.models.PhotoBoothSummary
+import com.neki.domain.search.models.PhotoBoothSearch
+import com.neki.domain.search.service.PhotoBoothSearchService
+import com.neki.domain.search.service.qu.QueryUnderstandingService
 
 /**
  * fileName       : SearchPhotoBoothsByKeywordUseCase
  * author         : darren
  * date           : 2026. 10. 1.
- * description    : 부스 검색. 포토부스는 map 도메인에 있어 PhotoBoothClient 로 조회한다.
+ * description    : 부스 검색. 부스 목록·필터 API 와 같은 검색 색인(_read)을 조회한다.
  */
 @UseCase
-class SearchPhotoBoothsByKeywordUseCase(private val photoBoothClient: PhotoBoothClient) {
+class SearchPhotoBoothsByKeywordUseCase(
+    private val photoBoothSearchService: PhotoBoothSearchService,
+    private val queryUnderstandingService: QueryUnderstandingService,
+) {
 
     fun execute(query: SearchQuery.SearchPhotoBoothsByKeyword): SearchResult.Completion {
-        // 지역·역 검색과 같이 1자는 조회하지 않는다
-        val booths: PageWithTotalCount<PhotoBoothSummary> =
-            if (query.keyword.length < SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH) {
-                query.pagination.slice(emptyList(), 0L)
-            } else {
-                photoBoothClient.searchByKeyword(query)
-            }
+        val booths: PageWithTotalCount<PhotoBoothSearch> = photoBoothSearchService.searchByKeyword(query)
 
-        return SearchAssembler.toPhotoBoothCompletion(booths, query.userLocation)
+        // 검색어에 적힌 브랜드는 부스 목록 요청의 브랜드 필터로 내려준다
+        val brandIds: List<Long> = queryUnderstandingService.recognizeBrandIds(query.keyword)
+
+        return SearchAssembler.toPhotoBoothCompletion(booths, query.userLocation, brandIds)
     }
 }

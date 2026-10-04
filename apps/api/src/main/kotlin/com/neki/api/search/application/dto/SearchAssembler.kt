@@ -1,10 +1,9 @@
 package com.neki.api.search.application.dto
 
 import com.neki.core.domain.vo.PageWithTotalCount
-import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.models.BrandCount
 import com.neki.domain.search.models.LegalDong
-import com.neki.domain.search.models.PhotoBoothSummary
+import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SearchedBooth
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.UserLocation
@@ -20,16 +19,19 @@ import java.math.RoundingMode
 object SearchAssembler {
 
     /** 같은 이름을 구분할 수 있게 `서울특별시 강남구` 처럼 전체 경로를 내려준다. */
-    fun toRegionCompletion(regions: PageWithTotalCount<LegalDong>): SearchResult.Completion = SearchResult.Completion(
-        items = regions.items.map { SearchResult.Completion.Item(keyword = it.fullName) },
-        hasNext = regions.hasNext,
-        totalCount = regions.totalCount,
-    )
+    fun toRegionCompletion(regions: PageWithTotalCount<LegalDong>, brandIds: List<Long>): SearchResult.Completion =
+        SearchResult.Completion(
+            items = regions.items.map { SearchResult.Completion.Item(keyword = it.fullName) },
+            hasNext = regions.hasNext,
+            totalCount = regions.totalCount,
+            brandIds = brandIds,
+        )
 
     /** 저장된 역명에는 `역` 이 없다. 화면에 보일 `강남역 2호선` 형태로 맞춰 내려준다. */
     fun toStationCompletion(
         stations: PageWithTotalCount<SubwayStation>,
         userLocation: UserLocation?,
+        brandIds: List<Long>,
     ): SearchResult.Completion = SearchResult.Completion(
         items = stations.items.map {
             SearchResult.Completion.Item(
@@ -39,24 +41,27 @@ object SearchAssembler {
         },
         hasNext = stations.hasNext,
         totalCount = stations.totalCount,
+        brandIds = brandIds,
     )
 
     /**
-     * `포토이즘 강남1호점` 형태. 수집한 지점명에는 `포토시그니처 고현점` 처럼 브랜드명이 붙어 있는 것이 있어
-     * 검색 색인과 같은 규칙(SearchNormalizer.branchName)으로 떼고 붙인다.
+     * `포토이즘 강남1호점` 형태. 색인의 지점명은 수집한 이름에서 브랜드명 접두를 뗀 것이라(SearchNormalizer.branchName) 그대로 붙인다.
+     * 부스 목록 API 의 QU 가 이 keyword 를 같은 모양(`브랜드명 지점명`)으로 색인과 비교해 그 지점으로 되돌린다.
      */
     fun toPhotoBoothCompletion(
-        booths: PageWithTotalCount<PhotoBoothSummary>,
+        booths: PageWithTotalCount<PhotoBoothSearch>,
         userLocation: UserLocation?,
+        brandIds: List<Long>,
     ): SearchResult.Completion = SearchResult.Completion(
         items = booths.items.map {
             SearchResult.Completion.Item(
-                keyword = "${it.brandName} ${SearchNormalizer.branchName(it.brandName, it.branchName)}",
-                distanceKm = userLocation?.distanceKmTo(latitude = it.latitude, longitude = it.longitude),
+                keyword = "${it.brandName} ${it.branchName}",
+                distanceKm = userLocation?.distanceKmTo(latitude = it.location.y, longitude = it.location.x),
             )
         },
         hasNext = booths.hasNext,
         totalCount = booths.totalCount,
+        brandIds = brandIds,
     )
 
     /** 순서는 SearchedBooths.ordered 가 정한 것을 그대로 쓴다 */

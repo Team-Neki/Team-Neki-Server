@@ -1,5 +1,6 @@
 package com.neki.api.search.api.dto
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
@@ -86,6 +87,7 @@ object SearchRequest {
             val type: SortType = SortType.DEFAULT,
 
             @field:Schema(description = "정렬 방향. 지정하지 않으면 필드를 생략합니다", example = "ASC")
+            @field:JsonInclude(JsonInclude.Include.NON_NULL)
             val order: Order? = null,
         ) {
             enum class SortType {

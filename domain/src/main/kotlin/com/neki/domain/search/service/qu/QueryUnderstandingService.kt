@@ -50,6 +50,17 @@ class QueryUnderstandingService(
         return QueryIntent.of(normalized, completions.map { ResolvedEntity(normalized, 0, normalized.length, it) })
     }
 
+    /**
+     * 자동완성 검색어에 적힌 브랜드. `강남 포토이즘` -> 포토이즘. 자동완성이 내려주는 filterGroup 의 브랜드 필터로 쓴다.
+     * 브랜드는 NER 사전으로만 찾으므로 브랜드 이름 전체를 적어야 한다 (`포토이` 는 브랜드가 아니다). 검색어에 나온 순서다.
+     */
+    fun recognizeBrandIds(keyword: String): List<Long> = understand(keyword, entityDictionaryCache.get()).targets
+        .filterIsInstance<SearchTarget.Brand>()
+        .map { it.brandId }
+
+    /** 사전에 올라간 브랜드 이름. 요청마다 DB 를 조회하지 않고 메모리의 사전에서 꺼낸다 */
+    fun brandNames(): List<String> = entityDictionaryCache.get().brandNames
+
     internal fun understand(keyword: String, dictionary: EntityDictionary): QueryIntent {
         val normalized: String = SearchNormalizer.normalize(keyword)
         val entities: List<ResolvedEntity> = Ner.recognize(normalized, dictionary)

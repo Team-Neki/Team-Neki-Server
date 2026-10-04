@@ -21,6 +21,9 @@ class EntityDictionary(entries: List<DictionaryEntry>) {
 
     val size: Int = entriesByKey.values.sumOf { it.size }
 
+    /** 브랜드 항목의 원문 이름. 지역·역 자동완성이 검색어에서 브랜드 낱말을 뺄 때 쓴다 (CompletionKeyword.withoutBrandWords) */
+    val brandNames: List<String> = entries.filter { it.target is SearchTarget.Brand }.map { it.name }.distinct()
+
     /** 사전 키의 최대 길이. NER 이 이보다 긴 부분 문자열을 조회하지 않게 한다 */
     val maxKeyLength: Int = entriesByKey.keys.maxOfOrNull { it.length } ?: 0
 

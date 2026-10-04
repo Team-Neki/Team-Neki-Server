@@ -1,7 +1,9 @@
 package com.neki.api.e2e.search
 
 import com.neki.core.code.ResultCode
+import com.neki.domain.map.models.Brand
 import io.restassured.RestAssured
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
@@ -29,6 +31,8 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
 
     private lateinit var accessToken: String
 
+    private lateinit var planB: Brand
+
     @BeforeEach
     fun setUp() {
         RestAssured.port = port
@@ -38,8 +42,8 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         accessToken = token
 
         // tb_legal_dong 의 실제 행. 시도·하위 계층·접두가 아닌 이름이 섞이도록 골랐다.
-        createBrand("포토그레이", "PHOTOGRAY")
-        createBrand("플랜비 스튜디오", "PLANB_STUDIO")
+        val photoGray: Brand = createBrand("포토그레이", "PHOTOGRAY", "PHOTOGRAY")
+        planB = createBrand("플랜비 스튜디오", "PLANB_STUDIO", "PLANB_STUDIO")
 
         createLegalDong("1100000000", 1, "서울특별시", "서울특별시")
         createLegalDong("1165000000", 2, "서초구", "서울특별시 서초구")
@@ -54,6 +58,11 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         createLegalDong("4161000000", 2, "광주시", "경기도 광주시")
         createLegalDong("1150010300", 3, "화곡동", "서울특별시 강서구 화곡동")
         createLegalDong("4155039030", 4, "화곡리", "경기도 안성시 일죽면 화곡리")
+
+        // 검색어의 브랜드 낱말 빼기와 filterGroup 은 검색 색인에 있는 브랜드(NER 사전)를 본다
+        createIndexedBooth(photoGray, "pg1", "강남점", 127.0280, 37.4980, emptyList())
+        createIndexedBooth(planB, "pb1", "강남점", 127.0290, 37.4990, emptyList())
+        queryUnderstandingService.reloadDictionary()
     }
 
     private fun get(vararg params: Pair<String, Any>) = RestAssured.given()
@@ -89,6 +98,26 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
                 .body("data.totalCount", equalTo(2))
                 .body("data.items[0].keyword", equalTo("서울특별시 강서구 화곡동"))
                 .body("data.items[1].keyword", equalTo("경기도 안성시 일죽면 화곡리"))
+        }
+
+        @Test
+        @DisplayName("검색어에 브랜드가 없으면 기본 filterGroup 을 내려준다")
+        fun givenKeywordWithoutBrand_whenSearch_thenReturnsDefaultFilterGroup() {
+            get("keyword" to "강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+                .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+        }
+
+        @Test
+        @DisplayName("검색어에 브랜드가 있으면 지역 검색에서 뺀 그 브랜드를 건 filterGroup 을 내려준다")
+        fun givenKeywordWithBrand_whenSearch_thenReturnsBrandFilterGroup() {
+            listOf("강남 플랜비 스튜디오", "플랜비 스튜디오 서울특별시 강남").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("data.filterGroup.brandFilter.brands.brandId", contains(planB.id!!.toInt()))
+                    .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+            }
         }
 
         @Test

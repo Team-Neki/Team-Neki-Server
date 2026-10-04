@@ -1,5 +1,6 @@
 package com.neki.domain.search.infra.persist
 
+import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothEnrichedRepository
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothSearchRepository
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothSearchWriteRepository
@@ -10,6 +11,7 @@ import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.PhotoBoothSearchWrite
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.models.UserLocation
 import com.neki.domain.search.repository.PhotoBoothSearchRepository
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
@@ -46,6 +48,16 @@ class PhotoBoothSearchRepositoryAdapter(
         queryRepository.findByScope(scope, brandIds)
 
     override fun findByBoothName(boothName: String): List<PhotoBoothSearch> = queryRepository.findByBoothName(boothName)
+
+    override fun findByKeyword(
+        keyword: String,
+        terms: List<List<String>>,
+        userLocation: UserLocation?,
+        pagination: Pagination,
+    ): List<PhotoBoothSearch> = queryRepository.findByKeyword(keyword, terms, userLocation, pagination)
+
+    override fun countByKeyword(keyword: String, terms: List<List<String>>): Long =
+        queryRepository.countByKeyword(keyword, terms)
 
     override fun findIndexedBrandNames(): Map<Long, String> = queryRepository.findBrandNames()
 
