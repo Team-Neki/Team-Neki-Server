@@ -34,8 +34,8 @@
 | id | 종류 | 판정 |
 |---|---|---|
 | O-B-1 | auto | `./gradlew :domain:test --tests 'com.neki.domain.search.SearchNormalizerTest' -q` 종료코드 0 |
-| O-B-2 | auto | `grep -cE "fun (normalize\|branchName\|searchText\|regionIds\|siteKey)\(" domain/src/main/kotlin/com/neki/domain/search/SearchNormalizer.kt` = 5 |
-| O-B-3 | auto | `grep -c "Locale.ROOT" domain/src/main/kotlin/com/neki/domain/search/SearchNormalizer.kt` >= 1 |
+| O-B-2 | auto | `grep -cE "fun (normalize\|branchName\|searchText\|regionIds\|siteKey)\(" domain/src/main/kotlin/com/neki/domain/search/service/qu/SearchNormalizer.kt` = 5 |
+| O-B-3 | auto | `grep -c "Locale.ROOT" domain/src/main/kotlin/com/neki/domain/search/service/qu/SearchNormalizer.kt` >= 1 |
 | O-B-4 | auto | domain 테스트 수 >= 23 : `./gradlew :domain:test -q; grep -ho 'tests="[0-9]*"' domain/build/test-results/test/*.xml \| grep -o '[0-9]*' \| paste -sd+ - \| bc` |
 
 ## O-C. 서비스, 잡, 테스트, 배선

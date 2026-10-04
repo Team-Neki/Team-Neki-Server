@@ -43,4 +43,15 @@ class LegalDongQueryRepository(private val queryFactory: JPAQueryFactory) {
 
         return matched.and(legalDong.level.gt(LegalDong.SIDO_LEVEL))
     }
+
+    fun findByFullName(fullName: String): LegalDong? = queryFactory
+        .selectFrom(legalDong)
+        .where(legalDong.fullName.eq(fullName), legalDong.level.gt(LegalDong.SIDO_LEVEL))
+        .orderBy(legalDong.code.asc())
+        .fetchFirst()
+
+    fun findAllBelowSido(): List<LegalDong> = queryFactory
+        .selectFrom(legalDong)
+        .where(legalDong.level.gt(LegalDong.SIDO_LEVEL))
+        .fetch()
 }

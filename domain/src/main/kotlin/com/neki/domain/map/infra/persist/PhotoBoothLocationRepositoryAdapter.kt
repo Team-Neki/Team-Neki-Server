@@ -6,6 +6,7 @@ import com.neki.domain.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
 import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
+import com.neki.domain.map.models.PhotoBoothSource
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
 import org.locationtech.jts.geom.Coordinate
 import org.springframework.stereotype.Repository
@@ -49,4 +50,7 @@ class PhotoBoothLocationRepositoryAdapter(
         brandIds: List<Long>?,
     ): List<PhotoBoothLocationWithDistance> =
         queryRepository.findByDistanceFromPoint(coordinate, radiusInMeters, brandIds)
+
+    override fun findVisibleBySources(sources: Collection<PhotoBoothSource>): List<PhotoBoothLocation> =
+        queryRepository.findVisibleBySources(sources)
 }

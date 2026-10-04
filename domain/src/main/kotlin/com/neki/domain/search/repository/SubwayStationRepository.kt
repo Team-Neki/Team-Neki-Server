@@ -2,6 +2,7 @@ package com.neki.domain.search.repository
 
 import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.models.SubwayStationId
 import com.neki.domain.search.models.UserLocation
 
 /**
@@ -24,4 +25,9 @@ interface SubwayStationRepository {
     ): List<SubwayStation>
 
     fun countByKeywordPrefix(keyword: String, namePrefix: String): Long
+
+    fun findById(id: SubwayStationId): SubwayStation?
+
+    /** 전체 역 (역 x 노선). NER 사전의 역 원천 */
+    fun findAll(): List<SubwayStation>
 }

@@ -1,9 +1,11 @@
 package com.neki.api.map.application
 
 import com.neki.api.map.application.dto.MapResult
+import com.neki.api.map.application.dto.PhotoBoothLocationAssembler
 import com.neki.core.annotation.UseCase
 import com.neki.core.transaction.TransactionRunner
 import com.neki.domain.map.dto.MapQuery
+import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 import com.neki.domain.map.repository.FavoriteMapRepository
@@ -64,5 +66,23 @@ class GetPhotoBoothLocationUseCase(
         )
 
         MapResult.GetPointLocation(locations, favoriteLocationIds)
+    }
+
+    /**
+     * 수집 원천 키로 포토부스 위치 조회. 관리자가 숨긴 지점과 아직 동기화되지 않은 원천 키는 빠진다
+     */
+    fun execute(query: MapQuery.GetSourceLocations): MapResult.GetSourceLocations = transactionRunner.readOnly {
+        val locations: List<PhotoBoothLocation> = photoBoothLocationRepository.findVisibleBySources(query.sources)
+
+        if (locations.isEmpty()) {
+            return@readOnly MapResult.GetSourceLocations(emptyList())
+        }
+
+        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+            userId = query.userId,
+            locationIds = locations.mapNotNull { it.id },
+        )
+
+        PhotoBoothLocationAssembler.toSourceLocations(locations, favoriteLocationIds)
     }
 }

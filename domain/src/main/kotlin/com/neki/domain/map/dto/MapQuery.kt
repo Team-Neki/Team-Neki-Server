@@ -1,6 +1,7 @@
 package com.neki.domain.map.dto
 
 import com.neki.core.domain.vo.Pagination
+import com.neki.domain.map.models.PhotoBoothSource
 import org.locationtech.jts.geom.Coordinate
 
 /**
@@ -34,4 +35,7 @@ object MapQuery {
         val pagination: Pagination,
         val coordinate: Coordinate?,
     )
+
+    /** 수집 원천 키로 포토부스 위치를 찾는다. 관리자가 숨긴 지점은 빠진다 */
+    data class GetSourceLocations(val userId: Long, val sources: List<PhotoBoothSource>)
 }

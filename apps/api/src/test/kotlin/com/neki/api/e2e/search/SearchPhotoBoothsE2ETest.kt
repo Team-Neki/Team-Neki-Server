@@ -1,15 +1,15 @@
 package com.neki.api.e2e.search
 
-import com.neki.api.e2e.E2ETestBase
 import com.neki.api.search.api.dto.SearchRequest
 import com.neki.core.code.ResultCode
+import com.neki.domain.map.models.PhotoBoothLocation
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.everyItem
-import org.hamcrest.Matchers.hasSize
 import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -24,103 +24,232 @@ import org.springframework.test.context.ActiveProfiles
  * fileName       : SearchPhotoBoothsE2ETest
  * author         : koo
  * date           : 2026. 9. 15.
- * description    : POST /api/search/photo-booths E2E 테스트 (mock 응답)
+ * description    : POST /api/search/photo-booths E2E 테스트
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class SearchPhotoBoothsE2ETest : E2ETestBase() {
+class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
 
     @LocalServerPort
     private var port: Int = 0
 
     private lateinit var accessToken: String
 
-    private val gangnamGu = SearchRequest.FilterGroup.RegionFilter(code = "1168000000")
-    private val gangnamStation = SearchRequest.FilterGroup.StationFilter(name = "강남", lineName = "2호선")
-    private val gangnamLocation = SearchRequest.FilterGroup.UserLocation(latitude = 37.4979, longitude = 127.0276)
+    private lateinit var booths: GangnamBooths
+
+    private val gangnamLocation = SearchRequest.UserLocation(latitude = 37.4979, longitude = 127.0276)
 
     @BeforeEach
     fun setUp() {
         RestAssured.port = port
         RestAssured.baseURI = "http://localhost"
 
-        val (_, token) = createTestUserAndToken()
+        val (user, token) = createTestUserAndToken()
         accessToken = token
+        booths = GangnamBooths(user.id!!)
     }
 
-    private fun post(request: SearchRequest.FilterGroup) = RestAssured.given()
+    private fun post(
+        keyword: String?,
+        filterGroup: SearchRequest.FilterGroup = SearchRequest.FilterGroup(),
+        userLocation: SearchRequest.UserLocation? = null,
+    ) = postBody(SearchRequest.GetPhotoBooths(keyword, filterGroup, userLocation))
+
+    private fun postBody(body: Any) = RestAssured.given()
         .header("Authorization", "Bearer $accessToken")
         .contentType(ContentType.JSON)
-        .body(request)
+        .body(body)
         .`when`()
         .post("/api/search/photo-booths")
         .then()
+
+    private fun brandFilter(vararg brandIds: Long) = SearchRequest.FilterGroup(
+        brandFilter = SearchRequest.FilterGroup.BrandFilter(
+            brands = brandIds.map { SearchRequest.FilterGroup.BrandFilter.Brand(brandId = it) },
+        ),
+    )
 
     @Nested
     @DisplayName("성공 케이스")
     inner class SuccessTests {
 
         @Test
-        @DisplayName("지역 + 사용자 위치 - distance 가 채워지고 가까운 순으로 정렬된다")
-        fun givenRegionAndUserLocation_whenSearch_thenReturnsBoothsOrderedByDistance() {
-            val response = post(SearchRequest.FilterGroup(regionFilter = gangnamGu, userLocation = gangnamLocation))
+        @DisplayName("지역 + 사용자 위치 - 지도 부스 id 로 가까운 순, 숨김·미동기화 지점은 빠진다")
+        fun givenRegionAndUserLocation_whenSearch_thenReturnsVisibleBoothsOrderedByDistance() {
+            val response = post(
+                "서울특별시 강남구",
+                userLocation = gangnamLocation,
+            )
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-                .body("data.items", hasSize<Int>(4))
-                .body("data.items[0].id", equalTo(2591))
-                .body("data.items[0].favorite", equalTo(false))
-                .body("data.items[3].id", equalTo(2560))
-                .body("data.items[3].favorite", equalTo(true))
+                .body(
+                    "data.items.id",
+                    contains(
+                        booths.photoismGangnamStation.id!!.toInt(),
+                        booths.lifeFourCutGangnamStation.id!!.toInt(),
+                        booths.photoismGangnam1.id!!.toInt(),
+                    ),
+                )
+                .body("data.items.favorite", contains(false, false, true))
+                .body("data.items[2].brandName", equalTo("포토이즘"))
+                .body("data.items[2].branchName", equalTo("강남1호점"))
                 .extract()
 
             val distances: List<Int> = response.jsonPath().getList("data.items.distance", Integer::class.java).map {
                 it.toInt()
             }
-            assertThat(distances).isSorted()
+            assertThat(distances).isSorted().allMatch { it in 1..1000 }
+        }
+
+        @Test
+        @DisplayName("사용자 위치 + 거리가 같은 부스 - 지점 이름 순으로 정렬된다")
+        fun givenBoothsAtSameDistance_whenSearch_thenOrderedByBranchName() {
+            // 포토이즘 강남역점과 같은 자리에 먼저 저장된 것보다 이름이 앞서는 지점을 둔다
+            val sameSpot: PhotoBoothLocation = createMapBooth(
+                createIndexedBooth(
+                    booths.lifeFourCut,
+                    "l3",
+                    "가로수점",
+                    127.0289042,
+                    37.4967118,
+                    listOf("1100000000", "1168000000"),
+                ),
+            )
+
+            post(
+                "서울특별시 강남구",
+                userLocation = gangnamLocation,
+            )
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items[0].id", equalTo(sameSpot.id!!.toInt()))
+                .body("data.items[1].id", equalTo(booths.photoismGangnamStation.id!!.toInt()))
         }
 
         @Test
         @DisplayName("사용자 위치 없음 - distance 가 null 이고 브랜드, 지점 이름 순으로 정렬된다")
         fun givenNoUserLocation_whenSearch_thenDistanceIsNullAndOrderedByBrandAndBranch() {
-            post(SearchRequest.FilterGroup(regionFilter = gangnamGu))
+            post("서울특별시 강남구")
                 .statusCode(HttpStatus.OK.value())
-                .body("data.items", hasSize<Int>(4))
+                .body(
+                    "data.items.id",
+                    contains(
+                        booths.lifeFourCutGangnamStation.id!!.toInt(),
+                        booths.photoismGangnam1.id!!.toInt(),
+                        booths.photoismGangnamStation.id!!.toInt(),
+                    ),
+                )
                 .body("data.items.distance", everyItem(nullValue()))
-                .body("data.items[0].brandName", equalTo("인생네컷"))
-                .body("data.items[1].id", equalTo(2560))
-                .body("data.items[2].id", equalTo(2591))
-                .body("data.items[3].id", equalTo(2604))
         }
 
         @Test
-        @DisplayName("역 선택 - 역에 딸린 부스 목록을 반환한다")
+        @DisplayName("역 선택 - 역에 딸린 부스 목록을 반환한다 (다른 구의 부스 포함)")
         fun givenStation_whenSearch_thenReturnsBoothsOfStation() {
-            post(SearchRequest.FilterGroup(stationFilter = gangnamStation, userLocation = gangnamLocation))
+            post("강남역 2호선")
                 .statusCode(HttpStatus.OK.value())
-                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-                .body("data.items", hasSize<Int>(6))
-                .body("data.items[0].latitude", equalTo(37.4967118f))
-                .body("data.items[0].longitude", equalTo(127.0289042f))
+                .body(
+                    "data.items.id",
+                    contains(
+                        booths.lifeFourCutGangnamStation.id!!.toInt(),
+                        booths.lifeFourCutSeocho.id!!.toInt(),
+                        booths.photoismGangnam1.id!!.toInt(),
+                        booths.photoismGangnamStation.id!!.toInt(),
+                    ),
+                )
         }
 
         @Test
         @DisplayName("브랜드 필터 - 해당 브랜드의 부스만 반환한다")
-        fun givenBrandIds_whenSearch_thenReturnsOnlyThatBrand() {
-            post(
-                SearchRequest.FilterGroup(
-                    regionFilter = gangnamGu,
-                    brandFilter = SearchRequest.FilterGroup.BrandFilter(brandIds = listOf(2)),
-                ),
-            )
+        fun givenBrandFilter_whenSearch_thenReturnsOnlyThatBrand() {
+            post("강남역 2호선", brandFilter(booths.lifeFourCut.id!!))
                 .statusCode(HttpStatus.OK.value())
-                .body("data.items", hasSize<Int>(1))
-                .body("data.items[0].brandCode", equalTo("LIFEFOURCUTS"))
+                .body(
+                    "data.items.id",
+                    contains(booths.lifeFourCutGangnamStation.id!!.toInt(), booths.lifeFourCutSeocho.id!!.toInt()),
+                )
         }
 
         @Test
-        @DisplayName("부스가 없는 지역 - 빈 배열을 반환한다")
-        fun givenRegionWithoutBooths_whenSearch_thenReturnsEmptyList() {
-            post(SearchRequest.FilterGroup(regionFilter = SearchRequest.FilterGroup.RegionFilter(code = "4817010300")))
+        @DisplayName("keyword 앞뒤·연속 공백 - 한 칸으로 맞춰 같은 지역으로 찾는다")
+        fun givenKeywordWithExtraSpaces_whenSearch_thenNormalizesSpaces() {
+            post("  서울특별시   강남구 ")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.size()", equalTo(3))
+        }
+
+        @Test
+        @DisplayName("자치구 + 브랜드 검색어 - 순서와 무관하게 그 자치구의 그 브랜드만 반환한다")
+        fun givenDistrictAndBrandKeyword_whenSearch_thenReturnsThatBrandInDistrict() {
+            val expected = contains(booths.photoismGangnam1.id!!.toInt(), booths.photoismGangnamStation.id!!.toInt())
+
+            post("강남구 포토이즘").statusCode(HttpStatus.OK.value()).body("data.items.id", expected)
+            post("포토이즘 강남").statusCode(HttpStatus.OK.value()).body("data.items.id", expected)
+        }
+
+        @Test
+        @DisplayName("브랜드 + 역 검색어 - 역 반경 안의 그 브랜드만 반환한다 (다른 구 포함)")
+        fun givenBrandAndStationKeyword_whenSearch_thenReturnsThatBrandNearStation() {
+            post("인생네컷 강남역")
+                .statusCode(HttpStatus.OK.value())
+                .body(
+                    "data.items.id",
+                    contains(booths.lifeFourCutGangnamStation.id!!.toInt(), booths.lifeFourCutSeocho.id!!.toInt()),
+                )
+        }
+
+        @Test
+        @DisplayName("부스 자동완성 keyword(브랜드명 지점명) - 그 지점 하나만 반환한다 (같은 지점명의 다른 브랜드는 빠진다)")
+        fun givenBoothKeyword_whenSearch_thenReturnsOnlyThatBooth() {
+            post("포토이즘 강남역점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.id", contains(booths.photoismGangnamStation.id!!.toInt()))
+                .body("data.items[0].branchName", equalTo("강남역점"))
+        }
+
+        @Test
+        @DisplayName("부스 keyword + 그 지점의 브랜드 필터 - 그 지점을 그대로 반환한다")
+        fun givenBoothKeywordAndSameBrandFilter_whenSearch_thenReturnsThatBooth() {
+            post(
+                "포토이즘 강남역점",
+                brandFilter(booths.photoism.id!!, booths.lifeFourCut.id!!),
+            )
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.id", contains(booths.photoismGangnamStation.id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("부스 keyword 인데 지도에서 숨긴 지점이거나 브랜드 필터와 겹치지 않음 - 빈 배열을 반환한다")
+        fun givenHiddenBoothOrOtherBrandFilter_whenSearchByBoothKeyword_thenReturnsEmptyList() {
+            post("포토이즘 숨김점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+            post("포토이즘 강남역점", brandFilter(booths.lifeFourCut.id!!))
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+        }
+
+        @Test
+        @DisplayName("검색어의 브랜드와 브랜드 필터가 겹치지 않음 - 빈 배열을 반환한다")
+        fun givenKeywordBrandOutsideBrandFilter_whenSearch_thenReturnsEmptyList() {
+            post("강남구 포토이즘", brandFilter(booths.lifeFourCut.id!!))
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+        }
+
+        @Test
+        @DisplayName("지역·역·지점을 찾지 못함 - 에러가 아니라 빈 배열 (없는 지역, 서울 밖 자치구, 브랜드만, 시도, 브랜드 없는 지점명)")
+        fun givenKeywordWithoutArea_whenSearch_thenReturnsEmptyList() {
+            listOf("서울특별시 없는구", "부산진구 포토이즘", "포토이즘", "서울특별시", "강남역점").forEach { keyword ->
+                post(keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                    .body("data.items", empty<Any>())
+            }
+        }
+
+        @Test
+        @DisplayName("부스가 없는 역 - 빈 배열을 반환한다")
+        fun givenStationWithoutBooths_whenSearch_thenReturnsEmptyList() {
+            post("강남구청역 7호선")
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.items", empty<Any>())
@@ -132,45 +261,25 @@ class SearchPhotoBoothsE2ETest : E2ETestBase() {
     inner class FailureTests {
 
         @Test
-        @DisplayName("없는 지역 - D-04")
-        fun givenUnknownRegion_whenSearch_thenReturnsNotFound() {
-            post(SearchRequest.FilterGroup(regionFilter = SearchRequest.FilterGroup.RegionFilter(code = "9999999999")))
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
-        }
-
-        @Test
-        @DisplayName("없는 역 - D-04")
-        fun givenUnknownStation_whenSearch_thenReturnsNotFound() {
-            post(
-                SearchRequest.FilterGroup(
-                    stationFilter = SearchRequest.FilterGroup.StationFilter(name = "강남", lineName = "9호선"),
-                ),
-            )
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("resultCode", equalTo(ResultCode.NOT_FOUND.code))
-        }
-
-        @Test
-        @DisplayName("지역과 역을 둘 다 보냄 - D-01")
-        fun givenBothRegionAndStation_whenSearch_thenReturnsInvalidParameter() {
-            post(SearchRequest.FilterGroup(regionFilter = gangnamGu, stationFilter = gangnamStation))
+        @DisplayName("공백뿐인 keyword - D-01")
+        fun givenBlankKeyword_whenSearch_thenReturnsInvalidParameter() {
+            post(" ")
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
 
         @Test
-        @DisplayName("지역과 역을 둘 다 안 보냄 - D-01")
-        fun givenNeitherRegionNorStation_whenSearch_thenReturnsInvalidParameter() {
-            post(SearchRequest.FilterGroup())
+        @DisplayName("keyword 없음 - D-01")
+        fun givenNoKeyword_whenSearch_thenReturnsInvalidParameter() {
+            post(null)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
 
         @Test
-        @DisplayName("지역 코드가 빈 문자열 - D-01")
-        fun givenBlankRegionCode_whenSearch_thenReturnsInvalidParameter() {
-            post(SearchRequest.FilterGroup(regionFilter = SearchRequest.FilterGroup.RegionFilter(code = " ")))
+        @DisplayName("filterGroup 없음 - D-01")
+        fun givenNoFilterGroup_whenSearch_thenReturnsInvalidParameter() {
+            postBody("""{"keyword": "서울특별시 강남구"}""")
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
@@ -180,7 +289,7 @@ class SearchPhotoBoothsE2ETest : E2ETestBase() {
         fun givenNoToken_whenSearch_thenReturnsForbidden() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(SearchRequest.FilterGroup(regionFilter = gangnamGu))
+                .body(SearchRequest.GetPhotoBooths("서울특별시 강남구", SearchRequest.FilterGroup()))
                 .`when`()
                 .post("/api/search/photo-booths")
                 .then()

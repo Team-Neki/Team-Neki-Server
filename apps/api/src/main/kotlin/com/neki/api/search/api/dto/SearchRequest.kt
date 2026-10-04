@@ -12,67 +12,114 @@ import jakarta.validation.constraints.NotNull
  * description    : Search 관련 요청 DTO
  */
 object SearchRequest {
-    /**
-     * 부스 목록(POST /photo-booths)과 필터(POST /filter)가 같은 body 를 쓴다.
-     * 필터가 늘어도 이 클래스에 그룹만 추가하고 엔드포인트와 응답 모양은 유지한다.
-     */
+
+    private const val KEYWORD_DESCRIPTION = "자동완성 keyword(지역·역·부스) 또는 자치구·역 + 브랜드 검색어. 없거나 공백뿐이면 D-01"
+
     @Schema(
-        name = "SearchFilterGroupRequest",
-        description = "고른 지역·역의 부스 목록 및 필터 요청. regionFilter 와 stationFilter 중 하나만 보냅니다.",
+        name = "SearchPhotoBoothsRequest",
+        description = "고른 지역·역·지점의 부스 목록 요청. 자동완성에서 고른 keyword 와 filterGroup 을 그대로 보냅니다.",
         example = """
             {
-                "regionFilter": { "code": "1168000000" },
-                "brandFilter": { "brandIds": [] },
+                "keyword": "서울특별시 강남구",
+                "filterGroup": {
+                    "brandFilter": { "brands": [] },
+                    "sortFilter": { "type": "DEFAULT" }
+                },
                 "userLocation": { "latitude": 37.4979, "longitude": 127.0276 }
             }
         """,
     )
+    data class GetPhotoBooths(
+        @field:Schema(description = KEYWORD_DESCRIPTION, example = "서울특별시 강남구")
+        @field:NotBlank(message = "keyword는 필수값입니다.")
+        val keyword: String?,
+
+        @field:Schema(description = "필터 그룹. 필수이며 필터를 안 걸려면 {} 를 보냅니다")
+        @field:Valid
+        val filterGroup: FilterGroup,
+
+        @field:Schema(description = "사용자 현재 위치. 없으면 distance 가 null 이고 브랜드·지점명 순 정렬")
+        @field:Valid
+        val userLocation: UserLocation? = null,
+    )
+
+    @Schema(
+        name = "SearchFilterRequest",
+        description = "부스 목록에서 쓸 수 있는 필터 요청. keyword 와 filterGroup 은 부스 목록 요청과 같습니다.",
+        example = """
+            {
+                "keyword": "서울특별시 강남구",
+                "filterGroup": {
+                    "brandFilter": { "brands": [] }
+                }
+            }
+        """,
+    )
+    data class GetFilter(
+        @field:Schema(description = KEYWORD_DESCRIPTION, example = "서울특별시 강남구")
+        @field:NotBlank(message = "keyword는 필수값입니다.")
+        val keyword: String?,
+
+        @field:Schema(description = "필터 그룹. 필수이며 필터를 안 걸려면 {} 를 보냅니다")
+        @field:Valid
+        val filterGroup: FilterGroup,
+    )
+
+    @Schema(
+        name = "SearchFilterGroupRequest",
+        description = "부스 목록·필터 공통 필터 그룹. 필터가 늘면 여기에 그룹이 추가됩니다.",
+    )
     data class FilterGroup(
-        @field:Schema(description = "지역 필터. stationFilter 와 둘 중 하나만 보냅니다.")
-        @field:Valid
-        val regionFilter: RegionFilter? = null,
-
-        @field:Schema(description = "지하철역 필터. regionFilter 와 둘 중 하나만 보냅니다.")
-        @field:Valid
-        val stationFilter: StationFilter? = null,
-
         @field:Schema(description = "브랜드 필터. 없으면 모든 브랜드")
         @field:Valid
         val brandFilter: BrandFilter? = null,
 
-        @field:Schema(description = "사용자 현재 위치. 없으면 distance 가 null 이고 브랜드·지점명 순 정렬. 필터 API 는 무시")
+        @field:Schema(description = "정렬 필터. 현재 DEFAULT 뿐이며 userLocation 이 있으면 가까운 순(같으면 지점명), 없으면 브랜드·지점명 순")
         @field:Valid
-        val userLocation: UserLocation? = null,
+        val sortFilter: SortFilter? = null,
     ) {
-        data class RegionFilter(
-            @field:Schema(description = "법정동코드 10자리 (지역 검색 응답의 code)", example = "1168000000")
-            @field:NotBlank(message = "regionFilter.code는 필수값입니다.")
-            val code: String?,
-        )
-
-        data class StationFilter(
-            @field:Schema(description = "역명. 역 접미사 없음 (역 검색 응답의 name)", example = "강남")
-            @field:NotBlank(message = "stationFilter.name은 필수값입니다.")
-            val name: String?,
-
-            @field:Schema(description = "노선명 (역 검색 응답의 lineName)", example = "신분당선")
-            @field:NotBlank(message = "stationFilter.lineName은 필수값입니다.")
-            val lineName: String?,
-        )
-
+        @Schema(name = "SearchBrandFilterRequest")
         data class BrandFilter(
-            @field:Schema(description = "브랜드 ID 리스트 (null 또는 [] 이면 모든 브랜드)", example = "[1, 2]")
-            val brandIds: List<Long>? = null,
-        )
+            @field:Schema(
+                description = "브랜드 목록. null 또는 [] 이면 모든 브랜드",
+                example = """[{"brandId": 1}, {"brandId": 2}]""",
+            )
+            val brands: List<Brand>? = null,
+        ) {
+            @Schema(name = "SearchBrandRequest")
+            data class Brand(
+                @field:Schema(description = "브랜드 ID", example = "1")
+                val brandId: Long,
+            )
+        }
 
-        data class UserLocation(
-            @field:Schema(description = "위도", example = "37.4979")
-            @field:NotNull(message = "userLocation.latitude는 필수값입니다.")
-            val latitude: Double?,
+        @Schema(name = "SearchSortFilterRequest")
+        data class SortFilter(
+            @field:Schema(description = "정렬 기준", example = "DEFAULT")
+            val type: SortType = SortType.DEFAULT,
 
-            @field:Schema(description = "경도", example = "127.0276")
-            @field:NotNull(message = "userLocation.longitude는 필수값입니다.")
-            val longitude: Double?,
-        )
+            @field:Schema(description = "정렬 방향. 지정하지 않으면 필드를 생략합니다", example = "ASC")
+            val order: Order? = null,
+        ) {
+            enum class SortType {
+                DEFAULT,
+            }
+
+            enum class Order {
+                ASC,
+                DESC,
+            }
+        }
     }
+
+    @Schema(name = "SearchUserLocationRequest")
+    data class UserLocation(
+        @field:Schema(description = "위도", example = "37.4979")
+        @field:NotNull(message = "userLocation.latitude는 필수값입니다.")
+        val latitude: Double?,
+
+        @field:Schema(description = "경도", example = "127.0276")
+        @field:NotNull(message = "userLocation.longitude는 필수값입니다.")
+        val longitude: Double?,
+    )
 }
