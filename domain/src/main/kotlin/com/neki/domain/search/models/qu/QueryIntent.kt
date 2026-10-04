@@ -10,7 +10,7 @@ import com.neki.domain.search.service.qu.SearchNormalizer
  * date           : 2026. 9. 17.
  * description    : 검색어를 어떻게 이해했는가. 조회 조건이 아니다 (조건은 SearchCondition).
  *   keyword 는 정규화 검색어이고, 엔티티의 [start, end) 는 그 안의 문자 범위다.
- *   entities 는 인식한 브랜드·지역·역과, 엔티티 사이 조각 중 지점 접미사로 끝나 지점(BRANCH)으로 분류한 것이다. 범위 순이다.
+ *   entities 는 인식한 브랜드·지역·역·지점과, 엔티티 사이 조각 중 지점 접미사로 끝나 지점(BRANCH)으로 분류한 것이다. 범위 순이다.
  *   remainingTerms 는 엔티티가 차지하지 않은 나머지 조각들이다. 엔티티가 없으면 검색어 전체 하나이고,
  *   엔티티가 있으면 그 사이사이 조각 중 MIN_TERM_LENGTH 이상만 남는다.
  *   만드는 길은 [of] 하나라 이 규칙이 늘 지켜진다.

@@ -26,5 +26,5 @@ class LegalDongRepositoryAdapter(private val queryRepository: LegalDongQueryRepo
 
     override fun findByFullName(fullName: String): LegalDong? = queryRepository.findByFullName(fullName)
 
-    override fun findSeoulDistricts(): List<LegalDong> = queryRepository.findSeoulDistricts()
+    override fun findAllBelowSido(): List<LegalDong> = queryRepository.findAllBelowSido()
 }

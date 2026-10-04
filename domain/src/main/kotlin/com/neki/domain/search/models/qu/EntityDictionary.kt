@@ -1,6 +1,7 @@
 package com.neki.domain.search.models.qu
 
 import com.neki.domain.search.models.LegalDong
+import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.service.qu.SearchNormalizer
@@ -30,29 +31,39 @@ class EntityDictionary(entries: List<DictionaryEntry>) {
         private const val DISTRICT_SUFFIX = "구"
 
         /**
-         * 사전 이름 규칙. 지원 범위는 검색 정책 1장(서울 자치구, 지하철역)을 따른다.
-         * - 지역 : 자치구 이름과 줄임말 (강남구, 강남). 줄임말이 한 글자가 되면(중구 -> 중) 넣지 않는다
-         * - 역 : `역명역`. 노선마다 한 항목이라 `강남역` 은 2호선과 신분당선을 모두 가리킨다
+         * 사전 이름 규칙. 자유 검색어의 지원 범위는 검색 정책 1장(서울 자치구, 지하철역)을 따르고,
+         * 자동완성 keyword(지역 전체 경로, `역명역 노선명`, 부스 `브랜드명 지점명`)도 넣어 NER 이 longest match 로 그 하나를 고르게 한다.
+         * - 지역 : 시군구 이하 법정동의 전체 경로(서울특별시 강남구). 서울 자치구는 이름과 줄임말도 (강남구, 강남). 줄임말이 한 글자가 되면(중구 -> 중) 넣지 않는다
+         * - 역 : `역명역` 과 `역명역 노선명`. 노선마다 한 항목이라 `강남역` 은 2호선과 신분당선을 모두, `강남역 2호선` 은 2호선만 가리킨다
+         * - 지점 : 검색 색인의 `브랜드명 지점명`
          * - 브랜드 : 검색 색인에 있는 브랜드 이름
          */
         fun of(
-            districts: List<LegalDong>,
+            regions: List<LegalDong>,
             stations: List<SubwayStation>,
             brandNames: Map<Long, String>,
+            booths: List<PhotoBoothSearch>,
         ): EntityDictionary {
-            val regionEntries: List<DictionaryEntry> = districts.flatMap { district ->
-                val short: String = district.leafName.removeSuffix(DISTRICT_SUFFIX)
-                val names: List<String> = listOf(district.leafName) + listOf(short).filter { it.length > 1 }
-                names.distinct().map { DictionaryEntry(it, SearchTarget.Region(code = district.code)) }
+            val regionEntries: List<DictionaryEntry> = regions.flatMap { region ->
+                val short: String = region.leafName.removeSuffix(DISTRICT_SUFFIX)
+                val districtNames: List<String> =
+                    listOf(region.leafName, short).filter { region.isSeoulDistrict && it.length > 1 }
+                (listOf(region.fullName) + districtNames).map {
+                    DictionaryEntry(it, SearchTarget.Region(code = region.code))
+                }
             }
-            val stationEntries: List<DictionaryEntry> = stations.map {
-                DictionaryEntry(it.nameWithSuffix, SearchTarget.Station(name = it.name, lineName = it.lineName))
+            val stationEntries: List<DictionaryEntry> = stations.flatMap {
+                val target = SearchTarget.Station(name = it.name, lineName = it.lineName)
+                listOf(DictionaryEntry(it.nameWithSuffix, target), DictionaryEntry(it.keyword, target))
+            }
+            val boothEntries: List<DictionaryEntry> = booths.map {
+                DictionaryEntry("${it.brandName} ${it.branchName}", SearchTarget.Booth(it.platform, it.idx))
             }
             val brandEntries: List<DictionaryEntry> = brandNames.map { (brandId, brandName) ->
                 DictionaryEntry(brandName, SearchTarget.Brand(brandId))
             }
 
-            return EntityDictionary(regionEntries + stationEntries + brandEntries)
+            return EntityDictionary(regionEntries + stationEntries + boothEntries + brandEntries)
         }
     }
 }

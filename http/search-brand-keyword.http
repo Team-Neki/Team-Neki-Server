@@ -28,7 +28,7 @@ Content-Type: application/json
 %}
 
 ### [BK-1] 지역 자동완성 "서울특별시 강남구 포토이즘" : 첫 후보 저장
-GET {{host}}/api/search/completion/regions?keyword=서울특별시%20강남구%20포토이즘
+GET {{host}}/api/search/completion/regions?keyword=강남구%20포토이즘
 Authorization: Bearer {{accessToken}}
 
 > {%

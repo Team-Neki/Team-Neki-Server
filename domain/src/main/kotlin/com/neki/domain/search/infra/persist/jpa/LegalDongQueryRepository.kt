@@ -50,8 +50,8 @@ class LegalDongQueryRepository(private val queryFactory: JPAQueryFactory) {
         .orderBy(legalDong.code.asc())
         .fetchFirst()
 
-    fun findSeoulDistricts(): List<LegalDong> = queryFactory
+    fun findAllBelowSido(): List<LegalDong> = queryFactory
         .selectFrom(legalDong)
-        .where(legalDong.level.eq(LegalDong.SIGUNGU_LEVEL), legalDong.code.startsWith(LegalDong.SEOUL_CODE_PREFIX))
+        .where(legalDong.level.gt(LegalDong.SIDO_LEVEL))
         .fetch()
 }

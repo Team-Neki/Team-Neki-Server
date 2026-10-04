@@ -33,6 +33,9 @@ interface PhotoBoothSearchRepository {
     /** 검색 API 가 읽는(_read) 색인 행 중 `브랜드명 지점명` 이 boothName 인 것. 부스 자동완성 keyword 를 지점으로 되돌린다 */
     fun findByBoothName(boothName: String): List<PhotoBoothSearch>
 
+    /** 검색 API 가 읽는(_read) 색인 행 전체. NER 사전의 지점 원천 */
+    fun findAllCurrent(): List<PhotoBoothSearch>
+
     /** 검색 API 가 읽는(_read) 색인에 있는 브랜드 id -> 이름. NER 사전의 브랜드 원천 */
     fun findIndexedBrandNames(): Map<Long, String>
 }

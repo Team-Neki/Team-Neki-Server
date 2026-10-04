@@ -27,4 +27,7 @@ interface SubwayStationRepository {
     fun countByKeywordPrefix(keyword: String, namePrefix: String): Long
 
     fun findById(id: SubwayStationId): SubwayStation?
+
+    /** 전체 역 (역 x 노선). NER 사전의 역 원천 */
+    fun findAll(): List<SubwayStation>
 }
