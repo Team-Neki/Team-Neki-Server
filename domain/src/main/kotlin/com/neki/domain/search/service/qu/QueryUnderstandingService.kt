@@ -4,7 +4,6 @@ import com.neki.domain.search.external.EntityDictionaryCache
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.qu.EntityDictionary
-import com.neki.domain.search.models.qu.EntityType
 import com.neki.domain.search.models.qu.QueryIntent
 import com.neki.domain.search.models.qu.ResolvedEntity
 import com.neki.domain.search.repository.LegalDongRepository
@@ -78,9 +77,9 @@ class QueryUnderstandingService(
 
     /**
      * 사전을 저장소에서 다시 만들어 통째로 바꿔 끼운다. 다 만든 뒤에 한 번에 바꾸므로 실패하면 이전 사전이 남는다.
-     * 앱이 뜰 때와 10분마다 apps/api(SearchDictionaryRefresher)가 부른다. 올린 항목 수를 종류별로 돌려준다.
+     * 앱이 뜰 때와 10분마다 apps/api(SearchDictionaryRefresher)가 부른다. 올린 항목 수를 돌려준다.
      */
-    fun reloadDictionary(): Map<EntityType, Int> {
+    fun reloadDictionary(): Int {
         val dictionary: EntityDictionary = EntityDictionary.of(
             regions = legalDongRepository.findAllBelowSido(),
             stations = subwayStationRepository.findAll(),
@@ -89,6 +88,6 @@ class QueryUnderstandingService(
         )
         entityDictionaryCache.replace(dictionary)
 
-        return dictionary.sizeByType
+        return dictionary.size
     }
 }

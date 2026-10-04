@@ -173,12 +173,7 @@ class QueryUnderstandingServiceTest :
             service.understand("포토이즘 강남역").targets.shouldBeEmpty()
 
             // 서울특별시 강남구, 강남구, 강남(줄임말), 강남역·강남역 2호선(2호선), 포토이즘
-            service.reloadDictionary() shouldBe mapOf(
-                EntityType.REGION to 3,
-                EntityType.STATION to 2,
-                EntityType.BRAND to 1,
-                EntityType.BRANCH to 0,
-            )
+            service.reloadDictionary() shouldBe 6
 
             service.understand("포토이즘 강남역").targets shouldBe listOf(SearchTarget.Brand(1), gangnamLine2)
         }

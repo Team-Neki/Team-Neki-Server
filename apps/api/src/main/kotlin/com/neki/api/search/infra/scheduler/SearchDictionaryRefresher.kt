@@ -1,6 +1,5 @@
 package com.neki.api.search.infra.scheduler
 
-import com.neki.domain.search.models.qu.EntityType
 import com.neki.domain.search.service.qu.QueryUnderstandingService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -33,17 +32,12 @@ class SearchDictionaryRefresher(private val queryUnderstandingService: QueryUnde
     @Scheduled(initialDelay = 10, fixedDelay = 10, timeUnit = TimeUnit.MINUTES)
     fun refresh() {
         runCatching { queryUnderstandingService.reloadDictionary() }
-            .onSuccess { sizeByType ->
+            .onSuccess { entries ->
                 // 갈아 끼운 직후 JVM 힙 전체 스냅샷. 이전 사전은 GC 전까지 used 에 남아 있어 사전 크기 자체는 아니다
                 val heap: MemoryUsage = ManagementFactory.getMemoryMXBean().heapMemoryUsage
                 log.info(
-                    "[SEARCH] dictionary refreshed entries={} region={} station={} booth={} brand={} " +
-                        "heapUsedMb={} heapCommittedMb={} heapMaxMb={}",
-                    sizeByType.values.sum(),
-                    sizeByType.getValue(EntityType.REGION),
-                    sizeByType.getValue(EntityType.STATION),
-                    sizeByType.getValue(EntityType.BRANCH),
-                    sizeByType.getValue(EntityType.BRAND),
+                    "[SEARCH] dictionary refreshed entries={} heapUsedMb={} heapCommittedMb={} heapMaxMb={}",
+                    entries,
                     heap.used / BYTES_PER_MB,
                     heap.committed / BYTES_PER_MB,
                     heap.max / BYTES_PER_MB,

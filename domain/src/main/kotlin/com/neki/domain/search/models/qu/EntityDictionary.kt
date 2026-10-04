@@ -22,11 +22,6 @@ class EntityDictionary(entries: List<DictionaryEntry>) {
 
     val size: Int = entriesByKey.values.sumOf { it.size }
 
-    /** 종류별 항목 수. 없는 종류도 0 으로 담는다 */
-    val sizeByType: Map<EntityType, Int> = EntityType.entries.associateWith { type ->
-        entriesByKey.values.sumOf { group -> group.count { EntityType.of(it.target) == type } }
-    }
-
     private val brandEntries: List<DictionaryEntry> = entries.filter { it.target is SearchTarget.Brand }
 
     /** 브랜드 항목의 원문 이름. 지역·역 자동완성이 검색어에서 브랜드 낱말을 뺄 때 쓴다 (CompletionKeyword.withoutBrandWords) */
