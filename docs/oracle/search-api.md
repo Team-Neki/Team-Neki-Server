@@ -5,7 +5,7 @@
 ## 무엇을 검증하는가
 
 - 대상 API : `POST /api/search/photo-booths?keyword=`, `POST /api/search/filter?keyword=`
-- keyword 해석 : 자동완성 keyword(`서울특별시 강남구`, `강남역 2호선`)는 정확 일치로 그 지역·역이 되고, 그 밖의 검색어는 QU(정규화 -> NER -> Intent)가 서울 자치구·지하철역·브랜드를 뽑음
+- keyword 해석 : 자동완성 keyword(`서울특별시 강남구`, `강남역 2호선`, `모노맨션 강남역점`)는 정확 일치로 그 지역·역·지점이 되고, 그 밖의 검색어는 QU(정규화 -> NER -> Intent)가 서울 자치구·지하철역·브랜드를 뽑음
 - 조회 범위 : 지역은 `region_ids` 배열 포함(GIN), 역은 1km 연결 테이블(`_station`). 지역·역끼리는 합집합, 검색어의 브랜드와 요청의 브랜드 필터는 교집합
 - 응답 id·favorite : 검색 색인 행의 원천 키 (platform, idx) 로 찾은 지도 부스(`TB_PHOTO_BOOTH_LOCATION`) 값. 지도에 없거나 `admin_hidden` 인 부스는 목록과 필터 모두에서 빠짐
 - 정렬 : 사용자 위치가 있으면 거리 -> 지점명, 없으면 브랜드 -> 지점명 (검색 정책 12장)
@@ -60,6 +60,8 @@ keyword -> QU(정규화 -> 자동완성 keyword | NER) -> QueryIntent
 | O-R-9 | 지역 조회가 GIN 인덱스를 쓸 수 있다 | S-7 |
 | O-R-10 | 사전 갱신이 메모리를 쌓지 않는다 : 30분 이상(갱신 3회 이상) 지나도 `heapUsedMb` 가 계속 오르기만 하지 않는다 | 7단계 로그 |
 | O-R-11 | 티켓 BACKEND-123 DONE (배포와 검증 뒤) | Sprint |
+| O-R-12 | 부스 자동완성 keyword 로 그 지점 하나가 나온다 : 자동완성 응답 keyword 를 그대로 넘기면 그 이름의 지점만 나온다(보통 1건). 그 지점의 브랜드로 거르면 그대로, 다른 브랜드로 거르면 빈 목록. 필터는 그 브랜드 1개 | [C-3], [PB-11] ~ [PB-13], [F-3] |
+| O-R-13 | 브랜드가 섞인 검색어(`서울특별시 강남구 포토이즘`, `강남역 2호선 포토이즘`, `포토이즘 강남역`)에서 지역·역·부스 자동완성의 첫 후보를 그대로 넘기면 목록·필터에 그 브랜드만 나온다. 검색어를 그대로 넘긴 기준선(BK-0)과 같은 브랜드여야 한다 | `http/search-brand-keyword.http` [BK-0] ~ [BK-9] |
 
 ## staging 검증 절차
 
@@ -67,10 +69,13 @@ staging 은 `https://dev-yapp.suitestudy.com:4641` 이고 배포는 `deploy-api-
 
 ### 1. 배포 전 : #330 최신과 맞춘다
 
-이 브랜치는 `feat/BACKEND-152`(#330) 의 옛 커밋 위에 쌓여 있습니다. 지금 staging 에는 #330 최신(10/1, 부스 자동완성 `GET /api/search/completion/photo-booths` 와 `distanceKm` 포함)이 떠 있으므로, 이 브랜치를 그대로 배포하면 그 기능이 staging 에서 사라집니다. 따라서 배포 전에 `origin/feat/BACKEND-152` 를 이 브랜치에 merge 하고 충돌을 해소한 뒤 `./gradlew test` 를 다시 통과시켜야 합니다.
+이 브랜치는 `feat/BACKEND-152`(#330) 위에 쌓여 있습니다. #330 에 새 커밋이 생기면 그 기능(부스 자동완성, `distanceKm` 등)이 이 브랜치에 없으므로, 배포 전에 아래가 종료코드 0 인지 봅니다. 아니면 `origin/feat/BACKEND-152` 를 merge 하고 `./gradlew test` 를 다시 통과시킵니다.
 
-- 충돌 예상 : `SearchMapClient.kt`(양쪽이 새로 만든 파일, 한 클래스가 `PhotoBoothClient` 와 `MapClient` 를 함께 구현하도록 합침), `SearchController.kt`(자동완성 설명), `SearchConverter.kt`(공백 정리를 `SearchNormalizer.collapseSpaces` 로)
-- `SearchNormalizer.collapseSpaces` 는 #330 과 같은 코드를 같은 자리에 넣어 두어 충돌하지 않음
+```bash
+git fetch origin && git merge-base --is-ancestor origin/feat/BACKEND-152 HEAD
+```
+
+- 충돌이 나면 : `SearchMapClient.kt` 는 한 클래스가 `PhotoBoothClient` 와 `MapClient` 를 함께 구현하도록 합치고, `SearchController.kt`·`SearchConverter.kt` 는 자동완성 쪽은 #330, 부스 목록·필터 쪽은 이 브랜치를 따름
 
 ### 2. 선행 데이터 확인 (O-R-1)
 
@@ -96,9 +101,14 @@ select count(*) from tb_subway_station;
 
 ### 3. 배포
 
+staging 은 여러 PR 이 함께 쓰므로 이 브랜치를 바로 배포하지 않고 검증용 `stg` 브랜치에 merge 해서 배포합니다. 바로 배포하면 `stg` 에만 있는 다른 PR 의 기능이 staging 에서 사라집니다.
+
 ```bash
 git push origin feat/BACKEND-123
-gh workflow run deploy-api-staging.yml --ref feat/BACKEND-123
+# stg 워크트리에서
+git pull --ff-only origin stg && git merge --no-ff feat/BACKEND-123 -m "merge: feat/BACKEND-123 을 staging 검증용 stg 에 병합"
+./gradlew test && git push origin stg
+gh workflow run deploy-api-staging.yml --ref stg
 gh run watch "$(gh run list --workflow deploy-api-staging.yml --limit 1 --json databaseId --jq '.[0].databaseId')"
 ```
 
@@ -116,7 +126,7 @@ Grafana Explore(Loki) 에서 api 파드 로그를 `[SEARCH] dictionary` 로 검�
 - `dictionary refresh failed` 가 있으면 스택트레이스로 원인 확인. 이때 자동완성 keyword 는 동작하지만 자유 검색어는 빈 목록이 됨
 - 위 예시의 숫자는 형식을 보이기 위한 값이며 실제 값은 데이터에 따라 다름
 
-### 5. 요청 실행 (O-R-3 ~ O-R-8)
+### 5. 요청 실행 (O-R-3 ~ O-R-8, O-R-12)
 
 IntelliJ HTTP Client 로 `http/search.http` 를 `staging` 환경에서 위에서부터 순서대로 실행합니다. 앞 요청이 저장한 값(브랜드 id, 건수, 부스 id)을 뒤 요청이 쓰므로 하나씩 건너뛰지 않습니다.
 
@@ -125,6 +135,7 @@ IntelliJ HTTP Client 로 `http/search.http` 를 `staging` 환경에서 위에서
 - [PB-1], [PB-3] 은 응답 id 를 로그로 남기므로 S-5, S-6 과 건수를 맞춰 봄
 - [PB-4] ~ [PB-7] 을 실행한 시각의 서버 로그에서 `[SEARCH] api=photo-booths keyword="강남구 포토이즘" entities=[REGION:강남구, BRAND:포토이즘]` 처럼 엔티티가 찍혔는지 확인
 - [FAV-1] ~ [FAV-3] 은 토큰 사용자의 즐겨찾기를 잠깐 바꿨다가 되돌림. [FAV-3] 까지 반드시 실행
+- [C-3] 은 부스 자동완성 첫 후보를 저장하고 [PB-11] ~ [PB-13], [F-3] 이 그 keyword 를 그대로 씀. 서버 로그 entities 가 `[BRANCH:...]` 로 찍히는지 확인
 
 ```sql
 -- S-5 [PB-1] 건수와 같아야 함 (강남구, 지도에 있고 숨기지 않은 부스)
