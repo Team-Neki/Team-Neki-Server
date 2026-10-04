@@ -141,7 +141,7 @@ class SearchController(
               생략하면 브랜드, 지점 이름 순입니다. 둘 중 하나만 주거나 범위(위도 -90~90, 경도 -180~180)를 벗어나면 D-01
             * 지점명이 비었거나 브랜드명과 같은 부스는 나오지 않습니다
             * 결과가 없으면 빈 배열입니다. D-04 가 아닙니다
-            * 고른 대상의 부스 목록 연동은 후속 PR 에서 붙습니다
+            * 고른 keyword 를 부스 목록·필터 API 에 그대로 넘기면 그 지점 하나가 나옵니다
 
             응답 keyword 는 `포토이즘 강남1호점` 형태입니다.
             """,
@@ -170,17 +170,18 @@ class SearchController(
     }
 
     @Operation(
-        summary = "고른 지역·역의 부스 목록 API",
+        summary = "고른 지역·역·지점의 부스 목록 API",
         description = """
-            지역·지하철역 자동완성에서 고른 keyword 에 딸린 부스 목록을 조회합니다. 지도에 한 번에 그리는 목록이라 페이징이 없습니다.
+            지역·지하철역·부스 자동완성에서 고른 keyword 에 딸린 부스 목록을 조회합니다. 지도에 한 번에 그리는 목록이라 페이징이 없습니다.
             반경을 입력받지 않습니다. 어느 역에 어느 부스가 딸리는지는 색인 시점에 1km 로 미리 계산해 둔 값입니다.
 
-            * keyword 는 자동완성 응답의 keyword(`서울특별시 강남구`, `강남역 2호선`)를 그대로 보내거나,
+            * keyword 는 자동완성 응답의 keyword(`서울특별시 강남구`, `강남역 2호선`, `포토이즘 강남1호점`)를 그대로 보내거나,
               서울 자치구·지하철역과 브랜드를 섞은 검색어(`강남구 포토이즘`, `포토이즘 강남역`, `마포구`)를 보냅니다. 단어 순서는 무관합니다
             * 역만 적으면(`강남역`) 그 역의 모든 노선, 검색어에 브랜드가 있으면 그 브랜드만입니다
+            * 부스 keyword(`브랜드명 지점명`)면 그 지점 하나입니다. 브랜드 필터와 겹치지 않거나 지도에서 숨긴 지점이면 빈 배열
             * 지역을 고르면 그 아래 읍면동·리까지 포함합니다
             * keyword 가 없거나 공백뿐이면 D-01
-            * 지역·역을 찾지 못하거나(브랜드만, 서울 밖 자치구, 없는 지역) 딸린 부스가 없으면 빈 배열. 둘 다 결과 없음 화면입니다
+            * 지역·역·지점을 찾지 못하거나(브랜드만, 서울 밖 자치구, 없는 지역) 딸린 부스가 없으면 빈 배열. 둘 다 결과 없음 화면입니다
             * filterGroup 은 필수입니다. 필터를 안 걸려면 {} 를 보냅니다. brandFilter.brands 가 null 또는 [] 이면 모든 브랜드
             * userLocation 을 주면 distance 가 사용자 위치로부터의 거리(m)이고 가까운 순, 거리가 같으면 지점 이름 순입니다.
               생략하면 distance 가 null 이고 브랜드, 지점 이름 순입니다.
@@ -190,7 +191,7 @@ class SearchController(
     @PostMapping("/photo-booths")
     fun searchPhotoBooths(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Parameter(description = "자동완성 keyword 또는 자치구·역 + 브랜드 검색어", example = "서울특별시 강남구")
+        @Parameter(description = "자동완성 keyword(지역·역·부스) 또는 자치구·역 + 브랜드 검색어", example = "서울특별시 강남구")
         @RequestParam
         @NotBlank(message = "keyword는 필수값입니다.")
         keyword: String,
@@ -215,13 +216,13 @@ class SearchController(
               brandFilter.brands 를 주면 그 브랜드만 집계합니다.
             * 정렬은 브랜드 전체 조회(GET /api/photo-booths/brand)와 같은 사용자별 브랜드 순서입니다.
             * 브랜드 이미지는 내려주지 않습니다. 브랜드 전체 조회의 값을 id 로 매칭해 재사용하세요.
-            * keyword 가 없거나 공백뿐이면 D-01. 지역·역을 찾지 못하면 빈 배열
+            * keyword 가 없거나 공백뿐이면 D-01. 지역·역·지점을 찾지 못하면 빈 배열
             """,
     )
     @PostMapping("/filter")
     fun searchFilter(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Parameter(description = "자동완성 keyword 또는 자치구·역 + 브랜드 검색어", example = "강남역 2호선")
+        @Parameter(description = "자동완성 keyword(지역·역·부스) 또는 자치구·역 + 브랜드 검색어", example = "강남역 2호선")
         @RequestParam
         @NotBlank(message = "keyword는 필수값입니다.")
         keyword: String,

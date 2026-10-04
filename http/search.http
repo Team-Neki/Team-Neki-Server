@@ -1,7 +1,7 @@
 # 검색 부스 목록·브랜드 필터(BACKEND-123) staging 검증 요청. 위에서부터 순서대로 실행한다.
 # 판정 기준과 함께 볼 SQL 은 docs/oracle/search-api.md 의 "staging 검증 절차" 참고.
-# accessToken 은 http/http-client.private.env.json 에 둔다 (.gitignore 대상).
-#   { "staging": { "accessToken": "<JWT>" } }
+# accessToken 은 http/http-client.private.env.json 에 둔다 (.gitignore 대상). 예시를 복사해 JWT 만 바꾼다.
+#   cp http/http-client.private.env.json.example http/http-client.private.env.json
 # 앞 요청이 client.global 에 남긴 값(브랜드 id, 건수, 부스 id)을 뒤 요청이 쓴다.
 
 ### [B-1] 브랜드 목록 : 포토이즘·인생네컷 id 와 사용자 브랜드 순서 저장
@@ -18,6 +18,9 @@ Authorization: Bearer {{accessToken}}
     client.global.set("photoismId", String(photoism.id));
     client.global.set("lifeFourCutId", String(lifeFourCut.id));
     client.global.set("brandOrder", JSON.stringify(brands.map(function (b) { return b.id; })));
+    var idsByName = {};
+    brands.forEach(function (b) { idsByName[b.name] = b.id; });
+    client.global.set("brandIdsByName", JSON.stringify(idsByName));
   });
 %}
 
@@ -312,6 +315,104 @@ Content-Type: application/json
 > {%
   client.test("PB-10", function () {
     client.assert(response.status === 403, "status " + response.status);
+  });
+%}
+
+### [C-3] 부스 자동완성 : "모노맨션 강남" 의 첫 후보 keyword(브랜드명 지점명)를 저장
+GET {{host}}/api/search/completion/photo-booths?keyword=모노맨션%20강남
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("C-3", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    client.assert(items.length > 0, "부스 후보가 없음");
+    client.global.set("boothKeyword", items[0].keyword);
+    client.global.set("boothKeywordParam", encodeURIComponent(items[0].keyword));
+    client.log("C-3 boothKeyword=" + items[0].keyword);
+  });
+%}
+
+### [PB-11] 부스 keyword : 그 지점만 (보통 1건, 같은 브랜드에 같은 지점명이 둘이면 둘)
+POST {{host}}/api/search/photo-booths?keyword={{boothKeywordParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-11", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    var keyword = client.global.get("boothKeyword");
+    client.assert(items.length >= 1, "items 가 비어 있음 : " + keyword);
+    items.forEach(function (i) {
+      client.assert(i.brandName + " " + i.branchName === keyword, "다른 지점 : " + i.brandName + " " + i.branchName);
+    });
+    var idsByName = JSON.parse(client.global.get("brandIdsByName"));
+    var boothBrandId = idsByName[items[0].brandName];
+    var otherBrandId = Object.keys(idsByName).map(function (n) { return idsByName[n]; })
+      .filter(function (id) { return id !== boothBrandId; })[0];
+    client.global.set("boothBrandId", String(boothBrandId));
+    client.global.set("otherBrandId", String(otherBrandId));
+    client.global.set("boothCount", String(items.length));
+  });
+%}
+
+### [PB-12] 부스 keyword + 그 지점의 브랜드 필터 : PB-11 과 같은 결과
+POST {{host}}/api/search/photo-booths?keyword={{boothKeywordParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {
+    "brandFilter": { "brands": [{ "brandId": {{boothBrandId}} }] }
+  }
+}
+
+> {%
+  client.test("PB-12", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(String(response.body.data.items.length) === client.global.get("boothCount"), "PB-11 과 건수가 다름");
+  });
+%}
+
+### [PB-13] 부스 keyword + 다른 브랜드 필터 : 빈 목록
+POST {{host}}/api/search/photo-booths?keyword={{boothKeywordParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {
+    "brandFilter": { "brands": [{ "brandId": {{otherBrandId}} }] }
+  }
+}
+
+> {%
+  client.test("PB-13", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    client.assert(response.body.data.items.length === 0, "빈 목록이어야 함");
+  });
+%}
+
+### [F-3] 부스 keyword 필터 : 그 브랜드 하나, count = PB-11 건수
+POST {{host}}/api/search/filter?keyword={{boothKeywordParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("F-3", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var chips = response.body.data.brandFilter;
+    client.assert(chips.length === 1, "칩이 하나가 아님 : " + JSON.stringify(chips));
+    client.assert(String(chips[0].id) === client.global.get("boothBrandId"), "다른 브랜드 칩");
+    client.assert(String(chips[0].count) === client.global.get("boothCount"), "count 가 PB-11 건수와 다름");
   });
 %}
 

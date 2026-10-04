@@ -42,8 +42,10 @@ class PhotoBoothSearchRepositoryAdapter(
 
     override fun countCurrent(): Long = readRepository.count()
 
-    override fun findByArea(area: SearchTarget.Area, brandIds: List<Long>?): List<PhotoBoothSearch> =
-        queryRepository.findByArea(area, brandIds)
+    override fun findByScope(scope: SearchTarget.Scope, brandIds: List<Long>?): List<PhotoBoothSearch> =
+        queryRepository.findByScope(scope, brandIds)
+
+    override fun findByBoothName(boothName: String): List<PhotoBoothSearch> = queryRepository.findByBoothName(boothName)
 
     override fun findIndexedBrandNames(): Map<Long, String> = queryRepository.findBrandNames()
 

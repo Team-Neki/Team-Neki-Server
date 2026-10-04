@@ -2,6 +2,7 @@ package com.neki.domain.search.service.qu
 
 import com.neki.domain.search.infra.cache.memory.InMemoryEntityDictionaryCacheAdapter
 import com.neki.domain.search.models.LegalDong
+import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.SubwayStationId
@@ -26,7 +27,7 @@ import org.locationtech.jts.geom.PrecisionModel
  * fileName       : QueryUnderstandingServiceTest
  * author         : koo
  * date           : 2026. 9. 17.
- * description    : 자동완성 keyword, 정규화 -> NER -> Intent (엔티티, 지점, 남은 조각)
+ * description    : 자동완성 keyword(지역·역·지점), 정규화 -> NER -> Intent (엔티티, 지점, 남은 조각)
  */
 class QueryUnderstandingServiceTest :
     FunSpec({
@@ -46,6 +47,7 @@ class QueryUnderstandingServiceTest :
         val photoBoothSearchRepository: PhotoBoothSearchRepository = mockk {
             every { findAllStations() } returns listOf(SubwayStation(SubwayStationId("강남", "2호선"), point))
             every { findIndexedBrandNames() } returns mapOf(1L to "포토이즘")
+            every { findByBoothName(any()) } returns emptyList()
         }
 
         val service =
@@ -98,6 +100,28 @@ class QueryUnderstandingServiceTest :
 
             // 앞뒤·연속 공백은 QU 가 정리하고 비교한다
             completion.understand("  강남역   신분당선 ").targets shouldBe listOf(SearchTarget.Station("강남", "신분당선"))
+        }
+
+        test("부스 자동완성 keyword(브랜드명 지점명)는 그 지점 하나로 이해하고 NER 을 거치지 않는다") {
+            val monomansion: PhotoBoothSearch = mockk {
+                every { platform } returns "MONOMANSION"
+                every { idx } returns "m1"
+            }
+            val booths: PhotoBoothSearchRepository = mockk {
+                every { findByBoothName(any()) } returns emptyList()
+                every { findByBoothName("모노맨션 강남역점") } returns listOf(monomansion)
+            }
+            val completion = QueryUnderstandingService(
+                legalDongRepository,
+                subwayStationRepository,
+                booths,
+                InMemoryEntityDictionaryCacheAdapter(),
+            )
+
+            val intent: QueryIntent = completion.understand(" 모노맨션  강남역점 ")
+            intent.targets shouldBe listOf(SearchTarget.Booth(platform = "MONOMANSION", idx = "m1"))
+            intent.entities.map { it.type } shouldBe listOf(EntityType.BRANCH)
+            intent.remainingTerms.shouldBeEmpty()
         }
 
         test("자동완성 keyword 가 여러 종류에 해당하면 하나를 고르지 않고 모두 담는다") {

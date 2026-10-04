@@ -1,0 +1,189 @@
+# 오라클 O-R-13 : 브랜드가 섞인 검색어에서 자동완성 후보를 고르면, 부스 목록·필터에 그 브랜드만 나와야 한다.
+# 자동완성(지역·역·부스) -> 첫 후보 keyword 를 그대로 부스 목록·필터에 넘기는 클라이언트 흐름을 그대로 따라간다.
+# 판정 기준과 함께 볼 문서는 docs/oracle/search-api.md 의 O-R-13.
+# accessToken 은 http/http-client.private.env.json 에 둔다 (.gitignore 대상). 예시를 복사해 JWT 만 바꾼다.
+#   cp http/http-client.private.env.json.example http/http-client.private.env.json
+# 자동완성 요청이 client.global 에 남긴 후보 keyword 를 바로 다음 목록·필터 요청이 쓴다. 위에서부터 순서대로 실행한다.
+# 각 요청은 받은 후보와 결과 브랜드를 로그로 남긴다 (실패해도 무엇이 왔는지 볼 수 있게).
+
+### [BK-0] 기준선 : 검색어를 그대로 목록에 넘기면 포토이즘만 (검색 API 자체는 브랜드를 지킨다)
+POST {{host}}/api/search/photo-booths?keyword=서울특별시%20강남구%20포토이즘
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("BK-0", function () {
+    client.assert(response.status !== 403, "403 : accessToken 이 비었거나 만료됨. http-client.private.env.json 과 선택한 환경(staging)을 확인");
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    var brands = items.map(function (i) { return i.brandName; }).filter(function (b, i, a) { return a.indexOf(b) === i; });
+    client.log("BK-0 count=" + items.length + " brands=" + brands);
+    client.assert(items.length > 0, "items 가 비어 있음");
+    client.assert(brands.length === 1 && brands[0] === "포토이즘", "포토이즘 외 브랜드 : " + brands);
+  });
+%}
+
+### [BK-1] 지역 자동완성 "서울특별시 강남구 포토이즘" : 첫 후보 저장
+GET {{host}}/api/search/completion/regions?keyword=서울특별시%20강남구%20포토이즘
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("BK-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var keywords = response.body.data.items.map(function (i) { return i.keyword; });
+    client.log("BK-1 candidates=" + JSON.stringify(keywords));
+    client.assert(keywords.length > 0, "지역 후보가 없음");
+    client.global.set("regionPick", keywords[0]);
+    client.global.set("regionPickParam", encodeURIComponent(keywords[0]));
+  });
+%}
+
+### [BK-2] BK-1 첫 후보로 부스 목록 : 포토이즘만
+POST {{host}}/api/search/photo-booths?keyword={{regionPickParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("BK-2", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    var brands = items.map(function (i) { return i.brandName; }).filter(function (b, i, a) { return a.indexOf(b) === i; });
+    client.log("BK-2 keyword=" + client.global.get("regionPick") + " count=" + items.length + " brands=" + brands);
+    client.assert(items.length > 0, "items 가 비어 있음");
+    client.assert(brands.length === 1 && brands[0] === "포토이즘", "포토이즘 외 브랜드 : " + brands);
+  });
+%}
+
+### [BK-3] BK-1 첫 후보로 필터 : 포토이즘 칩 하나
+POST {{host}}/api/search/filter?keyword={{regionPickParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("BK-3", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var chips = response.body.data.brandFilter.map(function (c) { return c.name + ":" + c.count; });
+    client.log("BK-3 keyword=" + client.global.get("regionPick") + " chips=" + chips);
+    client.assert(chips.length === 1 && chips[0].indexOf("포토이즘:") === 0, "포토이즘 칩 하나가 아님 : " + chips);
+  });
+%}
+
+### [BK-4] 역 자동완성 "강남역 2호선 포토이즘" : 첫 후보 저장
+GET {{host}}/api/search/completion/stations?keyword=강남역%202호선%20포토이즘
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("BK-4", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var keywords = response.body.data.items.map(function (i) { return i.keyword; });
+    client.log("BK-4 candidates=" + JSON.stringify(keywords));
+    client.assert(keywords.length > 0, "역 후보가 없음");
+    client.global.set("stationPick", keywords[0]);
+    client.global.set("stationPickParam", encodeURIComponent(keywords[0]));
+  });
+%}
+
+### [BK-5] BK-4 첫 후보로 부스 목록 : 포토이즘만
+POST {{host}}/api/search/photo-booths?keyword={{stationPickParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("BK-5", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    var brands = items.map(function (i) { return i.brandName; }).filter(function (b, i, a) { return a.indexOf(b) === i; });
+    client.log("BK-5 keyword=" + client.global.get("stationPick") + " count=" + items.length + " brands=" + brands);
+    client.assert(items.length > 0, "items 가 비어 있음");
+    client.assert(brands.length === 1 && brands[0] === "포토이즘", "포토이즘 외 브랜드 : " + brands);
+  });
+%}
+
+### [BK-6] 역 자동완성 "포토이즘 강남역" (브랜드가 앞) : 첫 후보 저장
+GET {{host}}/api/search/completion/stations?keyword=포토이즘%20강남역
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("BK-6", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var keywords = response.body.data.items.map(function (i) { return i.keyword; });
+    client.log("BK-6 candidates=" + JSON.stringify(keywords));
+    client.assert(keywords.length > 0, "역 후보가 없음");
+    client.global.set("stationFirstPick", keywords[0]);
+    client.global.set("stationFirstPickParam", encodeURIComponent(keywords[0]));
+  });
+%}
+
+### [BK-7] BK-6 첫 후보로 부스 목록 : 포토이즘만
+POST {{host}}/api/search/photo-booths?keyword={{stationFirstPickParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("BK-7", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    var brands = items.map(function (i) { return i.brandName; }).filter(function (b, i, a) { return a.indexOf(b) === i; });
+    client.log("BK-7 keyword=" + client.global.get("stationFirstPick") + " count=" + items.length + " brands=" + brands);
+    client.assert(items.length > 0, "items 가 비어 있음");
+    client.assert(brands.length === 1 && brands[0] === "포토이즘", "포토이즘 외 브랜드 : " + brands);
+  });
+%}
+
+### [BK-8] 부스 자동완성 "서울특별시 강남구 포토이즘" : 첫 후보 저장
+GET {{host}}/api/search/completion/photo-booths?keyword=서울특별시%20강남구%20포토이즘
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("BK-8", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var keywords = response.body.data.items.map(function (i) { return i.keyword; });
+    client.log("BK-8 candidates=" + JSON.stringify(keywords));
+    client.assert(keywords.length > 0, "부스 후보가 없음");
+    client.global.set("boothPick", keywords[0]);
+    client.global.set("boothPickParam", encodeURIComponent(keywords[0]));
+  });
+%}
+
+### [BK-9] BK-8 첫 후보로 부스 목록 : 그 포토이즘 지점만
+POST {{host}}/api/search/photo-booths?keyword={{boothPickParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("BK-9", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    var keyword = client.global.get("boothPick");
+    client.log("BK-9 keyword=" + keyword + " items=" + JSON.stringify(items.map(function (i) { return i.brandName + " " + i.branchName; })));
+    client.assert(items.length > 0, "items 가 비어 있음");
+    items.forEach(function (i) {
+      client.assert(i.brandName === "포토이즘", "포토이즘이 아닌 부스 : " + i.brandName);
+      client.assert(i.brandName + " " + i.branchName === keyword, "고른 지점이 아닌 부스 : " + i.branchName);
+    });
+  });
+%}

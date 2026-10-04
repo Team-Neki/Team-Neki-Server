@@ -13,7 +13,7 @@ import io.kotest.matchers.shouldBe
  * fileName       : SearchConditionTest
  * author         : koo
  * date           : 2026. 10. 2.
- * description    : 이해한 대상 -> 조회 조건 (지역·역은 범위, 브랜드는 요청 필터와 교집합)
+ * description    : 이해한 대상 -> 조회 조건 (지역·역·지점은 범위, 브랜드는 요청 필터와 교집합)
  */
 class SearchConditionTest :
     FunSpec({
@@ -27,7 +27,7 @@ class SearchConditionTest :
             return QueryIntent.of(keyword, targets.mapIndexed { i, it -> ResolvedEntity("xx", i * 2, i * 2 + 2, it) })
         }
 
-        test("범위(지역·역)가 없으면 조건을 만들 수 없다") {
+        test("범위(지역·역·지점)가 없으면 조건을 만들 수 없다") {
             SearchCondition.of(intent(SearchTarget.Brand(1)), null).shouldBeNull()
         }
 
@@ -37,9 +37,18 @@ class SearchConditionTest :
                 emptyList(),
             ).shouldNotBeNull()
 
-            condition.areas shouldBe listOf(gangnamGu, gangnamLine2)
+            condition.scopes shouldBe listOf(gangnamGu, gangnamLine2)
             condition.brandIds.shouldBeNull()
             condition.matchesNothing shouldBe false
+        }
+
+        test("부스 자동완성으로 찾은 지점은 혼자서 범위가 되고, 요청 브랜드 필터를 그대로 받는다") {
+            val booth = SearchTarget.Booth(platform = "MONOMANSION", idx = "m1")
+
+            val condition: SearchCondition = SearchCondition.of(intent(booth), listOf(3L)).shouldNotBeNull()
+
+            condition.scopes shouldBe listOf(booth)
+            condition.brandIds shouldBe listOf(3L)
         }
 
         test("검색어의 브랜드나 요청 필터 중 하나만 있으면 그것을 쓴다") {
