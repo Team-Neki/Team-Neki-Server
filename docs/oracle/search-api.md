@@ -92,7 +92,7 @@ NER 은 정규화 검색어(소문자, 공백·`-`·`_` 제거) 안에서 사전
 | O-R-10 | 사전 갱신이 메모리를 쌓지 않는다 : 30분 이상(갱신 3회 이상) 지나도 `heapUsedMb` 가 계속 오르기만 하지 않는다 | 7단계 로그 |
 | O-R-11 | 티켓 BACKEND-123 DONE (배포와 검증 뒤) | Sprint |
 | O-R-12 | 부스 자동완성 keyword 로 그 지점 하나가 나온다 : 자동완성 응답 keyword 를 그대로 넘기면 그 이름의 지점만 나온다(보통 1건). 그 지점의 브랜드로 거르면 그대로, 다른 브랜드로 거르면 빈 목록. 필터는 그 브랜드 1개 | [C-3], [PB-11] ~ [PB-13], [F-3] |
-| O-R-13 | 브랜드가 섞인 검색어(`서울특별시 강남구 포토이즘`, `강남역 2호선 포토이즘`, `포토이즘 강남역`)에서 지역·역·부스 자동완성의 첫 후보를 그대로 넘기면 목록·필터에 그 브랜드만 나온다. 검색어를 그대로 넘긴 기준선(BK-0)과 같은 브랜드여야 한다 | `http/search-brand-keyword.http` [BK-0] ~ [BK-9] |
+| O-R-13 | 브랜드가 섞인 검색어(`강남구 포토이즘`, `강남역 2호선 포토이즘`, `포토이즘 강남역`, `서울특별시 강남구 포토이즘`)에서 지역·역·부스 자동완성의 첫 후보 keyword 와 자동완성 응답의 filterGroup 을 그대로 목록·필터 body 에 넣으면 그 브랜드만 나온다(자동완성 filterGroup 은 BACKEND-207). 필터 칩은 그 브랜드 하나이고 count 는 목록 건수와 같다. 검색어를 그대로 넘긴 기준선(BK-0)과 같은 브랜드여야 한다 | `http/search-brand-keyword.http` [BK-0] ~ [BK-9] |
 | O-R-14 | NER 이 자동완성 keyword 를 그 하나로 해석한다 : 로그 entities 가 [PB-1] `[REGION:서울특별시강남구]`, [PB-3] `[STATION:강남역2호선]` 하나(노선 둘이 아님), [PB-11] `[BRANCH:...]` 하나, [PB-8d] `[REGION:경상남도진주시강남동]` 이고 [PB-8d] 응답에 서울 부스가 없다 | [PB-1], [PB-3], [PB-8d], [PB-11], 5단계 로그 |
 
 ## staging 검증 절차
@@ -111,7 +111,7 @@ git fetch origin && git merge-base --is-ancestor origin/feat/BACKEND-152 HEAD
 
 ### 2. 선행 데이터 확인 (O-R-1)
 
-staging DB 에서 실행합니다. 하나라도 0 이면 두 API 는 빈 목록만 돌려주므로 원인(색인 잡, stores-sync, Workflow 적재)을 먼저 해결합니다.
+staging DB(`dev_yapp`)에서 실행합니다. 노드(4단계의 SSH 접속)에서 `sudo -u postgres psql -d dev_yapp` 로 들어가 조회만 합니다. 하나라도 0 이면 두 API 는 빈 목록만 돌려주므로 원인(색인 잡, stores-sync, Workflow 적재)을 먼저 해결합니다.
 
 ```sql
 -- S-1 검색 색인 (searchIndexJob) : > 0
@@ -149,7 +149,12 @@ gh run watch "$(gh run list --workflow deploy-api-staging.yml --limit 1 --json d
 
 ### 4. 사전 적재 로그 확인 (O-R-2)
 
-Grafana Explore(Loki) 에서 api 파드 로그를 `[SEARCH] dictionary` 로 검색합니다.
+staging 로그는 Loki 에 수집되지 않으므로(Loki·Prometheus 는 prod 만 수집) 노드에서 `kubectl` 로 봅니다. 노드 접속은 Sprint 위키 "prefect tunneling" 의 계정을 씁니다.
+
+```bash
+ssh -p 2024 yapp@suitestudy.com
+kubectl logs -n staging deploy/yapp-app-staging | grep -F '[SEARCH] dictionary'
+```
 
 ```text
 [SEARCH] dictionary refreshed entries=24871 heapUsedMb=310 heapCommittedMb=512 heapMaxMb=1024
@@ -213,7 +218,7 @@ where region_ids @> cast(array['1168000000'] as varchar(10)[]);
 
 ### 7. 메모리 추세 확인 (O-R-10)
 
-배포 후 30분 이상 지나 4단계와 같은 검색으로 `dictionary refreshed` 로그를 3건 이상 모읍니다. 사전에 법정동 전체 경로(2만여 건)와 지점이 들어가 갱신마다 이 행들을 다시 읽으므로, 이전 배포보다 힙이 한 단계 높은 것은 정상입니다. `heapUsedMb` 는 JVM 힙 전체 스냅샷이라 사전 크기 자체가 아니며 GC 시점에 따라 오르내립니다. 갱신을 거듭해도 계속 오르기만 하면 이전 사전이 회수되지 않는 것을 의심할 수 있으므로 Grafana 의 JVM 메모리 패널(`jvm_memory_used_bytes{area="heap"}`)과 함께 봅니다.
+배포 후 30분 이상 지나 4단계와 같은 검색으로 `dictionary refreshed` 로그를 3건 이상 모읍니다. 사전에 법정동 전체 경로(2만여 건)와 지점이 들어가 갱신마다 이 행들을 다시 읽으므로, 이전 배포보다 힙이 한 단계 높은 것은 정상입니다. `heapUsedMb` 는 JVM 힙 전체 스냅샷이라 사전 크기 자체가 아니며 GC 시점에 따라 오르내립니다. 갱신을 거듭해도 계속 오르기만 하면 이전 사전이 회수되지 않는 것을 의심할 수 있습니다. staging 은 Prometheus 가 수집하지 않으므로 이 로그의 `heapUsedMb` 와 `kubectl get pod` 의 RESTARTS(OOM 재시작 여부)로 판단합니다. staging 파드의 최대 heap 은 247MB 입니다.
 
 ### 8. 기록
 
