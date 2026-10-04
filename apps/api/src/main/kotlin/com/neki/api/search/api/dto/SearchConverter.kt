@@ -90,6 +90,18 @@ object SearchConverter {
                 },
                 hasNext = result.hasNext,
                 totalCount = result.totalCount,
+                filterGroup = toCompletionFilterGroup(result.brandIds),
+            )
+
+        /** 부스 목록 요청의 filterGroup 과 같은 타입이라 클라이언트가 그대로 보낸다 */
+        private fun toCompletionFilterGroup(brandIds: List<Long>): SearchRequest.FilterGroup =
+            SearchRequest.FilterGroup(
+                brandFilter = SearchRequest.FilterGroup.BrandFilter(
+                    brands = brandIds.map { SearchRequest.FilterGroup.BrandFilter.Brand(brandId = it) },
+                ),
+                sortFilter = SearchRequest.FilterGroup.SortFilter(
+                    type = SearchRequest.FilterGroup.SortFilter.SortType.DEFAULT,
+                ),
             )
 
         fun toGetPhotoBoothsResponse(result: SearchResult.GetPhotoBooths): SearchResponse.GetPhotoBooths {

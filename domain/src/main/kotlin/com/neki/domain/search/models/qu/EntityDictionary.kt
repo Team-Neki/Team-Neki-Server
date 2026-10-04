@@ -22,6 +22,17 @@ class EntityDictionary(entries: List<DictionaryEntry>) {
 
     val size: Int = entriesByKey.values.sumOf { it.size }
 
+    private val brandEntries: List<DictionaryEntry> = entries.filter { it.target is SearchTarget.Brand }
+
+    /** 브랜드 항목의 원문 이름. 지역·역 자동완성이 검색어에서 브랜드 낱말을 뺄 때 쓴다 (CompletionKeyword.withoutBrandWords) */
+    val brandNames: List<String> = brandEntries.map { it.name }.distinct()
+
+    /**
+     * 브랜드 항목만 담은 사전. 전체 사전에서는 `포토이즘 강남점` 이 지점 항목으로 통째로 잡혀(longest match) 그 안의 브랜드가 나오지 않으므로,
+     * 검색어에 적힌 브랜드만 찾을 때는 이 사전으로 NER 을 돌린다. 처음 쓸 때 만든다
+     */
+    val brandsOnly: EntityDictionary by lazy { EntityDictionary(brandEntries) }
+
     /** 사전 키의 최대 길이. NER 이 이보다 긴 부분 문자열을 조회하지 않게 한다 */
     val maxKeyLength: Int = entriesByKey.keys.maxOfOrNull { it.length } ?: 0
 

@@ -1,45 +1,48 @@
 package com.neki.api.e2e.search
 
-import com.neki.api.e2e.map.MapE2ETestBase
 import com.neki.core.code.ResultCode
 import com.neki.domain.map.models.Brand
+import com.neki.domain.search.models.PhotoBoothSearch
 import io.restassured.RestAssured
+import io.restassured.http.ContentType
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.not
 import org.hamcrest.Matchers.nullValue
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
-import java.time.LocalDateTime
 
 /**
  * fileName       : SearchPhotoBoothsByKeywordE2ETest
  * author         : darren
  * date           : 2026. 10. 1.
- * description    : GET /api/search/completion/photo-booths E2E 테스트.
+ * description    : GET /api/search/completion/photo-booths E2E 테스트. 검색 색인(_read)을 조회한다.
  *                  가까운 순 정렬은 PostgreSQL 전용 함수라 H2 에서는 검증하지 않는다 (위치를 줘도 오류 없이 동작하는 것만 확인)
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
+class SearchPhotoBoothsByKeywordE2ETest : SearchE2ETestBase() {
 
     @LocalServerPort
     private var port: Int = 0
 
-    @Autowired
-    private lateinit var jdbcTemplate: JdbcTemplate
-
     private lateinit var accessToken: String
+
+    private lateinit var photoism: Brand
+
+    private lateinit var photoGray: Brand
+
+    private lateinit var photoismGangnam: PhotoBoothSearch
+
+    private var idx = 0
 
     @BeforeEach
     fun setUp() {
@@ -49,40 +52,47 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         val (_, token) = createTestUserAndToken()
         accessToken = token
 
-        val photoism: Brand = createBrand("포토이즘", "PHOTOISM")
-        val lifeFourCut: Brand = createBrand("인생네컷", "LIFEFOURCUTS")
-        val planB: Brand = createBrand("플랜비 스튜디오", "PLANB_STUDIO")
-        val photoSignature: Brand = createBrand("포토시그니처", "PHOTOSIGNATURE")
-        val photoGray: Brand = createBrand("포토그레이", "PHOTOGRAY")
-        val deleted: Brand = brandRepository.save(
-            Brand(name = "삭제브랜드", code = "DELETED", deletedAt = LocalDateTime.now()),
-        )
+        photoism = createBrand("포토이즘", "PHOTOISM", "PHOTOISM")
+        val lifeFourCut: Brand = createBrand("인생네컷", "LIFEFOURCUTS", "LIFE_FOUR_CUT")
+        val planB: Brand = createBrand("플랜비 스튜디오", "PLANB_STUDIO", "PLANB_STUDIO")
+        val photoSignature: Brand = createBrand("포토시그니처", "PHOTOSIGNATURE", "PHOTOSIGNATURE")
+        photoGray = createBrand("포토그레이", "PHOTOGRAY", "PHOTOGRAY")
 
-        createPhotoBoothLocation(photoism.id!!, "강남점", "서울 강남구", 127.0276, 37.4979)
-        createPhotoBoothLocation(photoism.id!!, "강남역2호점", "서울 강남구", 127.0280, 37.4985)
-        createPhotoBoothLocation(photoism.id!!, "홍대점", "서울 마포구", 126.9236, 37.5563)
-        createPhotoBoothLocation(lifeFourCut.id!!, "서울NC송파점", "서울 송파구", 127.1059, 37.5133)
-        createPhotoBoothLocation(lifeFourCut.id!!, "강남구청점", "서울 강남구", 127.0412, 37.5172)
-        createPhotoBoothLocation(planB.id!!, "강남점", "서울 강남구", 127.0290, 37.4990)
-        // 수집한 지점명에는 브랜드명이 붙어 있는 것이 있다
-        createPhotoBoothLocation(photoSignature.id!!, "포토시그니처 고현점", "경남 거제시", 128.6213, 34.8806)
-        createPhotoBoothLocation(deleted.id!!, "강남삭제점", "서울 강남구", 127.0300, 37.5000)
+        photoismGangnam = index(photoism, "강남점", "서울 강남구", 127.0276, 37.4979)
+        index(photoism, "강남역2호점", "서울 강남구", 127.0280, 37.4985)
+        index(photoism, "홍대점", "서울 마포구", 126.9236, 37.5563)
+        index(lifeFourCut, "서울NC송파점", "서울 송파구", 127.1059, 37.5133)
+        index(lifeFourCut, "강남구청점", "서울 강남구", 127.0412, 37.5172)
+        index(planB, "강남점", "서울 강남구", 127.0290, 37.4990)
+        // 색인 잡이 수집한 `포토시그니처 고현점` 에서 브랜드명 접두를 뗀 지점명
+        index(photoSignature, "고현점", "경남 거제시", 128.6213, 34.8806)
         // 낱말 검색: 지점명 중간에 `강남` (서초구), 주소만 강남구, 강남과 무관
-        createPhotoBoothLocation(photoGray.id!!, "서울강남점", "서울 서초구 서초대로77길 37", 127.0200, 37.4900)
-        createPhotoBoothLocation(photoGray.id!!, "대치동점", "서울 강남구 도곡로78길 6", 127.0600, 37.4950)
-        createPhotoBoothLocation(photoGray.id!!, "홍대점", "서울 마포구 와우산로 1", 126.9230, 37.5560)
-        // 지점명이 비었거나 브랜드명과 같은 부스는 검색에서 빠진다
-        createPhotoBoothLocation(photoism.id!!, "", "서울 중구", 126.9780, 37.5665)
-        createPhotoBoothLocation(photoism.id!!, "  ", "서울 중구", 126.9781, 37.5666)
-        createPhotoBoothLocation(photoism.id!!, "포토 이즘", "서울 중구", 126.9782, 37.5667)
+        index(photoGray, "서울강남점", "서울 서초구 서초대로77길 37", 127.0200, 37.4900)
+        index(photoGray, "대치동점", "서울 강남구 도곡로78길 6", 127.0600, 37.4950)
+        index(photoGray, "홍대점", "서울 마포구 와우산로 1", 126.9230, 37.5560)
+        // 지점명이 비었거나 브랜드명과 같은 행은 검색에서 빠진다
+        index(photoism, "", "서울 중구", 126.9780, 37.5665)
+        index(photoism, "포토 이즘", "서울 중구", 126.9782, 37.5667)
+
+        // 앱이 뜰 때 올린 사전에는 이 브랜드들이 없으므로 다시 올린다
+        queryUnderstandingService.reloadDictionary()
     }
 
-    @AfterEach
-    override fun tearDown() {
-        super.tearDown()
-        // 삭제된 브랜드는 @SQLRestriction 때문에 JPA 로 지워지지 않는다
-        jdbcTemplate.update("DELETE FROM TB_BRAND")
-    }
+    private fun index(
+        brand: Brand,
+        branchName: String,
+        address: String,
+        longitude: Double,
+        latitude: Double,
+    ): PhotoBoothSearch = createIndexedBooth(
+        brand = brand,
+        idx = "b${idx++}",
+        branchName = branchName,
+        longitude = longitude,
+        latitude = latitude,
+        regionIds = emptyList(),
+        address = address,
+    )
 
     private fun get(vararg params: Pair<String, Any>) = RestAssured.given()
         .header("Authorization", "Bearer $accessToken")
@@ -177,8 +187,8 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         }
 
         @Test
-        @DisplayName("지점명에 브랜드명이 붙어 있으면 떼고 한 번만 붙인다")
-        fun givenBranchNameWithBrandPrefix_whenSearch_thenDoesNotRepeatBrand() {
+        @DisplayName("색인의 브랜드명과 지점명을 이어 `브랜드명 지점명` 으로 내려준다")
+        fun givenBrandKeyword_whenSearch_thenReturnsBrandAndBranchName() {
             get("keyword" to "포토시그니처")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(1))
@@ -186,12 +196,12 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         }
 
         @Test
-        @DisplayName("삭제된 브랜드의 부스는 나오지 않는다")
-        fun givenDeletedBrand_whenSearch_thenExcludesBooths() {
-            get("keyword" to "삭제")
+        @DisplayName("이름은 공백·`-`·`_` 를 무시하고 비교한다")
+        fun givenKeywordWithoutSpace_whenSearch_thenMatchesNameWithSpace() {
+            get("keyword" to "플랜비스")
                 .statusCode(HttpStatus.OK.value())
-                .body("data.items", empty<Any>())
-                .body("data.totalCount", equalTo(0))
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("플랜비 스튜디오 강남점"))
         }
 
         @Test
@@ -205,8 +215,8 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         }
 
         @Test
-        @DisplayName("LIKE 와일드카드는 글자 그대로 찾는다")
-        fun givenWildcardKeyword_whenSearch_thenMatchesLiterally() {
+        @DisplayName("구분자를 빼면 1자인 검색어는 빈 결과다")
+        fun givenSeparatorKeyword_whenSearch_thenReturnsEmptyList() {
             get("keyword" to "강_")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
@@ -235,12 +245,75 @@ class SearchPhotoBoothsByKeywordE2ETest : MapE2ETestBase() {
         }
 
         @Test
-        @DisplayName("지점명이 비었거나 브랜드명과 같은 부스는 나오지 않는다")
+        @DisplayName("지점명이 비었거나 브랜드명과 같은 행은 나오지 않는다")
         fun givenBoothWithoutOwnBranchName_whenSearch_thenExcludesBooth() {
             get("keyword" to "포토이")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(3))
                 .body("data.items.keyword", not(hasItem("포토이즘 포토 이즘")))
+        }
+
+        @Test
+        @DisplayName("검색어에 브랜드가 없으면 기본 filterGroup 을 내려준다")
+        fun givenKeywordWithoutBrand_whenSearch_thenReturnsDefaultFilterGroup() {
+            get("keyword" to "강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+                .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+                // 요청 SortFilter 와 같은 타입이라 정하지 않은 order 는 필드째 빠진다
+                .body("data.filterGroup.sortFilter.containsKey('order')", equalTo(false))
+        }
+
+        @Test
+        @DisplayName("검색어에 브랜드가 있으면 그 브랜드를 건 filterGroup 을 내려준다")
+        fun givenKeywordWithBrand_whenSearch_thenReturnsBrandFilterGroup() {
+            listOf("포토그레이 강남", "강남 포토그레이").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("data.filterGroup.brandFilter.brands.brandId", contains(photoGray.id!!.toInt()))
+                    .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+            }
+        }
+
+        @Test
+        @DisplayName("`브랜드명 지점명` 으로 지점을 통째로 적어도 그 브랜드를 건 filterGroup 을 내려준다")
+        fun givenBoothKeyword_whenSearch_thenReturnsItsBrandFilterGroup() {
+            // 사전에서는 `포토이즘 강남점` 이 지점 항목으로 통째로 잡히지만 filterGroup 은 그 안의 브랜드를 건다
+            get("keyword" to "포토이즘 강남점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands.brandId", contains(photoism.id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("결과가 없어도 filterGroup 을 내려준다")
+        fun givenNoResult_whenSearch_thenStillReturnsFilterGroup() {
+            get("keyword" to "강")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+                .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+        }
+
+        @Test
+        @DisplayName("고른 keyword 와 filterGroup 을 그대로 부스 목록 API 에 보내면 그 지점이 나온다")
+        fun givenSelectedCompletion_whenSearchPhotoBooths_thenReturnsThatBooth() {
+            val mapBooth = createMapBooth(photoismGangnam)
+            val completion = get("keyword" to "포토이즘 강남점")
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+            val keyword: String = completion.getString("data.items[0].keyword")
+            val filterGroup: Map<String, Any> = completion.getMap("data.filterGroup")
+
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .contentType(ContentType.JSON)
+                .queryParam("keyword", keyword)
+                .body(mapOf("filterGroup" to filterGroup))
+                .`when`()
+                .post("/api/search/photo-booths")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.id", contains(mapBooth.id!!.toInt()))
         }
 
         @Test

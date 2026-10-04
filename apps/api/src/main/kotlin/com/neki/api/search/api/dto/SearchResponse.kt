@@ -19,6 +19,12 @@ object SearchResponse {
 
         @field:Schema(description = "검색어에 걸린 전체 건수. 탭 건수 배지용", example = "3")
         val totalCount: Long,
+
+        @field:Schema(
+            description = "부스 목록·필터 요청 body 의 filterGroup 과 같은 타입이라 그대로 보낸다. 검색어에 브랜드명이 있으면 " +
+                "그 브랜드가 걸려 있고, 없으면 기본 필터(brands = [], DEFAULT). 지역·역·부스 세 탭 모두 내려준다",
+        )
+        val filterGroup: SearchRequest.FilterGroup,
     ) {
         @Schema(name = "SearchCompletionInfo")
         data class Item(
