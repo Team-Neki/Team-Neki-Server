@@ -4,7 +4,7 @@
 
 ## 무엇을 검증하는가
 
-- 대상 API : `POST /api/search/photo-booths?keyword=`, `POST /api/search/filter?keyword=`
+- 대상 API : `POST /api/search/photo-booths`, `POST /api/search/filter`. keyword 는 쿼리 파라미터가 아니라 body 로 받음(`keyword`, `filterGroup`, 목록만 `userLocation`). 필터 body 에 `userLocation` 처럼 모르는 필드를 넣으면 D-01
 - keyword 해석 : QU(정규화 -> NER -> Intent)가 메모리 사전으로 지역·역·지점·브랜드를 먼저 뽑음. 자동완성 keyword(`서울특별시 강남구`, `강남역 2호선`, `모노맨션 강남역점`)도 사전에 있어 그 하나가 됨. 범위(지역·역·지점)를 하나도 못 찾았을 때만 DB 에서 자동완성 keyword 를 정확 일치로 찾음
 - 조회 범위 : 지역은 `region_ids` 배열 포함(GIN), 역은 1km 연결 테이블(`_station`). 지역·역끼리는 합집합, 검색어의 브랜드와 요청의 브랜드 필터는 교집합
 - 응답 id·favorite : 검색 색인 행의 원천 키 (platform, idx) 로 찾은 지도 부스(`TB_PHOTO_BOOTH_LOCATION`) 값. 지도에 없거나 `admin_hidden` 인 부스는 목록과 필터 모두에서 빠짐
@@ -72,6 +72,7 @@ NER 은 정규화 검색어(소문자, 공백·`-`·`_` 제거) 안에서 사전
 | O-A-11 | 스키마 변경 없음 (V34 컬럼을 엔티티에 매핑만 함) | `git diff --name-only origin/main...HEAD -- modules/postgres/src/main/resources/db/migration \| wc -l` = 0 |
 | O-A-12 | "NER 해석 규칙" 이 지켜짐 : 사전 항목, longest match, 지점명 제외, 지점 조각, 범위를 찾으면 DB 를 보지 않음(stub 없는 저장소로 확인) | `./gradlew :domain:test --tests 'com.neki.domain.search.service.qu.*' --tests 'com.neki.domain.search.models.qu.*' --tests 'com.neki.domain.search.BranchNamePolicyTest' --tests 'com.neki.domain.search.SearchNormalizerTest' -q` 종료코드 0 |
 | O-A-13 | 사전 원천 : 지역은 법정동 전체, 역은 SubwayStationRepository, 지점·브랜드는 색인 | `grep -c "legalDongRepository.findAllBelowSido()\|subwayStationRepository.findAll()\|photoBoothSearchRepository.findAllCurrent()\|photoBoothSearchRepository.findIndexedBrandNames()" domain/src/main/kotlin/com/neki/domain/search/service/qu/QueryUnderstandingService.kt` = 4, `grep -c "findAllStations" domain/src/main/kotlin/com/neki/domain/search/service/qu/QueryUnderstandingService.kt` = 0 |
+| O-A-14 | 목록·필터 API 는 keyword 를 body 로 받고 쿼리 파라미터로는 받지 않음 | `grep -c 'val keyword: String?' apps/api/src/main/kotlin/com/neki/api/search/api/dto/SearchRequest.kt` = 2, `grep -A4 '@PostMapping' apps/api/src/main/kotlin/com/neki/api/search/api/controller/SearchController.kt \| grep -c RequestParam` = 0, O-A-2 종료코드 0 |
 
 ## O-R. 배포 후 (manual)
 

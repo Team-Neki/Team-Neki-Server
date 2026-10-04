@@ -2,6 +2,7 @@ package com.neki.api.search.api.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 
 /**
@@ -12,11 +13,14 @@ import jakarta.validation.constraints.NotNull
  */
 object SearchRequest {
 
+    private const val KEYWORD_DESCRIPTION = "자동완성 keyword(지역·역·부스) 또는 자치구·역 + 브랜드 검색어. 없거나 공백뿐이면 D-01"
+
     @Schema(
         name = "SearchPhotoBoothsRequest",
-        description = "고른 지역·역의 부스 목록 요청. 자동완성에서 고른 keyword 는 쿼리 파라미터로 보냅니다.",
+        description = "고른 지역·역·지점의 부스 목록 요청. 자동완성에서 고른 keyword 와 filterGroup 을 그대로 보냅니다.",
         example = """
             {
+                "keyword": "서울특별시 강남구",
                 "filterGroup": {
                     "brandFilter": { "brands": [] },
                     "sortFilter": { "type": "DEFAULT" }
@@ -26,6 +30,10 @@ object SearchRequest {
         """,
     )
     data class GetPhotoBooths(
+        @field:Schema(description = KEYWORD_DESCRIPTION, example = "서울특별시 강남구")
+        @field:NotBlank(message = "keyword는 필수값입니다.")
+        val keyword: String?,
+
         @field:Schema(description = "필터 그룹. 필수이며 필터를 안 걸려면 {} 를 보냅니다")
         @field:Valid
         val filterGroup: FilterGroup,
@@ -37,9 +45,10 @@ object SearchRequest {
 
     @Schema(
         name = "SearchFilterRequest",
-        description = "부스 목록에서 쓸 수 있는 필터 요청. 자동완성에서 고른 keyword 는 쿼리 파라미터로 보냅니다.",
+        description = "부스 목록에서 쓸 수 있는 필터 요청. keyword 와 filterGroup 은 부스 목록 요청과 같습니다.",
         example = """
             {
+                "keyword": "서울특별시 강남구",
                 "filterGroup": {
                     "brandFilter": { "brands": [] }
                 }
@@ -47,6 +56,10 @@ object SearchRequest {
         """,
     )
     data class GetFilter(
+        @field:Schema(description = KEYWORD_DESCRIPTION, example = "서울특별시 강남구")
+        @field:NotBlank(message = "keyword는 필수값입니다.")
+        val keyword: String?,
+
         @field:Schema(description = "필터 그룹. 필수이며 필터를 안 걸려면 {} 를 보냅니다")
         @field:Valid
         val filterGroup: FilterGroup,

@@ -49,15 +49,19 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         booths = GangnamBooths(user.id!!)
     }
 
-    private fun post(keyword: String?, body: Any = SearchRequest.GetPhotoBooths(SearchRequest.FilterGroup())) =
-        RestAssured.given()
-            .header("Authorization", "Bearer $accessToken")
-            .contentType(ContentType.JSON)
-            .apply { if (keyword != null) queryParam("keyword", keyword) }
-            .body(body)
-            .`when`()
-            .post("/api/search/photo-booths")
-            .then()
+    private fun post(
+        keyword: String?,
+        filterGroup: SearchRequest.FilterGroup = SearchRequest.FilterGroup(),
+        userLocation: SearchRequest.UserLocation? = null,
+    ) = postBody(SearchRequest.GetPhotoBooths(keyword, filterGroup, userLocation))
+
+    private fun postBody(body: Any) = RestAssured.given()
+        .header("Authorization", "Bearer $accessToken")
+        .contentType(ContentType.JSON)
+        .body(body)
+        .`when`()
+        .post("/api/search/photo-booths")
+        .then()
 
     private fun brandFilter(vararg brandIds: Long) = SearchRequest.FilterGroup(
         brandFilter = SearchRequest.FilterGroup.BrandFilter(
@@ -74,7 +78,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         fun givenRegionAndUserLocation_whenSearch_thenReturnsVisibleBoothsOrderedByDistance() {
             val response = post(
                 "서울특별시 강남구",
-                SearchRequest.GetPhotoBooths(SearchRequest.FilterGroup(), userLocation = gangnamLocation),
+                userLocation = gangnamLocation,
             )
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
@@ -114,7 +118,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
 
             post(
                 "서울특별시 강남구",
-                SearchRequest.GetPhotoBooths(SearchRequest.FilterGroup(), userLocation = gangnamLocation),
+                userLocation = gangnamLocation,
             )
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items[0].id", equalTo(sameSpot.id!!.toInt()))
@@ -156,7 +160,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         @Test
         @DisplayName("브랜드 필터 - 해당 브랜드의 부스만 반환한다")
         fun givenBrandFilter_whenSearch_thenReturnsOnlyThatBrand() {
-            post("강남역 2호선", SearchRequest.GetPhotoBooths(brandFilter(booths.lifeFourCut.id!!)))
+            post("강남역 2호선", brandFilter(booths.lifeFourCut.id!!))
                 .statusCode(HttpStatus.OK.value())
                 .body(
                     "data.items.id",
@@ -206,7 +210,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         fun givenBoothKeywordAndSameBrandFilter_whenSearch_thenReturnsThatBooth() {
             post(
                 "포토이즘 강남역점",
-                SearchRequest.GetPhotoBooths(brandFilter(booths.photoism.id!!, booths.lifeFourCut.id!!)),
+                brandFilter(booths.photoism.id!!, booths.lifeFourCut.id!!),
             )
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items.id", contains(booths.photoismGangnamStation.id!!.toInt()))
@@ -218,7 +222,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
             post("포토이즘 숨김점")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
-            post("포토이즘 강남역점", SearchRequest.GetPhotoBooths(brandFilter(booths.lifeFourCut.id!!)))
+            post("포토이즘 강남역점", brandFilter(booths.lifeFourCut.id!!))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
         }
@@ -226,7 +230,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         @Test
         @DisplayName("검색어의 브랜드와 브랜드 필터가 겹치지 않음 - 빈 배열을 반환한다")
         fun givenKeywordBrandOutsideBrandFilter_whenSearch_thenReturnsEmptyList() {
-            post("강남구 포토이즘", SearchRequest.GetPhotoBooths(brandFilter(booths.lifeFourCut.id!!)))
+            post("강남구 포토이즘", brandFilter(booths.lifeFourCut.id!!))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
         }
@@ -275,7 +279,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         @Test
         @DisplayName("filterGroup 없음 - D-01")
         fun givenNoFilterGroup_whenSearch_thenReturnsInvalidParameter() {
-            post("서울특별시 강남구", body = "{}")
+            postBody("""{"keyword": "서울특별시 강남구"}""")
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
@@ -285,8 +289,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         fun givenNoToken_whenSearch_thenReturnsForbidden() {
             RestAssured.given()
                 .contentType(ContentType.JSON)
-                .queryParam("keyword", "서울특별시 강남구")
-                .body(SearchRequest.GetPhotoBooths(SearchRequest.FilterGroup()))
+                .body(SearchRequest.GetPhotoBooths("서울특별시 강남구", SearchRequest.FilterGroup()))
                 .`when`()
                 .post("/api/search/photo-booths")
                 .then()

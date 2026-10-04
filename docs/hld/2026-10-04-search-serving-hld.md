@@ -6,7 +6,7 @@ owner: 구태형 (BACKEND)
 updated: 2026-10-05
 related:
   epic: BACKEND-118 [Server] 통합 검색 API
-  ticket: BACKEND-123 부스 목록·브랜드 필터, BACKEND-152 지역·역·부스 자동완성, BACKEND-153 지점 마스터 동기화, BACKEND-208 QU 메모리 사전 우선
+  ticket: BACKEND-123 부스 목록·브랜드 필터, BACKEND-152 지역·역·부스 자동완성, BACKEND-153 지점 마스터 동기화, BACKEND-208 QU 메모리 사전 우선, BACKEND-209 keyword 를 body 로
   plan: Sprint BACKEND-123 (진행 상황은 티켓에서 관리)
   oracle: docs/oracle/search-api.md
   indexing: docs/hld/2026-10-04-search-indexing-hld.md
@@ -75,7 +75,7 @@ related:
 - 검색 색인은 원천 키만 안정적이다 : 색인 행 id 는 세대마다 다시 만들어지고, 세대를 넘어 유지되는 값은 원천 키 (platform, idx) 뿐입니다. 반면 즐겨찾기(`TB_FAVORITE_MAP`)는 지점 마스터 id(`TB_PHOTO_BOOTH_LOCATION.id`)를 참조합니다. **그래서 응답 id 는 색인이 아니라 지점 마스터에서 와야 했고, V34 가 마스터에 원천 키를 둔 것이 이 연결을 가능하게 했습니다.**
 - 도메인 격리 : search 와 map 은 서로 import 할 수 없고, 다른 도메인 호출은 유스케이스가 `client` 인터페이스로 합니다(ArchUnit 검사). 즐겨찾기와 브랜드 순서는 map 이 정본이므로 search 는 map 을 client 로만 부릅니다.
 - batch 와 도메인을 공유한다 : `apps/batch` 가 `com.neki.domain.search` 를 스캔하므로, search 도메인 빈이 apps/api 에만 있는 빈(map client 어댑터)에 기대면 batch 기동이 깨집니다. 다른 도메인 호출이 유스케이스에 있어야 하는 이유가 하나 더 생겼습니다.
-- 클라이언트 계약 : mock 단계에서 요청은 `keyword` 쿼리 파라미터 + `filterGroup` body 로 합의했고, 자동완성 응답은 `keyword` 문자열입니다. iOS 는 후보와 결과의 순서를 서버 응답 그대로 씁니다(IOS-17).
+- 클라이언트 계약 : 자동완성 응답은 후보 `keyword` 문자열이고, 클라이언트는 고른 keyword 를 부스 목록·필터 요청에 그대로 넘깁니다. mock 단계에서는 `keyword` 를 쿼리 파라미터로 합의했지만 지금은 `keyword` 와 `filterGroup` 을 함께 body 로 받습니다. iOS 는 후보와 결과의 순서를 서버 응답 그대로 씁니다(IOS-17).
 - 데이터 규모 : 지역 2만여 행(시군구 269), 역 1,100 안팎(역 x 노선), 부스 수천 건. 자동완성 keyword 3종까지 사전에 넣어도 2만여 항목이라 메모리에 둘 수 있고, 목록을 페이징 없이 한 번에 내려도 되는 크기입니다.
 
 ## 3. To-Be Architecture
@@ -159,8 +159,8 @@ flowchart TB
 | `GET /api/search/completion/regions` | 이 검색어로 고를 수 있는 지역 후보는 무엇인가 |
 | `GET /api/search/completion/stations` | 이 검색어로 고를 수 있는 역(노선별) 후보는 무엇인가 |
 | `GET /api/search/completion/photo-booths` | 이 검색어로 고를 수 있는 부스 후보는 무엇인가 |
-| `POST /api/search/photo-booths?keyword=` | 고른 지역·역(과 브랜드)의 부스, 또는 고른 지점은 누구이고 어떤 순서인가 |
-| `POST /api/search/filter?keyword=` | 그 부스들 안에 어떤 브랜드가 몇 개 있는가 |
+| `POST /api/search/photo-booths` (body `keyword`, `filterGroup`, `userLocation`) | 고른 지역·역(과 브랜드)의 부스, 또는 고른 지점은 누구이고 어떤 순서인가 |
+| `POST /api/search/filter` (body `keyword`, `filterGroup`) | 그 부스들 안에 어떤 브랜드가 몇 개 있는가 |
 
 부스 id 를 내리는 API 는 부스 목록 하나뿐이고, 그 id 는 지도 API 와 같은 원천(지점 마스터)에서 옵니다. 필터는 브랜드 id 와 개수만 내리고, 브랜드 이미지는 기존 브랜드 조회 API 의 값을 클라이언트가 id 로 맞춰 씁니다. 자동완성은 후보 문자열만 내리고 부스 id 를 내리지 않습니다.
 
@@ -287,7 +287,7 @@ failure isolation 단위는 요청입니다. 결과를 캐시하지 않으므로
 
 ## 9. Risks
 
-- 계약 변경 : 결과 없음이 D-04 에서 빈 목록으로 바뀜(DEC-5). 클라이언트가 D-04 를 기다리면 빈 화면 처리가 어긋남
+- 계약 변경 : 결과 없음이 D-04 에서 빈 목록으로 바뀜(DEC-5). 클라이언트가 D-04 를 기다리면 빈 화면 처리가 어긋남. 또 keyword 가 쿼리 파라미터에서 body 로 옮겨져, 쿼리 파라미터로만 보내는 클라이언트는 D-01 을 받음. 필터 body 는 모르는 필드(`userLocation` 등)도 D-01 이라 목록과 같은 body 를 그대로 보내면 실패함
 - 부스 keyword 와 색인 이름의 어긋남 : 부스 자동완성은 지도 부스 이름으로 keyword 를 만들고 목록 API 는 색인 이름과 맞춰 봄. 관리자가 지도에서 이름을 보정했거나 색인에 없는 지점(수집 대상이 아닌 지점)은 고르면 빈 결과가 됨
 - 부스 이름 조회 비용 : 범위가 없을 때만 돌지만 이름을 이어 붙여 비교하므로 인덱스를 쓰지 않음. 색인이 수만 행으로 커지면 (brand_name, branch_name) 인덱스와 공백 위치별 비교로 바꿔야 함
 - 자동완성이 브랜드를 떼어 냄 : 지역·역 자동완성은 `강남 포토이즘` 에서 브랜드 낱말을 빼고 후보를 내므로, 그 후보를 고르면 브랜드 조건이 사라짐
@@ -319,7 +319,7 @@ failure isolation 단위는 요청입니다. 결과를 캐시하지 않으므로
 
 ## Appendix B. Decision History
 
-- 요청 스키마 : 초기 mock 은 `regionFilter`/`stationFilter` body 였고, 클라이언트 합의로 `keyword` 쿼리 파라미터 + `filterGroup` body 로 바뀜
+- 요청 스키마 : 초기 mock 은 `regionFilter`/`stationFilter` body 였고, 클라이언트 합의로 `keyword` 쿼리 파라미터 + `filterGroup` body 로 바뀜. 이후 keyword 도 body 로 옮겨 자동완성에서 고른 keyword 와 filterGroup 을 한 body 에 그대로 담게 함 (BACKEND-209)
 - keyword 해석 : 자유 검색어 NER(검색 projection, 번들 CSV 사전, 텍스트 조건 포함)을 먼저 구현했다가 색인 잡이 생기며 자동완성 keyword 정확 일치만 남겼고, 정책 19장(자치구·역 + 브랜드)을 다시 반영해 QU/NER 를 색인 위로 옮김. 텍스트 조건과 fallback 은 옮기지 않음
 - 결과 없음 : D-04 에서 빈 목록으로 (DEC-5)
 - 부스 keyword : 처음에는 부스 후보가 목록 API 를 부르지 않는다고 보고 지점명 조각을 범위로 쓰지 않았으나, 자동완성 keyword 를 모두 목록 API 로 넘기는 설계로 정해지며 부스 keyword 정확 일치를 더함 (DEC-1, DEC-3)
