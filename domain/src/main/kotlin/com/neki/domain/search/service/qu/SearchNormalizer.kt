@@ -1,4 +1,4 @@
-package com.neki.domain.search
+package com.neki.domain.search.service.qu
 
 import java.util.Locale
 

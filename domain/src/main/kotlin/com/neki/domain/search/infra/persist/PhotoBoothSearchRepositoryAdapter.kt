@@ -59,6 +59,8 @@ class PhotoBoothSearchRepositoryAdapter(
     override fun countByKeyword(keyword: String, terms: List<List<String>>): Long =
         queryRepository.countByKeyword(keyword, terms)
 
+    override fun findAllCurrent(): List<PhotoBoothSearch> = readRepository.findAll()
+
     override fun findIndexedBrandNames(): Map<Long, String> = queryRepository.findBrandNames()
 
     // 트랜잭션은 호출자(TaskletStep 의 step 트랜잭션)가 연다. 여기서 열면 비우기와 채우기가 한 트랜잭션이라는 보장이 흐려진다

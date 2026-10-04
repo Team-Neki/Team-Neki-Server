@@ -276,6 +276,15 @@ class SearchPhotoBoothsByKeywordE2ETest : SearchE2ETestBase() {
         }
 
         @Test
+        @DisplayName("`브랜드명 지점명` 으로 지점을 통째로 적어도 그 브랜드를 건 filterGroup 을 내려준다")
+        fun givenBoothKeyword_whenSearch_thenReturnsItsBrandFilterGroup() {
+            // 사전에서는 `포토이즘 강남점` 이 지점 항목으로 통째로 잡히지만 filterGroup 은 그 안의 브랜드를 건다
+            get("keyword" to "포토이즘 강남점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands.brandId", contains(photoism.id!!.toInt()))
+        }
+
+        @Test
         @DisplayName("결과가 없어도 filterGroup 을 내려준다")
         fun givenNoResult_whenSearch_thenStillReturnsFilterGroup() {
             get("keyword" to "강")

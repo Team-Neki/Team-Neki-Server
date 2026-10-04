@@ -50,6 +50,8 @@ class SubwayStationQueryRepository(private val queryFactory: JPAQueryFactory) {
         .where(subwayStation.id.name.eq(id.name), subwayStation.id.lineName.eq(id.lineName))
         .fetchOne()
 
+    fun findAll(): List<SubwayStation> = queryFactory.selectFrom(subwayStation).fetch()
+
     /**
      * 공백이 없으면 역명 접두만 본다. 공백이 있으면 노선명까지 적은 것으로 보고 `강남역 2호선`, `강남 2호선` 두 모양을 모두 받는다.
      * 노선명(`부산 도시철도 2호선`)과 역명(`북구청 (대구iM뱅크파크)`)에도 공백이 있어 검색어를 쪼개지 않고 이어 붙인 이름과 비교한다.

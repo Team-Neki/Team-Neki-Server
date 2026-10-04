@@ -1,5 +1,6 @@
 package com.neki.domain.search
 
+import com.neki.domain.search.service.qu.SearchNormalizer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe

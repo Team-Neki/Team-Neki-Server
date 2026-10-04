@@ -48,6 +48,9 @@ interface PhotoBoothSearchRepository {
 
     fun countByKeyword(keyword: String, terms: List<List<String>>): Long
 
+    /** 검색 API 가 읽는(_read) 색인 행 전체. NER 사전의 지점 원천 */
+    fun findAllCurrent(): List<PhotoBoothSearch>
+
     /** 검색 API 가 읽는(_read) 색인에 있는 브랜드 id -> 이름. NER 사전의 브랜드 원천 */
     fun findIndexedBrandNames(): Map<Long, String>
 }

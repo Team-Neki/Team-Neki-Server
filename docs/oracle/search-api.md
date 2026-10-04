@@ -5,7 +5,7 @@
 ## 무엇을 검증하는가
 
 - 대상 API : `POST /api/search/photo-booths?keyword=`, `POST /api/search/filter?keyword=`
-- keyword 해석 : 자동완성 keyword(`서울특별시 강남구`, `강남역 2호선`, `모노맨션 강남역점`)는 정확 일치로 그 지역·역·지점이 되고, 그 밖의 검색어는 QU(정규화 -> NER -> Intent)가 서울 자치구·지하철역·브랜드를 뽑음
+- keyword 해석 : QU(정규화 -> NER -> Intent)가 메모리 사전으로 지역·역·지점·브랜드를 먼저 뽑음. 자동완성 keyword(`서울특별시 강남구`, `강남역 2호선`, `모노맨션 강남역점`)도 사전에 있어 그 하나가 됨. 범위(지역·역·지점)를 하나도 못 찾았을 때만 DB 에서 자동완성 keyword 를 정확 일치로 찾음
 - 조회 범위 : 지역은 `region_ids` 배열 포함(GIN), 역은 1km 연결 테이블(`_station`). 지역·역끼리는 합집합, 검색어의 브랜드와 요청의 브랜드 필터는 교집합
 - 응답 id·favorite : 검색 색인 행의 원천 키 (platform, idx) 로 찾은 지도 부스(`TB_PHOTO_BOOTH_LOCATION`) 값. 지도에 없거나 `admin_hidden` 인 부스는 목록과 필터 모두에서 빠짐
 - 정렬 : 사용자 위치가 있으면 거리 -> 지점명, 없으면 브랜드 -> 지점명 (검색 정책 12장)
@@ -13,10 +13,38 @@
 - NER 사전 : 앱이 뜰 때 메모리에 올리고 10분마다 다시 만듦 (`SearchDictionaryRefresher`)
 
 ```text
-keyword -> QU(정규화 -> 자동완성 keyword | NER) -> QueryIntent
-        -> SearchCondition(범위: 지역·역 / 조건: 브랜드) -> 검색 색인 조회
+keyword -> QU(정규화 -> NER(메모리 사전) -> 범위가 없으면 자동완성 keyword 정확 일치(DB)) -> QueryIntent
+        -> SearchCondition(범위: 지역·역·지점 / 조건: 브랜드) -> 검색 색인 조회
         -> 지도 부스(map, id·즐겨찾기·숨김) -> SearchedBooths(짝짓기, 정렬, 브랜드 집계) -> 응답
 ```
+
+## NER 해석 규칙
+
+NER 은 정규화 검색어(소문자, 공백·`-`·`_` 제거) 안에서 사전에 있는 이름을 찾아 엔티티로 만드는 QU 의 한 단계입니다. 아래 규칙이 O-A-12 의 단위 테스트와 O-R-14 의 staging 로그가 확인하는 기준입니다.
+
+- 사전 원천 : 지역은 시군구 이하 법정동(`tb_legal_dong`), 역은 `tb_subway_station`(`SubwayStationRepository`), 지점·브랜드는 검색 색인(`_read`)
+- 지역 항목 : 법정동 전체 경로(`서울특별시 강남구`, `경상남도 진주시 강남동`). 서울 자치구는 이름(`강남구`)과 줄임말(`강남`)도 넣고, 줄임말이 한 글자면(`중구` -> `중`) 넣지 않음
+- 역 항목 : `역명역`(노선마다 한 항목이라 `강남역` 은 2호선·신분당선 모두)과 `역명역 노선명`(그 노선 하나)
+- 지점 항목 : 색인의 `브랜드명 지점명`. 찾으면 엔티티 종류는 BRANCH, 대상은 그 지점(Booth)
+- 브랜드 항목 : 색인에 있는 브랜드 이름 (동의어·오타는 다루지 않음)
+- 겹침 해소 : longest match. 긴 범위가 먼저, 길이가 같으면 앞선 범위가 이기고 겹치는 범위는 버림. 그래서 자동완성 keyword 는 그 안의 짧은 이름(`강남`, `강남역`, 브랜드)이 아니라 keyword 전체 하나가 됨
+- 지점명 제외 : 겹침을 해소한 뒤 지점 접미사(`점`, `본점`, `N호점`)가 바로 뒤에 붙은 지역·역은 지점명의 일부로 보고 버림
+- 지점 조각 : 엔티티 사이 조각이 지점 접미사로 끝나면 BRANCH 엔티티가 되지만 대상이 없어 범위를 좁히지 않음
+- DB 정확 일치 : 범위(지역·역·지점)가 하나도 없을 때만 봄. 사전이 아직 모르는 keyword(갱신 주기 사이에 색인에 들어온 지점, 사전 적재 실패)를 위한 것
+- 사전이 비어 있으면 NER 은 아무것도 찾지 않고, 자동완성 keyword 는 DB 정확 일치로 동작함
+
+서버 로그 `[SEARCH] api=photo-booths` 의 entities 는 `종류:정규화 범위` 로 찍힙니다. 한 범위가 대상 여럿을 가리키면 그 수만큼 반복됩니다.
+
+| 검색어 | 기대 entities | 규칙 |
+|---|---|---|
+| `서울특별시 강남구` | `[REGION:서울특별시강남구]` | 전체 경로 |
+| `경상남도 진주시 강남동` | `[REGION:경상남도진주시강남동]` | 전체 경로가 `강남`(강남구)보다 길어 이김 |
+| `강남` | `[REGION:강남]` | 서울 자치구 줄임말 |
+| `포토이즘 강남역` | `[BRAND:포토이즘, STATION:강남역, STATION:강남역]` | `강남역` 은 노선마다 |
+| `강남역 2호선` | `[STATION:강남역2호선]` | 그 노선 하나 |
+| `모노맨션 강남역점` (색인에 있는 지점) | `[BRANCH:모노맨션강남역점]` | 지점 하나. 그 안의 `강남역` 은 겹쳐서 버림 |
+| `포토이즘 강남역점` (사전에 없는 지점) | `[BRAND:포토이즘, BRANCH:강남역점]` | 지점명 속 역은 버림. 범위가 없어 DB 를 보고, 없으면 빈 목록 |
+| `부산진구 포토이즘` | `[BRAND:포토이즘]` | 서울 밖 자치구 이름은 사전에 없음. 빈 목록 |
 
 ## 공통 (O-0)
 
@@ -35,13 +63,15 @@ keyword -> QU(정규화 -> 자동완성 keyword | NER) -> QueryIntent
 | O-A-2 | 부스 목록·필터·자동완성 E2E 통과 | `./gradlew :apps:api:test --tests 'com.neki.api.e2e.search.*' -q` 종료코드 0 |
 | O-A-3 | 목록과 필터는 같은 부스 집합을 본다 (칩 개수 합계 = 목록 건수). 두 유스케이스가 흐름을 따로 갖는 대신 이 테스트가 어긋남을 잡음 | `./gradlew :apps:api:test --tests 'com.neki.api.e2e.search.GetSearchFilterE2ETest' -q` 종료코드 0 |
 | O-A-4 | QU 호출은 유스케이스가 하고, 조회 서비스는 QU 를 모름 | `grep -c "queryUnderstandingService.understand" apps/api/src/main/kotlin/com/neki/api/search/application/SearchPhotoBoothsUseCase.kt apps/api/src/main/kotlin/com/neki/api/search/application/GetSearchFilterUseCase.kt` 두 파일 모두 1, `grep -c "QueryUnderstandingService" domain/src/main/kotlin/com/neki/domain/search/service/PhotoBoothSearchService.kt` = 0 |
-| O-A-5 | NER·지점명 규칙은 domain 모듈 밖에서 못 쓰고, QueryIntent 는 팩토리로만 만듦 | `grep -c "internal object" domain/src/main/kotlin/com/neki/domain/search/service/qu/Ner.kt domain/src/main/kotlin/com/neki/domain/search/BranchNamePolicy.kt` 두 파일 모두 1, `grep -c "class QueryIntent private constructor" domain/src/main/kotlin/com/neki/domain/search/models/qu/QueryIntent.kt` = 1 |
+| O-A-5 | NER·지점명 규칙은 domain 모듈 밖에서 못 쓰고, QueryIntent 는 팩토리로만 만듦 | `grep -c "internal object" domain/src/main/kotlin/com/neki/domain/search/service/qu/Ner.kt domain/src/main/kotlin/com/neki/domain/search/service/qu/BranchNamePolicy.kt` 두 파일 모두 1, `grep -c "class QueryIntent private constructor" domain/src/main/kotlin/com/neki/domain/search/models/qu/QueryIntent.kt` = 1 |
 | O-A-6 | NER 사전은 요청마다 조회하지 않고 메모리에서 꺼냄. 기동 시와 10분마다 갱신 | `grep -c "entityDictionaryCache.get()" domain/src/main/kotlin/com/neki/domain/search/service/qu/QueryUnderstandingService.kt` = 3 (understand, 자동완성 filterGroup 의 recognizeBrandIds, 브랜드 낱말 빼기의 brandNames), `./gradlew :apps:api:test --tests 'com.neki.api.search.infra.scheduler.SearchDictionaryRefresherTest' -q` 종료코드 0 |
 | O-A-7 | 짝짓기·정렬·브랜드 집계는 도메인 컬렉션(SearchedBooths)이 하고 Assembler 는 옮겨 담기만 함 | `grep -c "sortedWith\|groupBy" apps/api/src/main/kotlin/com/neki/api/search/application/dto/SearchAssembler.kt` = 0, `./gradlew :domain:test --tests 'com.neki.domain.search.SearchedBoothsTest' -q` 종료코드 0 |
 | O-A-8 | 역 keyword 형식(`역명역 노선명`)은 SubwayStation 한 곳 | `grep -rn '"역"' domain/src/main/kotlin/com/neki/domain/search/models domain/src/main/kotlin/com/neki/domain/search/service/qu \| grep -vc SubwayStation.kt` = 0 |
 | O-A-9 | batch 컨텍스트가 뜬다 (batch 가 스캔하는 search 도메인 서비스가 apps/api 전용 빈에 기대지 않음) | `grep -rc "MapClient" domain/src/main/kotlin/com/neki/domain/search/service \| grep -v ":0" \| wc -l` = 0, `./gradlew :apps:batch:test -q` 종료코드 0 |
 | O-A-10 | 지역 조회는 GIN 을 타는 배열 포함 연산 | `grep -c "array_contains" domain/src/main/kotlin/com/neki/domain/search/infra/persist/jpa/PhotoBoothSearchQueryRepository.kt` >= 1 |
 | O-A-11 | 스키마 변경 없음 (V34 컬럼을 엔티티에 매핑만 함) | `git diff --name-only origin/main...HEAD -- modules/postgres/src/main/resources/db/migration \| wc -l` = 0 |
+| O-A-12 | "NER 해석 규칙" 이 지켜짐 : 사전 항목, longest match, 지점명 제외, 지점 조각, 범위를 찾으면 DB 를 보지 않음(stub 없는 저장소로 확인) | `./gradlew :domain:test --tests 'com.neki.domain.search.service.qu.*' --tests 'com.neki.domain.search.models.qu.*' --tests 'com.neki.domain.search.BranchNamePolicyTest' --tests 'com.neki.domain.search.SearchNormalizerTest' -q` 종료코드 0 |
+| O-A-13 | 사전 원천 : 지역은 법정동 전체, 역은 SubwayStationRepository, 지점·브랜드는 색인 | `grep -c "legalDongRepository.findAllBelowSido()\|subwayStationRepository.findAll()\|photoBoothSearchRepository.findAllCurrent()\|photoBoothSearchRepository.findIndexedBrandNames()" domain/src/main/kotlin/com/neki/domain/search/service/qu/QueryUnderstandingService.kt` = 4, `grep -c "findAllStations" domain/src/main/kotlin/com/neki/domain/search/service/qu/QueryUnderstandingService.kt` = 0 |
 
 ## O-R. 배포 후 (manual)
 
@@ -49,8 +79,8 @@ keyword -> QU(정규화 -> 자동완성 keyword | NER) -> QueryIntent
 
 | id | 판정 | 확인 방법 |
 |---|---|---|
-| O-R-1 | 선행 데이터가 있다 : 검색 색인, 지도 부스(COLLECTED), 둘이 원천 키로 짝지어지는 부스, 서울 자치구 25개, 지하철역 | S-1 ~ S-4 |
-| O-R-2 | NER 사전이 올라간다 : `[SEARCH] dictionary refreshed entries=` 가 기동 직후 0 보다 큰 값으로 찍히고 `dictionary refresh failed` 가 없다 | 4단계 로그 |
+| O-R-1 | 선행 데이터가 있다 : 검색 색인, 지도 부스(COLLECTED), 둘이 원천 키로 짝지어지는 부스, 서울 자치구 25개, 시군구 이하 법정동, 지하철역 | S-1 ~ S-4 |
+| O-R-2 | NER 사전이 올라간다 : `[SEARCH] dictionary refreshed entries=` 가 기동 직후 S-8 기대값과 같게 찍히고 `dictionary refresh failed` 가 없다 | 4단계 로그, S-8 |
 | O-R-3 | 자동완성 keyword 로 부스 목록이 나온다 : 지역 keyword 로 items > 0, 거리순(같으면 지점명순), 위치가 없으면 브랜드·지점명순. 건수가 S-5 와 같다 | [C-1], [PB-1], [PB-2], S-5 |
 | O-R-4 | 역 keyword 로 1km 안 부스가 나온다 : 건수가 S-6 과 같다 | [C-2], [PB-3], S-6 |
 | O-R-5 | 목록과 필터가 같은 부스를 센다 : 필터 count 합계 = 목록 건수, 칩 순서 = 사용자 브랜드 순서 | [B-1], [F-1], [F-2] |
@@ -62,6 +92,7 @@ keyword -> QU(정규화 -> 자동완성 keyword | NER) -> QueryIntent
 | O-R-11 | 티켓 BACKEND-123 DONE (배포와 검증 뒤) | Sprint |
 | O-R-12 | 부스 자동완성 keyword 로 그 지점 하나가 나온다 : 자동완성 응답 keyword 를 그대로 넘기면 그 이름의 지점만 나온다(보통 1건). 그 지점의 브랜드로 거르면 그대로, 다른 브랜드로 거르면 빈 목록. 필터는 그 브랜드 1개 | [C-3], [PB-11] ~ [PB-13], [F-3] |
 | O-R-13 | 브랜드가 섞인 검색어(`서울특별시 강남구 포토이즘`, `강남역 2호선 포토이즘`, `포토이즘 강남역`)에서 지역·역·부스 자동완성의 첫 후보를 그대로 넘기면 목록·필터에 그 브랜드만 나온다. 검색어를 그대로 넘긴 기준선(BK-0)과 같은 브랜드여야 한다 | `http/search-brand-keyword.http` [BK-0] ~ [BK-9] |
+| O-R-14 | NER 이 자동완성 keyword 를 그 하나로 해석한다 : 로그 entities 가 [PB-1] `[REGION:서울특별시강남구]`, [PB-3] `[STATION:강남역2호선]` 하나(노선 둘이 아님), [PB-11] `[BRANCH:...]` 하나, [PB-8d] `[REGION:경상남도진주시강남동]` 이고 [PB-8d] 응답에 서울 부스가 없다 | [PB-1], [PB-3], [PB-8d], [PB-11], 5단계 로그 |
 
 ## staging 검증 절차
 
@@ -94,8 +125,9 @@ from tb_photo_booth_search_read s
 join TB_PHOTO_BOOTH_LOCATION l
   on l.source_platform = s.platform and l.source_idx = s.idx and l.admin_hidden = false;
 
--- S-4 NER 사전 원천 : 서울 자치구 = 25, 지하철역 > 0
+-- S-4 NER 사전 원천 : 서울 자치구 = 25, 시군구 이하 법정동 > 0, 지하철역 > 0
 select count(*) from tb_legal_dong where level = 2 and code like '11%';
+select count(*) from tb_legal_dong where level > 1;
 select count(*) from tb_subway_station;
 ```
 
@@ -119,14 +151,24 @@ gh run watch "$(gh run list --workflow deploy-api-staging.yml --limit 1 --json d
 Grafana Explore(Loki) 에서 api 파드 로그를 `[SEARCH] dictionary` 로 검색합니다.
 
 ```text
-[SEARCH] dictionary refreshed entries=1243 heapUsedMb=310 heapCommittedMb=512 heapMaxMb=1024
+[SEARCH] dictionary refreshed entries=24871 heapUsedMb=310 heapCommittedMb=512 heapMaxMb=1024
 ```
 
-- entries : 서울 자치구 이름·줄임말 약 49 + 역(노선 수만큼) + 색인 브랜드 수. 0 이면 S-4 를 다시 확인
+- entries : 아래 S-8 과 같아야 함. 0 이면 S-4 를 다시 확인
 - `dictionary refresh failed` 가 있으면 스택트레이스로 원인 확인. 이때 자동완성 keyword 는 동작하지만 자유 검색어는 빈 목록이 됨
 - 위 예시의 숫자는 형식을 보이기 위한 값이며 실제 값은 데이터에 따라 다름
 
-### 5. 요청 실행 (O-R-3 ~ O-R-8, O-R-12)
+```sql
+-- S-8 NER 사전 항목 수 기대값. 색인이 바뀌는 05:30 KST 직후 10분 안에는 어긋날 수 있음
+select (select count(*) from tb_legal_dong where level > 1)                -- 지역 전체 경로
+     + 49                                                                   -- 서울 자치구 이름 25 + 줄임말 24 (중구는 줄임말 없음)
+     + 2 * (select count(*) from tb_subway_station)                         -- `역명역`, `역명역 노선명`
+     + (select count(*) from tb_photo_booth_search_read)                    -- 지점 `브랜드명 지점명`
+     + (select count(distinct brand_id) from tb_photo_booth_search_read)    -- 브랜드
+  as expected_entries;
+```
+
+### 5. 요청 실행 (O-R-3 ~ O-R-8, O-R-12, O-R-14)
 
 IntelliJ HTTP Client 로 `http/search.http` 를 `staging` 환경에서 위에서부터 순서대로 실행합니다. 앞 요청이 저장한 값(브랜드 id, 건수, 부스 id)을 뒤 요청이 쓰므로 하나씩 건너뛰지 않습니다.
 
@@ -136,6 +178,7 @@ IntelliJ HTTP Client 로 `http/search.http` 를 `staging` 환경에서 위에서
 - [PB-4] ~ [PB-7] 을 실행한 시각의 서버 로그에서 `[SEARCH] api=photo-booths keyword="강남구 포토이즘" entities=[REGION:강남구, BRAND:포토이즘]` 처럼 엔티티가 찍혔는지 확인
 - [FAV-1] ~ [FAV-3] 은 토큰 사용자의 즐겨찾기를 잠깐 바꿨다가 되돌림. [FAV-3] 까지 반드시 실행
 - [C-3] 은 부스 자동완성 첫 후보를 저장하고 [PB-11] ~ [PB-13], [F-3] 이 그 keyword 를 그대로 씀. 서버 로그 entities 가 `[BRANCH:...]` 로 찍히는지 확인
+- O-R-14 : [PB-1], [PB-3], [PB-8d], [PB-11] 의 서버 로그 entities 를 "NER 해석 규칙" 의 기대 entities 와 맞춰 봄. 자동완성 keyword 가 엔티티 여러 개로 쪼개져 찍히면 사전에 그 keyword 가 없다는 뜻이므로 S-8 과 entries 를 다시 비교
 
 ```sql
 -- S-5 [PB-1] 건수와 같아야 함 (강남구, 지도에 있고 숨기지 않은 부스)
@@ -169,7 +212,7 @@ where region_ids @> cast(array['1168000000'] as varchar(10)[]);
 
 ### 7. 메모리 추세 확인 (O-R-10)
 
-배포 후 30분 이상 지나 4단계와 같은 검색으로 `dictionary refreshed` 로그를 3건 이상 모읍니다. `heapUsedMb` 는 JVM 힙 전체 스냅샷이라 사전 크기 자체가 아니며 GC 시점에 따라 오르내립니다. 갱신을 거듭해도 계속 오르기만 하면 이전 사전이 회수되지 않는 것을 의심할 수 있으므로 Grafana 의 JVM 메모리 패널(`jvm_memory_used_bytes{area="heap"}`)과 함께 봅니다.
+배포 후 30분 이상 지나 4단계와 같은 검색으로 `dictionary refreshed` 로그를 3건 이상 모읍니다. 사전에 법정동 전체 경로(2만여 건)와 지점이 들어가 갱신마다 이 행들을 다시 읽으므로, 이전 배포보다 힙이 한 단계 높은 것은 정상입니다. `heapUsedMb` 는 JVM 힙 전체 스냅샷이라 사전 크기 자체가 아니며 GC 시점에 따라 오르내립니다. 갱신을 거듭해도 계속 오르기만 하면 이전 사전이 회수되지 않는 것을 의심할 수 있으므로 Grafana 의 JVM 메모리 패널(`jvm_memory_used_bytes{area="heap"}`)과 함께 봅니다.
 
 ### 8. 기록
 

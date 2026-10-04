@@ -9,7 +9,6 @@ import com.neki.domain.map.models.Brand
 import com.neki.domain.map.models.FavoriteMap
 import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.UserBrandOrder
-import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.infra.persist.jpa.JpaLegalDongRepository
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothSearchRepository
 import com.neki.domain.search.infra.persist.jpa.JpaSubwayStationRepository
@@ -19,6 +18,7 @@ import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.SubwayStationId
 import com.neki.domain.search.service.qu.QueryUnderstandingService
+import com.neki.domain.search.service.qu.SearchNormalizer
 import org.junit.jupiter.api.AfterEach
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory

@@ -1,5 +1,6 @@
 package com.neki.domain.search
 
+import com.neki.domain.search.service.qu.BranchNamePolicy
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 

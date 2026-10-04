@@ -1,12 +1,12 @@
 package com.neki.domain.search.infra.persist.jpa
 
 import com.neki.core.domain.vo.Pagination
-import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.QNearbyStation.nearbyStation
 import com.neki.domain.search.models.QPhotoBoothSearch.photoBoothSearch
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.UserLocation
+import com.neki.domain.search.service.qu.SearchNormalizer
 import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.CaseBuilder

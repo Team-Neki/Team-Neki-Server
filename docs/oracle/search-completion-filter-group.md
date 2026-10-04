@@ -16,7 +16,7 @@
 | id | 종류 | 판정 | 명령/절차 |
 |---|---|---|---|
 | O-0-1 | auto | 포맷 검사 통과 | `./gradlew spotlessCheck -q` 종료코드 0 |
-| O-0-2 | auto | 테스트 전부 통과, 모듈별 수 >= baseline (domain 89, apps/batch 18, apps/api 653) | `./gradlew test -q` 종료코드 0 뒤 `for m in domain apps/batch apps/api; do echo "$m $(grep -ho 'tests="[0-9]*"' $m/build/test-results/test/*.xml \| grep -o '[0-9]*' \| paste -sd+ - \| bc)"; done` |
+| O-0-2 | auto | 테스트 전부 통과, 모듈별 수 >= baseline (domain 90, apps/batch 18, apps/api 654) | `./gradlew test -q` 종료코드 0 뒤 `for m in domain apps/batch apps/api; do echo "$m $(grep -ho 'tests="[0-9]*"' $m/build/test-results/test/*.xml \| grep -o '[0-9]*' \| paste -sd+ - \| bc)"; done` |
 | O-0-3 | auto | 도메인 격리 규칙 통과 | `./gradlew :apps:api:test --tests 'com.neki.api.rule.ArchitectureRulesTest' -q` 종료코드 0 |
 
 ## O-A. 구현 (auto)

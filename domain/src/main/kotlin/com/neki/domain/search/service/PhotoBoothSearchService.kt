@@ -1,13 +1,13 @@
 package com.neki.domain.search.service
 
 import com.neki.core.domain.vo.PageWithTotalCount
-import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.CompletionKeyword
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SearchCondition
 import com.neki.domain.search.models.qu.QueryIntent
 import com.neki.domain.search.repository.PhotoBoothSearchRepository
+import com.neki.domain.search.service.qu.SearchNormalizer
 import org.springframework.stereotype.Component
 
 /**
