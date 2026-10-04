@@ -23,9 +23,17 @@ class SubwayStation(
     @EmbeddedId
     val id: SubwayStationId,
 
+    /** 승강장 위치. 노선마다 달라 주변 부스도 달라진다. */
     @Column(name = "location", nullable = false, columnDefinition = "geometry(Point, 4326)")
     val location: Point,
 ) {
+    /** 역명. 저장된 값에는 `역` 이 없다. e.g. `강남` */
+    val name: String
+        get() = id.name
+
+    val lineName: String
+        get() = id.lineName
+
     /** coordinate(경도 x, 위도 y)에서 이 역까지의 거리(m). 검색 API 의 사용자 거리와 같은 haversine */
     fun distanceFrom(coordinate: Coordinate): Int =
         UserLocation(latitude = coordinate.y, longitude = coordinate.x).distanceTo(location.y, location.x)
