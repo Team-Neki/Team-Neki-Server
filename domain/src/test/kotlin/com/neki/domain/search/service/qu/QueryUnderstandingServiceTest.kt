@@ -27,7 +27,7 @@ import org.locationtech.jts.geom.PrecisionModel
  * fileName       : QueryUnderstandingServiceTest
  * author         : koo
  * date           : 2026. 9. 17.
- * description    : 자동완성 keyword(지역·역·지점), 정규화 -> NER -> Intent (엔티티, 지점, 남은 조각)
+ * description    : 메모리 사전 먼저, 범위를 못 찾으면 DB 의 자동완성 keyword(지역·역·지점), 정규화 -> NER -> Intent (엔티티, 지점, 남은 조각)
  */
 class QueryUnderstandingServiceTest :
     FunSpec({
@@ -39,14 +39,15 @@ class QueryUnderstandingServiceTest :
         // 자동완성 keyword 로는 아무것도 찾지 못하는 저장소. 사전은 강남구, 강남역 2호선, 포토이즘
         val legalDongRepository: LegalDongRepository = mockk {
             every { findByFullName(any()) } returns null
-            every { findSeoulDistricts() } returns listOf(LegalDong("1168000000", 2, "강남구", "서울특별시 강남구"))
+            every { findAllBelowSido() } returns listOf(LegalDong("1168000000", 2, "강남구", "서울특별시 강남구"))
         }
         val subwayStationRepository: SubwayStationRepository = mockk {
             every { findById(any()) } returns null
+            every { findAll() } returns listOf(SubwayStation(SubwayStationId("강남", "2호선"), point))
         }
         val photoBoothSearchRepository: PhotoBoothSearchRepository = mockk {
-            every { findAllStations() } returns listOf(SubwayStation(SubwayStationId("강남", "2호선"), point))
             every { findIndexedBrandNames() } returns mapOf(1L to "포토이즘")
+            every { findAllCurrent() } returns emptyList()
             every { findByBoothName(any()) } returns emptyList()
         }
 
@@ -73,7 +74,33 @@ class QueryUnderstandingServiceTest :
         fun branches(intent: QueryIntent): List<String> =
             intent.entities.filter { it.type == EntityType.BRANCH }.map { it.keyword }
 
-        test("자동완성 keyword 는 사전을 거치지 않고 그 지역·역으로 이해한다") {
+        test("자동완성 keyword 는 메모리 사전에서 그 하나가 되고, 범위를 찾으면 DB 를 보지 않는다") {
+            val sinbundang = SearchTarget.Station("강남", "신분당선")
+            val monomansion = SearchTarget.Booth(platform = "MONOMANSION", idx = "m1")
+            val cache = InMemoryEntityDictionaryCacheAdapter()
+            cache.replace(
+                EntityDictionary(
+                    listOf(
+                        DictionaryEntry("포토이즘", SearchTarget.Brand(1)),
+                        DictionaryEntry("강남", gangnamGu),
+                        DictionaryEntry("강남역", gangnamLine2),
+                        DictionaryEntry("강남역", sinbundang),
+                        DictionaryEntry("강남역 2호선", gangnamLine2),
+                        DictionaryEntry("경상남도 진주시 강남동", SearchTarget.Region("4817010300")),
+                        DictionaryEntry("모노맨션 강남역점", monomansion),
+                    ),
+                ),
+            )
+            // 아무것도 stub 하지 않은 저장소라 DB 를 보면 예외가 난다
+            val memoryOnly = QueryUnderstandingService(mockk(), mockk(), mockk(), cache)
+
+            memoryOnly.understand("경상남도 진주시 강남동").targets shouldBe listOf(SearchTarget.Region("4817010300"))
+            memoryOnly.understand("강남역 2호선").targets shouldBe listOf(gangnamLine2)
+            memoryOnly.understand(" 모노맨션  강남역점 ").targets shouldBe listOf(monomansion)
+            memoryOnly.understand("포토이즘 강남역").targets shouldBe listOf(SearchTarget.Brand(1), gangnamLine2, sinbundang)
+        }
+
+        test("사전에 없는 자동완성 keyword 는 DB 에서 정확 일치로 그 지역·역을 찾는다") {
             val legalDongs: LegalDongRepository = mockk {
                 every { findByFullName("경상남도 진주시 강남동") } returns
                     LegalDong("4817010300", 3, "강남동", "경상남도 진주시 강남동")
@@ -102,7 +129,7 @@ class QueryUnderstandingServiceTest :
             completion.understand("  강남역   신분당선 ").targets shouldBe listOf(SearchTarget.Station("강남", "신분당선"))
         }
 
-        test("부스 자동완성 keyword(브랜드명 지점명)는 그 지점 하나로 이해하고 NER 을 거치지 않는다") {
+        test("사전에 없는 부스 자동완성 keyword(브랜드명 지점명)는 DB 에서 찾아 그 지점 하나로 이해한다") {
             val monomansion: PhotoBoothSearch = mockk {
                 every { platform } returns "MONOMANSION"
                 every { idx } returns "m1"
@@ -145,8 +172,8 @@ class QueryUnderstandingServiceTest :
         test("그 밖의 검색어는 메모리에 올린 사전으로 이해하고, 올리기 전에는 아무것도 찾지 않는다") {
             service.understand("포토이즘 강남역").targets.shouldBeEmpty()
 
-            // 강남구, 강남(줄임말), 강남역(2호선), 포토이즘
-            service.reloadDictionary() shouldBe 4
+            // 서울특별시 강남구, 강남구, 강남(줄임말), 강남역·강남역 2호선(2호선), 포토이즘
+            service.reloadDictionary() shouldBe 6
 
             service.understand("포토이즘 강남역").targets shouldBe listOf(SearchTarget.Brand(1), gangnamLine2)
         }

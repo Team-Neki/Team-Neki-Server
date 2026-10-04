@@ -29,4 +29,6 @@ class SubwayStationRepositoryAdapter(private val queryRepository: SubwayStationQ
         queryRepository.countByKeywordPrefix(keyword, namePrefix)
 
     override fun findById(id: SubwayStationId): SubwayStation? = queryRepository.findById(id)
+
+    override fun findAll(): List<SubwayStation> = queryRepository.findAll()
 }

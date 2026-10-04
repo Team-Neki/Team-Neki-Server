@@ -4,9 +4,9 @@ import com.neki.api.search.application.dto.SearchResult
 import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.Pagination
 import com.neki.core.exception.BusinessException
-import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.UserLocation
+import com.neki.domain.search.service.qu.SearchNormalizer
 import org.springframework.stereotype.Component
 
 /**

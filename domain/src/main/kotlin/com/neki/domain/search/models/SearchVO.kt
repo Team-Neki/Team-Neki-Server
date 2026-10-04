@@ -32,7 +32,7 @@ sealed interface SearchTarget {
 
     /**
      * 지점 하나. 검색 색인 행의 원천 키라 색인을 다시 만들어도 같은 지점을 가리킨다.
-     * 부스 자동완성 keyword(`브랜드명 지점명`)로만 정해지고 NER 은 만들지 않는다.
+     * 부스 자동완성 keyword(`브랜드명 지점명`)로만 정해진다. NER 사전에도 이 이름으로 들어 있다.
      */
     data class Booth(val platform: String, val idx: String) : Scope
 

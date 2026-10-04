@@ -1,6 +1,5 @@
 package com.neki.domain.search.service.qu
 
-import com.neki.domain.search.BranchNamePolicy
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.qu.DictionaryEntry
 import com.neki.domain.search.models.qu.EntityDictionary
@@ -10,7 +9,7 @@ import com.neki.domain.search.models.qu.ResolvedEntity
  * fileName       : Ner
  * author         : koo
  * date           : 2026. 9. 18.
- * description    : NER. QU 의 한 단계로, 정규화 검색어 안에 어떤 엔티티(브랜드·지역·역)가 사전에 있는지 찾고 겹침까지 해소한다.
+ * description    : NER. QU 의 한 단계로, 정규화 검색어 안에 어떤 엔티티(브랜드·지역·역·지점)가 사전에 있는지 찾고 겹침까지 해소한다.
  *   후보 탐색 : 검색어의 부분 문자열을 사전에서 조회한다. 사전 키보다 긴 부분 문자열은 보지 않는다.
  *   겹침 해소 : longest match. 긴 범위가 먼저, 길이가 같으면 앞선 범위가 먼저 선택되고, 선택된 범위와 겹치는 범위는 버린다.
  *     "포토이즘강남역" 은 포토이즘(브랜드), 강남(지역), 강남역(역) 이 후보이고 강남역이 강남보다 길어 이긴다.

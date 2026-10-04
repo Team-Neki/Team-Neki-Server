@@ -1,6 +1,6 @@
 package com.neki.domain.search.models
 
-import com.neki.domain.search.SearchNormalizer
+import com.neki.domain.search.service.qu.SearchNormalizer
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection

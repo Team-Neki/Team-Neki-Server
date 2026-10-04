@@ -288,6 +288,23 @@ Content-Type: application/json
   });
 %}
 
+### [PB-8d] 서울 밖 지역 전체 경로 : 사전의 "강남"(강남구)으로 잡히지 않아 서울 부스가 없다
+POST {{host}}/api/search/photo-booths?keyword=경상남도%20진주시%20강남동
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {}
+}
+
+> {%
+  client.test("PB-8d", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var seoul = response.body.data.items.filter(function (i) { return i.address.indexOf("서울") === 0; });
+    client.assert(seoul.length === 0, "서울 부스가 나옴 : " + JSON.stringify(seoul.slice(0, 3)));
+  });
+%}
+
 ### [PB-9] 공백 keyword : 400 D-01
 POST {{host}}/api/search/photo-booths?keyword=%20
 Authorization: Bearer {{accessToken}}
