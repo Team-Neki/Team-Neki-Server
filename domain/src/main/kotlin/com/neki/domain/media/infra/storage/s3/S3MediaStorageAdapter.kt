@@ -5,6 +5,8 @@ import com.neki.domain.media.external.MediaStorage
 import com.neki.domain.media.models.MediaRef
 import com.neki.domain.media.models.MediaStorageUploadTicket
 import com.neki.domain.media.models.MediaType
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import software.amazon.awssdk.core.ResponseBytes
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
@@ -27,6 +29,7 @@ class S3MediaStorageAdapter(
     private val s3Client: S3Client,
     private val s3Presigner: S3Presigner,
     private val props: S3Properties,
+    private val meterRegistry: MeterRegistry,
 ) : MediaStorage {
 
     override fun deleteByKey(key: String) {
@@ -43,10 +46,19 @@ class S3MediaStorageAdapter(
             .key(key)
             .build()
 
+        // http.server.requests 는 클라이언트로 바이트를 쓰는 시간까지 포함하므로 S3 조회 구간만 따로 잰다.
+        // 실패한 조회는 기록하지 않는다 (NoSuchKey 처럼 빠르게 끝나는 실패가 분포를 끌어내리지 않게)
+        val sample: Timer.Sample = Timer.start(meterRegistry)
         val responseBytes: ResponseBytes<GetObjectResponse> =
             s3Client.getObjectAsBytes(getObjectRequest)
+        sample.stop(fetchTimer(key))
         return responseBytes.asByteArray()
     }
+
+    private fun fetchTimer(key: String): Timer = Timer.builder(FETCH_METRIC)
+        .tag("type", MediaType.fromObjectKey(key)?.prefix ?: "unknown")
+        .publishPercentileHistogram()
+        .register(meterRegistry)
 
     override fun findAll(prefix: String): List<MediaRef> {
         val request = ListObjectsV2Request.builder()
@@ -103,5 +115,9 @@ class S3MediaStorageAdapter(
             expiresAt = Instant.now().plus(props.presignedUrlExpiration),
             contentType = contentType,
         )
+    }
+
+    companion object {
+        private const val FETCH_METRIC = "media.storage.fetch"
     }
 }
