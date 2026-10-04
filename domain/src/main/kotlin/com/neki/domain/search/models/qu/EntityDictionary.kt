@@ -1,9 +1,9 @@
 package com.neki.domain.search.models.qu
 
-import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.models.LegalDong
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.service.qu.SearchNormalizer
 
 /**
  * fileName       : EntityDictionary

@@ -176,7 +176,7 @@ interface PhotoBoothSearchRepository {
 ## Task B : SearchNormalizer (오라클 O-B)
 
 **Files**
-- Create `domain/src/main/kotlin/com/neki/domain/search/SearchNormalizer.kt`
+- Create `domain/src/main/kotlin/com/neki/domain/search/service/qu/SearchNormalizer.kt`
 - Create `domain/src/test/kotlin/com/neki/domain/search/SearchNormalizerTest.kt` (Kotest `FunSpec`, `UserBrandOrderTest` 와 같은 스타일)
 
 **시그니처** (C 와 검색 API 가 그대로 씀. 바꾸면 보고)

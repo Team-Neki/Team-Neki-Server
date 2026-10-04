@@ -1,6 +1,5 @@
 package com.neki.domain.search.service.qu
 
-import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.external.EntityDictionaryCache
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.SubwayStation

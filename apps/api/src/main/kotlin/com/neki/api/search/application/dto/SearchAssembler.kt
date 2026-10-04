@@ -1,13 +1,13 @@
 package com.neki.api.search.application.dto
 
 import com.neki.core.domain.vo.PageWithTotalCount
-import com.neki.domain.search.SearchNormalizer
 import com.neki.domain.search.models.BrandCount
 import com.neki.domain.search.models.LegalDong
 import com.neki.domain.search.models.PhotoBoothSummary
 import com.neki.domain.search.models.SearchedBooth
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.UserLocation
+import com.neki.domain.search.service.qu.SearchNormalizer
 import java.math.BigDecimal
 import java.math.RoundingMode
 

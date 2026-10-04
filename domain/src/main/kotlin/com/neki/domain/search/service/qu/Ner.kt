@@ -1,6 +1,5 @@
 package com.neki.domain.search.service.qu
 
-import com.neki.domain.search.BranchNamePolicy
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.qu.DictionaryEntry
 import com.neki.domain.search.models.qu.EntityDictionary
