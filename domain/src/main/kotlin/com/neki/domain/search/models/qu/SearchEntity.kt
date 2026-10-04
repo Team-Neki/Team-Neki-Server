@@ -18,6 +18,16 @@ enum class EntityType {
     REGION,
     STATION,
     BRANCH,
+    ;
+
+    companion object {
+        fun of(target: SearchTarget?): EntityType = when (target) {
+            is SearchTarget.Region -> REGION
+            is SearchTarget.Station -> STATION
+            is SearchTarget.Brand -> BRAND
+            is SearchTarget.Booth, null -> BRANCH
+        }
+    }
 }
 
 /**
@@ -34,10 +44,5 @@ data class DictionaryEntry(val name: String, val target: SearchTarget)
 data class ResolvedEntity(val keyword: String, val start: Int, val end: Int, val target: SearchTarget? = null) {
 
     val type: EntityType
-        get() = when (target) {
-            is SearchTarget.Region -> EntityType.REGION
-            is SearchTarget.Station -> EntityType.STATION
-            is SearchTarget.Brand -> EntityType.BRAND
-            is SearchTarget.Booth, null -> EntityType.BRANCH
-        }
+        get() = EntityType.of(target)
 }
