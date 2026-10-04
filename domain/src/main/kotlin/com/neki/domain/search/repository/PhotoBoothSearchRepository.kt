@@ -27,8 +27,11 @@ interface PhotoBoothSearchRepository {
     /** _read 와 _write 의 이름을 연결 테이블까지 맞바꾼다. 호출자의 트랜잭션 안에서 돌고, 락을 짧게만 기다린다 */
     fun swap()
 
-    /** 검색 API 가 읽는(_read) 색인 행 중 지역·역(area)에 딸린 것. brandIds 가 null 이거나 비어 있으면 모든 브랜드 */
-    fun findByArea(area: SearchTarget.Area, brandIds: List<Long>?): List<PhotoBoothSearch>
+    /** 검색 API 가 읽는(_read) 색인 행 중 범위(지역·역·지점)에 딸린 것. brandIds 가 null 이거나 비어 있으면 모든 브랜드 */
+    fun findByScope(scope: SearchTarget.Scope, brandIds: List<Long>?): List<PhotoBoothSearch>
+
+    /** 검색 API 가 읽는(_read) 색인 행 중 `브랜드명 지점명` 이 boothName 인 것. 부스 자동완성 keyword 를 지점으로 되돌린다 */
+    fun findByBoothName(boothName: String): List<PhotoBoothSearch>
 
     /** 검색 API 가 읽는(_read) 색인에 있는 브랜드 id -> 이름. NER 사전의 브랜드 원천 */
     fun findIndexedBrandNames(): Map<Long, String>

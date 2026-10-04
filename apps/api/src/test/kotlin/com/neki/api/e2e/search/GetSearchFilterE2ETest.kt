@@ -117,6 +117,24 @@ class GetSearchFilterE2ETest : SearchE2ETestBase() {
         }
 
         @Test
+        @DisplayName("부스 keyword - 그 지점의 브랜드 하나를 1개로 세고, 다른 브랜드 필터면 빈 배열이다")
+        fun givenBoothKeyword_whenGetFilter_thenCountsThatBoothOnly() {
+            val lifeFourCutOnly = SearchRequest.FilterGroup(
+                brandFilter = SearchRequest.FilterGroup.BrandFilter(
+                    brands = listOf(SearchRequest.FilterGroup.BrandFilter.Brand(brandId = booths.lifeFourCut.id!!)),
+                ),
+            )
+
+            post("포토이즘 강남역점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.brandFilter.code", contains("PHOTOISM"))
+                .body("data.brandFilter.count", contains(1))
+            post("포토이즘 강남역점", lifeFourCutOnly)
+                .statusCode(HttpStatus.OK.value())
+                .body("data.brandFilter", empty<Any>())
+        }
+
+        @Test
         @DisplayName("같은 keyword·필터면 브랜드 개수 합계가 부스 목록 건수와 같다 (숨김·미동기화 지점은 양쪽에서 빠진다)")
         fun givenSameRequest_whenGetFilterAndPhotoBooths_thenCountsMatchList() {
             val photoismOnly = SearchRequest.FilterGroup(
@@ -130,6 +148,8 @@ class GetSearchFilterE2ETest : SearchE2ETestBase() {
                 "강남역 2호선" to SearchRequest.FilterGroup(),
                 "강남역 2호선" to photoismOnly,
                 "인생네컷 강남역" to SearchRequest.FilterGroup(),
+                "포토이즘 강남역점" to SearchRequest.FilterGroup(),
+                "포토이즘 강남역점" to photoismOnly,
             ).forEach { (keyword, filterGroup) ->
                 val counts: List<Int> = post(keyword, filterGroup)
                     .statusCode(HttpStatus.OK.value())

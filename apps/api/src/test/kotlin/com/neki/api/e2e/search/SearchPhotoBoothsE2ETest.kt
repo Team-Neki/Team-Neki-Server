@@ -193,6 +193,37 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
+        @DisplayName("부스 자동완성 keyword(브랜드명 지점명) - 그 지점 하나만 반환한다 (같은 지점명의 다른 브랜드는 빠진다)")
+        fun givenBoothKeyword_whenSearch_thenReturnsOnlyThatBooth() {
+            post("포토이즘 강남역점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.id", contains(booths.photoismGangnamStation.id!!.toInt()))
+                .body("data.items[0].branchName", equalTo("강남역점"))
+        }
+
+        @Test
+        @DisplayName("부스 keyword + 그 지점의 브랜드 필터 - 그 지점을 그대로 반환한다")
+        fun givenBoothKeywordAndSameBrandFilter_whenSearch_thenReturnsThatBooth() {
+            post(
+                "포토이즘 강남역점",
+                SearchRequest.GetPhotoBooths(brandFilter(booths.photoism.id!!, booths.lifeFourCut.id!!)),
+            )
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.id", contains(booths.photoismGangnamStation.id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("부스 keyword 인데 지도에서 숨긴 지점이거나 브랜드 필터와 겹치지 않음 - 빈 배열을 반환한다")
+        fun givenHiddenBoothOrOtherBrandFilter_whenSearchByBoothKeyword_thenReturnsEmptyList() {
+            post("포토이즘 숨김점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+            post("포토이즘 강남역점", SearchRequest.GetPhotoBooths(brandFilter(booths.lifeFourCut.id!!)))
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+        }
+
+        @Test
         @DisplayName("검색어의 브랜드와 브랜드 필터가 겹치지 않음 - 빈 배열을 반환한다")
         fun givenKeywordBrandOutsideBrandFilter_whenSearch_thenReturnsEmptyList() {
             post("강남구 포토이즘", SearchRequest.GetPhotoBooths(brandFilter(booths.lifeFourCut.id!!)))
@@ -201,9 +232,9 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
-        @DisplayName("지역·역을 찾지 못함 - 에러가 아니라 빈 배열 (없는 지역, 서울 밖 자치구, 브랜드만, 시도)")
+        @DisplayName("지역·역·지점을 찾지 못함 - 에러가 아니라 빈 배열 (없는 지역, 서울 밖 자치구, 브랜드만, 시도, 브랜드 없는 지점명)")
         fun givenKeywordWithoutArea_whenSearch_thenReturnsEmptyList() {
-            listOf("서울특별시 없는구", "부산진구 포토이즘", "포토이즘", "서울특별시").forEach { keyword ->
+            listOf("서울특별시 없는구", "부산진구 포토이즘", "포토이즘", "서울특별시", "강남역점").forEach { keyword ->
                 post(keyword)
                     .statusCode(HttpStatus.OK.value())
                     .body("resultCode", equalTo(ResultCode.SUCCESS.code))
