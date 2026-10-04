@@ -18,6 +18,7 @@ import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.SubwayStationId
 import com.neki.domain.search.service.qu.QueryUnderstandingService
+import com.neki.domain.search.service.qu.SearchNormalizer
 import org.junit.jupiter.api.AfterEach
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
@@ -93,7 +94,8 @@ abstract class SearchE2ETestBase : E2ETestBase() {
         brandRepository.save(Brand(name = name, code = code, platform = platform))
 
     /**
-     * 색인 잡이 만든 것과 같은 검색 색인 행(_read). 역은 거리와 무관하게 주어진 역에 연결한다
+     * 색인 잡이 만든 것과 같은 검색 색인 행(_read). branchName 은 브랜드명 접두를 뗀 값을 준다.
+     * 정규화 컬럼은 색인 잡과 같은 규칙(SearchNormalizer)으로 채운다. 역은 거리와 무관하게 주어진 역에 연결한다
      */
     protected fun createIndexedBooth(
         brand: Brand,
@@ -103,6 +105,7 @@ abstract class SearchE2ETestBase : E2ETestBase() {
         latitude: Double,
         regionIds: List<String>,
         stations: List<SubwayStation> = emptyList(),
+        address: String = "서울 강남구 $branchName",
     ): PhotoBoothSearch = photoBoothSearchRepository.save(
         PhotoBoothSearch(
             platform = brand.platform!!,
@@ -111,11 +114,11 @@ abstract class SearchE2ETestBase : E2ETestBase() {
             brandName = brand.name,
             brandCode = brand.code,
             branchName = branchName,
-            address = "서울 강남구 $branchName",
+            address = address,
             location = point(longitude, latitude),
-            normalizedBrandName = brand.name,
-            normalizedBranchName = branchName,
-            searchText = brand.name + branchName,
+            normalizedBrandName = SearchNormalizer.normalize(brand.name),
+            normalizedBranchName = SearchNormalizer.normalize(branchName),
+            searchText = SearchNormalizer.searchText(brand.name, branchName, address),
             regionIds = regionIds.toTypedArray(),
             siteKey = ":$longitude,$latitude",
             sourceDt = LocalDate.of(2026, 9, 29),

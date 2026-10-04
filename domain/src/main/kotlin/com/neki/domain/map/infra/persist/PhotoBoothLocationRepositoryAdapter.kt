@@ -1,6 +1,5 @@
 package com.neki.domain.map.infra.persist
 
-import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.domain.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
 import com.neki.domain.map.models.PhotoBoothLocation
@@ -38,11 +37,6 @@ class PhotoBoothLocationRepositoryAdapter(
         coordinates: List<Coordinate>,
         brandIds: List<Long>?,
     ): List<PhotoBoothLocationView> = queryRepository.findByPolygon(coordinates, brandIds)
-
-    override fun findByKeyword(query: MapQuery.SearchPhotoBooths): List<PhotoBoothLocationView> =
-        queryRepository.findByKeyword(query)
-
-    override fun countByKeyword(query: MapQuery.SearchPhotoBooths): Long = queryRepository.countByKeyword(query)
 
     override fun listPointLocations(
         coordinate: Coordinate,

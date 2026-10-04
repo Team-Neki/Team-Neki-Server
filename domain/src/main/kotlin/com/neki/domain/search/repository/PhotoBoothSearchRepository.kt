@@ -1,10 +1,12 @@
 package com.neki.domain.search.repository
 
+import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.models.PhotoBoothEnriched
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.PhotoBoothSearchWrite
 import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.models.UserLocation
 
 /**
  * fileName       : PhotoBoothSearchRepository
@@ -32,6 +34,19 @@ interface PhotoBoothSearchRepository {
 
     /** 검색 API 가 읽는(_read) 색인 행 중 `브랜드명 지점명` 이 boothName 인 것. 부스 자동완성 keyword 를 지점으로 되돌린다 */
     fun findByBoothName(boothName: String): List<PhotoBoothSearch>
+
+    /**
+     * 검색 API 가 읽는(_read) 색인 행 중 검색어 전체가 이름 앞부분이거나 낱말(terms)마다 브랜드명·지점명·주소 중 하나에 들어 있는 것.
+     * 부스 자동완성 한 페이지(limit 은 pagination.limit). 이름 앞부분 일치가 먼저 온다
+     */
+    fun findByKeyword(
+        keyword: String,
+        terms: List<List<String>>,
+        userLocation: UserLocation?,
+        pagination: Pagination,
+    ): List<PhotoBoothSearch>
+
+    fun countByKeyword(keyword: String, terms: List<List<String>>): Long
 
     /** 검색 API 가 읽는(_read) 색인 행 전체. NER 사전의 지점 원천 */
     fun findAllCurrent(): List<PhotoBoothSearch>

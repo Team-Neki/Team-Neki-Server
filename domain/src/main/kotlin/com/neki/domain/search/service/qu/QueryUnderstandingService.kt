@@ -48,6 +48,19 @@ class QueryUnderstandingService(
         )
     }
 
+    /**
+     * 자동완성 검색어에 적힌 브랜드. `강남 포토이즘`, `포토이즘 강남점` -> 포토이즘. 자동완성이 내려주는 filterGroup 의 브랜드 필터로 쓴다.
+     * 브랜드 항목만 담은 사전으로 찾으므로 지점·지역 항목에 가려지지 않고, 브랜드 이름 전체를 적어야 한다 (`포토이` 는 브랜드가 아니다).
+     * 검색어에 나온 순서다.
+     */
+    fun recognizeBrandIds(keyword: String): List<Long> =
+        understand(keyword, entityDictionaryCache.get().brandsOnly).targets
+            .filterIsInstance<SearchTarget.Brand>()
+            .map { it.brandId }
+
+    /** 사전에 올라간 브랜드 이름. 요청마다 DB 를 조회하지 않고 메모리의 사전에서 꺼낸다 */
+    fun brandNames(): List<String> = entityDictionaryCache.get().brandNames
+
     private fun findCompletions(collapsed: String): List<SearchTarget> = listOfNotNull(
         legalDongRepository.findByFullName(collapsed)?.let { SearchTarget.Region(code = it.code) },
         SubwayStation.parseKeyword(collapsed)?.let { subwayStationRepository.findById(it) }?.let {

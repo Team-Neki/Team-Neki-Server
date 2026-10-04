@@ -26,12 +26,6 @@ object MapResult {
 
     data class GetFavoriteMap(val locations: List<PhotoBoothLocationView>)
 
-    data class SearchPhotoBooths(
-        val locations: List<PhotoBoothLocationView>,
-        val hasNext: Boolean,
-        val totalCount: Long,
-    )
-
     data class GetSourceLocations(val locations: List<SourceLocation>) {
         /** 원천 키로 찾은 지점 id 와 사용자 즐겨찾기 여부 */
         data class SourceLocation(val locationId: Long, val source: PhotoBoothSource, val favorite: Boolean)

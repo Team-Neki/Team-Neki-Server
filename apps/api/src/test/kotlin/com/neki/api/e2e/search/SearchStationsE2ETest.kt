@@ -1,7 +1,9 @@
 package com.neki.api.e2e.search
 
 import com.neki.core.code.ResultCode
+import com.neki.domain.map.models.Brand
 import io.restassured.RestAssured
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
@@ -29,6 +31,8 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
 
     private lateinit var accessToken: String
 
+    private lateinit var photoGray: Brand
+
     @BeforeEach
     fun setUp() {
         RestAssured.port = port
@@ -37,7 +41,7 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         val (_, token) = createTestUserAndToken()
         accessToken = token
 
-        createBrand("포토그레이", "PHOTOGRAY")
+        photoGray = createBrand("포토그레이", "PHOTOGRAY", "PHOTOGRAY")
 
         // tb_subway_station 의 실제 행. 같은 역이 노선마다 따로 있다.
         createSubwayStation("강남", "신분당선", 127.0278, 37.4966)
@@ -47,6 +51,10 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         createSubwayStation("강남대", "에버라인", 127.1339, 37.2702)
         createSubwayStation("역삼", "2호선", 127.0364, 37.5006)
         createSubwayStation("북구청 (대구iM뱅크파크)", "대구 도시철도 3호선", 128.5829, 35.8853)
+
+        // 검색어의 브랜드 낱말 빼기와 filterGroup 은 검색 색인에 있는 브랜드(NER 사전)를 본다
+        createIndexedBooth(photoGray, "g1", "강남점", 127.0277, 37.4980, emptyList())
+        queryUnderstandingService.reloadDictionary()
     }
 
     private fun get(vararg params: Pair<String, Any>) = RestAssured.given()
@@ -112,6 +120,34 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.totalCount", equalTo(1))
                 .body("data.items[0].keyword", equalTo("강남역 2호선"))
+        }
+
+        @Test
+        @DisplayName("검색어에 브랜드가 없으면 기본 filterGroup 을 내려준다")
+        fun givenKeywordWithoutBrand_whenSearch_thenReturnsDefaultFilterGroup() {
+            get("keyword" to "강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+                .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+        }
+
+        @Test
+        @DisplayName("검색어에 브랜드가 있으면 역 검색에서 뺀 그 브랜드를 건 filterGroup 을 내려준다")
+        fun givenKeywordWithBrand_whenSearch_thenReturnsBrandFilterGroup() {
+            listOf("강남 포토그레이", "포토그레이 강남역 2호선").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("data.filterGroup.brandFilter.brands.brandId", contains(photoGray.id!!.toInt()))
+                    .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+            }
+        }
+
+        @Test
+        @DisplayName("브랜드 이름 일부만 적으면 브랜드로 보지 않는다")
+        fun givenBrandPrefix_whenSearch_thenReturnsDefaultFilterGroup() {
+            get("keyword" to "강남 포토그")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
         }
 
         @Test
