@@ -29,10 +29,22 @@ object MediaConverter {
                 )
             },
         )
+
+        fun toGenerateQrDumpUploadTicketCommand(ownerId: Long): MediaCommand.GenerateQrDumpUploadTicket =
+            MediaCommand.GenerateQrDumpUploadTicket(ownerId = ownerId)
     }
 
     @Component
     class ResponseConverter {
+        fun toQrDumpUploadTicketResponse(
+            result: MediaResult.GenerateQrDumpUploadTicket,
+        ): MediaResponse.QrDumpUploadTicket = MediaResponse.QrDumpUploadTicket(
+            method = result.method,
+            expiresIn = result.expiresAt,
+            uploadTicket = result.uploadUrl,
+            contentType = result.contentType,
+        )
+
         fun toUploadTicketResponse(result: MediaResult.GenerateUploadTicket): MediaResponse.UploadTicket =
             MediaResponse.UploadTicket(
                 method = result.method,
