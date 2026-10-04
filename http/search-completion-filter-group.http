@@ -39,17 +39,18 @@ Authorization: Bearer {{accessToken}}
     var brands = data.filterGroup.brandFilter.brands;
     client.assert(brands.length === 1 && String(brands[0].brandId) === client.global.get("photoismId"),
       "brands " + JSON.stringify(brands));
-    client.global.set("stationKeywordParam", encodeURIComponent(data.items[0].keyword));
+    client.global.set("stationKeyword", data.items[0].keyword);
     client.global.set("stationFilterGroup", JSON.stringify(data.filterGroup));
   });
 %}
 
 ### [FG-3] FG-2 의 첫 역과 filterGroup 을 그대로 부스 목록에 : 포토이즘만
-POST {{host}}/api/search/photo-booths?keyword={{stationKeywordParam}}
+POST {{host}}/api/search/photo-booths
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
+  "keyword": "{{stationKeyword}}",
   "filterGroup": {{stationFilterGroup}}
 }
 
@@ -74,18 +75,19 @@ Authorization: Bearer {{accessToken}}
     var brands = data.filterGroup.brandFilter.brands;
     client.assert(brands.length === 1 && String(brands[0].brandId) === client.global.get("photoismId"),
       "brands " + JSON.stringify(brands));
-    client.global.set("boothKeywordParam", encodeURIComponent(data.items[0].keyword));
+    client.global.set("boothKeyword", data.items[0].keyword);
     client.global.set("boothFilterGroup", JSON.stringify(data.filterGroup));
     client.log("FG-4 totalCount=" + data.totalCount + " first=" + data.items[0].keyword);
   });
 %}
 
 ### [FG-5] FG-4 의 첫 부스와 filterGroup 을 그대로 부스 목록에 : 그 지점 (지도에서 숨긴 지점이면 빈 목록)
-POST {{host}}/api/search/photo-booths?keyword={{boothKeywordParam}}
+POST {{host}}/api/search/photo-booths
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
+  "keyword": "{{boothKeyword}}",
   "filterGroup": {{boothFilterGroup}}
 }
 

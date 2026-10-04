@@ -13,7 +13,6 @@ import com.neki.api.search.application.dto.SearchResult
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.search.dto.SearchQuery
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
@@ -190,7 +189,7 @@ class SearchController(
             지역·지하철역·부스 자동완성에서 고른 keyword 에 딸린 부스 목록을 조회합니다. 지도에 한 번에 그리는 목록이라 페이징이 없습니다.
             반경을 입력받지 않습니다. 어느 역에 어느 부스가 딸리는지는 색인 시점에 1km 로 미리 계산해 둔 값입니다.
 
-            * keyword 는 자동완성 응답의 keyword(`서울특별시 강남구`, `강남역 2호선`, `포토이즘 강남1호점`)를 그대로 보내거나,
+            * body 의 keyword 는 자동완성 응답의 keyword(`서울특별시 강남구`, `강남역 2호선`, `포토이즘 강남1호점`)를 그대로 보내거나,
               서울 자치구·지하철역과 브랜드를 섞은 검색어(`강남구 포토이즘`, `포토이즘 강남역`, `마포구`)를 보냅니다. 단어 순서는 무관합니다
             * 역만 적으면(`강남역`) 그 역의 모든 노선, 검색어에 브랜드가 있으면 그 브랜드만입니다
             * 부스 keyword(`브랜드명 지점명`)면 그 지점 하나입니다. 브랜드 필터와 겹치지 않거나 지도에서 숨긴 지점이면 빈 배열
@@ -206,13 +205,9 @@ class SearchController(
     @PostMapping("/photo-booths")
     fun searchPhotoBooths(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Parameter(description = "자동완성 keyword(지역·역·부스) 또는 자치구·역 + 브랜드 검색어", example = "서울특별시 강남구")
-        @RequestParam
-        @NotBlank(message = "keyword는 필수값입니다.")
-        keyword: String,
         @Valid @RequestBody request: SearchRequest.GetPhotoBooths,
     ): BaseResponse<SearchResponse.GetPhotoBooths> {
-        val query: SearchQuery.GetPhotoBooths = requestConverter.toGetPhotoBoothsQuery(userId, keyword, request)
+        val query: SearchQuery.GetPhotoBooths = requestConverter.toGetPhotoBoothsQuery(userId, request)
 
         val result: SearchResult.GetPhotoBooths = searchPhotoBoothsUseCase.execute(query)
 
@@ -237,13 +232,9 @@ class SearchController(
     @PostMapping("/filter")
     fun searchFilter(
         @AuthenticationPrincipal(expression = "id") userId: Long,
-        @Parameter(description = "자동완성 keyword(지역·역·부스) 또는 자치구·역 + 브랜드 검색어", example = "강남역 2호선")
-        @RequestParam
-        @NotBlank(message = "keyword는 필수값입니다.")
-        keyword: String,
         @Valid @RequestBody request: SearchRequest.GetFilter,
     ): BaseResponse<SearchResponse.GetFilter> {
-        val query: SearchQuery.GetFilter = requestConverter.toGetFilterQuery(userId, keyword, request)
+        val query: SearchQuery.GetFilter = requestConverter.toGetFilterQuery(userId, request)
 
         val result: SearchResult.GetFilter = getSearchFilterUseCase.execute(query)
 

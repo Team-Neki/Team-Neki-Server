@@ -48,23 +48,20 @@ object SearchConverter {
             userLocation = toUserLocation(latitude, longitude),
         )
 
-        fun toGetPhotoBoothsQuery(
-            userId: Long,
-            keyword: String,
-            request: SearchRequest.GetPhotoBooths,
-        ): SearchQuery.GetPhotoBooths = SearchQuery.GetPhotoBooths(
-            userId = userId,
-            keyword = keyword,
-            brandIds = toBrandIds(request.filterGroup),
-            userLocation = request.userLocation?.let {
-                UserLocation(latitude = it.latitude!!, longitude = it.longitude!!)
-            },
-        )
+        fun toGetPhotoBoothsQuery(userId: Long, request: SearchRequest.GetPhotoBooths): SearchQuery.GetPhotoBooths =
+            SearchQuery.GetPhotoBooths(
+                userId = userId,
+                keyword = request.keyword!!,
+                brandIds = toBrandIds(request.filterGroup),
+                userLocation = request.userLocation?.let {
+                    UserLocation(latitude = it.latitude!!, longitude = it.longitude!!)
+                },
+            )
 
-        fun toGetFilterQuery(userId: Long, keyword: String, request: SearchRequest.GetFilter): SearchQuery.GetFilter =
+        fun toGetFilterQuery(userId: Long, request: SearchRequest.GetFilter): SearchQuery.GetFilter =
             SearchQuery.GetFilter(
                 userId = userId,
-                keyword = keyword,
+                keyword = request.keyword!!,
                 brandIds = toBrandIds(request.filterGroup),
             )
 
