@@ -20,7 +20,7 @@ import com.neki.domain.search.models.qu.ResolvedEntity
 internal object Ner {
 
     /**
-     * 서로 다른 범위는 겹치지 않고 앞선 범위부터 나온다. 한 범위에 대상이 여럿이면(e.g. 강남역의 노선들) 모두 남긴다.
+     * 서로 다른 범위는 겹치지 않고 앞선 범위부터 나온다. 한 범위에 대상이 여럿이면(e.g. 브랜드명·지점명이 같은 두 지점) 모두 남긴다.
      * 같은 입력과 같은 사전에는 항상 같은 결과.
      */
     fun recognize(keyword: String, dictionary: EntityDictionary): List<ResolvedEntity> =
