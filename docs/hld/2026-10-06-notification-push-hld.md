@@ -263,7 +263,8 @@ flowchart LR
 | `holidayExploreJob` 이 발송일 아님 | Reader 가 빈 페이지 | 0건, COMPLETED |
 | `businessDate` 누락·형식 오류 | Reader 빈 생성 실패 -> 잡 FAILED | Prefect 실패 알림 |
 | 대상이 많아 flow 타임아웃 | Job `activeDeadlineSeconds` 로 파드 종료, flow 실패 | 보낸 만큼 적재됨. 재실행하면 이어서 보냄 |
-| Notification 앱과 같은 날 함께 돎 (전환 중) | 늦게 돈 쪽이 `ALREADY_SENT` | 같은 분에 겹치면 최대 1건 중복 가능 |
+| Notification 앱이 먼저 끝난 뒤 돎 (전환 중) | 늦게 돈 쪽이 `ALREADY_SENT` | 0건 발송 |
+| Notification 앱과 동시에 돎 (전환 중) | 판정(`exists`)과 적재 사이에 FCM 호출이 있어, 양쪽이 적재 전에 같은 키를 조회하면 둘 다 보낸다. unique 는 적재 시점에만 막는다 | 겹친 구간의 유저마다 중복 발송 가능. 전환 중 동시 실행 금지 (11절) |
 
 failure isolation 단위는 발송 1건입니다. 어디서 실패해도 이미 커밋된 발송은 유지되고, 재실행은 남은 유저만 보냅니다.
 
@@ -302,7 +303,7 @@ failure isolation 단위는 발송 1건입니다. 어디서 실패해도 이미 
 | 9 | Notification | 저장소 README 에 이관 안내 추가 후 아카이브 | GitHub archived |
 | 10 | Server (후속) | `tb_notification_log` rename + `flyway_schema_history_notification` DROP 마이그레이션 | 별도 티켓 |
 
-5단계는 전환 당일 cron 시각보다 앞서 하고, 그날의 cron 발송은 7단계까지 끝낸 뒤 8단계로 켭니다. 1단계와 7단계 사이에 Notification 앱은 계속 돌며, 같은 테이블을 보므로 5단계 수동 실행과 겹쳐도 `ALREADY_SENT` 로 걸러집니다. 4단계 전에 10절 첫 미결(Prefect 환경)이 prod 로 확인되어야 합니다.
+1단계와 7단계 사이에 Notification 앱은 계속 돕니다. 같은 테이블을 보므로 먼저 끝난 쪽의 적재는 늦게 도는 쪽이 `ALREADY_SENT` 로 거르지만, 동시에 돌면 7절 표대로 유저마다 중복 발송될 수 있습니다. 그래서 5단계 수동 실행은 Notification 앱의 같은 잡 cron 시각(weekend-explore 는 금·토·일 18:00 KST)과 겹치지 않게 하고, 실행 직전에 `kubectl -n prod logs deploy/neki-notification --since=30m` 으로 진행 중인 발송이 없는 것을 확인합니다. 그날의 새 cron 발송은 7단계(Notification 파드 삭제)까지 끝낸 뒤 8단계로 켭니다. 4단계 전에 10절 첫 미결(Prefect 환경)이 prod 로 확인되어야 합니다.
 
 ## Appendix A. Source of Truth
 
