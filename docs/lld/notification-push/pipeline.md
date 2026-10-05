@@ -91,7 +91,7 @@ when (NotificationProcessor.decide(target, type, alreadySent, businessDate)) {
 | `title` | VARCHAR(255) | `title` |
 | `body` | VARCHAR(500) | `body` |
 | `business_date` | DATE | `LocalDate` |
-| `fcm_result` | VARCHAR(16) | `@Enumerated(STRING) FcmResult` |
+| `fcm_result` | VARCHAR(16) | `@Enumerated(STRING) FcmSendStatus` |
 | `sent_at` | TIMESTAMP(6) WITH TIME ZONE | `Instant` (적재 시점) |
 
 `created_at`/`updated_at` 이 없어 `BaseTimeEntity` 를 상속하지 않습니다. 생성은 `NotificationLog.of(target, type, message, businessDate, fcmResult)` 하나입니다.

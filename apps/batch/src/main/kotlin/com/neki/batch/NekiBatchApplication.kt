@@ -19,20 +19,26 @@ import kotlin.system.exitProcess
 // Prefect flow 가 k8s Job 으로 이 이미지를 띄우고 종료 코드로 성공/실패를 판단한다.
 //
 //   java -jar neki-batch.jar --spring.batch.job.name=searchIndexJob businessDate=2026-09-25
+//   java -jar neki-batch.jar --spring.batch.job.name=weekendExploreJob businessDate=2026-10-06
 //
 // 스캔 범위는 필요한 것만으로 좁힌다. com.neki 전체를 스캔하면 :domain 의 user/infra/security 가
-// apps/api 에만 있는 CorsConfigurationSource 를 요구하고, modules 의 aws/redis/firebase 연결 설정이
+// apps/api 에만 있는 CorsConfigurationSource 를 요구하고, modules 의 aws/redis 연결 설정이
 // 각자의 yaml 과 외부 시스템을 요구해 기동이 깨진다.
 // searchIndexJob 이 쓰는 search 도메인과 map 의 persist 어댑터(BrandRepository)만 더 스캔한다.
 // map 의 kakao/infra 는 외부 API 설정을 요구하므로 일부러 넣지 않는다.
+// 알림 발송 잡은 notification 도메인 전부(모델, 포트, FCM 어댑터), photo 의 persist 어댑터(업로드 집계),
+// firebase 연결 설정(FirebaseMessaging 빈. 키 파일이 있을 때만 뜬다)을 더 스캔한다.
 @SpringBootApplication(
     scanBasePackages = [
         "com.neki.batch",
         "com.neki.core",
         "com.neki.config.postgres",
         "com.neki.config.jasypt",
+        "com.neki.config.firebase",
         "com.neki.domain.search",
         "com.neki.domain.map.infra.persist",
+        "com.neki.domain.notification",
+        "com.neki.domain.photo.infra.persist",
     ],
     exclude = [
         // :domain 의 spring-security 가 runtime classpath 에 전이로 올라온다. 쓰지 않으므로 기본 사용자 생성을 막는다

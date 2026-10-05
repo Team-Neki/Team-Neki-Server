@@ -17,3 +17,7 @@ spring:
     jdbc:
       # Flyway 비활성이므로 메타 테이블은 Spring Batch 의 H2 스크립트로 만든다
       initialize-schema: always
+
+neki:
+  batch:
+    holiday-csv: holidays-test.csv

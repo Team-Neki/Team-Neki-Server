@@ -187,7 +187,7 @@ flowchart LR
 ### DEC-4. FCM 어댑터 재사용, 미설정은 잡 실패
 
 - Context : 이 저장소에 `PushNotificationSender` 포트와 `FcmPushNotificationAdapter`, `modules/firebase` 가 있다
-- Decision : Writer 가 `PushNotificationSender.send` 를 부른다. `PUSH_SEND_FAILED` 는 `FcmResult.FAILED` 로 적재하고 계속, `PUSH_NOT_CONFIGURED` 는 예외를 그대로 올려 잡을 FAILED 로 끝낸다. `FcmResult.SKIPPED` 는 새로 생기지 않는다 (enum 은 기존 데이터 때문에 유지)
+- Decision : Writer 가 `PushNotificationSender.send` 를 부른다. `PUSH_SEND_FAILED` 는 `FcmSendStatus.FAILED` 로 적재하고 계속, `PUSH_NOT_CONFIGURED` 는 예외를 그대로 올려 잡을 FAILED 로 끝낸다. `FcmSendStatus.SKIPPED` 는 새로 생기지 않는다 (enum 은 기존 데이터 때문에 유지)
 - Alternatives : Notification 의 `FcmPushSender`/`LoggingPushSender` 이식 (미설정이면 전 건 SKIPPED 로 COMPLETED)
 - Why : one-shot 에서 "전 건 SKIPPED 인데 COMPLETED" 는 알림 없이 지나가는 가장 위험한 조용한 실패다. 어댑터 두 벌을 유지할 이유도 없다
 - Trade-off : 페이로드가 api 발송과 같아진다. Notification 은 `notification{title, body}` 만 보냈고 기존 어댑터는 `data{title, body}` + Android/APNs 설정 + `analytics_label=server_push` 를 보낸다. 앱에서 표시·탭 동작이 같은지 확인이 필요하다 (오라클 manual)

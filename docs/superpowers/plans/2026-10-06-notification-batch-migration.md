@@ -35,7 +35,7 @@ Prefect deployment 3개 (cron)  -> k8s Job (neki-batch) --spring.batch.job.name=
 
 | 저장소 | 파일 | 책임 |
 |---|---|---|
-| Server | `domain/.../notification/models/{NotificationType,MessageTone,MessageVariable,RenderedMessage,SendTarget,SendDecision,FcmResult}.kt` | 순수 모델 (Notification 에서 이식) |
+| Server | `domain/.../notification/models/{NotificationType,MessageTone,MessageVariable,RenderedMessage,SendTarget,SendDecision,FcmSendStatus}.kt` | 순수 모델 (Notification 에서 이식) |
 | Server | `domain/.../notification/{MessageRenderer,ToneAssignmentPolicy,NotificationProcessor}.kt` | 순수 규칙 (이식) |
 | Server | `domain/.../notification/models/NotificationLog.kt`, `repository/NotificationLogRepository.kt`, `infra/persist/NotificationLogRepositoryAdapter.kt`, `infra/persist/jpa/JpaNotificationLogRepository.kt` | 발송 이력 |
 | Server | `domain/.../notification/repository/NotificationRepository.kt` (+adapter, jpa) | 동의자 페이지 |
@@ -81,7 +81,7 @@ Server(1~8), Workflow(9~10), GitOps(11)는 서로 파일이 겹치지 않아 병
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/models/RenderedMessage.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/models/SendTarget.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/models/SendDecision.kt`
-- Create: `domain/src/main/kotlin/com/neki/domain/notification/models/FcmResult.kt`
+- Create: `domain/src/main/kotlin/com/neki/domain/notification/models/FcmSendStatus.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/MessageRenderer.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/ToneAssignmentPolicy.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/NotificationProcessor.kt`
@@ -149,7 +149,7 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-/** 문구는 docs/lld/notification-push/*.md 의 표와 글자 그대로 같아야 한다 (공백, 느낌표 포함) */
+/** 문구는 docs/lld/notification-push/ 의 잡별 문서 표와 글자 그대로 같아야 한다 (공백, 느낌표 포함). 주석 안에 슬래시-별표가 오면 Kotlin 이 중첩 주석으로 읽으니 와일드카드를 쓰지 않는다 */
 class MessageRendererTest {
 
     private fun render(type: NotificationType, tone: MessageTone, variables: Map<MessageVariable, String?> = emptyMap()): RenderedMessage =
@@ -504,16 +504,16 @@ enum class SkipReason {
 ```
 
 ```kotlin
-// domain/src/main/kotlin/com/neki/domain/notification/models/FcmResult.kt
+// domain/src/main/kotlin/com/neki/domain/notification/models/FcmSendStatus.kt
 package com.neki.domain.notification.models
 
 /**
- * fileName       : FcmResult
+ * fileName       : FcmSendStatus
  * author         : koo
  * date           : 2026. 10. 6.
  * description    : notification_log.fcm_result. SKIPPED 는 Notification 앱이 남긴 기존 행을 위해 남겨 두며 새로 쓰지 않는다
  */
-enum class FcmResult {
+enum class FcmSendStatus {
     SUCCESS,
     FAILED,
     SKIPPED,
@@ -801,7 +801,7 @@ class NotificationLog(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "fcm_result", nullable = false, length = 16)
-    val fcmResult: FcmResult,
+    val fcmResult: FcmSendStatus,
 
     @Column(name = "sent_at", nullable = false)
     val sentAt: Instant,
@@ -812,7 +812,7 @@ class NotificationLog(
             type: NotificationType,
             message: RenderedMessage,
             businessDate: LocalDate,
-            fcmResult: FcmResult,
+            fcmResult: FcmSendStatus,
         ): NotificationLog = NotificationLog(
             userId = target.userId,
             notificationType = type,
@@ -1512,7 +1512,7 @@ import com.neki.core.code.ResultCode
 import com.neki.core.exception.BusinessException
 import com.neki.domain.notification.dto.NotificationCommand
 import com.neki.domain.notification.external.PushNotificationSender
-import com.neki.domain.notification.models.FcmResult
+import com.neki.domain.notification.models.FcmSendStatus
 import com.neki.domain.notification.models.NotificationLog
 import com.neki.domain.notification.repository.NotificationLogRepository
 import com.neki.domain.notification.service.NotificationService
@@ -1545,19 +1545,19 @@ class NotificationItemWriter(
 
     // ponytail: 건별 동기 발송. 대상이 만 단위로 늘어 flow 타임아웃에 걸리면 FirebaseMessaging.sendEach 로 묶는다
     private fun dispatch(prepared: PreparedNotification) {
-        val result: FcmResult = try {
+        val result: FcmSendStatus = try {
             pushNotificationSender.send(prepared.target.fcmToken, prepared.message.title, prepared.message.body, null)
-            FcmResult.SUCCESS
+            FcmSendStatus.SUCCESS
         } catch (e: BusinessException) {
             if (e.resultCode != ResultCode.PUSH_SEND_FAILED) throw e
             log.warn("FCM 발송 실패 userId={} type={}", prepared.target.userId, prepared.type)
-            FcmResult.FAILED
+            FcmSendStatus.FAILED
         }
 
         notificationLogRepository.save(
             NotificationLog.of(prepared.target, prepared.type, prepared.message, prepared.businessDate, result),
         )
-        if (result == FcmResult.SUCCESS) {
+        if (result == FcmSendStatus.SUCCESS) {
             notificationService.recordSentPush(
                 NotificationCommand.SendPush(
                     userId = prepared.target.userId,
@@ -1606,7 +1606,7 @@ import com.neki.domain.notification.external.PushNotificationSender
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationHistRepository
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationLogRepository
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationRepository
-import com.neki.domain.notification.models.FcmResult
+import com.neki.domain.notification.models.FcmSendStatus
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.models.NotificationLog
 import com.neki.domain.notification.models.NotificationType
@@ -1700,7 +1700,7 @@ class NotificationPushJobsTest {
         launch(weekendExploreJob).status shouldBe BatchStatus.COMPLETED
 
         logUserIds(NotificationType.WEEKEND_EXPLORE) shouldContainExactly listOf(1L, 3L, 4L, 5L)
-        logRepository.findAll().map { it.fcmResult }.toSet() shouldBe setOf(FcmResult.SUCCESS)
+        logRepository.findAll().map { it.fcmResult }.toSet() shouldBe setOf(FcmSendStatus.SUCCESS)
         pushSender.sent shouldContainExactly listOf("tok-1", "tok-3", "tok-4", "tok-5")
         histUserIds("WEEKEND_EXPLORE") shouldContainExactly listOf(1L, 3L, 4L, 5L)
     }
@@ -1789,7 +1789,7 @@ class NotificationPushJobsTest {
 
         launch(weekendExploreJob).status shouldBe BatchStatus.COMPLETED
 
-        logRepository.findAll().single { it.userId == 3L }.fcmResult shouldBe FcmResult.FAILED
+        logRepository.findAll().single { it.userId == 3L }.fcmResult shouldBe FcmSendStatus.FAILED
         pushSender.sent shouldContainExactly listOf("tok-1", "tok-4", "tok-5")
         histUserIds("WEEKEND_EXPLORE") shouldContainExactly listOf(1L, 4L, 5L)
     }

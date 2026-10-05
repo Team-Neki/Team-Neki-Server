@@ -23,7 +23,7 @@
 | O-A-3 | auto | 엔티티 컬럼명 전부 snake_case : `grep -ohE 'name = "[^"]+"' domain/src/main/kotlin/com/neki/domain/notification/models/NotificationLog.kt \| grep -c "[A-Z]"` = 0 |
 | O-A-4 | auto | 엔티티에 `unique = true` 없고 `@Table(uniqueConstraints` 로 선언 : `grep -c "unique = true" domain/src/main/kotlin/com/neki/domain/notification/models/NotificationLog.kt` = 0, `grep -c "uniqueConstraints" 같은파일` = 1 |
 | O-A-5 | auto | 포트 메서드 : `grep -c "fun findPushAgreedAfter" domain/src/main/kotlin/com/neki/domain/notification/repository/NotificationRepository.kt` = 1, `grep -cE "fun findUserIdsUploadedBetween\|fun findLastUploadedAtByUserIds" domain/src/main/kotlin/com/neki/domain/photo/repository/PhotoImageRepository.kt` = 2, `grep -cE "fun exists\|fun save" domain/src/main/kotlin/com/neki/domain/notification/repository/NotificationLogRepository.kt` = 2 |
-| O-A-6 | auto | 도메인 모델·정책 위치 : `ls domain/src/main/kotlin/com/neki/domain/notification/models/{NotificationType,MessageTone,MessageVariable,RenderedMessage,SendTarget,SendDecision,FcmResult,NotificationLog}.kt domain/src/main/kotlin/com/neki/domain/notification/{MessageRenderer,ToneAssignmentPolicy,NotificationProcessor}.kt` 종료코드 0 |
+| O-A-6 | auto | 도메인 모델·정책 위치 : `ls domain/src/main/kotlin/com/neki/domain/notification/models/{NotificationType,MessageTone,MessageVariable,RenderedMessage,SendTarget,SendDecision,FcmSendStatus,NotificationLog}.kt domain/src/main/kotlin/com/neki/domain/notification/{MessageRenderer,ToneAssignmentPolicy,NotificationProcessor}.kt` 종료코드 0 |
 | O-A-7 | auto | api 가 H2 에 `notification_log` DDL 을 만들고 기동함 : `./gradlew :apps:api:test --tests 'com.neki.api.rule.ArchitectureRulesTest' -q` 종료코드 0 |
 
 ## O-B. 도메인 순수 규칙

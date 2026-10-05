@@ -10,12 +10,21 @@ spring:
     import:
       - classpath:application-postgres.yaml
       - classpath:application-jasypt.yaml
+      # firebase.credentials-location. staging/prod 는 /etc/firebase/firebase-service-account.json
+      # (batch Job 파드가 Secret prefect-workflow 의 키를 그 경로에 마운트한다)
+      - classpath:application-firebase.yaml
   batch:
     job:
       # 기동 시 --spring.batch.job.name 으로 지정한 Job 하나를 실행하고 종료한다.
       # Job 이 둘 이상 등록되면 이름 없이는 기동하지 않는다 (Boot 가 거부).
       #   java -jar neki-batch.jar --spring.batch.job.name=searchIndexJob businessDate=2026-09-25
+      #   java -jar neki-batch.jar --spring.batch.job.name=weekendExploreJob businessDate=2026-10-06
       enabled: true
     jdbc:
       # 메타 테이블(BATCH_*)은 modules/postgres 의 Flyway V31 이 소유한다. 부팅 시 auto-DDL 금지
       initialize-schema: never
+
+neki:
+  batch:
+    # holidayExploreJob 의 공휴일 원천. 클래스패스 CSV. 갱신은 배포다
+    holiday-csv: holidays.csv
