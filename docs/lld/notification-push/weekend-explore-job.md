@@ -51,7 +51,7 @@ limit 100
 
 ## 코드
 
-- `apps/batch/.../notification/step/WeekendExploreTargetReader.kt`
+- `apps/batch/.../notification/tasklet/WeekendExploreTargetReader.kt`
 - Job 빈 `weekendExploreJob`, Step `weekendExploreStep` : `NotificationPushJobConfig`
 
 ## 수동 실행과 확인

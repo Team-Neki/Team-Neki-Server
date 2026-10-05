@@ -1,6 +1,6 @@
 # LLD : weeklyReminderJob (아카이빙 1주일 리마인드)
 
-이 문서는 `WEEKLY_REMINDER` 발송 잡의 동작을 다룹니다. 공통 파이프라인(청크, 중복 방지, 톤·폴백 규칙, 실행 계약)은 `pipeline.md` 에 있고 여기서는 이 잡만의 것을 적습니다.
+이 문서는 `WEEKLY_REMINDER` 발송 잡의 동작을 다룹니다. 공통 파이프라인(tasklet 루프, 중복 방지, 톤·폴백 규칙, 실행 계약)은 `pipeline.md` 에 있고 여기서는 이 잡만의 것을 적습니다.
 
 ## 목적
 
@@ -63,7 +63,7 @@ limit 100
 
 ## 코드
 
-- `apps/batch/.../notification/step/WeeklyReminderTargetReader.kt` (조건·변수·요일 표기)
+- `apps/batch/.../notification/tasklet/WeeklyReminderTargetReader.kt` (조건·변수·요일 표기)
 - Job 빈 `weeklyReminderJob`, Step `weeklyReminderStep` : `NotificationPushJobConfig`
 
 ## 수동 실행과 확인

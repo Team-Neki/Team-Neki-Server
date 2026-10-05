@@ -12,7 +12,7 @@
 | O-0-4 | auto | 코드 산출물에 이모지 없음 | `git diff origin/main...HEAD -- '*.kt' '*.kts' '*.sql' '*.yaml' '*.yml' '*.csv' \| grep -cP "^\+.*[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]"` = 0 |
 | O-0-5 | auto | jOOQ 가 들어오지 않음 | `grep -rn "org.jooq" --include=*.kt --include=*.kts . \| grep -v "^./docs" \| wc -l` = 0 |
 | O-0-6 | auto | 도메인 간 import 없음 (notification 이 photo 를, photo 가 notification 을 모름) | `grep -rln "com.neki.domain.photo" domain/src/main/kotlin/com/neki/domain/notification \| wc -l` = 0, `grep -rln "com.neki.domain.notification" domain/src/main/kotlin/com/neki/domain/photo \| wc -l` = 0 |
-| O-0-7 | auto | batch 에 `@Transactional` 없음 (청크 Step 이 트랜잭션을 연다) | `grep -rc "@Transactional" apps/batch/src/main \| grep -v ":0" \| wc -l` = 0 |
+| O-0-7 | auto | batch 에 `@Transactional` 없음 (TaskletStep 이 트랜잭션을 연다) | `grep -rc "@Transactional" apps/batch/src/main \| grep -v ":0" \| wc -l` = 0 |
 
 ## O-A. 스키마, 엔티티, 포트
 
@@ -41,12 +41,12 @@
 |---|---|---|
 | O-C-1 | auto | `./gradlew :apps:batch:test -q` 종료코드 0, batch 테스트 수 >= baseline + 10 |
 | O-C-2 | auto | 잡 3개와 `RunIdIncrementer` : `grep -cE "WEEKLY_REMINDER_JOB\|WEEKEND_EXPLORE_JOB\|HOLIDAY_EXPLORE_JOB" apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt` >= 3, `grep -c "RunIdIncrementer()" 같은파일` = 1 (헬퍼 한 곳) |
-| O-C-3 | auto | 청크 크기 1 : `grep -c "CHUNK_SIZE = 1" apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt` = 1 |
-| O-C-4 | auto | Reader 가 동의 필터의 단일 출처를 거침 : `grep -rc "findPushAgreedAfter(" apps/batch/src/main/kotlin/com/neki/batch/notification/step \| grep -v ":0" \| wc -l` = 3 |
-| O-C-5 | auto | 커서가 거르기 전 페이지 기준 : `grep -c "nextCursor" apps/batch/src/main/kotlin/com/neki/batch/notification/step/PagingSendTargetItemReader.kt` >= 1 |
-| O-C-6 | auto | Writer 가 미설정을 삼키지 않음 : `grep -c "PUSH_SEND_FAILED" apps/batch/src/main/kotlin/com/neki/batch/notification/step/NotificationItemWriter.kt` >= 1, `grep -c "PUSH_NOT_CONFIGURED" 같은파일` = 0 (분기 없이 전파) 또는 rethrow |
-| O-C-7 | auto | hist 는 기존 서비스 경로 : `grep -c "recordSentPush" apps/batch/src/main/kotlin/com/neki/batch/notification/step/NotificationItemWriter.kt` = 1 |
-| O-C-8 | auto | 스캔 범위와 설정 : `grep -cE '"com.neki.domain.notification"\|"com.neki.domain.photo.infra.persist"\|"com.neki.config.firebase"' apps/batch/src/main/kotlin/com/neki/batch/NekiBatchApplication.kt` = 3, `grep -c "application-firebase.yaml" apps/batch/src/main/resources/application.yaml` = 1, `grep -c 'project(":modules:firebase")' apps/batch/build.gradle.kts` = 1 |
+| O-C-3 | auto | 커밋 단위 1건 (execute 1회 = 1건) : `grep -c "RepeatStatus.CONTINUABLE" apps/batch/src/main/kotlin/com/neki/batch/notification/tasklet/PushNotificationTasklet.kt` = 1, `grep -c "incrementReadCount" 같은파일` = 1 |
+| O-C-4 | auto | Reader 가 동의 필터의 단일 출처를 거침 : `grep -rc "findPushAgreedAfter(" apps/batch/src/main/kotlin/com/neki/batch/notification/tasklet \| grep -v ":0" \| wc -l` = 3 |
+| O-C-5 | auto | 커서가 거르기 전 페이지 기준 : `grep -c "nextCursor" apps/batch/src/main/kotlin/com/neki/batch/notification/tasklet/PushNotificationTasklet.kt` >= 1 |
+| O-C-6 | auto | tasklet 이 미설정을 삼키지 않음 : `grep -c "PUSH_SEND_FAILED" apps/batch/src/main/kotlin/com/neki/batch/notification/tasklet/PushNotificationTasklet.kt` >= 1, `grep -c "PUSH_NOT_CONFIGURED" 같은파일` = 0 (분기 없이 전파) 또는 rethrow |
+| O-C-7 | auto | hist 는 기존 서비스 경로 : `grep -c "recordSentPush" apps/batch/src/main/kotlin/com/neki/batch/notification/tasklet/PushNotificationTasklet.kt` = 1 |
+| O-C-8 | auto | 스캔 범위와 설정 : `grep -cE '"com.neki.domain.notification"\|"com.neki.domain.photo.infra.persist"\|"com.neki.config.firebase"' apps/batch/src/main/kotlin/com/neki/batch/bootstrap/ComponentScanConfig.kt` = 3, `grep -c "application-firebase.yaml" apps/batch/src/main/resources/application.yaml` = 1, `grep -c 'project(":modules:firebase")' apps/batch/build.gradle.kts` = 1 |
 | O-C-9 | auto | 공휴일 CSV 번들 : `test -f domain/src/main/resources/holidays.csv` 종료코드 0, `grep -c "^2026-" domain/src/main/resources/holidays.csv` >= 10 |
 | O-C-10 | auto | 처리량 상한 표시 : `grep -rc "ponytail:" apps/batch/src/main/kotlin/com/neki/batch/notification \| grep -v ":0" \| wc -l` >= 1 |
 | O-C-11 | auto | 문서에 잡 이름 : `grep -c "weekendExploreJob" README.md .claude/CLAUDE.md` 두 파일 모두 >= 1 |

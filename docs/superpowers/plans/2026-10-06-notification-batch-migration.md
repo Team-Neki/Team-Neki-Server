@@ -8,7 +8,7 @@
 
 **Tech Stack:** Kotlin 2.0, Spring Boot 3.5.8, Spring Batch 5.2, Spring Data JPA + QueryDSL, Flyway, H2(테스트), Kotest matcher, Prefect 3.8.5 + prefect-kubernetes 0.7.12, kustomize
 
-> **실행 후 변경 (2026-10-06 리뷰 반영)** : 아래 코드 블록은 처음 구현 기준입니다. 머지 전 리뷰로 (1) `apps/batch/.../notification/{reader,step}` 을 `step/` 하나로 합치고 `KoreanWeekday` 를 `WeeklyReminderTargetReader` 의 private 함수로, (2) 공휴일을 `domain/notification` 의 `Holiday` 모델 + `HolidayRepository` 포트 + `infra/csv/CsvHolidayRepositoryAdapter` (CSV 는 `domain/src/main/resources`) 로, (3) `FcmSendStatus`·`fcmToken`·`fcmResult` 를 `PushSendStatus`·`deviceToken`·`sendStatus` 로 바꿨습니다. 현재 위치는 `docs/lld/notification-push/pipeline.md` 9절이 정본입니다.
+> **실행 후 변경 (2026-10-06 리뷰 반영)** : 아래 코드 블록은 처음 구현 기준입니다. 머지 전 리뷰로 (1) `apps/batch/.../notification/{reader,step}` 을 `step/` 하나로 합치고 `KoreanWeekday` 를 `WeeklyReminderTargetReader` 의 private 함수로, (2) 공휴일을 `domain/notification` 의 `Holiday` 모델 + `HolidayRepository` 포트 + `infra/csv/CsvHolidayRepositoryAdapter` (CSV 는 `domain/src/main/resources`) 로, (3) `FcmSendStatus`·`fcmToken`·`fcmResult` 를 `PushSendStatus`·`deviceToken`·`sendStatus` 로, (4) chunk 지향 Step(Reader·Processor·Writer, chunk=1) 을 `tasklet/PushNotificationTasklet` 하나(execute 1회 = 1건)로 접고 Step 은 `tasklet/NotificationPushStepConfig`, Job 은 `job/NotificationPushJobConfig`(Job 빈만) 로, (5) 스캔 범위를 `bootstrap/ComponentScanConfig` 로 바꿨습니다. 현재 위치는 `docs/lld/notification-push/pipeline.md` 9절이 정본입니다.
 
 ---
 

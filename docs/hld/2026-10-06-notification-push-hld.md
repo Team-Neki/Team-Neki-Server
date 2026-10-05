@@ -20,8 +20,8 @@ related:
 ## 0. Executive Summary
 
 - 해결하는 문제 : 알림 배치가 별도 저장소에 있어 도메인 모델과 리포지터리를 두 벌(JPA, jOOQ)로 유지해야 하고, 상주 스케줄러·트리거 API·자체 Flyway history 같은 운영 장치를 따로 들고 있음. Notification 저장소는 폐기 예정
-- 핵심 구조 : Prefect deployment 3개가 cron 에 맞춰 `neki-batch` 이미지를 k8s Job 으로 띄우고, 잡 3개(`weeklyReminderJob`, `weekendExploreJob`, `holidayExploreJob`)가 같은 청크 파이프라인(대상 조회 → 중복 판정·문구 렌더 → FCM 발송·이력 적재)으로 돌며 종료 코드로 결과를 알림
-- 책임 : 실행 시각·재시도·동시 실행 방지·실패 알림은 Workflow(Prefect). 대상 조회 조합과 청크·트랜잭션 경계는 `apps/batch`. 문구·톤·중복 판정 규칙과 발송 이력 엔티티는 `domain/notification`. 업로드 집계는 `domain/photo` 포트. FCM 은 기존 `FcmPushNotificationAdapter`
+- 핵심 구조 : Prefect deployment 3개가 cron 에 맞춰 `neki-batch` 이미지를 k8s Job 으로 띄우고, 잡 3개(`weeklyReminderJob`, `weekendExploreJob`, `holidayExploreJob`)가 같은 tasklet 루프(대상 조회 → 중복 판정·문구 렌더 → FCM 발송·이력 적재)으로 돌며 종료 코드로 결과를 알림
+- 책임 : 실행 시각·재시도·동시 실행 방지·실패 알림은 Workflow(Prefect). 대상 조회 조합과 커밋 단위(1건)는 `apps/batch`. 문구·톤·중복 판정 규칙과 발송 이력 엔티티는 `domain/notification`. 업로드 집계는 `domain/photo` 포트. FCM 은 기존 `FcmPushNotificationAdapter`
 - 변경하는 것 : `domain/notification`(모델·정책·`NotificationLog` 엔티티·포트), `domain/photo`(포트 메서드 2개), `apps/batch`(잡 3개), Flyway V35, Workflow flow 3개, GitOps(Secret 키, Notification Deployment 제거). 변경하지 않는 것 : 알림 API, 앱의 최근 알림 피드, 동의 모델(`tb_notification.push_agreed`), 발송 정책
 - 가장 중요한 결정 : (1) 잡은 3개로 두고 종류를 잡 이름으로 드러냄 (2) 교차 도메인 조회는 포트 2개를 batch 가 조합함 (3) FCM 어댑터를 재사용하고 미설정은 조용한 SKIPPED 가 아니라 잡 실패로 (4) `notification_log` 는 이름과 데이터를 그대로 편입
 - 미결 : Prefect 가 지금 어느 환경 DB 를 가리키는지(전환 전제), FCM 페이로드가 바뀌는 것에 대한 앱 표시 확인, `notification_log` 의 `tb_` 접두 rename 시점
@@ -89,15 +89,14 @@ flowchart LR
         D3 --> Job
     end
     subgraph Batch["Team-Neki-Server apps/batch (one-shot, neki-batch 이미지)"]
-        R["Reader : 동의자 페이지 + 업로드 집계 조합"] --> P["Processor : alreadySent -> 톤 배정 -> 문구 렌더"] --> W["Writer : FCM 발송 -> notification_log -> tb_notification_hist"]
+        R["SendTargetReader : 동의자 페이지 + 업로드 집계 조합"] --> T["PushNotificationTasklet : alreadySent -> 톤 배정 -> 문구 렌더 -> FCM 발송 -> 적재 (execute 1회 = 1건 = 1 트랜잭션)"]
     end
-    Job --> R
+    Job --> T
     N[("tb_notification")] --> R
     PI[("tb_photo_image")] --> R
-    L[("notification_log")] <--> P
-    W --> L
-    W --> H[("tb_notification_hist")]
-    W --> FCM["FCM"]
+    L[("notification_log")] <--> T
+    T --> H[("tb_notification_hist")]
+    T --> FCM["FCM"]
     H --> API["apps/api 최근 알림 피드"]
 ```
 
@@ -106,7 +105,7 @@ flowchart LR
 | 책임 | Workflow (Prefect) | apps/batch | domain/notification | domain/photo | apps/api |
 |---|---|---|---|---|---|
 | 실행 시각(cron 3개), `businessDate`, 재시도, 동시 실행 방지, 실패 알림 | O | | | | |
-| 대상 조회 조합, keyset 페이징, 청크·트랜잭션 경계 | | O | | | |
+| 대상 조회 조합, keyset 페이징, 커밋 단위 | | O | | | |
 | 문구·톤·폴백·중복 판정 규칙 | | | O | | |
 | `notification_log` 엔티티와 포트, 동의자 페이지 조회 | | | O | | |
 | 업로드 집계(soft-delete 제외) | | | | O | |
@@ -129,7 +128,7 @@ flowchart LR
 ### 3.3 Architecture Invariants
 
 - 동의 필터의 단일 출처는 `NotificationRepository.findPushAgreedAfter` 하나다. 잡별 리더는 이 페이지를 거를 뿐 동의를 다시 판정하지 않는다
-- 중복 판정은 커밋된 `notification_log` 만 본다. 청크 크기 1 이라 발송 1건 = 커밋 1건이고, 재실행 시 중복 창은 "발송 뒤 적재 전에 죽은 그 1건" 으로 한정된다
+- 중복 판정은 커밋된 `notification_log` 만 본다. execute() 1회 = 발송 1건 = 커밋 1건이고, 재실행 시 중복 창은 "발송 뒤 적재 전에 죽은 그 1건" 으로 한정된다
 - 잡은 멱등하다. 같은 `businessDate` 로 다시 돌리면 이미 적재된 유저는 `ALREADY_SENT` 로 걸러져 발송이 0건이다
 - 도메인 규칙(톤, 문구, 폴백, 중복 판정)은 `domain/notification` 의 순수 함수에만 있고 batch 는 조립만 한다
 - batch 는 Flyway `validate` 만 하고 migrate 는 api 가 한다. `notification_log` 는 V35 가 소유한다
@@ -159,10 +158,10 @@ flowchart LR
 
 ### DEC-1. 잡은 3개, 종류는 잡 이름으로
 
-- Context : 세 발송은 청크 파이프라인이 같고 대상 조건·변수·스케줄만 다르다
-- Decision : `weeklyReminderJob`, `weekendExploreJob`, `holidayExploreJob` 세 Job 빈을 두고, Reader 만 종류별 클래스로 나눈다. Processor·Writer 와 Step 조립은 한 설정 클래스의 private 헬퍼로 공유한다
-- Alternatives : 잡 하나 + `type` 파라미터 / Notification 의 `NotificationStepFactory` 컴포넌트 그대로
-- Why : 잡 이름이 곧 발송 종류라 `BATCH_JOB_INSTANCE`, Prefect deployment, 실패 알림에서 한눈에 구분된다. 없는 잡 이름은 Boot 가 기동 시점에 거부한다. 종류를 더할 때 기존 Reader 의 `when` 을 고치는 대신 클래스를 더한다
+- Context : 세 발송은 tasklet 루프가 같고 대상 조건·변수·스케줄만 다르다
+- Decision : `weeklyReminderJob`, `weekendExploreJob`, `holidayExploreJob` 세 Job 빈을 두고, Reader 만 종류별 클래스로 나눈다. 판정·발송·적재는 `PushNotificationTasklet` 하나를 공유하고(execute 1회 = 1건 = 1 트랜잭션), Step 은 `NotificationPushStepConfig`, Job 은 `NotificationPushJobConfig` 가 조립한다 (search 와 같은 `job/` + `tasklet/`. JobConfig 에는 Job 빈만)
+- Alternatives : 잡 하나 + `type` 파라미터 / Notification 의 `NotificationStepFactory` 컴포넌트 그대로 / chunk 지향 Step(Reader·Processor·Writer, chunk=1)
+- Why : 잡 이름이 곧 발송 종류라 `BATCH_JOB_INSTANCE`, Prefect deployment, 실패 알림에서 한눈에 구분된다. 없는 잡 이름은 Boot 가 기동 시점에 거부한다. 종류를 더할 때 기존 Reader 의 `when` 을 고치는 대신 클래스를 더한다. chunk 는 커밋 단위가 1건이라 묶음 효과가 없고 Reader·Processor·Writer 와 @StepScope 빈 6개의 배선만 남아, 같은 커밋 단위를 주는 tasklet 으로 접었다
 - Trade-off : Job 빈과 Reader 클래스가 종류마다 하나씩 늘어난다
 - Consequence : Prefect 도 deployment 3개를 두고 각자 잡 이름을 넘긴다
 
@@ -187,7 +186,7 @@ flowchart LR
 ### DEC-4. FCM 어댑터 재사용, 미설정은 잡 실패
 
 - Context : 이 저장소에 `PushNotificationSender` 포트와 `FcmPushNotificationAdapter`, `modules/firebase` 가 있다
-- Decision : Writer 가 `PushNotificationSender.send` 를 부른다. `PUSH_SEND_FAILED` 는 `PushSendStatus.FAILED` 로 적재하고 계속, `PUSH_NOT_CONFIGURED` 는 예외를 그대로 올려 잡을 FAILED 로 끝낸다. `PushSendStatus.SKIPPED` 는 새로 생기지 않는다 (enum 은 기존 데이터 때문에 유지)
+- Decision : tasklet 이 `PushNotificationSender.send` 를 부른다. `PUSH_SEND_FAILED` 는 `PushSendStatus.FAILED` 로 적재하고 계속, `PUSH_NOT_CONFIGURED` 는 예외를 그대로 올려 잡을 FAILED 로 끝낸다. `PushSendStatus.SKIPPED` 는 새로 생기지 않는다 (enum 은 기존 데이터 때문에 유지)
 - Alternatives : Notification 의 `FcmPushSender`/`LoggingPushSender` 이식 (미설정이면 전 건 SKIPPED 로 COMPLETED)
 - Why : one-shot 에서 "전 건 SKIPPED 인데 COMPLETED" 는 알림 없이 지나가는 가장 위험한 조용한 실패다. 어댑터 두 벌을 유지할 이유도 없다
 - Trade-off : 페이로드가 api 발송과 같아진다. Notification 은 `notification{title, body}` 만 보냈고 기존 어댑터는 `data{title, body}` + Android/APNs 설정 + `analytics_label=server_push` 를 보낸다. 앱에서 표시·탭 동작이 같은지 확인이 필요하다 (오라클 manual)
@@ -196,7 +195,7 @@ flowchart LR
 ### DEC-5. `tb_notification_hist` 적재를 같은 트랜잭션에서
 
 - Context : Notification 은 외부 소유 테이블이라 `REQUIRES_NEW` + `try/catch` 로 best-effort 격리했다
-- Decision : Writer 가 `notification_log` 와 `tb_notification_hist` 를 같은 청크 트랜잭션에서 쓴다. 격리와 예외 흡수를 두지 않는다
+- Decision : tasklet 이 `notification_log` 와 `tb_notification_hist` 를 같은 트랜잭션(execute 1회)에서 쓴다. 격리와 예외 흡수를 두지 않는다
 - Alternatives : best-effort 유지
 - Why : 같은 저장소, 같은 Flyway 라 스키마 드리프트가 없다. 적재가 실패하면 그것은 버그이고, one-shot 계약에서는 크게 실패해 알림을 받는 쪽이 맞다
 - Trade-off : hist 적재 실패 시 그 1건의 log 도 롤백되어 재실행 때 1건 중복 발송이 가능하다. log 적재 실패와 같은 창이다
@@ -244,7 +243,7 @@ flowchart LR
 
 - domain/notification : 모델 8개, 정책 3개, `NotificationLog` 엔티티, `NotificationLogRepository`·`HolidayRepository` 포트와 어댑터(JPA, CSV), `NotificationRepository.findPushAgreedAfter`
 - domain/photo : `PhotoImageRepository.findUserIdsUploadedBetween`, `findLastUploadedAtByUserIds`
-- apps/batch : 잡 3개와 Reader·Processor·Writer, 스캔 범위에 `com.neki.domain.notification`, `com.neki.domain.photo.infra.persist`, `com.neki.config.firebase` 추가, `application-firebase.yaml` import, `modules:firebase` 의존
+- apps/batch : Job 3개(`job/`), Step 3개와 `PushNotificationTasklet`, Reader 3개(`tasklet/`), 스캔 범위에 `com.neki.domain.notification`, `com.neki.domain.photo.infra.persist`, `com.neki.config.firebase` 추가, `application-firebase.yaml` import, `modules:firebase` 의존
 - modules/postgres : V35
 - Team-Neki-Workflow : `flows/common/batch_job.py`(search-index 의 Job 실행을 일반화), flow 3개, deployment 3개, `docs/spec/notification-push.md`
 - Team-Neki-GitOps : `overlays/prefect/workflow-secret.example.yaml` 키 추가, `overlays/prod/notification-deployment.yaml` 제거
@@ -270,7 +269,7 @@ failure isolation 단위는 발송 1건입니다. 어디서 실패해도 이미 
 
 ## 8. NFR / Observability
 
-- 처리량 : 청크 크기 1 로 발송 1건마다 FCM 왕복(수십~수백 ms)과 커밋이 있습니다. 대상 1만 명이면 수십 분이 걸릴 수 있어 flow 타임아웃을 색인(1,800초)보다 긴 3,600초로 둡니다. 대상이 더 늘면 `FirebaseMessaging.sendEach` 로 묶는 것이 업그레이드 경로입니다 (코드의 `ponytail:` 주석)
+- 처리량 : 커밋 단위가 1건이라 발송 1건마다 FCM 왕복(수십~수백 ms)과 커밋이 있습니다. 대상 1만 명이면 수십 분이 걸릴 수 있어 flow 타임아웃을 색인(1,800초)보다 긴 3,600초로 둡니다. 대상이 더 늘면 `FirebaseMessaging.sendEach` 로 묶는 것이 업그레이드 경로입니다 (코드의 `ponytail:` 주석)
 - 관측 : step 완료 로그(읽은 수, 걸러진 수, 발송 수), `BATCH_STEP_EXECUTION` 의 read/filter/write count, `notification_log` 의 `fcm_result` 분포, Prefect flow 상태와 Discord 알림
 - 탐지 공백 : `FAILED` 가 많아도 잡은 COMPLETED 라 알림이 없습니다. `select fcm_result, count(*) from notification_log where business_date = current_date group by 1` 로 확인합니다
 
@@ -334,7 +333,7 @@ failure isolation 단위는 발송 1건입니다. 어디서 실패해도 이미 
 | 잡 3개 + `NotificationStepFactory` | 재작성 | `NotificationPushJobConfig` + Reader 3개 |
 | `read/*` jOOQ 리더, `TargetReaderSupport`, `KoreanWeekday` | 재작성 | JPA/QueryDSL 포트 조합 |
 | `NotificationLogStoreAdapter`, `NotificationHistStoreAdapter`, `JooqConfig` | 대체·폐기 | JPA 어댑터 / `NotificationService.recordSentPush` / jOOQ 없음 |
-| `NotificationSendService`, `HolidaySyncService` | 흡수 | Processor·Writer / `CsvHolidayRepositoryAdapter` |
+| `NotificationSendService`, `HolidaySyncService` | 흡수 | `PushNotificationTasklet` / `CsvHolidayRepositoryAdapter` |
 | `FcmPushSender`, `LoggingPushSender`, `modules/fcm` | 대체 | `FcmPushNotificationAdapter` + `modules/firebase` |
 | `NotificationJobScheduler`, `modules/scheduling` | Prefect 로 | deployment 3개 |
 | `NotificationJobLauncher` | Prefect 로 | `RunIdIncrementer` + `concurrency_limit=1` |

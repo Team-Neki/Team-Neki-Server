@@ -1,4 +1,4 @@
-package com.neki.batch.notification.step
+package com.neki.batch.notification.tasklet
 
 import com.neki.domain.notification.models.MessageVariable
 import com.neki.domain.notification.models.Notification
