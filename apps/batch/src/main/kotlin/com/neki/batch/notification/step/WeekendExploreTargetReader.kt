@@ -10,7 +10,7 @@ class WeekendExploreTargetReader(private val notificationRepository: Notificatio
     override fun readPage(afterUserId: Long, size: Int): SendTargetPage {
         val page: List<Notification> = notificationRepository.findPushAgreedAfter(afterUserId, size)
         return SendTargetPage(
-            targets = page.map { SendTarget(userId = it.userId, fcmToken = it.deviceToken) },
+            targets = page.map { SendTarget(userId = it.userId, deviceToken = it.deviceToken) },
             nextCursor = SendTargetPage.cursorOf(page, size),
         )
     }

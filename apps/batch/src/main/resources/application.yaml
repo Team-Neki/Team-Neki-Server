@@ -23,8 +23,3 @@ spring:
     jdbc:
       # 메타 테이블(BATCH_*)은 modules/postgres 의 Flyway V31 이 소유한다. 부팅 시 auto-DDL 금지
       initialize-schema: never
-
-neki:
-  batch:
-    # holidayExploreJob 의 공휴일 원천. 클래스패스 CSV. 갱신은 배포다
-    holiday-csv: holidays.csv

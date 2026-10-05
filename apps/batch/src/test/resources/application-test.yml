@@ -19,5 +19,6 @@ spring:
       initialize-schema: always
 
 neki:
-  batch:
+  notification:
+    # domain 의 CsvHolidayRepositoryAdapter 가 읽는 공휴일. 기본값 holidays.csv 대신 테스트 행을 쓴다
     holiday-csv: holidays-test.csv

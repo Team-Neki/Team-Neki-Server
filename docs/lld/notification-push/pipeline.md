@@ -91,10 +91,10 @@ when (NotificationProcessor.decide(target, type, alreadySent, businessDate)) {
 | `title` | VARCHAR(255) | `title` |
 | `body` | VARCHAR(500) | `body` |
 | `business_date` | DATE | `LocalDate` |
-| `fcm_result` | VARCHAR(16) | `@Enumerated(STRING) FcmSendStatus` |
+| `fcm_result` | VARCHAR(16) | `@Enumerated(STRING) PushSendStatus` |
 | `sent_at` | TIMESTAMP(6) WITH TIME ZONE | `Instant` (적재 시점) |
 
-`created_at`/`updated_at` 이 없어 `BaseTimeEntity` 를 상속하지 않습니다. 생성은 `NotificationLog.of(target, type, message, businessDate, fcmResult)` 하나입니다.
+`created_at`/`updated_at` 이 없어 `BaseTimeEntity` 를 상속하지 않습니다. 생성은 `NotificationLog.of(target, type, message, businessDate, sendStatus)` 하나입니다.
 
 ### `tb_notification_hist` (V22, 기존 `NotificationHist`)
 
@@ -111,7 +111,7 @@ java -jar neki-batch.jar --spring.batch.job.name=weekendExploreJob businessDate=
 - `RunIdIncrementer` : 같은 `businessDate` 로 다시 돌려도 새 JobInstance. 직전이 FAILED 여도 restart 가 아니라 처음부터. 중복 발송은 5절이 막음
 - 종료 코드 : COMPLETED 0, 그 외 0 아님. Prefect 가 이 값으로 flow 결과를 정함
 - 스캔 범위 (`NekiBatchApplication`) : 기존에 더해 `com.neki.domain.notification`, `com.neki.domain.photo.infra.persist`, `com.neki.config.firebase`
-- 설정 (`application.yaml`) : `application-firebase.yaml` import, `neki.batch.holiday-csv: holidays.csv`
+- 설정 (`application.yaml`) : `application-firebase.yaml` import. 공휴일 CSV 경로는 `neki.notification.holiday-csv` (기본 `holidays.csv`. 테스트만 `holidays-test.csv` 로 바꿈)
 - Firebase : staging/prod 는 `file:/etc/firebase/firebase-service-account.json`. batch Job 파드는 Secret `prefect-workflow` 의 `firebase-service-account.json` 키를 그 경로에 마운트 (Workflow 의 Job 매니페스트)
 
 로컬 실행 (api 가 먼저 V35 를 적용해 둔 뒤) :
@@ -130,7 +130,7 @@ java -jar neki-batch.jar --spring.batch.job.name=weekendExploreJob businessDate=
 | Reader 계약, 페이징 | `apps/batch/.../notification/step/SendTargetReader.kt`, `PagingSendTargetItemReader.kt` |
 | 잡별 Reader | `apps/batch/.../notification/step/{WeeklyReminder,WeekendExplore,HolidayExplore}TargetReader.kt` |
 | Processor, Writer | `apps/batch/.../notification/step/NotificationItemProcessor.kt`, `NotificationItemWriter.kt` |
-| 공휴일 | `apps/batch/.../notification/holiday/HolidayCalendar.kt`, `apps/batch/src/main/resources/holidays.csv` |
+| 공휴일 | `domain/.../notification/models/Holiday.kt`, `repository/HolidayRepository.kt`, `infra/csv/CsvHolidayRepositoryAdapter.kt`, `domain/src/main/resources/holidays.csv` |
 | 도메인 모델·정책 | `domain/src/main/kotlin/com/neki/domain/notification/{models/*, MessageRenderer, ToneAssignmentPolicy, NotificationProcessor}.kt` |
 | 발송 이력 | `domain/.../notification/models/NotificationLog.kt`, `repository/NotificationLogRepository.kt`, `infra/persist/NotificationLogRepositoryAdapter.kt` |
 | 동의자 페이지 | `domain/.../notification/repository/NotificationRepository.kt` `findPushAgreedAfter` |
@@ -141,4 +141,4 @@ java -jar neki-batch.jar --spring.batch.job.name=weekendExploreJob businessDate=
 
 - 순수 규칙 : `domain/src/test/kotlin/com/neki/domain/notification/{MessageRendererTest, ToneAssignmentPolicyTest, NotificationProcessorTest, EnumContractTest}.kt`
 - 잡 E2E (H2) : `apps/batch/src/test/kotlin/com/neki/batch/notification/job/NotificationPushJobsTest.kt`. stub `PushNotificationSender` 로 발송을 기록하고 log/hist 를 단언
-- 공휴일 CSV : `apps/batch/src/test/kotlin/com/neki/batch/notification/holiday/HolidayCalendarTest.kt`
+- 공휴일 CSV : `domain/src/test/kotlin/com/neki/domain/notification/infra/csv/CsvHolidayRepositoryAdapterTest.kt`

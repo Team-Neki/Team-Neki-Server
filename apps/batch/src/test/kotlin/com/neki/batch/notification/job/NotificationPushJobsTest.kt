@@ -6,10 +6,10 @@ import com.neki.domain.notification.external.PushNotificationSender
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationHistRepository
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationLogRepository
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationRepository
-import com.neki.domain.notification.models.FcmSendStatus
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.models.NotificationLog
 import com.neki.domain.notification.models.NotificationType
+import com.neki.domain.notification.models.PushSendStatus
 import com.neki.domain.photo.infra.persist.jpa.JpaPhotoImageRepository
 import com.neki.domain.photo.models.PhotoImage
 import io.kotest.matchers.collections.shouldBeEmpty
@@ -37,7 +37,7 @@ import java.sql.Timestamp
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * 잡 3종을 H2 에서 끝까지 돌린다. FCM 은 RecordingPushSender 로 바꿔 호출 토큰을 기록한다.
+ * 잡 3종을 H2 에서 끝까지 돌린다. 푸시 발송은 RecordingPushSender 로 바꿔 호출 토큰을 기록한다.
  * businessDate 2026-06-18(목) 은 epochDay 20622 가 3 의 배수라 톤이 userId % 3 과 같다.
  * created_at 은 auditing 이 덮어쓰므로 저장 뒤 SQL 로 바꾼다
  */
@@ -124,7 +124,7 @@ class NotificationPushJobsTest {
         launch(weekendExploreJob).status shouldBe BatchStatus.COMPLETED
 
         logUserIds(NotificationType.WEEKEND_EXPLORE) shouldContainExactly listOf(1L, 3L, 4L, 5L)
-        logRepository.findAll().map { it.fcmResult }.toSet() shouldBe setOf(FcmSendStatus.SUCCESS)
+        logRepository.findAll().map { it.sendStatus }.toSet() shouldBe setOf(PushSendStatus.SUCCESS)
         pushSender.sent shouldContainExactly listOf("tok-1", "tok-3", "tok-4", "tok-5")
         histUserIds("WEEKEND_EXPLORE") shouldContainExactly listOf(1L, 3L, 4L, 5L)
     }
@@ -213,13 +213,13 @@ class NotificationPushJobsTest {
 
         launch(weekendExploreJob).status shouldBe BatchStatus.COMPLETED
 
-        logRepository.findAll().single { it.userId == 3L }.fcmResult shouldBe FcmSendStatus.FAILED
+        logRepository.findAll().single { it.userId == 3L }.sendStatus shouldBe PushSendStatus.FAILED
         pushSender.sent shouldContainExactly listOf("tok-1", "tok-4", "tok-5")
         histUserIds("WEEKEND_EXPLORE") shouldContainExactly listOf(1L, 4L, 5L)
     }
 
     @Test
-    fun `FCM 이 설정되지 않았으면 잡이 실패하고 아무것도 적재하지 않는다`() {
+    fun `푸시 발송이 설정되지 않았으면 잡이 실패하고 아무것도 적재하지 않는다`() {
         givenUsers()
         pushSender.configured = false
 

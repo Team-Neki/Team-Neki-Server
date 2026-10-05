@@ -1,6 +1,6 @@
 package com.neki.batch.notification.step
 
-import com.neki.batch.notification.holiday.Holiday
+import com.neki.domain.notification.models.Holiday
 import com.neki.domain.notification.models.MessageVariable
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.models.SendTarget
@@ -33,7 +33,7 @@ class HolidayExploreTargetReader(
         return SendTargetPage(
             targets = page
                 .filter { (lastUploadedAt[it.userId] ?: return@filter false) >= since }
-                .map { SendTarget(userId = it.userId, fcmToken = it.deviceToken, variables = variables) },
+                .map { SendTarget(userId = it.userId, deviceToken = it.deviceToken, variables = variables) },
             nextCursor = SendTargetPage.cursorOf(page, size),
         )
     }

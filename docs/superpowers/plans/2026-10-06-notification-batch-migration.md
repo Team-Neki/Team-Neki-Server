@@ -8,6 +8,8 @@
 
 **Tech Stack:** Kotlin 2.0, Spring Boot 3.5.8, Spring Batch 5.2, Spring Data JPA + QueryDSL, Flyway, H2(테스트), Kotest matcher, Prefect 3.8.5 + prefect-kubernetes 0.7.12, kustomize
 
+> **실행 후 변경 (2026-10-06 리뷰 반영)** : 아래 코드 블록은 처음 구현 기준입니다. 머지 전 리뷰로 (1) `apps/batch/.../notification/{reader,step}` 을 `step/` 하나로 합치고 `KoreanWeekday` 를 `WeeklyReminderTargetReader` 의 private 함수로, (2) 공휴일을 `domain/notification` 의 `Holiday` 모델 + `HolidayRepository` 포트 + `infra/csv/CsvHolidayRepositoryAdapter` (CSV 는 `domain/src/main/resources`) 로, (3) `FcmSendStatus`·`fcmToken`·`fcmResult` 를 `PushSendStatus`·`deviceToken`·`sendStatus` 로 바꿨습니다. 현재 위치는 `docs/lld/notification-push/pipeline.md` 9절이 정본입니다.
+
 ---
 
 - **작성일** : 2026-10-06
@@ -35,7 +37,7 @@ Prefect deployment 3개 (cron)  -> k8s Job (neki-batch) --spring.batch.job.name=
 
 | 저장소 | 파일 | 책임 |
 |---|---|---|
-| Server | `domain/.../notification/models/{NotificationType,MessageTone,MessageVariable,RenderedMessage,SendTarget,SendDecision,FcmSendStatus}.kt` | 순수 모델 (Notification 에서 이식) |
+| Server | `domain/.../notification/models/{NotificationType,MessageTone,MessageVariable,RenderedMessage,SendTarget,SendDecision,PushSendStatus}.kt` | 순수 모델 (Notification 에서 이식) |
 | Server | `domain/.../notification/{MessageRenderer,ToneAssignmentPolicy,NotificationProcessor}.kt` | 순수 규칙 (이식) |
 | Server | `domain/.../notification/models/NotificationLog.kt`, `repository/NotificationLogRepository.kt`, `infra/persist/NotificationLogRepositoryAdapter.kt`, `infra/persist/jpa/JpaNotificationLogRepository.kt` | 발송 이력 |
 | Server | `domain/.../notification/repository/NotificationRepository.kt` (+adapter, jpa) | 동의자 페이지 |
@@ -44,7 +46,7 @@ Prefect deployment 3개 (cron)  -> k8s Job (neki-batch) --spring.batch.job.name=
 | Server | `apps/batch/.../notification/job/NotificationPushJobConfig.kt` | 잡 3개 조립 |
 | Server | `apps/batch/.../notification/step/{SendTargetReader,PagingSendTargetItemReader,WeeklyReminderTargetReader,WeekendExploreTargetReader,HolidayExploreTargetReader}.kt` | 대상 조회 |
 | Server | `apps/batch/.../notification/step/{PreparedNotification,NotificationItemProcessor,NotificationItemWriter}.kt` | 판정, 발송·적재 |
-| Server | `apps/batch/.../notification/holiday/{Holiday,HolidayCalendar}.kt`, `resources/holidays.csv` | 공휴일 |
+| Server | `domain/.../notification/models/Holiday.kt`, `repository/HolidayRepository.kt`, `infra/csv/CsvHolidayRepositoryAdapter.kt`, `domain/src/main/resources/holidays.csv` | 공휴일 (실행 뒤 domain 으로 옮김. 아래 "실행 후 변경") |
 | Workflow | `flows/common/batch_job.py` | k8s Job 띄우기 (search-index 와 공유) |
 | Workflow | `flows/{weekly_reminder,weekend_explore,holiday_explore}/{__init__,flow,job}.py`, `deployments/{weekly_reminder,weekend_explore,holiday_explore}.py` | flow 3개, 스케줄 3개 |
 | Workflow | `docs/spec/notification-push.md`, `tests/test_notification_push.py` | 정본, 테스트 |
@@ -81,7 +83,7 @@ Server(1~8), Workflow(9~10), GitOps(11)는 서로 파일이 겹치지 않아 병
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/models/RenderedMessage.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/models/SendTarget.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/models/SendDecision.kt`
-- Create: `domain/src/main/kotlin/com/neki/domain/notification/models/FcmSendStatus.kt`
+- Create: `domain/src/main/kotlin/com/neki/domain/notification/models/PushSendStatus.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/MessageRenderer.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/ToneAssignmentPolicy.kt`
 - Create: `domain/src/main/kotlin/com/neki/domain/notification/NotificationProcessor.kt`
@@ -125,14 +127,14 @@ class EnumContractTest {
 
     @Test
     fun `SendTarget 의 변수는 기본이 빈 맵이다`() {
-        val target = SendTarget(userId = 42L, fcmToken = "token-abc")
+        val target = SendTarget(userId = 42L, deviceToken = "token-abc")
         target.variables.shouldBeEmpty()
     }
 
     @Test
     fun `SendTarget 은 받은 변수를 그대로 든다`() {
         val vars = mapOf(MessageVariable.RECENT_UPLOAD_DAY to "지난 토요일")
-        SendTarget(userId = 7L, fcmToken = "token-xyz", variables = vars).variables shouldBe vars
+        SendTarget(userId = 7L, deviceToken = "token-xyz", variables = vars).variables shouldBe vars
     }
 }
 ```
@@ -330,7 +332,7 @@ class NotificationProcessorTest {
     private val businessDate = LocalDate.of(2026, 9, 22)
 
     private fun target(userId: Long, variables: Map<MessageVariable, String?> = emptyMap()) =
-        SendTarget(userId = userId, fcmToken = "token-$userId", variables = variables)
+        SendTarget(userId = userId, deviceToken = "token-$userId", variables = variables)
 
     @Test
     fun `이미 발송됐으면 ALREADY_SENT 로 스킵`() {
@@ -476,7 +478,7 @@ package com.neki.domain.notification.models
  */
 data class SendTarget(
     val userId: Long,
-    val fcmToken: String,
+    val deviceToken: String,
     val variables: Map<MessageVariable, String?> = emptyMap(),
 )
 ```
@@ -504,16 +506,16 @@ enum class SkipReason {
 ```
 
 ```kotlin
-// domain/src/main/kotlin/com/neki/domain/notification/models/FcmSendStatus.kt
+// domain/src/main/kotlin/com/neki/domain/notification/models/PushSendStatus.kt
 package com.neki.domain.notification.models
 
 /**
- * fileName       : FcmSendStatus
+ * fileName       : PushSendStatus
  * author         : koo
  * date           : 2026. 10. 6.
  * description    : notification_log.fcm_result. SKIPPED 는 Notification 앱이 남긴 기존 행을 위해 남겨 두며 새로 쓰지 않는다
  */
-enum class FcmSendStatus {
+enum class PushSendStatus {
     SUCCESS,
     FAILED,
     SKIPPED,
@@ -801,7 +803,7 @@ class NotificationLog(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "fcm_result", nullable = false, length = 16)
-    val fcmResult: FcmSendStatus,
+    val sendStatus: PushSendStatus,
 
     @Column(name = "sent_at", nullable = false)
     val sentAt: Instant,
@@ -812,7 +814,7 @@ class NotificationLog(
             type: NotificationType,
             message: RenderedMessage,
             businessDate: LocalDate,
-            fcmResult: FcmSendStatus,
+            sendStatus: PushSendStatus,
         ): NotificationLog = NotificationLog(
             userId = target.userId,
             notificationType = type,
@@ -821,7 +823,7 @@ class NotificationLog(
             title = message.title,
             body = message.body,
             businessDate = businessDate,
-            fcmResult = fcmResult,
+            sendStatus = sendStatus,
             sentAt = Instant.now(),
         )
     }
@@ -1006,18 +1008,18 @@ git commit -m "feat: 배치 대상 조회를 위한 동의자 페이지·업로�
 - Modify: `apps/batch/build.gradle.kts`
 - Modify: `apps/batch/src/main/kotlin/com/neki/batch/NekiBatchApplication.kt`
 - Modify: `apps/batch/src/main/resources/application.yaml`
-- Create: `apps/batch/src/main/resources/holidays.csv` (Notification 의 파일 그대로)
+- Create: `domain/src/main/resources/holidays.csv` (Notification 의 파일 그대로)
 - Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/holiday/Holiday.kt`
-- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/holiday/HolidayCalendar.kt`
+- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/holiday/CsvHolidayRepositoryAdapter.kt`
 - Modify: `apps/batch/src/test/resources/application-test.yml`
 - Create: `apps/batch/src/test/resources/holidays-test.csv`
-- Test: `apps/batch/src/test/kotlin/com/neki/batch/notification/holiday/HolidayCalendarTest.kt`
+- Test: `domain/src/test/kotlin/com/neki/domain/notification/infra/csv/CsvHolidayRepositoryAdapterTest.kt`
 
 - [ ] **Step 1: 테스트 CSV 와 실패하는 테스트**
 
 ```text
 # apps/batch/src/test/resources/holidays-test.csv
-# 테스트용 공휴일. HolidayCalendarTest 와 NotificationPushJobsTest 가 읽는다
+# 테스트용 공휴일. CsvHolidayRepositoryAdapterTest 와 NotificationPushJobsTest 가 읽는다
 holiday_date,name,notify_offset_days
 
 2026-06-18,테스트공휴일,0
@@ -1026,7 +1028,7 @@ holiday_date,name,notify_offset_days
 ```
 
 ```kotlin
-// apps/batch/src/test/kotlin/com/neki/batch/notification/holiday/HolidayCalendarTest.kt
+// domain/src/test/kotlin/com/neki/domain/notification/infra/csv/CsvHolidayRepositoryAdapterTest.kt
 package com.neki.batch.notification.holiday
 
 import io.kotest.matchers.nulls.shouldBeNull
@@ -1035,9 +1037,9 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 /** holidays-test.csv 에는 주석, 헤더, 빈 줄, offset 생략 행이 섞여 있어 파싱도 같이 검증된다 */
-class HolidayCalendarTest {
+class CsvHolidayRepositoryAdapterTest {
 
-    private val calendar = HolidayCalendar("holidays-test.csv")
+    private val calendar = CsvHolidayRepositoryAdapter("holidays-test.csv")
 
     @Test
     fun `발송일이면 그 공휴일을 돌려준다`() {
@@ -1082,7 +1084,7 @@ data class Holiday(
 ```
 
 ```kotlin
-// apps/batch/src/main/kotlin/com/neki/batch/notification/holiday/HolidayCalendar.kt
+// apps/batch/src/main/kotlin/com/neki/batch/notification/holiday/CsvHolidayRepositoryAdapter.kt
 package com.neki.batch.notification.holiday
 
 import org.slf4j.LoggerFactory
@@ -1093,7 +1095,7 @@ import java.time.LocalDate
 import kotlin.math.abs
 
 /**
- * fileName       : HolidayCalendar
+ * fileName       : CsvHolidayRepositoryAdapter
  * author         : koo
  * date           : 2026. 10. 6.
  * description    : 클래스패스 holidays.csv 를 읽어 발송일을 판정한다. one-shot 이라 기동 시 한 번 읽으면 끝이다.
@@ -1101,8 +1103,8 @@ import kotlin.math.abs
  *                  파일이 없거나 형식이 틀리면 빈 생성에서 실패해 잡이 FAILED 로 끝난다. 조용히 0건이 되지 않는다
  */
 @Component
-class HolidayCalendar(
-    @Value("\${neki.batch.holiday-csv}") resourcePath: String,
+class CsvHolidayRepositoryAdapter(
+    @Value("\${neki.notification.holiday-csv}") resourcePath: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -1198,11 +1200,11 @@ neki:
     holiday-csv: holidays-test.csv
 ```
 
-`apps/batch/src/main/resources/holidays.csv` 는 Notification 저장소 `apps/batch/src/main/resources/holidays.csv` 를 그대로 복사한다.
+`domain/src/main/resources/holidays.csv` 는 Notification 저장소 `domain/src/main/resources/holidays.csv` 를 그대로 복사한다.
 
 - [ ] **Step 4: 통과와 기동 회귀**
 
-Run: `./gradlew :apps:batch:test --tests 'com.neki.batch.notification.holiday.HolidayCalendarTest' --tests 'com.neki.batch.ExitCodeTest' -q`
+Run: `./gradlew :apps:batch:test --tests 'com.neki.batch.notification.holiday.CsvHolidayRepositoryAdapterTest' --tests 'com.neki.batch.ExitCodeTest' -q`
 Expected: 종료 코드 0 (스캔 범위가 늘어도 컨텍스트가 뜬다)
 
 - [ ] **Step 5: 커밋**
@@ -1310,7 +1312,7 @@ class WeekendExploreTargetReader(
     override fun readPage(afterUserId: Long, size: Int): SendTargetPage {
         val page: List<Notification> = notificationRepository.findPushAgreedAfter(afterUserId, size)
         return SendTargetPage(
-            targets = page.map { SendTarget(userId = it.userId, fcmToken = it.deviceToken) },
+            targets = page.map { SendTarget(userId = it.userId, deviceToken = it.deviceToken) },
             nextCursor = SendTargetPage.cursorOf(page, size),
         )
     }
@@ -1354,7 +1356,7 @@ class WeeklyReminderTargetReader(
             targets = kept.map {
                 SendTarget(
                     userId = it.userId,
-                    fcmToken = it.deviceToken,
+                    deviceToken = it.deviceToken,
                     variables = mapOf(
                         MessageVariable.RECENT_UPLOAD_DAY to
                             lastUploadedAt[it.userId]?.let(::recentUploadLabel),
@@ -1418,7 +1420,7 @@ class HolidayExploreTargetReader(
         return SendTargetPage(
             targets = page
                 .filter { (lastUploadedAt[it.userId] ?: return@filter false) >= since }
-                .map { SendTarget(userId = it.userId, fcmToken = it.deviceToken, variables = variables) },
+                .map { SendTarget(userId = it.userId, deviceToken = it.deviceToken, variables = variables) },
             nextCursor = SendTargetPage.cursorOf(page, size),
         )
     }
@@ -1503,7 +1505,7 @@ import com.neki.core.code.ResultCode
 import com.neki.core.exception.BusinessException
 import com.neki.domain.notification.dto.NotificationCommand
 import com.neki.domain.notification.external.PushNotificationSender
-import com.neki.domain.notification.models.FcmSendStatus
+import com.neki.domain.notification.models.PushSendStatus
 import com.neki.domain.notification.models.NotificationLog
 import com.neki.domain.notification.repository.NotificationLogRepository
 import com.neki.domain.notification.service.NotificationService
@@ -1536,23 +1538,23 @@ class NotificationItemWriter(
 
     // ponytail: 건별 동기 발송. 대상이 만 단위로 늘어 flow 타임아웃에 걸리면 FirebaseMessaging.sendEach 로 묶는다
     private fun dispatch(prepared: PreparedNotification) {
-        val result: FcmSendStatus = try {
-            pushNotificationSender.send(prepared.target.fcmToken, prepared.message.title, prepared.message.body, null)
-            FcmSendStatus.SUCCESS
+        val result: PushSendStatus = try {
+            pushNotificationSender.send(prepared.target.deviceToken, prepared.message.title, prepared.message.body, null)
+            PushSendStatus.SUCCESS
         } catch (e: BusinessException) {
             if (e.resultCode != ResultCode.PUSH_SEND_FAILED) throw e
             log.warn("FCM 발송 실패 userId={} type={}", prepared.target.userId, prepared.type)
-            FcmSendStatus.FAILED
+            PushSendStatus.FAILED
         }
 
         notificationLogRepository.save(
             NotificationLog.of(prepared.target, prepared.type, prepared.message, prepared.businessDate, result),
         )
-        if (result == FcmSendStatus.SUCCESS) {
+        if (result == PushSendStatus.SUCCESS) {
             notificationService.recordSentPush(
                 NotificationCommand.SendPush(
                     userId = prepared.target.userId,
-                    token = prepared.target.fcmToken,
+                    token = prepared.target.deviceToken,
                     type = prepared.type.name,
                     title = prepared.message.title,
                     body = prepared.message.body,
@@ -1597,7 +1599,7 @@ import com.neki.domain.notification.external.PushNotificationSender
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationHistRepository
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationLogRepository
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationRepository
-import com.neki.domain.notification.models.FcmSendStatus
+import com.neki.domain.notification.models.PushSendStatus
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.models.NotificationLog
 import com.neki.domain.notification.models.NotificationType
@@ -1691,7 +1693,7 @@ class NotificationPushJobsTest {
         launch(weekendExploreJob).status shouldBe BatchStatus.COMPLETED
 
         logUserIds(NotificationType.WEEKEND_EXPLORE) shouldContainExactly listOf(1L, 3L, 4L, 5L)
-        logRepository.findAll().map { it.fcmResult }.toSet() shouldBe setOf(FcmSendStatus.SUCCESS)
+        logRepository.findAll().map { it.sendStatus }.toSet() shouldBe setOf(PushSendStatus.SUCCESS)
         pushSender.sent shouldContainExactly listOf("tok-1", "tok-3", "tok-4", "tok-5")
         histUserIds("WEEKEND_EXPLORE") shouldContainExactly listOf(1L, 3L, 4L, 5L)
     }
@@ -1780,7 +1782,7 @@ class NotificationPushJobsTest {
 
         launch(weekendExploreJob).status shouldBe BatchStatus.COMPLETED
 
-        logRepository.findAll().single { it.userId == 3L }.fcmResult shouldBe FcmSendStatus.FAILED
+        logRepository.findAll().single { it.userId == 3L }.sendStatus shouldBe PushSendStatus.FAILED
         pushSender.sent shouldContainExactly listOf("tok-1", "tok-4", "tok-5")
         histUserIds("WEEKEND_EXPLORE") shouldContainExactly listOf(1L, 4L, 5L)
     }
@@ -1851,7 +1853,7 @@ Expected: `NotificationPushJobConfig` 미해결로 실패
 // apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt
 package com.neki.batch.notification.job
 
-import com.neki.batch.notification.holiday.HolidayCalendar
+import com.neki.batch.notification.holiday.CsvHolidayRepositoryAdapter
 import com.neki.batch.notification.step.HolidayExploreTargetReader
 import com.neki.batch.notification.step.PagingSendTargetItemReader
 import com.neki.batch.notification.step.WeekendExploreTargetReader
@@ -1940,7 +1942,7 @@ class NotificationPushJobConfig(
     @StepScope
     fun holidayExploreItemReader(
         @Value("#{jobParameters['$PARAM_BUSINESS_DATE']}") businessDate: String,
-        holidayCalendar: HolidayCalendar,
+        holidayCalendar: CsvHolidayRepositoryAdapter,
         notificationRepository: NotificationRepository,
         photoImageRepository: PhotoImageRepository,
     ): ItemReader<SendTarget> {
@@ -2009,7 +2011,7 @@ class NotificationPushJobConfig(
 - [ ] **Step 4: 통과**
 
 Run: `./gradlew :apps:batch:test -q`
-Expected: 종료 코드 0 (NotificationPushJobsTest 9건, HolidayCalendarTest 4건, 기존 SearchIndexJobTest·ExitCodeTest 포함)
+Expected: 종료 코드 0 (NotificationPushJobsTest 9건, CsvHolidayRepositoryAdapterTest 4건, 기존 SearchIndexJobTest·ExitCodeTest 포함)
 
 - [ ] **Step 5: 커밋**
 

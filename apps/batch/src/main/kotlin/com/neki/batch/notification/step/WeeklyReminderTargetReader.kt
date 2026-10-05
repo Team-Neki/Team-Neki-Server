@@ -34,7 +34,7 @@ class WeeklyReminderTargetReader(
             targets = kept.map {
                 SendTarget(
                     userId = it.userId,
-                    fcmToken = it.deviceToken,
+                    deviceToken = it.deviceToken,
                     variables = mapOf(
                         MessageVariable.RECENT_UPLOAD_DAY to
                             lastUploadedAt[it.userId]?.let(::recentUploadLabel),

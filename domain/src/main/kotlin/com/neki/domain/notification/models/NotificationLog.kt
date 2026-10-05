@@ -59,9 +59,10 @@ class NotificationLog(
     @Column(name = "business_date", nullable = false)
     val businessDate: LocalDate,
 
+    // 컬럼명은 Notification 앱이 만든 그대로 둔다 (HLD DEC-8). 모델 이름은 기술 중립으로
     @Enumerated(EnumType.STRING)
     @Column(name = "fcm_result", nullable = false, length = 16)
-    val fcmResult: FcmSendStatus,
+    val sendStatus: PushSendStatus,
 
     @Column(name = "sent_at", nullable = false)
     val sentAt: Instant,
@@ -72,7 +73,7 @@ class NotificationLog(
             type: NotificationType,
             message: RenderedMessage,
             businessDate: LocalDate,
-            fcmResult: FcmSendStatus,
+            sendStatus: PushSendStatus,
         ): NotificationLog = NotificationLog(
             userId = target.userId,
             notificationType = type,
@@ -81,7 +82,7 @@ class NotificationLog(
             title = message.title,
             body = message.body,
             businessDate = businessDate,
-            fcmResult = fcmResult,
+            sendStatus = sendStatus,
             sentAt = Instant.now(),
         )
     }

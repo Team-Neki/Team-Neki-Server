@@ -1,28 +1,30 @@
-package com.neki.batch.notification.holiday
+package com.neki.domain.notification.infra.csv
 
+import com.neki.domain.notification.models.Holiday
+import com.neki.domain.notification.repository.HolidayRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ClassPathResource
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Repository
 import java.time.LocalDate
 import kotlin.math.abs
 
 /**
- * fileName       : HolidayCalendar
+ * fileName       : CsvHolidayRepositoryAdapter
  * author         : koo
  * date           : 2026. 10. 6.
- * description    : 클래스패스 holidays.csv 를 읽어 발송일을 판정한다. one-shot 이라 기동 시 한 번 읽으면 끝이다.
+ * description    : 클래스패스 holidays.csv (domain 리소스) 를 빈 생성 시 한 번 읽는다. 갱신은 배포다.
  *                  형식: holiday_date,name,notify_offset_days (ISO 날짜). 주석(#), 빈 줄, 헤더 허용. offset 생략 시 0.
- *                  파일이 없거나 형식이 틀리면 빈 생성에서 실패해 잡이 FAILED 로 끝난다. 조용히 0건이 되지 않는다
+ *                  파일이 없거나 형식이 틀리면 기동이 실패한다. 조용히 0건이 되지 않는다
  */
-@Component
-class HolidayCalendar(@Value("\${neki.batch.holiday-csv}") resourcePath: String) {
+@Repository
+class CsvHolidayRepositoryAdapter(@Value("\${neki.notification.holiday-csv:holidays.csv}") resourcePath: String) :
+    HolidayRepository {
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val holidays: List<Holiday> = load(resourcePath)
 
-    /** businessDate 가 발송일인 공휴일. 없으면 null. 둘 이상이면 파일 순서상 첫 행 */
-    fun holidayOn(businessDate: LocalDate): Holiday? = holidays.firstOrNull { it.notifyDate == businessDate }
+    override fun findByNotifyDate(date: LocalDate): Holiday? = holidays.firstOrNull { it.notifyDate == date }
 
     private fun load(path: String): List<Holiday> {
         val loaded: List<Holiday> = ClassPathResource(

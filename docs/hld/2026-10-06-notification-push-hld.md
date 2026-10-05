@@ -120,7 +120,7 @@ flowchart LR
 
 - 발송 종류 (`NotificationType`) : `WEEKLY_REMINDER`, `WEEKEND_EXPLORE`, `HOLIDAY_EXPLORE`. 잡 하나가 종류 하나를 맡음
 - `businessDate` : 발송의 논리적 날짜. Prefect 가 run 예약 시각(KST)에서 정해 잡 파라미터로 넘김. 중복 방지 키와 톤 배정의 입력
-- 발송 대상 (`SendTarget`) : `userId`, `fcmToken`, 변수 맵. 동의자 페이지(`tb_notification`, `push_agreed = true`)에서 시작해 잡별 조건으로 거른 결과
+- 발송 대상 (`SendTarget`) : `userId`, `deviceToken`, 변수 맵. 동의자 페이지(`tb_notification`, `push_agreed = true`)에서 시작해 잡별 조건으로 거른 결과
 - 변수 (`MessageVariable`) : `[최근 업로드 요일]`(WEEKLY), `[공휴일명]`(HOLIDAY). 값이 없으면 그 종류의 폴백 톤 문구로 내려감
 - 톤 (`MessageTone`) : `INFORMATIVE`, `FRIENDLY`, `SUGGESTIVE`. `floorMod(userId + businessDate.epochDay, 3)` 로 발송 건마다 결정적으로 배정
 - 중복 방지 키 : `(user_id, notification_type, business_date)`. `notification_log` 의 unique 제약이 최종 방어선
@@ -187,7 +187,7 @@ flowchart LR
 ### DEC-4. FCM 어댑터 재사용, 미설정은 잡 실패
 
 - Context : 이 저장소에 `PushNotificationSender` 포트와 `FcmPushNotificationAdapter`, `modules/firebase` 가 있다
-- Decision : Writer 가 `PushNotificationSender.send` 를 부른다. `PUSH_SEND_FAILED` 는 `FcmSendStatus.FAILED` 로 적재하고 계속, `PUSH_NOT_CONFIGURED` 는 예외를 그대로 올려 잡을 FAILED 로 끝낸다. `FcmSendStatus.SKIPPED` 는 새로 생기지 않는다 (enum 은 기존 데이터 때문에 유지)
+- Decision : Writer 가 `PushNotificationSender.send` 를 부른다. `PUSH_SEND_FAILED` 는 `PushSendStatus.FAILED` 로 적재하고 계속, `PUSH_NOT_CONFIGURED` 는 예외를 그대로 올려 잡을 FAILED 로 끝낸다. `PushSendStatus.SKIPPED` 는 새로 생기지 않는다 (enum 은 기존 데이터 때문에 유지)
 - Alternatives : Notification 의 `FcmPushSender`/`LoggingPushSender` 이식 (미설정이면 전 건 SKIPPED 로 COMPLETED)
 - Why : one-shot 에서 "전 건 SKIPPED 인데 COMPLETED" 는 알림 없이 지나가는 가장 위험한 조용한 실패다. 어댑터 두 벌을 유지할 이유도 없다
 - Trade-off : 페이로드가 api 발송과 같아진다. Notification 은 `notification{title, body}` 만 보냈고 기존 어댑터는 `data{title, body}` + Android/APNs 설정 + `analytics_label=server_push` 를 보낸다. 앱에서 표시·탭 동작이 같은지 확인이 필요하다 (오라클 manual)
@@ -210,10 +210,10 @@ flowchart LR
 - Why : 정책 변경은 이 작업의 범위가 아니다. unique 제약이 같은 기준이라 애플리케이션 판정과 DB 제약이 어긋나지 않는다
 - Consequence : FAILED 재시도가 필요해지면 unique 제약과 판정을 함께 바꾸는 별도 결정이 필요하다
 
-### DEC-7. 공휴일은 batch 번들 CSV
+### DEC-7. 공휴일은 domain 포트 하나와 번들 CSV
 
 - Context : Notification 은 `holidays.csv` 를 기동 시 인메모리로 적재했다
-- Decision : CSV 를 `apps/batch` 리소스로 옮기고 `HolidayCalendar` 가 실행마다 읽는다. 포트 추상화(`HolidaySource`, `HolidayStore`, `HolidayCalendar`)는 두지 않는다. 발송일이 아니면 0건으로 COMPLETED
+- Decision : `Holiday` 모델과 `HolidayRepository` 포트를 `domain/notification` 에 두고, `infra/csv/CsvHolidayRepositoryAdapter` 가 domain 리소스 `holidays.csv` 를 빈 생성 시 읽는다. Notification 의 3단 추상화(`HolidaySource`, `HolidayStore`, `HolidayCalendar`)는 포트 하나로 줄인다. 발송일이 아니면 0건으로 COMPLETED
 - Alternatives : Prefect 가 발송일을 판정해 `holidayName` 을 넘김 / Google Sheet 원천 (#17)
 - Why : 규칙이 한 저장소에 남고, one-shot 이라 "기동 시 1회 적재" 와 "실행마다 읽기" 가 같다
 - Trade-off : 공휴일 갱신이 곧 batch 배포다
@@ -237,14 +237,14 @@ flowchart LR
 | `notification_log` | Notification 이 만들고 V35 로 편입 | 읽기·쓰기 | 중복 판정, 전 결과 적재. unique `(user_id, notification_type, business_date)` |
 | `tb_notification_hist` | Server (V22) | 쓰기 | SUCCESS 만 적재. `type` 은 enum 이름 |
 | `BATCH_*` | Server (V31) | 쓰기 | 실행 이력. Notification 이 남긴 같은 잡 이름의 행과 `JOB_KEY` 가 달라 충돌 없음 |
-| `holidays.csv` | apps/batch 리소스 | 읽기 | `holiday_date,name,notify_offset_days` |
+| `holidays.csv` | domain 리소스 (`HolidayRepository` 포트, CSV 어댑터) | 읽기 | `holiday_date,name,notify_offset_days` |
 | Secret `prefect-workflow` | GitOps (수동 apply) | 읽기 | `SPRING_PROFILES_ACTIVE`, `JASYPT_PASSWORD`, `firebase-service-account.json` |
 
 ## 6. Impacted Systems
 
-- domain/notification : 모델 7개, 정책 3개, `NotificationLog` 엔티티, `NotificationLogRepository` 포트와 어댑터, `NotificationRepository.findPushAgreedAfter`
+- domain/notification : 모델 8개, 정책 3개, `NotificationLog` 엔티티, `NotificationLogRepository`·`HolidayRepository` 포트와 어댑터(JPA, CSV), `NotificationRepository.findPushAgreedAfter`
 - domain/photo : `PhotoImageRepository.findUserIdsUploadedBetween`, `findLastUploadedAtByUserIds`
-- apps/batch : 잡 3개와 Reader·Processor·Writer, `HolidayCalendar`, 스캔 범위에 `com.neki.domain.notification`, `com.neki.domain.photo.infra.persist`, `com.neki.config.firebase` 추가, `application-firebase.yaml` import, `modules:firebase` 의존
+- apps/batch : 잡 3개와 Reader·Processor·Writer, 스캔 범위에 `com.neki.domain.notification`, `com.neki.domain.photo.infra.persist`, `com.neki.config.firebase` 추가, `application-firebase.yaml` import, `modules:firebase` 의존
 - modules/postgres : V35
 - Team-Neki-Workflow : `flows/common/batch_job.py`(search-index 의 Job 실행을 일반화), flow 3개, deployment 3개, `docs/spec/notification-push.md`
 - Team-Neki-GitOps : `overlays/prefect/workflow-secret.example.yaml` 키 추가, `overlays/prod/notification-deployment.yaml` 제거
@@ -330,16 +330,16 @@ failure isolation 단위는 발송 1건입니다. 어디서 실패해도 이미 
 | Notification 저장소 | 결과 | 비고 |
 |---|---|---|
 | `domain/` 모델·정책·`NotificationProcessor` 와 단위 테스트 | 그대로 | 패키지명만 변경, 단언은 kotest matcher |
-| `domain/.../port/out/*` 6개 포트 | 대체 | `NotificationLogRepository`(신규), `NotificationRepository`·`PhotoImageRepository` 메서드 추가, `PushNotificationSender`(기존). 공휴일 포트 3개는 `HolidayCalendar` 하나 |
+| `domain/.../port/out/*` 6개 포트 | 대체 | `NotificationLogRepository`(신규), `NotificationRepository`·`PhotoImageRepository` 메서드 추가, `PushNotificationSender`(기존). 공휴일 포트 3개는 `CsvHolidayRepositoryAdapter` 하나 |
 | 잡 3개 + `NotificationStepFactory` | 재작성 | `NotificationPushJobConfig` + Reader 3개 |
 | `read/*` jOOQ 리더, `TargetReaderSupport`, `KoreanWeekday` | 재작성 | JPA/QueryDSL 포트 조합 |
 | `NotificationLogStoreAdapter`, `NotificationHistStoreAdapter`, `JooqConfig` | 대체·폐기 | JPA 어댑터 / `NotificationService.recordSentPush` / jOOQ 없음 |
-| `NotificationSendService`, `HolidaySyncService` | 흡수 | Processor·Writer / `HolidayCalendar` |
+| `NotificationSendService`, `HolidaySyncService` | 흡수 | Processor·Writer / `CsvHolidayRepositoryAdapter` |
 | `FcmPushSender`, `LoggingPushSender`, `modules/fcm` | 대체 | `FcmPushNotificationAdapter` + `modules/firebase` |
 | `NotificationJobScheduler`, `modules/scheduling` | Prefect 로 | deployment 3개 |
 | `NotificationJobLauncher` | Prefect 로 | `RunIdIncrementer` + `concurrency_limit=1` |
 | `TestNotificationController` | Prefect·api 로 | 잡 수동 기동은 `prefect deployment run`, 단건 푸시는 `POST /api/notifications/push` |
-| `HolidayLoader`, `holidays.csv` | 단순화 | 실행마다 CSV 읽음 |
+| `HolidayLoader`, `holidays.csv` | 이식 | `HolidayRepository` 포트 + `CsvHolidayRepositoryAdapter` (domain 리소스 CSV, 빈 생성 시 읽음) |
 | `application.yml` 플래그·cron, `application-prod.yml` | 흡수 | cron -> Prefect, datasource·Firebase 경로는 기존 yaml 과 동일 |
 | Flyway V1 / V2 / V3 | 편입 / 이미 V31 / 불필요 | V35 |
 | prod `notification_log` 데이터, `BATCH_*` 이력 | 인계 | 전환 당일 dedup 유지 |

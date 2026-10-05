@@ -18,7 +18,7 @@ class NotificationProcessorTest {
     private val businessDate = LocalDate.of(2026, 9, 22)
 
     private fun target(userId: Long, variables: Map<MessageVariable, String?> = emptyMap()) =
-        SendTarget(userId = userId, fcmToken = "token-$userId", variables = variables)
+        SendTarget(userId = userId, deviceToken = "token-$userId", variables = variables)
 
     @Test
     fun `이미 발송됐으면 ALREADY_SENT 로 스킵`() {

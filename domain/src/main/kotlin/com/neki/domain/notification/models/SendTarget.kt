@@ -8,6 +8,6 @@ package com.neki.domain.notification.models
  */
 data class SendTarget(
     val userId: Long,
-    val fcmToken: String,
+    val deviceToken: String,
     val variables: Map<MessageVariable, String?> = emptyMap(),
 )

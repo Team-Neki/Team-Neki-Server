@@ -33,13 +33,13 @@ class EnumContractTest {
 
     @Test
     fun `SendTarget 의 변수는 기본이 빈 맵이다`() {
-        val target = SendTarget(userId = 42L, fcmToken = "token-abc")
+        val target = SendTarget(userId = 42L, deviceToken = "token-abc")
         target.variables.shouldBeEmpty()
     }
 
     @Test
     fun `SendTarget 은 받은 변수를 그대로 든다`() {
         val vars = mapOf(MessageVariable.RECENT_UPLOAD_DAY to "지난 토요일")
-        SendTarget(userId = 7L, fcmToken = "token-xyz", variables = vars).variables shouldBe vars
+        SendTarget(userId = 7L, deviceToken = "token-xyz", variables = vars).variables shouldBe vars
     }
 }

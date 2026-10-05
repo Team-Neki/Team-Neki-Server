@@ -1,6 +1,5 @@
 package com.neki.batch.notification.job
 
-import com.neki.batch.notification.holiday.HolidayCalendar
 import com.neki.batch.notification.step.HolidayExploreTargetReader
 import com.neki.batch.notification.step.NotificationItemProcessor
 import com.neki.batch.notification.step.NotificationItemWriter
@@ -10,6 +9,7 @@ import com.neki.batch.notification.step.WeekendExploreTargetReader
 import com.neki.batch.notification.step.WeeklyReminderTargetReader
 import com.neki.domain.notification.models.NotificationType
 import com.neki.domain.notification.models.SendTarget
+import com.neki.domain.notification.repository.HolidayRepository
 import com.neki.domain.notification.repository.NotificationLogRepository
 import com.neki.domain.notification.repository.NotificationRepository
 import com.neki.domain.photo.repository.PhotoImageRepository
@@ -89,7 +89,7 @@ class NotificationPushJobConfig(
     @StepScope
     fun holidayExploreItemReader(
         @Value("#{jobParameters['$PARAM_BUSINESS_DATE']}") businessDate: String,
-        holidayCalendar: HolidayCalendar,
+        holidayRepository: HolidayRepository,
         notificationRepository: NotificationRepository,
         photoImageRepository: PhotoImageRepository,
     ): ItemReader<SendTarget> {
@@ -97,7 +97,7 @@ class NotificationPushJobConfig(
         return PagingSendTargetItemReader(
             HolidayExploreTargetReader(
                 date,
-                holidayCalendar.holidayOn(date),
+                holidayRepository.findByNotifyDate(date),
                 notificationRepository,
                 photoImageRepository,
             ),

@@ -26,7 +26,7 @@ import kotlin.system.exitProcess
 // 각자의 yaml 과 외부 시스템을 요구해 기동이 깨진다.
 // searchIndexJob 이 쓰는 search 도메인과 map 의 persist 어댑터(BrandRepository)만 더 스캔한다.
 // map 의 kakao/infra 는 외부 API 설정을 요구하므로 일부러 넣지 않는다.
-// 알림 발송 잡은 notification 도메인 전부(모델, 포트, FCM 어댑터), photo 의 persist 어댑터(업로드 집계),
+// 알림 발송 잡은 notification 도메인 전부(모델, 포트, 푸시·공휴일 어댑터), photo 의 persist 어댑터(업로드 집계),
 // firebase 연결 설정(FirebaseMessaging 빈. 키 파일이 있을 때만 뜬다)을 더 스캔한다.
 @SpringBootApplication(
     scanBasePackages = [
