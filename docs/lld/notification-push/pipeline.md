@@ -127,8 +127,8 @@ java -jar neki-batch.jar --spring.batch.job.name=weekendExploreJob businessDate=
 | 관심사 | 위치 |
 |---|---|
 | 잡·Step 조립 | `apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt` |
-| Reader 계약, 페이징 | `apps/batch/.../notification/reader/SendTargetReader.kt`, `PagingSendTargetItemReader.kt` |
-| 잡별 Reader | `apps/batch/.../notification/reader/{WeeklyReminder,WeekendExplore,HolidayExplore}TargetReader.kt` |
+| Reader 계약, 페이징 | `apps/batch/.../notification/step/SendTargetReader.kt`, `PagingSendTargetItemReader.kt` |
+| 잡별 Reader | `apps/batch/.../notification/step/{WeeklyReminder,WeekendExplore,HolidayExplore}TargetReader.kt` |
 | Processor, Writer | `apps/batch/.../notification/step/NotificationItemProcessor.kt`, `NotificationItemWriter.kt` |
 | 공휴일 | `apps/batch/.../notification/holiday/HolidayCalendar.kt`, `apps/batch/src/main/resources/holidays.csv` |
 | 도메인 모델·정책 | `domain/src/main/kotlin/com/neki/domain/notification/{models/*, MessageRenderer, ToneAssignmentPolicy, NotificationProcessor}.kt` |
@@ -140,5 +140,5 @@ java -jar neki-batch.jar --spring.batch.job.name=weekendExploreJob businessDate=
 ## 10. 테스트
 
 - 순수 규칙 : `domain/src/test/kotlin/com/neki/domain/notification/{MessageRendererTest, ToneAssignmentPolicyTest, NotificationProcessorTest, EnumContractTest}.kt`
-- 잡 E2E (H2) : `apps/batch/src/test/kotlin/com/neki/batch/notification/NotificationPushJobsTest.kt`. stub `PushNotificationSender` 로 발송을 기록하고 log/hist 를 단언
+- 잡 E2E (H2) : `apps/batch/src/test/kotlin/com/neki/batch/notification/job/NotificationPushJobsTest.kt`. stub `PushNotificationSender` 로 발송을 기록하고 log/hist 를 단언
 - 공휴일 CSV : `apps/batch/src/test/kotlin/com/neki/batch/notification/holiday/HolidayCalendarTest.kt`

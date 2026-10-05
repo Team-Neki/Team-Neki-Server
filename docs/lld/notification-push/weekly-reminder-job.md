@@ -63,7 +63,7 @@ limit 100
 
 ## 코드
 
-- `apps/batch/.../notification/reader/WeeklyReminderTargetReader.kt` (조건·변수), `KoreanWeekday` (요일 표기)
+- `apps/batch/.../notification/step/WeeklyReminderTargetReader.kt` (조건·변수·요일 표기)
 - Job 빈 `weeklyReminderJob`, Step `weeklyReminderStep` : `NotificationPushJobConfig`
 
 ## 수동 실행과 확인

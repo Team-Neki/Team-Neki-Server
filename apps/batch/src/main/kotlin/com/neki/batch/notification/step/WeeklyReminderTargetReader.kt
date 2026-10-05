@@ -1,10 +1,11 @@
-package com.neki.batch.notification.reader
+package com.neki.batch.notification.step
 
 import com.neki.domain.notification.models.MessageVariable
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.models.SendTarget
 import com.neki.domain.notification.repository.NotificationRepository
 import com.neki.domain.photo.repository.PhotoImageRepository
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -36,11 +37,26 @@ class WeeklyReminderTargetReader(
                     fcmToken = it.deviceToken,
                     variables = mapOf(
                         MessageVariable.RECENT_UPLOAD_DAY to
-                            lastUploadedAt[it.userId]?.let { at -> KoreanWeekday.recentUploadLabel(at.toLocalDate()) },
+                            lastUploadedAt[it.userId]?.let(::recentUploadLabel),
                     ),
                 )
             },
             nextCursor = SendTargetPage.cursorOf(page, size),
+        )
+    }
+
+    /** [최근 업로드 요일] 표기. "지난 토요일". 카피 톤을 바꾸려면 여기 한 곳 */
+    private fun recentUploadLabel(at: LocalDateTime): String = "지난 ${WEEKDAY.getValue(at.dayOfWeek)}"
+
+    companion object {
+        private val WEEKDAY: Map<DayOfWeek, String> = mapOf(
+            DayOfWeek.MONDAY to "월요일",
+            DayOfWeek.TUESDAY to "화요일",
+            DayOfWeek.WEDNESDAY to "수요일",
+            DayOfWeek.THURSDAY to "목요일",
+            DayOfWeek.FRIDAY to "금요일",
+            DayOfWeek.SATURDAY to "토요일",
+            DayOfWeek.SUNDAY to "일요일",
         )
     }
 }

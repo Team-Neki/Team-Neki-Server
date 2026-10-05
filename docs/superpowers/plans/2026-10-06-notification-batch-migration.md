@@ -42,7 +42,7 @@ Prefect deployment 3개 (cron)  -> k8s Job (neki-batch) --spring.batch.job.name=
 | Server | `domain/.../photo/repository/PhotoImageRepository.kt` (+adapter, `PhotoImageQueryRepository`) | 업로드 집계 |
 | Server | `modules/postgres/.../V35__create_notification_log_table.sql` | 편입 |
 | Server | `apps/batch/.../notification/job/NotificationPushJobConfig.kt` | 잡 3개 조립 |
-| Server | `apps/batch/.../notification/reader/{SendTargetReader,PagingSendTargetItemReader,KoreanWeekday,WeeklyReminderTargetReader,WeekendExploreTargetReader,HolidayExploreTargetReader}.kt` | 대상 조회 |
+| Server | `apps/batch/.../notification/step/{SendTargetReader,PagingSendTargetItemReader,WeeklyReminderTargetReader,WeekendExploreTargetReader,HolidayExploreTargetReader}.kt` | 대상 조회 |
 | Server | `apps/batch/.../notification/step/{PreparedNotification,NotificationItemProcessor,NotificationItemWriter}.kt` | 판정, 발송·적재 |
 | Server | `apps/batch/.../notification/holiday/{Holiday,HolidayCalendar}.kt`, `resources/holidays.csv` | 공휴일 |
 | Workflow | `flows/common/batch_job.py` | k8s Job 띄우기 (search-index 와 공유) |
@@ -1217,20 +1217,19 @@ git commit -m "feat: batch 가 notification·photo 어댑터와 Firebase 를 스
 ## Task 5 : Reader (오라클 O-C-4, O-C-5)
 
 **Files**
-- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/reader/SendTargetReader.kt`
-- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/reader/PagingSendTargetItemReader.kt`
-- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/reader/KoreanWeekday.kt`
-- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/reader/WeekendExploreTargetReader.kt`
-- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/reader/WeeklyReminderTargetReader.kt`
-- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/reader/HolidayExploreTargetReader.kt`
+- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/step/SendTargetReader.kt`
+- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/step/PagingSendTargetItemReader.kt`
+- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/step/WeekendExploreTargetReader.kt`
+- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/step/WeeklyReminderTargetReader.kt`
+- Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/step/HolidayExploreTargetReader.kt`
 
 검증은 Task 7 의 잡 E2E 가 한다 (Reader 는 포트 조합이라 단독 테스트의 값이 작다).
 
 - [ ] **Step 1: 계약과 페이징**
 
 ```kotlin
-// apps/batch/src/main/kotlin/com/neki/batch/notification/reader/SendTargetReader.kt
-package com.neki.batch.notification.reader
+// apps/batch/src/main/kotlin/com/neki/batch/notification/step/SendTargetReader.kt
+package com.neki.batch.notification.step
 
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.models.SendTarget
@@ -1262,8 +1261,8 @@ data class SendTargetPage(
 ```
 
 ```kotlin
-// apps/batch/src/main/kotlin/com/neki/batch/notification/reader/PagingSendTargetItemReader.kt
-package com.neki.batch.notification.reader
+// apps/batch/src/main/kotlin/com/neki/batch/notification/step/PagingSendTargetItemReader.kt
+package com.neki.batch.notification.step
 
 import com.neki.domain.notification.models.SendTarget
 import org.springframework.batch.item.ItemReader
@@ -1293,35 +1292,11 @@ class PagingSendTargetItemReader(
 }
 ```
 
-```kotlin
-// apps/batch/src/main/kotlin/com/neki/batch/notification/reader/KoreanWeekday.kt
-package com.neki.batch.notification.reader
-
-import java.time.DayOfWeek
-import java.time.LocalDate
-
-/** [최근 업로드 요일] 표기. "지난 토요일". 카피 톤을 바꾸려면 여기 한 곳 */
-internal object KoreanWeekday {
-
-    private val LABEL: Map<DayOfWeek, String> = mapOf(
-        DayOfWeek.MONDAY to "월요일",
-        DayOfWeek.TUESDAY to "화요일",
-        DayOfWeek.WEDNESDAY to "수요일",
-        DayOfWeek.THURSDAY to "목요일",
-        DayOfWeek.FRIDAY to "금요일",
-        DayOfWeek.SATURDAY to "토요일",
-        DayOfWeek.SUNDAY to "일요일",
-    )
-
-    fun recentUploadLabel(date: LocalDate): String = "지난 ${LABEL.getValue(date.dayOfWeek)}"
-}
-```
-
 - [ ] **Step 2: 잡별 Reader**
 
 ```kotlin
-// apps/batch/src/main/kotlin/com/neki/batch/notification/reader/WeekendExploreTargetReader.kt
-package com.neki.batch.notification.reader
+// apps/batch/src/main/kotlin/com/neki/batch/notification/step/WeekendExploreTargetReader.kt
+package com.neki.batch.notification.step
 
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.models.SendTarget
@@ -1343,14 +1318,15 @@ class WeekendExploreTargetReader(
 ```
 
 ```kotlin
-// apps/batch/src/main/kotlin/com/neki/batch/notification/reader/WeeklyReminderTargetReader.kt
-package com.neki.batch.notification.reader
+// apps/batch/src/main/kotlin/com/neki/batch/notification/step/WeeklyReminderTargetReader.kt
+package com.neki.batch.notification.step
 
 import com.neki.domain.notification.models.MessageVariable
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.models.SendTarget
 import com.neki.domain.notification.repository.NotificationRepository
 import com.neki.domain.photo.repository.PhotoImageRepository
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -1381,19 +1357,34 @@ class WeeklyReminderTargetReader(
                     fcmToken = it.deviceToken,
                     variables = mapOf(
                         MessageVariable.RECENT_UPLOAD_DAY to
-                            lastUploadedAt[it.userId]?.let { at -> KoreanWeekday.recentUploadLabel(at.toLocalDate()) },
+                            lastUploadedAt[it.userId]?.let(::recentUploadLabel),
                     ),
                 )
             },
             nextCursor = SendTargetPage.cursorOf(page, size),
         )
     }
+
+    /** [최근 업로드 요일] 표기. "지난 토요일". 카피 톤을 바꾸려면 여기 한 곳 */
+    private fun recentUploadLabel(at: LocalDateTime): String = "지난 ${WEEKDAY.getValue(at.dayOfWeek)}"
+
+    companion object {
+        private val WEEKDAY: Map<DayOfWeek, String> = mapOf(
+            DayOfWeek.MONDAY to "월요일",
+            DayOfWeek.TUESDAY to "화요일",
+            DayOfWeek.WEDNESDAY to "수요일",
+            DayOfWeek.THURSDAY to "목요일",
+            DayOfWeek.FRIDAY to "금요일",
+            DayOfWeek.SATURDAY to "토요일",
+            DayOfWeek.SUNDAY to "일요일",
+        )
+    }
 }
 ```
 
 ```kotlin
-// apps/batch/src/main/kotlin/com/neki/batch/notification/reader/HolidayExploreTargetReader.kt
-package com.neki.batch.notification.reader
+// apps/batch/src/main/kotlin/com/neki/batch/notification/step/HolidayExploreTargetReader.kt
+package com.neki.batch.notification.step
 
 import com.neki.batch.notification.holiday.Holiday
 import com.neki.domain.notification.models.MessageVariable
@@ -1442,7 +1433,7 @@ Expected: 종료 코드 0
 - [ ] **Step 4: 커밋**
 
 ```bash
-git add apps/batch/src/main/kotlin/com/neki/batch/notification/reader
+git add apps/batch/src/main/kotlin/com/neki/batch/notification/step
 git commit -m "feat: 알림 발송 대상 Reader 3종과 keyset 페이징을 둔다"
 ```
 
@@ -1591,12 +1582,12 @@ git commit -m "feat: 알림 발송 Processor(중복 판정)와 Writer(FCM, 이�
 
 **Files**
 - Create: `apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt`
-- Test: `apps/batch/src/test/kotlin/com/neki/batch/notification/NotificationPushJobsTest.kt`
+- Test: `apps/batch/src/test/kotlin/com/neki/batch/notification/job/NotificationPushJobsTest.kt`
 
 - [ ] **Step 1: 실패하는 E2E 테스트**
 
 ```kotlin
-// apps/batch/src/test/kotlin/com/neki/batch/notification/NotificationPushJobsTest.kt
+// apps/batch/src/test/kotlin/com/neki/batch/notification/job/NotificationPushJobsTest.kt
 package com.neki.batch.notification
 
 import com.neki.batch.notification.job.NotificationPushJobConfig
@@ -1861,10 +1852,10 @@ Expected: `NotificationPushJobConfig` 미해결로 실패
 package com.neki.batch.notification.job
 
 import com.neki.batch.notification.holiday.HolidayCalendar
-import com.neki.batch.notification.reader.HolidayExploreTargetReader
-import com.neki.batch.notification.reader.PagingSendTargetItemReader
-import com.neki.batch.notification.reader.WeekendExploreTargetReader
-import com.neki.batch.notification.reader.WeeklyReminderTargetReader
+import com.neki.batch.notification.step.HolidayExploreTargetReader
+import com.neki.batch.notification.step.PagingSendTargetItemReader
+import com.neki.batch.notification.step.WeekendExploreTargetReader
+import com.neki.batch.notification.step.WeeklyReminderTargetReader
 import com.neki.batch.notification.step.NotificationItemProcessor
 import com.neki.batch.notification.step.NotificationItemWriter
 import com.neki.batch.notification.step.PreparedNotification

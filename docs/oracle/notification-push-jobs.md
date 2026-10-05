@@ -42,8 +42,8 @@
 | O-C-1 | auto | `./gradlew :apps:batch:test -q` 종료코드 0, batch 테스트 수 >= baseline + 10 |
 | O-C-2 | auto | 잡 3개와 `RunIdIncrementer` : `grep -cE "WEEKLY_REMINDER_JOB\|WEEKEND_EXPLORE_JOB\|HOLIDAY_EXPLORE_JOB" apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt` >= 3, `grep -c "RunIdIncrementer()" 같은파일` = 1 (헬퍼 한 곳) |
 | O-C-3 | auto | 청크 크기 1 : `grep -c "CHUNK_SIZE = 1" apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt` = 1 |
-| O-C-4 | auto | Reader 가 동의 필터의 단일 출처를 거침 : `grep -rc "findPushAgreedAfter" apps/batch/src/main/kotlin/com/neki/batch/notification/reader \| grep -v ":0" \| wc -l` = 3 |
-| O-C-5 | auto | 커서가 거르기 전 페이지 기준 : `grep -c "nextCursor" apps/batch/src/main/kotlin/com/neki/batch/notification/reader/PagingSendTargetItemReader.kt` >= 1 |
+| O-C-4 | auto | Reader 가 동의 필터의 단일 출처를 거침 : `grep -rc "findPushAgreedAfter(" apps/batch/src/main/kotlin/com/neki/batch/notification/step \| grep -v ":0" \| wc -l` = 3 |
+| O-C-5 | auto | 커서가 거르기 전 페이지 기준 : `grep -c "nextCursor" apps/batch/src/main/kotlin/com/neki/batch/notification/step/PagingSendTargetItemReader.kt` >= 1 |
 | O-C-6 | auto | Writer 가 미설정을 삼키지 않음 : `grep -c "PUSH_SEND_FAILED" apps/batch/src/main/kotlin/com/neki/batch/notification/step/NotificationItemWriter.kt` >= 1, `grep -c "PUSH_NOT_CONFIGURED" 같은파일` = 0 (분기 없이 전파) 또는 rethrow |
 | O-C-7 | auto | hist 는 기존 서비스 경로 : `grep -c "recordSentPush" apps/batch/src/main/kotlin/com/neki/batch/notification/step/NotificationItemWriter.kt` = 1 |
 | O-C-8 | auto | 스캔 범위와 설정 : `grep -cE '"com.neki.domain.notification"\|"com.neki.domain.photo.infra.persist"\|"com.neki.config.firebase"' apps/batch/src/main/kotlin/com/neki/batch/NekiBatchApplication.kt` = 3, `grep -c "application-firebase.yaml" apps/batch/src/main/resources/application.yaml` = 1, `grep -c 'project(":modules:firebase")' apps/batch/build.gradle.kts` = 1 |

@@ -1,13 +1,13 @@
 package com.neki.batch.notification.job
 
 import com.neki.batch.notification.holiday.HolidayCalendar
-import com.neki.batch.notification.reader.HolidayExploreTargetReader
-import com.neki.batch.notification.reader.PagingSendTargetItemReader
-import com.neki.batch.notification.reader.WeekendExploreTargetReader
-import com.neki.batch.notification.reader.WeeklyReminderTargetReader
+import com.neki.batch.notification.step.HolidayExploreTargetReader
 import com.neki.batch.notification.step.NotificationItemProcessor
 import com.neki.batch.notification.step.NotificationItemWriter
+import com.neki.batch.notification.step.PagingSendTargetItemReader
 import com.neki.batch.notification.step.PreparedNotification
+import com.neki.batch.notification.step.WeekendExploreTargetReader
+import com.neki.batch.notification.step.WeeklyReminderTargetReader
 import com.neki.domain.notification.models.NotificationType
 import com.neki.domain.notification.models.SendTarget
 import com.neki.domain.notification.repository.NotificationLogRepository

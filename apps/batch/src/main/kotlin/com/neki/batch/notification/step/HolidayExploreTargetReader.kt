@@ -1,4 +1,4 @@
-package com.neki.batch.notification.reader
+package com.neki.batch.notification.step
 
 import com.neki.batch.notification.holiday.Holiday
 import com.neki.domain.notification.models.MessageVariable

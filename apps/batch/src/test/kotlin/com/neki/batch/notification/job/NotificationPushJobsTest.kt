@@ -1,6 +1,5 @@
-package com.neki.batch.notification
+package com.neki.batch.notification.job
 
-import com.neki.batch.notification.job.NotificationPushJobConfig
 import com.neki.core.code.ResultCode
 import com.neki.core.exception.BusinessException
 import com.neki.domain.notification.external.PushNotificationSender
