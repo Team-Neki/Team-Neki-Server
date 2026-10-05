@@ -218,7 +218,7 @@ where region_ids @> cast(array['1168000000'] as varchar(10)[]);
 
 ### 7. 메모리 추세 확인 (O-R-10)
 
-배포 후 30분 이상 지나 4단계와 같은 검색으로 `dictionary refreshed` 로그를 3건 이상 모읍니다. 사전에 법정동 전체 경로(2만여 건)와 지점이 들어가 갱신마다 이 행들을 다시 읽으므로, 이전 배포보다 힙이 한 단계 높은 것은 정상입니다. `heapUsedMb` 는 JVM 힙 전체 스냅샷이라 사전 크기 자체가 아니며 GC 시점에 따라 오르내립니다. 갱신을 거듭해도 계속 오르기만 하면 이전 사전이 회수되지 않는 것을 의심할 수 있습니다. staging 은 Prometheus 가 수집하지 않으므로 이 로그의 `heapUsedMb` 와 `kubectl get pod` 의 RESTARTS(OOM 재시작 여부)로 판단합니다. staging 파드의 최대 heap 은 247MB 입니다.
+배포 후 30분 이상 지나 4단계와 같은 검색으로 `dictionary refreshed` 로그를 3건 이상 모읍니다. 사전에 법정동 전체 경로(2만여 건)와 지점이 들어가 갱신마다 이 행들을 다시 읽으므로, 이전 배포보다 힙이 한 단계 높은 것은 정상입니다. `heapUsedMb` 는 JVM 힙 전체 스냅샷이라 사전 크기 자체가 아니며 GC 시점에 따라 오르내립니다. 갱신을 거듭해도 계속 오르기만 하면 이전 사전이 회수되지 않는 것을 의심할 수 있습니다. staging 은 Prometheus 가 수집하지 않으므로 이 로그의 `heapUsedMb` 와 `kubectl get pod` 의 RESTARTS(OOM 재시작 여부)로 판단합니다. staging 파드의 최대 heap 은 약 512MB 입니다 (컨테이너 limit 1Gi 의 50%, Dockerfile 의 `MaxRAMPercentage`).
 
 ### 8. 기록
 

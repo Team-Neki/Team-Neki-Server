@@ -42,4 +42,5 @@ ENV JASYPT_PASSWORD=""
 
 # 애플리케이션 실행
 # Layered JAR는 org.springframework.boot.loader.launch.JarLauncher를 사용
-ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+# heap 상한은 컨테이너 메모리 limit 의 50% (JVM 기본값 25% 로는 1Gi 에서 약 247MB)
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=50.0", "org.springframework.boot.loader.launch.JarLauncher"]
