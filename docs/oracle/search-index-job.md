@@ -44,7 +44,7 @@
 |---|---|---|
 | O-C-1 | auto | `./gradlew :apps:batch:test -q` 종료코드 0, batch 테스트 수 >= 13 : `grep -ho 'tests="[0-9]*"' apps/batch/build/test-results/test/*.xml \| grep -o '[0-9]*' \| paste -sd+ - \| bc` |
 | O-C-2 | auto | `grep -rn sampleJob --exclude-dir=build --exclude-dir=.git --exclude-dir=docs --exclude-dir=.worktrees . \| wc -l` = 0 |
-| O-C-3 | auto | `grep -c '"com.neki.domain.search"' apps/batch/src/main/kotlin/com/neki/batch/NekiBatchApplication.kt` = 1 |
+| O-C-3 | auto | `grep -c '"com.neki.domain.search"' apps/batch/src/main/kotlin/com/neki/batch/bootstrap/ComponentScanConfig.kt` = 1 |
 | O-C-4 | auto | 트랜잭션은 TaskletStep 에 맡긴다 : `grep -rc "@Transactional" apps/batch/src/main \| grep -v ":0" \| wc -l` = 0, `test ! -e apps/batch/src/main/kotlin/com/neki/batch/search/application` 종료코드 0 |
 | O-C-5 | auto | `grep -c "RunIdIncrementer()" apps/batch/src/main/kotlin/com/neki/batch/search/job/SearchIndexJobConfig.kt` = 1 |
 | O-C-6 | auto | `grep -c "distanceTo" domain/src/main/kotlin/com/neki/domain/search/models/SubwayStation.kt` >= 1 (기존 haversine 재사용, 도메인이 계산) |
