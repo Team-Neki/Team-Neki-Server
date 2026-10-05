@@ -1,0 +1,108 @@
+package com.neki.domain.search.infra.persist
+
+import com.neki.core.domain.vo.Pagination
+import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothEnrichedRepository
+import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothSearchRepository
+import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothSearchWriteRepository
+import com.neki.domain.search.infra.persist.jpa.JpaSubwayStationRepository
+import com.neki.domain.search.infra.persist.jpa.PhotoBoothSearchQueryRepository
+import com.neki.domain.search.models.PhotoBoothEnriched
+import com.neki.domain.search.models.PhotoBoothSearch
+import com.neki.domain.search.models.PhotoBoothSearchWrite
+import com.neki.domain.search.models.SearchTarget
+import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.models.UserLocation
+import com.neki.domain.search.repository.PhotoBoothSearchRepository
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.stereotype.Repository
+
+/**
+ * fileName       : PhotoBoothSearchRepositoryAdapter
+ * author         : koo
+ * date           : 2026. 9. 25.
+ * description    : PhotoBoothSearchRepository 의 JPA + JDBC 어댑터. 이름 맞바꾸기(DDL)만 JdbcTemplate 로 한다
+ */
+@Repository
+class PhotoBoothSearchRepositoryAdapter(
+    private val readRepository: JpaPhotoBoothSearchRepository,
+    private val writeRepository: JpaPhotoBoothSearchWriteRepository,
+    private val enrichedRepository: JpaPhotoBoothEnrichedRepository,
+    private val stationRepository: JpaSubwayStationRepository,
+    private val queryRepository: PhotoBoothSearchQueryRepository,
+    private val jdbcTemplate: JdbcTemplate,
+) : PhotoBoothSearchRepository {
+
+    // 운영은 PostgreSQL, 테스트는 H2. lock_timeout 과 ANALYZE 문법만 다르다
+    // H2 분기는 테스트 전용이다. 그래서 테스트는 운영과 다른 SQL 을 돈다. Testcontainers 로 옮기면 지운다
+    private val postgres: Boolean by lazy {
+        jdbcTemplate.dataSource!!.connection.use { it.metaData.databaseProductName == "PostgreSQL" }
+    }
+
+    override fun findAllEnriched(): List<PhotoBoothEnriched> = enrichedRepository.findAll()
+
+    override fun findAllStations(): List<SubwayStation> = stationRepository.findAll()
+
+    override fun countCurrent(): Long = readRepository.count()
+
+    override fun findByScope(scope: SearchTarget.Scope, brandIds: List<Long>?): List<PhotoBoothSearch> =
+        queryRepository.findByScope(scope, brandIds)
+
+    override fun findByBoothName(boothName: String): List<PhotoBoothSearch> = queryRepository.findByBoothName(boothName)
+
+    override fun findByKeyword(
+        keyword: String,
+        terms: List<List<String>>,
+        userLocation: UserLocation?,
+        pagination: Pagination,
+    ): List<PhotoBoothSearch> = queryRepository.findByKeyword(keyword, terms, userLocation, pagination)
+
+    override fun countByKeyword(keyword: String, terms: List<List<String>>): Long =
+        queryRepository.countByKeyword(keyword, terms)
+
+    override fun findAllCurrent(): List<PhotoBoothSearch> = readRepository.findAll()
+
+    override fun findIndexedBrandNames(): Map<Long, String> = queryRepository.findBrandNames()
+
+    // 트랜잭션은 호출자(TaskletStep 의 step 트랜잭션)가 연다. 여기서 열면 비우기와 채우기가 한 트랜잭션이라는 보장이 흐려진다
+    override fun replaceWrite(cards: List<PhotoBoothSearchWrite>) {
+        writeRepository.deleteAllStations()
+        writeRepository.deleteAllInBatch()
+        writeRepository.saveAll(cards)
+        // 역 연결(ElementCollection)은 flush 시점에 INSERT 되므로 통계를 내기 전에 밀어낸다.
+        // 갓 채운 테이블은 통계가 비어 있어 맞바꾼 직후 첫 질의가 GIN/GIST 대신 seq scan 을 고를 수 있다
+        writeRepository.flush()
+        jdbcTemplate.execute(
+            if (postgres) "ANALYZE ${PhotoBoothSearchWrite.TABLE}" else "ANALYZE TABLE ${PhotoBoothSearchWrite.TABLE}",
+        )
+    }
+
+    /**
+     * 두 테이블이 같은 이름을 동시에 가질 수 없어 _tmp 를 거쳐 셋이 돌아간다. 한 트랜잭션이라 밖에서는 _tmp 가 보이지 않는다.
+     * RENAME 은 ACCESS EXCLUSIVE 락이라 긴 조회 하나가 물려 있으면 뒤따르는 검색 요청까지 줄을 세운다.
+     * 각 RENAME 의 락 획득은 LOCK_TIMEOUT 만 기다리고 실패한다. PostgreSQL 에서는 실패 시 회전 전체가 롤백된다.
+     * 획득한 락은 swap() 반환이 아니라 TaskletStep 의 BATCH_STEP_EXECUTION 갱신과 커밋이 끝날 때 해제된다.
+     * lock_timeout 은 락 보유 시간을 제한하지 않는다. 커밋 경로에 외부 호출이나 추가 DB 작업을 넣지 않는다.
+     * staging/운영의 락 보유 시간과 검색 API 대기는 docs/oracle/search-index-job.md 의 O-R-7 로 확인한다.
+     * 인덱스·제약 이름은 테이블 객체를 따라가므로 이름이 오가도 부딪히지 않는다 (V33 이 슬롯 a/b 로 지었다).
+     */
+    override fun swap() {
+        jdbcTemplate.execute(
+            if (postgres) "SET LOCAL lock_timeout = '$LOCK_TIMEOUT'" else "SET LOCK_TIMEOUT $LOCK_TIMEOUT_MILLIS",
+        )
+        rotate(PhotoBoothSearch.TABLE, PhotoBoothSearchWrite.TABLE, TMP_TABLE)
+        rotate(PhotoBoothSearch.STATION_TABLE, PhotoBoothSearchWrite.STATION_TABLE, TMP_STATION_TABLE)
+    }
+
+    private fun rotate(read: String, write: String, tmp: String) {
+        jdbcTemplate.execute("ALTER TABLE $read RENAME TO $tmp")
+        jdbcTemplate.execute("ALTER TABLE $write RENAME TO $read")
+        jdbcTemplate.execute("ALTER TABLE $tmp RENAME TO $write")
+    }
+
+    companion object {
+        private const val LOCK_TIMEOUT = "1s"
+        private const val LOCK_TIMEOUT_MILLIS = 1000
+        private const val TMP_TABLE = "tb_photo_booth_search_tmp"
+        private const val TMP_STATION_TABLE = "tb_photo_booth_search_tmp_station"
+    }
+}

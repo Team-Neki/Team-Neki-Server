@@ -2,6 +2,7 @@ package com.neki.domain.media.infra.storage.s3
 
 import com.neki.config.aws.S3Properties
 import com.neki.domain.media.external.MediaStorage
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -19,9 +20,11 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner
 class S3MediaStorageAdapterConfig(private val s3Props: S3Properties) {
 
     @Bean
-    fun mediaStorage(s3Client: S3Client, s3Presigner: S3Presigner): MediaStorage = S3MediaStorageAdapter(
-        s3Client = s3Client,
-        s3Presigner = s3Presigner,
-        props = s3Props,
-    )
+    fun mediaStorage(s3Client: S3Client, s3Presigner: S3Presigner, meterRegistry: MeterRegistry): MediaStorage =
+        S3MediaStorageAdapter(
+            s3Client = s3Client,
+            s3Presigner = s3Presigner,
+            props = s3Props,
+            meterRegistry = meterRegistry,
+        )
 }

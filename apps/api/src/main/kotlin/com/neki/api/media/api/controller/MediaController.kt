@@ -4,6 +4,7 @@ import com.neki.api.common.api.document.RequiresSecurity
 import com.neki.api.media.api.dto.MediaConverter
 import com.neki.api.media.api.dto.MediaRequest
 import com.neki.api.media.api.dto.MediaResponse
+import com.neki.api.media.application.GenerateQrDumpUploadTicketUseCase
 import com.neki.api.media.application.GenerateUploadTicketUseCase
 import com.neki.api.media.application.dto.MediaResult
 import com.neki.core.api.dto.BaseResponse
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/media")
 class MediaController(
     private val generateUploadTicketUseCase: GenerateUploadTicketUseCase,
+    private val generateQrDumpUploadTicketUseCase: GenerateQrDumpUploadTicketUseCase,
     private val requestConverter: MediaConverter.RequestConverter,
     private val responseConverter: MediaConverter.ResponseConverter,
 ) {
@@ -70,6 +72,35 @@ class MediaController(
         val result: MediaResult.GenerateUploadTicket = generateUploadTicketUseCase.execute(command)
 
         val response: MediaResponse.UploadTicket = responseConverter.toUploadTicketResponse(result)
+
+        return BaseResponse(data = response)
+    }
+
+    @Operation(
+        summary = "QR 파싱 실패 HTML 덤프 업로드 ticket 발급",
+        description = """
+            QR 페이지 파싱에 실패했을 때 원본 HTML을 S3에 올리기 위한 ticket을 발급받습니다.
+            Request body는 없습니다.
+
+            Workflow:
+            1. 이 API를 호출하여 업로드 ticket 발급
+            2. uploadTicket URL로 raw HTML을 body에 담아 PUT 요청 (S3 직접 업로드). 별도 등록 API는 없습니다.
+
+            주의:
+            * PUT 요청의 Content-Type 헤더는 응답의 contentType 값과 정확히 같아야 합니다. 다르면 S3가 403을 반환합니다.
+            * 원본 QR URL은 HTML 맨 앞에 <!-- source: {qrUrl} --> 형태로 붙여 올려주세요.
+        """,
+    )
+    @PostMapping("/qr-dumps/upload")
+    fun generateQrDumpUploadTicket(
+        @AuthenticationPrincipal(expression = "id") ownerId: Long,
+    ): BaseResponse<MediaResponse.QrDumpUploadTicket> {
+        val command: MediaCommand.GenerateQrDumpUploadTicket =
+            requestConverter.toGenerateQrDumpUploadTicketCommand(ownerId)
+
+        val result: MediaResult.GenerateQrDumpUploadTicket = generateQrDumpUploadTicketUseCase.execute(command)
+
+        val response: MediaResponse.QrDumpUploadTicket = responseConverter.toQrDumpUploadTicketResponse(result)
 
         return BaseResponse(data = response)
     }

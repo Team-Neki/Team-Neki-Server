@@ -24,13 +24,13 @@ class PhotoBoothLocation(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name = "map_id", nullable = false)
+    @Column(name = "map_id", nullable = false, length = 128)
     val mapId: String,
 
     @Column(name = "brand_id", nullable = false)
     var brandId: Long,
 
-    @Column(name = "branch_name", nullable = false, length = 100)
+    @Column(name = "branch_name", nullable = false)
     var branchName: String,
 
     @Column(name = "address", nullable = false, length = 255)
@@ -38,6 +38,17 @@ class PhotoBoothLocation(
 
     @Column(name = "location", nullable = false, columnDefinition = "geometry(Point, 4326)")
     var location: Point,
+
+    /** 수집 원천 platform. source_idx 와 함께 세대를 넘어 안정적인 원천 키 (V34). 카카오 수집 지점은 null */
+    @Column(name = "source_platform", length = 32)
+    val sourcePlatform: String? = null,
+
+    @Column(name = "source_idx", length = 64)
+    val sourceIdx: String? = null,
+
+    /** 관리자 노출 중지. 수집 동기화(stores-sync)는 이 값을 바꾸지 않는다 */
+    @Column(name = "admin_hidden", nullable = false)
+    val adminHidden: Boolean = false,
 ) : BaseTimeEntity() {
 
     /**
@@ -49,4 +60,8 @@ class PhotoBoothLocation(
         this.address = address
         this.location = location
     }
+
+    /** 수집 원천 키. 카카오 수집·관리자 등록 지점은 없다 */
+    fun source(): PhotoBoothSource? =
+        if (sourcePlatform != null && sourceIdx != null) PhotoBoothSource(sourcePlatform, sourceIdx) else null
 }

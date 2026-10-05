@@ -8,6 +8,7 @@
 core/                    공유 커널. 모든 모듈이 의존할 수 있음
 domain/                  도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
 apps/api/                api + application + 교차 도메인 호출 어댑터. 실행 모듈
+apps/batch/              Spring Batch 잡. one-shot 실행 모듈 (Prefect 가 k8s Job 으로 띄움). domain 을 재사용하며 스캔 범위는 앱 클래스에 명시
 modules/                 외부 의존성 연결 설정 전용
 ```
 
@@ -174,6 +175,14 @@ UserTermAgreementHist.withdrawn(userId, termId)
 - 도입 안 함 : `savePhotos(photos)` 리스트가 그냥 통과함
 
 유스케이스의 리스트 매핑이 거슬린다면 그것은 일급 컬렉션이 아니라 `Assembler`로 해결할 문제입니다.
+
+## 모델 파일 구성
+
+`models`는 한 파일에 한 타입을 두는 것이 기본입니다. 다만 주인 타입 없이는 쓰이지 않는 타입은 주인 파일에 함께 둡니다. 같은 패키지 안에서 파일만 합치는 것이므로 import는 바뀌지 않습니다.
+
+- 일급 컬렉션 : 원소가 VO면 원소 파일에 함께 둠. e.g. `MediaMetadata.kt`의 `MediaMetadatas`, `MediaUploadTicket.kt`의 `MediaUploadTickets`. 원소가 엔티티면 분리함. e.g. `ActiveTerms`와 `Term`
+- enum : 엔티티와 자기 도메인 서비스·infra에서만 쓰면 엔티티 파일에 둠. e.g. `Media.kt`의 `MediaStatus`, `User.kt`의 `RoleType`. Command·Query·Request·Result나 도메인 인터페이스 시그니처에 드러나면 계약 값이므로 별도 파일로 둠. e.g. `UploadMethod`, `HeadCount`, `ProviderType`
+- 복합 키 : `@Embeddable` id는 엔티티 파일에 둠. e.g. `FavoritePhoto.kt`의 `FavoritePhotoId`
 
 ## Assembler 와 Converter
 

@@ -6,6 +6,7 @@ import com.neki.domain.user.infra.security.handler.CustomAccessDeniedHandler
 import com.neki.domain.user.infra.security.handler.CustomAuthenticationEntryPoint
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -31,8 +32,14 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
             .authorizeHttpRequests { it.anyRequest().permitAll() }
             .build()
 
+    /**
+     * Swagger UI / API docs 는 local, staging 에서만 공개한다.
+     * 운영에서는 이 체인을 등록하지 않아 Swagger 경로 요청이
+     * apiSecurityFilterChain 의 authenticated() 에 걸리도록 한다.
+     */
     @Bean
     @Order(1)
+    @Profile("!prod & !production")
     fun documentSecurityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http.securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
             .csrf { it.disable() }

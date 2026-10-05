@@ -17,6 +17,7 @@ Load this context when designing features, creating new domains, or refactoring.
 core/          공유 커널. annotation, code, exception, transaction, domain/vo
 domain/        도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
 apps/api/      api + application + (교차 도메인 호출 어댑터). 실행 모듈(bootJar)
+apps/batch/    Spring Batch 잡. one-shot 실행 모듈(bootJar). Prefect 가 k8s Job 으로 띄우며 --spring.batch.job.name 으로 잡 하나를 돌리고 종료. domain 을 재사용하며 스캔 범위는 앱 클래스에 명시
 modules/       외부 의존성 연결 설정 전용 (postgres, redis, aws, kakao, apple, discord, jasypt, firebase)
 ```
 
@@ -233,6 +234,16 @@ UserTermAgreementHist.withdrawn(userId, termId)
 - 미도입 : `List<NotificationHist>` (한 번 매핑하고 끝)
 
 유스케이스의 리스트 매핑이 거슬린다면 일급 컬렉션이 아니라 `Assembler` 로 해결할 문제다.
+
+---
+
+## 모델 파일 구성
+
+한 파일 한 타입이 기본이고, 주인 없이 안 쓰이는 타입만 주인 파일에 둔다. 같은 패키지라 import 는 안 바뀐다.
+
+- 일급 컬렉션 : 원소가 VO 면 원소 파일에 (`MediaMetadatas`, `MediaUploadTickets`), 엔티티면 분리 (`ActiveTerms` / `Term`)
+- enum : 엔티티·자기 도메인 서비스·infra 에서만 쓰면 엔티티 파일에 (`MediaStatus`, `RoleType`). Command·Query·Request·Result 나 도메인 인터페이스에 드러나면 별도 파일 (`UploadMethod`, `HeadCount`)
+- `@Embeddable` 복합 키 : 엔티티 파일에 (`FavoritePhotoId`)
 
 ---
 

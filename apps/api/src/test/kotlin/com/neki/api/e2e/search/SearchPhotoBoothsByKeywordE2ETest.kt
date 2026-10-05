@@ -1,0 +1,387 @@
+package com.neki.api.e2e.search
+
+import com.neki.core.code.ResultCode
+import com.neki.domain.map.models.Brand
+import com.neki.domain.search.models.PhotoBoothSearch
+import io.restassured.RestAssured
+import io.restassured.http.ContentType
+import org.hamcrest.Matchers.contains
+import org.hamcrest.Matchers.empty
+import org.hamcrest.Matchers.equalTo
+import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.not
+import org.hamcrest.Matchers.nullValue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.http.HttpStatus
+import org.springframework.test.context.ActiveProfiles
+
+/**
+ * fileName       : SearchPhotoBoothsByKeywordE2ETest
+ * author         : darren
+ * date           : 2026. 10. 1.
+ * description    : GET /api/search/completion/photo-booths E2E 테스트. 검색 색인(_read)을 조회한다.
+ *                  가까운 순 정렬은 PostgreSQL 전용 함수라 H2 에서는 검증하지 않는다 (위치를 줘도 오류 없이 동작하는 것만 확인)
+ */
+@ActiveProfiles("test")
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class SearchPhotoBoothsByKeywordE2ETest : SearchE2ETestBase() {
+
+    @LocalServerPort
+    private var port: Int = 0
+
+    private lateinit var accessToken: String
+
+    private lateinit var photoism: Brand
+
+    private lateinit var photoGray: Brand
+
+    private lateinit var photoismGangnam: PhotoBoothSearch
+
+    private var idx = 0
+
+    @BeforeEach
+    fun setUp() {
+        RestAssured.port = port
+        RestAssured.baseURI = "http://localhost"
+
+        val (_, token) = createTestUserAndToken()
+        accessToken = token
+
+        photoism = createBrand("포토이즘", "PHOTOISM", "PHOTOISM")
+        val lifeFourCut: Brand = createBrand("인생네컷", "LIFEFOURCUTS", "LIFE_FOUR_CUT")
+        val planB: Brand = createBrand("플랜비 스튜디오", "PLANB_STUDIO", "PLANB_STUDIO")
+        val photoSignature: Brand = createBrand("포토시그니처", "PHOTOSIGNATURE", "PHOTOSIGNATURE")
+        photoGray = createBrand("포토그레이", "PHOTOGRAY", "PHOTOGRAY")
+
+        photoismGangnam = index(photoism, "강남점", "서울 강남구", 127.0276, 37.4979)
+        index(photoism, "강남역2호점", "서울 강남구", 127.0280, 37.4985)
+        index(photoism, "홍대점", "서울 마포구", 126.9236, 37.5563)
+        index(lifeFourCut, "서울NC송파점", "서울 송파구", 127.1059, 37.5133)
+        index(lifeFourCut, "강남구청점", "서울 강남구", 127.0412, 37.5172)
+        index(planB, "강남점", "서울 강남구", 127.0290, 37.4990)
+        // 색인 잡이 수집한 `포토시그니처 고현점` 에서 브랜드명 접두를 뗀 지점명
+        index(photoSignature, "고현점", "경남 거제시", 128.6213, 34.8806)
+        // 낱말 검색: 지점명 중간에 `강남` (서초구), 주소만 강남구, 강남과 무관
+        index(photoGray, "서울강남점", "서울 서초구 서초대로77길 37", 127.0200, 37.4900)
+        index(photoGray, "대치동점", "서울 강남구 도곡로78길 6", 127.0600, 37.4950)
+        index(photoGray, "홍대점", "서울 마포구 와우산로 1", 126.9230, 37.5560)
+        // 지점명이 비었거나 브랜드명과 같은 행은 검색에서 빠진다
+        index(photoism, "", "서울 중구", 126.9780, 37.5665)
+        index(photoism, "포토 이즘", "서울 중구", 126.9782, 37.5667)
+
+        // 앱이 뜰 때 올린 사전에는 이 브랜드들이 없으므로 다시 올린다
+        queryUnderstandingService.reloadDictionary()
+    }
+
+    private fun index(
+        brand: Brand,
+        branchName: String,
+        address: String,
+        longitude: Double,
+        latitude: Double,
+    ): PhotoBoothSearch = createIndexedBooth(
+        brand = brand,
+        idx = "b${idx++}",
+        branchName = branchName,
+        longitude = longitude,
+        latitude = latitude,
+        regionIds = emptyList(),
+        address = address,
+    )
+
+    private fun get(vararg params: Pair<String, Any>) = RestAssured.given()
+        .header("Authorization", "Bearer $accessToken")
+        .queryParams(params.toMap())
+        .`when`()
+        .get("/api/search/completion/photo-booths")
+        .then()
+
+    @Nested
+    @DisplayName("성공 케이스")
+    inner class SuccessTests {
+
+        @Test
+        @DisplayName("지점명 접두로 걸린 것이 브랜드명, 지점명 순으로 먼저 오고 지점명 중간·주소로 걸린 것이 뒤에 온다")
+        fun givenBranchPrefix_whenSearch_thenPrefixMatchesComeFirst() {
+            get("keyword" to "강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+                .body("data.totalCount", equalTo(6))
+                .body("data.hasNext", equalTo(false))
+                .body("data.items[0].keyword", equalTo("인생네컷 강남구청점"))
+                .body("data.items[1].keyword", equalTo("포토이즘 강남역2호점"))
+                .body("data.items[2].keyword", equalTo("포토이즘 강남점"))
+                .body("data.items[3].keyword", equalTo("플랜비 스튜디오 강남점"))
+                .body("data.items[4].keyword", equalTo("포토그레이 서울강남점"))
+                .body("data.items[5].keyword", equalTo("포토그레이 대치동점"))
+        }
+
+        @Test
+        @DisplayName("지역과 브랜드를 섞어 순서 없이 적어도 낱말이 모두 맞는 부스를 찾는다")
+        fun givenRegionAndBrandWords_whenSearch_thenReturnsBoothsMatchingEveryWord() {
+            listOf("강남 포토그레이", "포토그레이 강남").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("data.totalCount", equalTo(2))
+                    .body("data.items[0].keyword", equalTo("포토그레이 서울강남점"))
+                    .body("data.items[1].keyword", equalTo("포토그레이 대치동점"))
+            }
+        }
+
+        @Test
+        @DisplayName("주소의 시도는 줄임말과 정식 이름 어느 쪽으로 적어도 맞는다")
+        fun givenFullSidoName_whenSearch_thenMatchesShortAddress() {
+            get("keyword" to "서울특별시 강남구 포토그레이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("포토그레이 대치동점"))
+        }
+
+        @Test
+        @DisplayName("브랜드명 접두로 찾으면 그 브랜드의 부스가 나온다")
+        fun givenBrandPrefix_whenSearch_thenReturnsBrandBooths() {
+            get("keyword" to "포토이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(3))
+                .body("data.items[0].keyword", equalTo("포토이즘 강남역2호점"))
+                .body("data.items[1].keyword", equalTo("포토이즘 강남점"))
+                .body("data.items[2].keyword", equalTo("포토이즘 홍대점"))
+        }
+
+        @Test
+        @DisplayName("`브랜드명 지점명` 으로 이어 적어도 찾는다")
+        fun givenBrandAndBranch_whenSearch_thenReturnsMatchedBooths() {
+            get("keyword" to "포토이즘 강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(2))
+                .body("data.items[0].keyword", equalTo("포토이즘 강남역2호점"))
+                .body("data.items[1].keyword", equalTo("포토이즘 강남점"))
+
+            get("keyword" to "포토이즘   강남점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("포토이즘 강남점"))
+        }
+
+        @Test
+        @DisplayName("브랜드명에 공백이 있어도 찾는다")
+        fun givenBrandNameWithSpace_whenSearch_thenReturnsBooths() {
+            get("keyword" to "플랜비 스")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("플랜비 스튜디오 강남점"))
+        }
+
+        @Test
+        @DisplayName("대소문자를 구분하지 않는다")
+        fun givenLowerCaseKeyword_whenSearch_thenIgnoresCase() {
+            get("keyword" to "서울nc")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("인생네컷 서울NC송파점"))
+        }
+
+        @Test
+        @DisplayName("색인의 브랜드명과 지점명을 이어 `브랜드명 지점명` 으로 내려준다")
+        fun givenBrandKeyword_whenSearch_thenReturnsBrandAndBranchName() {
+            get("keyword" to "포토시그니처")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("포토시그니처 고현점"))
+        }
+
+        @Test
+        @DisplayName("이름은 공백·`-`·`_` 를 무시하고 비교한다")
+        fun givenKeywordWithoutSpace_whenSearch_thenMatchesNameWithSpace() {
+            get("keyword" to "플랜비스")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].keyword", equalTo("플랜비 스튜디오 강남점"))
+        }
+
+        @Test
+        @DisplayName("1자 검색은 빈 결과다")
+        fun givenSingleCharKeyword_whenSearch_thenReturnsEmptyList() {
+            get("keyword" to "강")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+                .body("data.totalCount", equalTo(0))
+                .body("data.hasNext", equalTo(false))
+        }
+
+        @Test
+        @DisplayName("구분자를 빼면 1자인 검색어는 빈 결과다")
+        fun givenSeparatorKeyword_whenSearch_thenReturnsEmptyList() {
+            get("keyword" to "강_")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+                .body("data.totalCount", equalTo(0))
+        }
+
+        @Test
+        @DisplayName("위치를 주면 각 부스까지의 거리를 km 로, 소수 둘째 자리에서 반올림해 내려준다")
+        fun givenUserLocation_whenSearch_thenReturnsDistanceKm() {
+            // 가까운 순 정렬은 PostgreSQL 전용이라 순서 대신 항목별 거리만 본다
+            get("keyword" to "강남", "latitude" to 37.4979, "longitude" to 127.0276)
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(6))
+                .body("data.items.find { it.keyword == '포토이즘 강남점' }.distanceKm", equalTo(0.0f))
+                .body("data.items.find { it.keyword == '포토이즘 강남역2호점' }.distanceKm", equalTo(0.1f))
+                .body("data.items.find { it.keyword == '플랜비 스튜디오 강남점' }.distanceKm", equalTo(0.2f))
+                .body("data.items.find { it.keyword == '인생네컷 강남구청점' }.distanceKm", equalTo(2.5f))
+        }
+
+        @Test
+        @DisplayName("위치를 안 주면 거리는 null 이다")
+        fun givenNoUserLocation_whenSearch_thenDistanceIsNull() {
+            get("keyword" to "강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items[0].distanceKm", nullValue())
+        }
+
+        @Test
+        @DisplayName("지점명이 비었거나 브랜드명과 같은 행은 나오지 않는다")
+        fun givenBoothWithoutOwnBranchName_whenSearch_thenExcludesBooth() {
+            get("keyword" to "포토이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(3))
+                .body("data.items.keyword", not(hasItem("포토이즘 포토 이즘")))
+        }
+
+        @Test
+        @DisplayName("검색어에 브랜드가 없으면 기본 filterGroup 을 내려준다")
+        fun givenKeywordWithoutBrand_whenSearch_thenReturnsDefaultFilterGroup() {
+            get("keyword" to "강남")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+                .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+                // 요청 SortFilter 와 같은 타입이라 정하지 않은 order 는 필드째 빠진다
+                .body("data.filterGroup.sortFilter.containsKey('order')", equalTo(false))
+        }
+
+        @Test
+        @DisplayName("검색어에 브랜드가 있으면 그 브랜드를 건 filterGroup 을 내려준다")
+        fun givenKeywordWithBrand_whenSearch_thenReturnsBrandFilterGroup() {
+            listOf("포토그레이 강남", "강남 포토그레이").forEach { keyword ->
+                get("keyword" to keyword)
+                    .statusCode(HttpStatus.OK.value())
+                    .body("data.filterGroup.brandFilter.brands.brandId", contains(photoGray.id!!.toInt()))
+                    .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+            }
+        }
+
+        @Test
+        @DisplayName("`브랜드명 지점명` 으로 지점을 통째로 적어도 그 브랜드를 건 filterGroup 을 내려준다")
+        fun givenBoothKeyword_whenSearch_thenReturnsItsBrandFilterGroup() {
+            // 사전에서는 `포토이즘 강남점` 이 지점 항목으로 통째로 잡히지만 filterGroup 은 그 안의 브랜드를 건다
+            get("keyword" to "포토이즘 강남점")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands.brandId", contains(photoism.id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("결과가 없어도 filterGroup 을 내려준다")
+        fun givenNoResult_whenSearch_thenStillReturnsFilterGroup() {
+            get("keyword" to "강")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+                .body("data.filterGroup.sortFilter.type", equalTo("DEFAULT"))
+        }
+
+        @Test
+        @DisplayName("고른 keyword 와 filterGroup 을 그대로 부스 목록 API 에 보내면 그 지점이 나온다")
+        fun givenSelectedCompletion_whenSearchPhotoBooths_thenReturnsThatBooth() {
+            val mapBooth = createMapBooth(photoismGangnam)
+            val completion = get("keyword" to "포토이즘 강남점")
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .jsonPath()
+            val keyword: String = completion.getString("data.items[0].keyword")
+            val filterGroup: Map<String, Any> = completion.getMap("data.filterGroup")
+
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .contentType(ContentType.JSON)
+                .body(mapOf("keyword" to keyword, "filterGroup" to filterGroup))
+                .`when`()
+                .post("/api/search/photo-booths")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.id", contains(mapBooth.id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("페이징 - 첫 페이지는 hasNext 가 true 이고 totalCount 는 전체 건수다")
+        fun givenFirstPage_whenSearch_thenHasNextIsTrueAndTotalCountIsWhole() {
+            get("keyword" to "강남", "page" to 0, "size" to 3)
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.size()", equalTo(3))
+                .body("data.hasNext", equalTo(true))
+                .body("data.totalCount", equalTo(6))
+        }
+
+        @Test
+        @DisplayName("페이징 - 마지막 페이지는 hasNext 가 false 다")
+        fun givenLastPage_whenSearch_thenHasNextIsFalse() {
+            get("keyword" to "강남", "page" to 1, "size" to 4)
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.size()", equalTo(2))
+                .body("data.hasNext", equalTo(false))
+                .body("data.items[0].keyword", equalTo("포토그레이 서울강남점"))
+        }
+    }
+
+    @Nested
+    @DisplayName("실패 케이스")
+    inner class FailureTests {
+
+        @Test
+        @DisplayName("공백뿐인 검색어 - D-01")
+        fun givenBlankKeyword_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to " ")
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("위도와 경도를 바꿔 보내 위도가 범위를 벗어남 - D-01")
+        fun givenSwappedCoordinates_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "latitude" to 127.0276, "longitude" to 37.4979)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("위도와 경도 중 하나만 줌 - D-01")
+        fun givenOnlyLatitude_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "latitude" to 37.4979)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("size 가 범위를 벗어남 - D-01")
+        fun givenSizeOutOfRange_whenSearch_thenReturnsInvalidParameter() {
+            get("keyword" to "강남", "size" to 101)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("토큰 없음 - 403")
+        fun givenNoToken_whenSearch_thenReturnsForbidden() {
+            RestAssured.given()
+                .queryParam("keyword", "강남")
+                .`when`()
+                .get("/api/search/completion/photo-booths")
+                .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .body("resultCode", equalTo(ResultCode.MISSING_TOKEN_ERROR.code))
+        }
+    }
+}

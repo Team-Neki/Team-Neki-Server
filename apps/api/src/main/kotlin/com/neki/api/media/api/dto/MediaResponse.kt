@@ -32,4 +32,19 @@ object MediaResponse {
             val contentType: String,
         )
     }
+
+    @Schema(name = "QrDumpUploadTicketResponse")
+    data class QrDumpUploadTicket(
+        @field:Schema(description = "요청 Method", example = "PUT")
+        val method: String,
+        @field:Schema(description = "만료일자", example = "2026-10-02T07:35:00Z")
+        val expiresIn: Instant,
+        @field:Schema(
+            description = "Presigned URL",
+            example = "https://yapp-neki-staging-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/qr-dumps/...",
+        )
+        val uploadTicket: String,
+        @field:Schema(description = "PUT 요청의 Content-Type 헤더에 그대로 넣을 값", example = "text/html; charset=utf-8")
+        val contentType: String,
+    )
 }

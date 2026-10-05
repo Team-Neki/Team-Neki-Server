@@ -5,6 +5,7 @@ include(
     ":domain",
     ":apps:api",
     ":apps:admin",
+    ":apps:batch",
     ":modules:postgres",
     ":modules:redis",
     ":modules:aws",

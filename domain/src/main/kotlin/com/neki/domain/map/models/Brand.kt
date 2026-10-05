@@ -31,6 +31,10 @@ class Brand(
     @Column(name = "code", nullable = false, length = 30)
     var code: String,
 
+    // 검색 색인이 조인 키로 쓰는 Workflow Platform 값. 수집하지 않는 브랜드는 NULL 이다. V32 참조
+    @Column(name = "platform", length = 32)
+    var platform: String? = null,
+
     @Column(name = "media_id", nullable = true)
     var mediaId: Long? = null,
 

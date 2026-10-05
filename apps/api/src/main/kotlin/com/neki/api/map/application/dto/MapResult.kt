@@ -2,6 +2,7 @@ package com.neki.api.map.application.dto
 
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
+import com.neki.domain.map.models.PhotoBoothSource
 
 /**
  * fileName       : MapResult
@@ -24,4 +25,9 @@ object MapResult {
     )
 
     data class GetFavoriteMap(val locations: List<PhotoBoothLocationView>)
+
+    data class GetSourceLocations(val locations: List<SourceLocation>) {
+        /** 원천 키로 찾은 지점 id 와 사용자 즐겨찾기 여부 */
+        data class SourceLocation(val locationId: Long, val source: PhotoBoothSource, val favorite: Boolean)
+    }
 }
