@@ -40,7 +40,7 @@
 | id | 종류 | 판정 |
 |---|---|---|
 | O-C-1 | auto | `./gradlew :apps:batch:test -q` 종료코드 0, batch 테스트 수 >= baseline + 10 |
-| O-C-2 | auto | 잡 3개와 `RunIdIncrementer` : `grep -cE "WEEKLY_REMINDER_JOB\|WEEKEND_EXPLORE_JOB\|HOLIDAY_EXPLORE_JOB" apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt` >= 3, `grep -c "RunIdIncrementer()" 같은파일` = 1 (헬퍼 한 곳) |
+| O-C-2 | auto | 잡 3개와 `RunIdIncrementer` : `ls apps/batch/src/main/kotlin/com/neki/batch/notification/job/{WeeklyReminderJob,WeekendExploreJob,HolidayExploreJob}.kt` 종료코드 0, `grep -l "RunIdIncrementer()" apps/batch/src/main/kotlin/com/neki/batch/notification/job/*.kt \| wc -l` = 3 |
 | O-C-3 | auto | 커밋 단위 1건 (execute 1회 = 1건) : `grep -c "RepeatStatus.CONTINUABLE" apps/batch/src/main/kotlin/com/neki/batch/notification/tasklet/PushNotificationTasklet.kt` = 1, `grep -c "incrementReadCount" 같은파일` = 1 |
 | O-C-4 | auto | Reader 가 동의 필터의 단일 출처를 거침 : `grep -rc "findPushAgreedAfter(" apps/batch/src/main/kotlin/com/neki/batch/notification/tasklet \| grep -v ":0" \| wc -l` = 3 |
 | O-C-5 | auto | 커서가 거르기 전 페이지 기준 : `grep -c "nextCursor" apps/batch/src/main/kotlin/com/neki/batch/notification/tasklet/PushNotificationTasklet.kt` >= 1 |

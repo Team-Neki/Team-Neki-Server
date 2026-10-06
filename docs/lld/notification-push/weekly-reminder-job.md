@@ -64,7 +64,7 @@ limit 100
 ## 코드
 
 - `apps/batch/.../notification/tasklet/WeeklyReminderTargetReader.kt` (조건·변수·요일 표기)
-- Job 빈 `weeklyReminderJob`, Step `weeklyReminderStep` : `NotificationPushJobConfig`
+- Job 빈 `weeklyReminderJob`, Step `weeklyReminderStep`, tasklet 빈 : `apps/batch/.../notification/job/WeeklyReminderJob.kt`
 
 ## 수동 실행과 확인
 

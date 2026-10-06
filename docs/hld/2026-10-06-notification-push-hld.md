@@ -159,7 +159,7 @@ flowchart LR
 ### DEC-1. 잡은 3개, 종류는 잡 이름으로
 
 - Context : 세 발송은 tasklet 루프가 같고 대상 조건·변수·스케줄만 다르다
-- Decision : `weeklyReminderJob`, `weekendExploreJob`, `holidayExploreJob` 세 Job 빈을 두고, Reader 만 종류별 클래스로 나눈다. 판정·발송·적재는 `PushNotificationTasklet` 하나를 공유하고(execute 1회 = 1건 = 1 트랜잭션), Step 은 `NotificationPushStepConfig`, Job 은 `NotificationPushJobConfig` 가 조립한다 (search 와 같은 `job/` + `tasklet/`. JobConfig 에는 Job 빈만)
+- Decision : `weeklyReminderJob`, `weekendExploreJob`, `holidayExploreJob` 세 Job 빈을 두고, Reader 만 종류별 클래스로 나눈다. 판정·발송·적재는 `PushNotificationTasklet` 하나를 공유하고(execute 1회 = 1건 = 1 트랜잭션), Job·Step·tasklet 빈은 잡마다 파일 하나(`job/WeeklyReminderJob` 등)가 갖는다 (search 의 `SearchIndexJob` 과 같은 모양. `Config` 접미사 없음)
 - Alternatives : 잡 하나 + `type` 파라미터 / Notification 의 `NotificationStepFactory` 컴포넌트 그대로 / chunk 지향 Step(Reader·Processor·Writer, chunk=1)
 - Why : 잡 이름이 곧 발송 종류라 `BATCH_JOB_INSTANCE`, Prefect deployment, 실패 알림에서 한눈에 구분된다. 없는 잡 이름은 Boot 가 기동 시점에 거부한다. 종류를 더할 때 기존 Reader 의 `when` 을 고치는 대신 클래스를 더한다. chunk 는 커밋 단위가 1건이라 묶음 효과가 없고 Reader·Processor·Writer 와 @StepScope 빈 6개의 배선만 남아, 같은 커밋 단위를 주는 tasklet 으로 접었다
 - Trade-off : Job 빈과 Reader 클래스가 종류마다 하나씩 늘어난다
@@ -330,7 +330,7 @@ failure isolation 단위는 발송 1건입니다. 어디서 실패해도 이미 
 |---|---|---|
 | `domain/` 모델·정책·`NotificationProcessor` 와 단위 테스트 | 그대로 | 패키지명만 변경, 단언은 kotest matcher |
 | `domain/.../port/out/*` 6개 포트 | 대체 | `NotificationLogRepository`(신규), `NotificationRepository`·`PhotoImageRepository` 메서드 추가, `PushNotificationSender`(기존). 공휴일 포트 3개는 `CsvHolidayRepositoryAdapter` 하나 |
-| 잡 3개 + `NotificationStepFactory` | 재작성 | `NotificationPushJobConfig` + Reader 3개 |
+| 잡 3개 + `NotificationStepFactory` | 재작성 | `job/*Job.kt` 3개 + `PushNotificationTaskletFactory` + Reader 3개 |
 | `read/*` jOOQ 리더, `TargetReaderSupport`, `KoreanWeekday` | 재작성 | JPA/QueryDSL 포트 조합 |
 | `NotificationLogStoreAdapter`, `NotificationHistStoreAdapter`, `JooqConfig` | 대체·폐기 | JPA 어댑터 / `NotificationService.recordSentPush` / jOOQ 없음 |
 | `NotificationSendService`, `HolidaySyncService` | 흡수 | `PushNotificationTasklet` / `CsvHolidayRepositoryAdapter` |

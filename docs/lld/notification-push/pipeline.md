@@ -5,8 +5,9 @@
 ## 1. tasklet 루프
 
 ```text
-NotificationPushStepConfig       잡마다 Step 하나 = PushNotificationTasklet 하나 (@StepScope, 잡 파라미터 businessDate)
-PushNotificationTasklet.execute  1회 = 대상 1건
+job/{WeeklyReminder,WeekendExplore,HolidayExplore}Job   잡마다 파일 하나 : Job 빈 + Step 빈 + @StepScope tasklet 빈
+PushNotificationTaskletFactory.create                    공통 의존(이력, 발송 포트, hist)을 채워 tasklet 생성. 잡은 종류·날짜·Reader 만 넘김
+PushNotificationTasklet.execute                          1회 = 대상 1건
   1. 버퍼가 비면 SendTargetReader.readPage(cursor, 100) 를 당김. 소진이면 FINISHED
   2. notification_log 에 (userId, type, businessDate) 있으면 filter (NotificationProcessor.decide -> Skip)
   3. 없으면 톤 배정 + 문구 렌더 -> PushNotificationSender.send -> notification_log 적재 -> SUCCESS 면 tb_notification_hist 적재
@@ -18,7 +19,7 @@ PushNotificationTasklet.execute  1회 = 대상 1건
 - 건수 : tasklet 이 `StepContribution` 으로 올림. read = 버퍼에서 꺼낸 대상, filter = `ALREADY_SENT`, write = log 를 적재한 건(FAILED 포함). `BATCH_STEP_EXECUTION` 의 READ_COUNT / FILTER_COUNT / WRITE_COUNT
 - chunk 지향 Step 을 쓰지 않는 이유 : 커밋 단위가 1건이라 청크의 묶음 효과가 없고, Reader·Processor·Writer 와 @StepScope 빈 6개가 tasklet 하나로 접힘. search 잡과 같은 `job/` + `tasklet/` 모양 (HLD DEC-1)
 
-Step 은 `NotificationPushStepConfig`, Job 은 `NotificationPushJobConfig` 가 조립합니다 (search 와 같은 모양이며 JobConfig 에는 Job 빈만 둡니다). 잡마다 다른 것은 `SendTargetReader` 구현과 `NotificationType` 뿐입니다.
+Job, Step, tasklet 빈은 잡마다 파일 하나(`job/WeeklyReminderJob` 등)가 갖습니다 (search 의 `SearchIndexJob` 과 같은 모양). 공통 의존은 `PushNotificationTaskletFactory` 가 들고 있고, 잡마다 다른 것은 `SendTargetReader` 구현과 `NotificationType` 뿐입니다.
 
 ## 2. Reader 계약
 
@@ -130,8 +131,8 @@ java -jar neki-batch.jar --spring.batch.job.name=weekendExploreJob businessDate=
 
 | 관심사 | 위치 |
 |---|---|
-| Job 조립 (Job 빈만) | `apps/batch/src/main/kotlin/com/neki/batch/notification/job/NotificationPushJobConfig.kt` |
-| Step 조립, tasklet | `apps/batch/.../notification/tasklet/NotificationPushStepConfig.kt`, `PushNotificationTasklet.kt` |
+| 잡 (Job·Step·tasklet 빈) | `apps/batch/src/main/kotlin/com/neki/batch/notification/job/{WeeklyReminder,WeekendExplore,HolidayExplore}Job.kt` |
+| tasklet | `apps/batch/.../notification/tasklet/PushNotificationTasklet.kt`, `PushNotificationTaskletFactory.kt` |
 | Reader 계약 | `apps/batch/.../notification/tasklet/SendTargetReader.kt` |
 | 잡별 Reader | `apps/batch/.../notification/tasklet/{WeeklyReminder,WeekendExplore,HolidayExplore}TargetReader.kt` |
 | 공휴일 | `domain/.../notification/models/Holiday.kt`, `repository/HolidayRepository.kt`, `infra/csv/CsvHolidayRepositoryAdapter.kt`, `domain/src/main/resources/holidays.csv` |

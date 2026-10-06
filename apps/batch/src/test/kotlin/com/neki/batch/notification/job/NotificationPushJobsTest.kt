@@ -1,5 +1,6 @@
 package com.neki.batch.notification.job
 
+import com.neki.batch.notification.tasklet.PushNotificationTasklet
 import com.neki.core.code.ResultCode
 import com.neki.core.exception.BusinessException
 import com.neki.domain.notification.external.PushNotificationSender
@@ -78,15 +79,15 @@ class NotificationPushJobsTest {
     private lateinit var jobExplorer: JobExplorer
 
     @Autowired
-    @Qualifier(NotificationPushJobConfig.WEEKLY_REMINDER_JOB)
+    @Qualifier(WeeklyReminderJob.JOB_NAME)
     private lateinit var weeklyReminderJob: Job
 
     @Autowired
-    @Qualifier(NotificationPushJobConfig.WEEKEND_EXPLORE_JOB)
+    @Qualifier(WeekendExploreJob.JOB_NAME)
     private lateinit var weekendExploreJob: Job
 
     @Autowired
-    @Qualifier(NotificationPushJobConfig.HOLIDAY_EXPLORE_JOB)
+    @Qualifier(HolidayExploreJob.JOB_NAME)
     private lateinit var holidayExploreJob: Job
 
     @Autowired
@@ -232,7 +233,7 @@ class NotificationPushJobsTest {
     private fun launch(job: Job, businessDate: String = BUSINESS_DATE): JobExecution {
         val params: JobParameters = JobParametersBuilder(jobExplorer)
             .getNextJobParameters(job)
-            .addString(NotificationPushJobConfig.PARAM_BUSINESS_DATE, businessDate)
+            .addString(PushNotificationTasklet.PARAM_BUSINESS_DATE, businessDate)
             .toJobParameters()
         return jobLauncher.run(job, params)
     }

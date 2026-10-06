@@ -78,7 +78,7 @@ limit 100
 
 - `apps/batch/.../notification/tasklet/HolidayExploreTargetReader.kt`
 - `domain/.../notification/models/Holiday.kt`, `repository/HolidayRepository.kt`, `infra/csv/CsvHolidayRepositoryAdapter.kt`, `domain/src/main/resources/holidays.csv`
-- Job 빈 `holidayExploreJob`, Step `holidayExploreStep` : `NotificationPushJobConfig`
+- Job 빈 `holidayExploreJob`, Step `holidayExploreStep`, tasklet 빈 : `apps/batch/.../notification/job/HolidayExploreJob.kt`
 
 ## 수동 실행과 확인
 

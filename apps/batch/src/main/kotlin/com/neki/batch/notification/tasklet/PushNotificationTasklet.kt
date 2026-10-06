@@ -99,4 +99,9 @@ class PushNotificationTasklet(
             )
         }
     }
+
+    companion object {
+        /** Prefect 가 넘기는 잡 파라미터. 발송의 논리적 날짜 (businessDate=2026-10-06) */
+        const val PARAM_BUSINESS_DATE = "businessDate"
+    }
 }
