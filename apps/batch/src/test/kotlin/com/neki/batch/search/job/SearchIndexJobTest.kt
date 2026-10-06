@@ -47,7 +47,7 @@ class SearchIndexJobTest {
     private lateinit var jobExplorer: JobExplorer
 
     @Autowired
-    @Qualifier(SearchIndexJobConfig.JOB_NAME)
+    @Qualifier(SearchIndexJob.JOB_NAME)
     private lateinit var job: Job
 
     @Autowired
@@ -218,8 +218,8 @@ class SearchIndexJobTest {
     private fun launch(businessDate: String, force: Boolean? = null): JobExecution {
         val builder: JobParametersBuilder = JobParametersBuilder(jobExplorer)
             .getNextJobParameters(job)
-            .addString(SearchIndexJobConfig.PARAM_BUSINESS_DATE, businessDate)
-        force?.let { builder.addString(SearchIndexJobConfig.PARAM_FORCE, it.toString()) }
+            .addString(SearchIndexJob.PARAM_BUSINESS_DATE, businessDate)
+        force?.let { builder.addString(SearchIndexJob.PARAM_FORCE, it.toString()) }
         val params: JobParameters = builder.toJobParameters()
 
         return jobLauncher.run(job, params)

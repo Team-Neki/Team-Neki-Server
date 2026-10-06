@@ -1,6 +1,6 @@
 package com.neki.batch.search.tasklet
 
-import com.neki.batch.search.job.SearchIndexJobConfig
+import com.neki.batch.search.job.SearchIndexJob
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.repository.BrandRepository
 import com.neki.domain.search.models.PhotoBoothEnriched
@@ -39,7 +39,7 @@ class BuildSearchCardsTasklet(
     override fun execute(contribution: StepContribution, chunkContext: ChunkContext): RepeatStatus {
         val businessDate: LocalDate = businessDate(chunkContext)
         val force: Boolean =
-            chunkContext.stepContext.jobParameters[SearchIndexJobConfig.PARAM_FORCE]?.toString() == "true"
+            chunkContext.stepContext.jobParameters[SearchIndexJob.PARAM_FORCE]?.toString() == "true"
 
         // tb_brand.platform 이 NULL 인 브랜드는 수집 대상이 아니므로 매핑에서 뺀다
         val brands: Map<String, Brand> = brandRepository.findAll()
@@ -83,7 +83,7 @@ class BuildSearchCardsTasklet(
         contribution.incrementFilterCount((skippedNoCoordinate + skippedNoBrand.values.sum()).toLong())
         log.info(
             "{} 완료 (businessDate={}, indexed={}, stationLinks={}, skippedNoCoordinate={}, skippedNoBrand={}, current={})",
-            SearchIndexStepConfig.BUILD_STEP_NAME,
+            SearchIndexJob.BUILD_STEP_NAME,
             businessDate,
             cards.size,
             cards.sumOf { it.stations.size },
@@ -96,8 +96,8 @@ class BuildSearchCardsTasklet(
 
     private fun businessDate(chunkContext: ChunkContext): LocalDate {
         val raw: Any =
-            requireNotNull(chunkContext.stepContext.jobParameters[SearchIndexJobConfig.PARAM_BUSINESS_DATE]) {
-                "${SearchIndexJobConfig.PARAM_BUSINESS_DATE} 파라미터가 없습니다 (예: ${SearchIndexJobConfig.PARAM_BUSINESS_DATE}=2026-09-25)"
+            requireNotNull(chunkContext.stepContext.jobParameters[SearchIndexJob.PARAM_BUSINESS_DATE]) {
+                "${SearchIndexJob.PARAM_BUSINESS_DATE} 파라미터가 없습니다 (예: ${SearchIndexJob.PARAM_BUSINESS_DATE}=2026-09-25)"
             }
         return LocalDate.parse(raw.toString())
     }
