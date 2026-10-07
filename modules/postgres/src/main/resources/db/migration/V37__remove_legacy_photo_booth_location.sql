@@ -5,11 +5,8 @@
 -- 이 마이그레이션은 stores-sync 가 그 환경의 지점 마스터를 채운 뒤에 실행돼야 한다. 먼저 돌면 짝이 없어
 -- 찜을 옮기지 못하고 LEGACY 와 찜이 모두 지워진다.
 
--- 1. LEGACY 마다 같은 브랜드 COLLECTED 중 지점명이 맞는 것, 없으면 가장 가까운 것을 짝으로 고른다.
+-- 1. LEGACY 마다 같은 브랜드 COLLECTED 중 300m 안에서 지점명이 맞는 것, 없으면 가장 가까운 것을 짝으로 고른다.
 --    지점명은 공백과 끝의 '점' 을 떼고 COLLECTED 이름에 포함되는지로 본다 (COLLECTED 는 브랜드 접두가 붙어 옴).
---    거리는 후보를 거르지 않고 정렬에만 쓴다. 포함 비교라 지점명이 여러 COLLECTED 에 맞을 수 있고
---    (예: '강남' → '강남역점', '강남대로점'), 맞는 게 없을 때도 DISTINCT ON 이 한 행을 골라야 하므로
---    distance_m 정렬이 없으면 짝이 임의로 정해진다.
 CREATE TEMP TABLE legacy_match AS
 SELECT DISTINCT ON (lg.id)
        lg.id AS legacy_id,
@@ -21,6 +18,7 @@ FROM TB_PHOTO_BOOTH_LOCATION lg
 JOIN TB_PHOTO_BOOTH_LOCATION c
   ON c.source_type = 'COLLECTED'
  AND c.brand_id = lg.brand_id
+ AND ST_DistanceSphere(lg.location, c.location) <= 300
 WHERE lg.source_type = 'LEGACY'
 ORDER BY lg.id, name_match DESC, distance_m;
 
