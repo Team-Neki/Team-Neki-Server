@@ -22,11 +22,13 @@ object ClientLogRequest {
         @field:ArraySchema(
             arraySchema = Schema(
                 description = "로그 목록. 각 원소는 형식 제한이 없는 JSON 객체. " +
-                    "appVersion 은 로그가 발생한 시점의 앱 버전을 각 로그에 넣는다",
+                    "appVersion 은 로그가 발생한 시점의 앱 버전을 각 로그에 넣는다. " +
+                    "eventId 는 로그가 생길 때 한 번 만든 UUID 로, 재전송해도 바꾸지 않는다",
             ),
             schema = Schema(
                 type = "object",
-                example = """{"appVersion":"1.4.0","level":"ERROR","message":"photo upload failed",""" +
+                example = """{"eventId":"0f8b6c2e-3d4a-4f5b-9c1d-2e7a8b9c0d1e","appVersion":"1.4.0",""" +
+                    """"level":"ERROR","message":"photo upload failed",""" +
                     """"occurredAt":"2026-10-02T10:00:00Z"}""",
             ),
         )
