@@ -19,6 +19,10 @@ import org.junit.jupiter.api.assertThrows
 import software.amazon.awssdk.services.firehose.FirehoseClient
 import software.amazon.awssdk.services.firehose.model.PutRecordBatchRequest
 import software.amazon.awssdk.services.firehose.model.PutRecordBatchResponse
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 @DisplayName("FirehoseClientLogAdapter")
 class FirehoseClientLogAdapterTest {
@@ -89,6 +93,37 @@ class FirehoseClientLogAdapterTest {
         val ex = assertThrows<BusinessException> { adapter.send(command(mapOf("a" to 1), mapOf("b" to 2))) }
 
         assertEquals(ResultCode.LOG_SEND_FAILED, ex.resultCode)
+    }
+
+    @Test
+    @DisplayName("동시 전송이 상한(20)에 차면 Firehose 를 부르지 않고 LOG_SEND_FAILED 를 던지고, 전송이 끝나면 자리를 돌려준다")
+    fun rejectsWhenTooManyInFlight() {
+        val maxInFlight = 20
+        val entered = CountDownLatch(maxInFlight)
+        val release = CountDownLatch(1)
+        every { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) } answers {
+            entered.countDown()
+            release.await(5, TimeUnit.SECONDS)
+            PutRecordBatchResponse.builder().failedPutCount(0).build()
+        }
+        val pool = Executors.newFixedThreadPool(maxInFlight)
+
+        try {
+            val sending = List(maxInFlight) { pool.submit(Callable { adapter.send(command(mapOf("seq" to it))) }) }
+            assertTrue(entered.await(5, TimeUnit.SECONDS))
+
+            val ex = assertThrows<BusinessException> { adapter.send(command(mapOf("seq" to -1))) }
+            assertEquals(ResultCode.LOG_SEND_FAILED, ex.resultCode)
+
+            release.countDown()
+            sending.forEach { it.get(5, TimeUnit.SECONDS) }
+        } finally {
+            release.countDown()
+            pool.shutdownNow()
+        }
+
+        adapter.send(command(mapOf("seq" to maxInFlight)))
+        verify(exactly = maxInFlight + 1) { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) }
     }
 
     @Test

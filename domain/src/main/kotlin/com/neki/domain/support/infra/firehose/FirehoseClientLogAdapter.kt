@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.firehose.model.PutRecordBatchResponse
 import software.amazon.awssdk.services.firehose.model.Record
 import java.io.ByteArrayOutputStream
 import java.time.Instant
+import java.util.concurrent.Semaphore
 
 /**
  * fileName       : FirehoseClientLogAdapter
@@ -41,7 +42,13 @@ class FirehoseClientLogAdapter(
         // PutRecordBatch 한도. 레코드 수는 로그 수(최대 500, 요청 검증) 이하라 따로 보지 않는다
         const val MAX_RECORD_BYTES = 1_000 * 1024
         const val MAX_BATCH_BYTES = 4 * 1024 * 1024
+
+        // 로그 전송이 동시에 붙잡을 수 있는 Tomcat 스레드 수 (pod 당). Firehose 가 느려져 전송마다 타임아웃(5초)까지
+        // 걸려도 기본 200개 중 나머지는 다른 API 몫으로 남긴다
+        const val MAX_IN_FLIGHT = 20
     }
+
+    private val inFlight = Semaphore(MAX_IN_FLIGHT)
 
     override fun send(command: ClientLogCommand.Collect) {
         val receivedAt: String = Instant.now().toString()
@@ -57,11 +64,19 @@ class FirehoseClientLogAdapter(
             .records(pack(lines).map { Record.builder().data(SdkBytes.fromByteArray(it)).build() })
             .build()
 
+        // 자리가 없으면 기다리지 않고 재시도 대상으로 끊는다. 클라이언트가 배치를 들고 있다가 나중에 다시 보낸다
+        if (!inFlight.tryAcquire()) {
+            log.warn("Firehose putRecordBatch skipped: stream={}, inFlight={}", deliveryStream, MAX_IN_FLIGHT)
+            throw BusinessException(ResultCode.LOG_SEND_FAILED)
+        }
+
         val response: PutRecordBatchResponse = try {
             firehoseClient.putRecordBatch(request)
         } catch (e: SdkException) {
             log.error("Firehose putRecordBatch failed: stream={}, logs={}", deliveryStream, lines.size, e)
             throw BusinessException(ResultCode.LOG_SEND_FAILED)
+        } finally {
+            inFlight.release()
         }
 
         if (response.failedPutCount() > 0) {
