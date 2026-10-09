@@ -1,4 +1,4 @@
-# batch 이미지를 GHCR 에 올리고 GitOps 레포의 overlays/prefect/images.env 태그를 갱신한다.
+# batch 이미지를 GHCR 에 올리고 선택한 환경의 GitOps images.env 태그를 갱신한다.
 #
 # batch 는 상주 Deployment 가 없다. Prefect flow 가 k8s Job 으로 이 이미지를 띄우며, 어느 태그를 쓸지는
 # GitOps 의 images.env(NEKI_BATCH_IMAGE) 가 정한다. 여기서 그 줄을 바꾸면 ArgoCD 가 ConfigMap 을 갱신하고
@@ -13,12 +13,13 @@
 #
 # api 배포(deploy-api-staging.yml, deploy-api-prod.yml)와는 별개다. 그쪽은 Docker Hub 와 Deployment 매니페스트를 쓴다.
 # main 머지 시 자동 배포하지 않는다. Actions > Deploy Batch > Run workflow 로만 실행한다.
-# 머지 전 브랜치를 올려 보려면 ref 에 브랜치명을 적는다. :main 태그는 main 을 배포할 때만 옮긴다.
+# 머지 전 브랜치를 올려 보려면 environment=stg 와 ref 에 브랜치명을 적는다.
+# :main 태그는 main 을 배포할 때만 옮기고 :stg/:prod 는 환경별 최신 빌드를 가리킨다.
 # batch 는 Flyway validate 만 하므로(NekiBatchApplication), 브랜치에만 있는 마이그레이션이 운영 DB 에 적용되지는
 # 않고 그 Job 이 "resolved migration not applied" 로 실패한다. 마이그레이션이 있는 변경은 api 배포 뒤에 올린다.
 #
 # 사전 준비 (Team-Neki-GitOps)
-# - overlays/prefect/images.env 에 `NEKI_BATCH_IMAGE=ghcr.io/team-neki/neki-batch:<tag>` 한 줄
+# - 두 overlay 의 images.env 에 `NEKI_BATCH_IMAGE=ghcr.io/team-neki/neki-batch:<tag>` 한 줄씩
 # - kustomization 의 configMapGenerator(neki-images, envs: [images.env]) 와 base job template 의 envFrom
 # - 첫 push 뒤 GHCR 패키지 neki-batch 를 public 으로 전환 (클러스터에 pull secret 이 없다)
 name: Deploy Batch (GHCR + GitOps)
@@ -26,6 +27,12 @@ name: Deploy Batch (GHCR + GitOps)
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: "Prefect batch 배포 환경"
+        type: choice
+        options: [stg, prod]
+        default: stg
+        required: true
       ref:
         description: "빌드해 배포할 브랜치/태그/sha. 비우면 이 워크플로를 실행한 브랜치"
         required: false
@@ -44,7 +51,7 @@ concurrency:
 env:
   IMAGE: ghcr.io/team-neki/neki-batch
   GITOPS_REPO: Team-Neki/Team-Neki-GitOps
-  GITOPS_PATH: overlays/prefect/images.env
+  GITOPS_PATH: ${{ inputs.environment == 'stg' && 'overlays/prefect-stg/images.env' || 'overlays/prefect/images.env' }}
 
 jobs:
   preflight:
@@ -133,17 +140,22 @@ jobs:
         id: tag
         env:
           INPUT_REF: ${{ inputs.ref }}
+          DEPLOY_ENV: ${{ inputs.environment }}
         run: |
           VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{print $2}')
           SHA=$(git rev-parse --short=7 HEAD)
           REF="${INPUT_REF:-$GITHUB_REF_NAME}"
           REF="${REF#refs/heads/}"
+          if [ "$DEPLOY_ENV" = "prod" ] && [ "$REF" != "main" ]; then
+            echo "::error::prod 에는 main 만 배포할 수 있다. 브랜치 테스트는 stg 를 선택한다."
+            exit 1
+          fi
           echo "tag=${VERSION}-${SHA}" >> "$GITHUB_OUTPUT"
           echo "ref=${REF}" >> "$GITHUB_OUTPUT"
           if [ "$REF" = "main" ]; then
-            echo "tags=${IMAGE}:${VERSION}-${SHA},${IMAGE}:main" >> "$GITHUB_OUTPUT"
+            echo "tags=${IMAGE}:${VERSION}-${SHA},${IMAGE}:main,${IMAGE}:${DEPLOY_ENV}" >> "$GITHUB_OUTPUT"
           else
-            echo "tags=${IMAGE}:${VERSION}-${SHA}" >> "$GITHUB_OUTPUT"
+            echo "tags=${IMAGE}:${VERSION}-${SHA},${IMAGE}:${DEPLOY_ENV}" >> "$GITHUB_OUTPUT"
             echo "::notice::main 이 아닌 '${REF}' 를 배포한다. :main 태그는 옮기지 않는다. 되돌리려면 ref 를 비우고 main 에서 다시 실행."
           fi
 
@@ -219,7 +231,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          msg="chore(prefect): update neki-batch image to ${TAG}"
+          msg="chore(prefect-${{ inputs.environment }}): update neki-batch image to ${TAG}"
           # 브랜치 배포는 GitOps 이력에서 구분되게 남긴다. 다음 main 배포가 덮는다
           [ "$REF" = "main" ] || msg="$msg (from ${REF}, 머지 전 테스트 배포)"
           git commit -am "$msg"
