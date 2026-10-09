@@ -1,5 +1,6 @@
 -- BACKEND-228: 지점 원천 키의 platform 을 Workflow Platform 값(LIFE_FOUR_CUT 등)에서 tb_brand.code(LIFEFOURCUTS 등)로 바꾼다.
--- V32 가 두 값을 잇던 tb_brand.platform 은 매핑이 필요 없어지므로 지운다.
+-- V32 가 두 값을 잇던 tb_brand.platform 은 더 쓰지 않는다. 롤링 배포 중 옛 pod 가 Brand 를 읽을 때 이 컬럼을 SELECT 하므로
+-- 여기서는 지우지 않고, 이 배포가 끝난 뒤 다음 마이그레이션에서 지운다.
 -- 옛 값 -> code 매핑은 tb_brand.platform 자체에서 읽으므로 환경마다 code 가 달라도 그 환경의 code 로 바뀐다.
 -- Workflow(collect/enrich/stores-sync)와 서버 색인 배치를 멈춘 상태에서 실행하고, Platform 값을 code 로 바꾼 Workflow 를 함께 배포해야 한다.
 -- Workflow 를 먼저 다시 돌리면 stores-sync 가 옛 원천 키로 지점을 새로 만든다.
@@ -43,8 +44,7 @@ END $$;
 
 DROP TABLE platform_to_code;
 
--- 4. 매핑 컬럼 제거 (uk_brand_platform 도 함께 지워진다)
-ALTER TABLE TB_BRAND DROP COLUMN platform;
+COMMENT ON COLUMN TB_BRAND.platform IS '사용 안 함 (BACKEND-228). 원천 키는 code 를 쓴다. 다음 마이그레이션에서 삭제';
 
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.source_platform IS '수집 원천 브랜드 코드 (tb_brand.code). source_idx와 함께 원천 식별자';
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.map_id IS 'COLLECTED/MANUAL 은 source:<brand code>:<idx>. 원천 매칭은 source 컬럼 사용';
