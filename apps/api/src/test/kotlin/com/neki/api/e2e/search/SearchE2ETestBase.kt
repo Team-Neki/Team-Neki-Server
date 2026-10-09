@@ -90,8 +90,7 @@ abstract class SearchE2ETestBase : E2ETestBase() {
         ),
     )
 
-    protected fun createBrand(name: String, code: String, platform: String? = null): Brand =
-        brandRepository.save(Brand(name = name, code = code, platform = platform))
+    protected fun createBrand(name: String, code: String): Brand = brandRepository.save(Brand(name = name, code = code))
 
     /**
      * 색인 잡이 만든 것과 같은 검색 색인 행(_read). branchName 은 브랜드명 접두를 뗀 값을 준다.
@@ -108,7 +107,7 @@ abstract class SearchE2ETestBase : E2ETestBase() {
         address: String = "서울 강남구 $branchName",
     ): PhotoBoothSearch = photoBoothSearchRepository.save(
         PhotoBoothSearch(
-            platform = brand.platform!!,
+            platform = brand.code,
             idx = idx,
             brandId = brand.id!!,
             brandName = brand.name,
@@ -159,8 +158,8 @@ abstract class SearchE2ETestBase : E2ETestBase() {
      * 강남구청역 7호선에 딸린 부스는 없다. 사용자는 포토이즘 강남1호점을 즐겨찾기했다.
      */
     protected inner class GangnamBooths(userId: Long) {
-        val photoism: Brand = createBrand("포토이즘", "PHOTOISM", "PHOTOISM")
-        val lifeFourCut: Brand = createBrand("인생네컷", "LIFEFOURCUTS", "LIFE_FOUR_CUT")
+        val photoism: Brand = createBrand("포토이즘", "PHOTOISM")
+        val lifeFourCut: Brand = createBrand("인생네컷", "LIFEFOURCUTS")
 
         private val gangnamStation: SubwayStation = createSubwayStation("강남", "2호선", 127.0276, 37.4979)
 
