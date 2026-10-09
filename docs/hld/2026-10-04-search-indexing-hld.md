@@ -207,6 +207,7 @@ flowchart LR
 - Why : 브랜드 추가·변경을 배포 없이 데이터로 맞출 수 있음
 - Trade-off : platform 을 채우지 않은 브랜드는 조용히 빠질 수 있음 (경고 로그로만 드러남)
 - Consequence : 새 브랜드를 수집하면 `tb_brand.platform` 을 함께 채워야 검색에 나옴
+- Superseded (BACKEND-228, V38) : 수집 쪽 platform 값을 `tb_brand.code` 로 바꾸고 `tb_brand.platform` 을 지웠다. 색인은 `tb_brand.code` 로 조인한다. 그래서 운영 중 브랜드 code 를 바꾸면 수집 원천 키와 어긋난다
 
 ## 5. Data / Index Dependencies
 
