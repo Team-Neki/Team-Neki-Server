@@ -37,7 +37,7 @@ data class DictionaryEntry(val name: String, val target: SearchTarget)
 
 /**
  * 검색어 안에서 인식한 엔티티. [start, end) 는 정규화 검색어 안의 문자 범위.
- * 서로 다른 범위는 겹치지 않고, 한 범위에 대상이 여럿일 수 있다 (e.g. 강남역은 노선마다 하나).
+ * 서로 다른 범위는 겹치지 않고, 한 범위에 대상이 여럿일 수 있다 (e.g. 브랜드명·지점명이 같은 두 지점).
  * 지점(BRANCH)은 두 가지다. 부스 자동완성 keyword 로 찾은 지점은 target 이 Booth 이고,
  * 자유 검색어 속 지점명 조각은 어느 지점인지 모르므로 target 이 없다.
  */
