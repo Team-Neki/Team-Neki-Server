@@ -51,7 +51,7 @@ concurrency:
 env:
   IMAGE: ghcr.io/team-neki/neki-batch
   GITOPS_REPO: Team-Neki/Team-Neki-GitOps
-  GITOPS_PATH: ${{ inputs.environment == 'stg' && 'overlays/prefect-stg/images.env' || 'overlays/prefect/images.env' }}
+  GITOPS_PATH: ${{ inputs.environment == 'prod' && 'overlays/prefect/images.env' || 'overlays/prefect-stg/images.env' }}
 
 jobs:
   preflight:
@@ -59,6 +59,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check deployment environment
+        env:
+          DEPLOY_ENV: ${{ inputs.environment }}
+        run: |
+          if [ "$DEPLOY_ENV" != "stg" ] && [ "$DEPLOY_ENV" != "prod" ]; then
+            echo "::error::배포 환경은 stg 또는 prod 여야 한다."
+            exit 1
+          fi
+
       # 없는 ref 를 적으면 checkout 이 "exit code 128" 로만 끝나 원인이 안 보인다.
       # 브랜치/태그/sha 중 하나로 풀리는지 먼저 확인한다
       - name: Check ref exists
