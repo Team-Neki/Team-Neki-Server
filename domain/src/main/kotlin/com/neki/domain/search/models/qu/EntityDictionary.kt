@@ -10,7 +10,7 @@ import com.neki.domain.search.service.qu.SearchNormalizer
  * fileName       : EntityDictionary
  * author         : koo
  * date           : 2026. 9. 19.
- * description    : NER 이 쓰는 사전. 정규화한 이름 -> 사전 항목. 한 키에 항목이 여럿일 수 있다 (e.g. 강남역은 노선마다 하나).
+ * description    : NER 이 쓰는 사전. 정규화한 이름 -> 사전 항목. 한 키에 항목이 여럿일 수 있다 (e.g. 브랜드명·지점명이 같은 두 지점).
  *   정규화 결과가 빈 이름은 버리고, 같은 키의 같은 대상은 하나만 남긴다. 만든 뒤에는 바뀌지 않는다.
  */
 class EntityDictionary(entries: List<DictionaryEntry>) {
@@ -44,13 +44,12 @@ class EntityDictionary(entries: List<DictionaryEntry>) {
     fun find(key: String): List<DictionaryEntry> = entriesByKey[key].orEmpty()
 
     companion object {
-        private const val DISTRICT_SUFFIX = "구"
-
         /**
-         * 사전 이름 규칙. 자유 검색어의 지원 범위는 검색 정책 1장(서울 자치구, 지하철역)을 따르고,
-         * 자동완성 keyword(지역 전체 경로, `역명역 노선명`, 부스 `브랜드명 지점명`)도 넣어 NER 이 longest match 로 그 하나를 고르게 한다.
-         * - 지역 : 시군구 이하 법정동의 전체 경로(서울특별시 강남구). 서울 자치구는 이름과 줄임말도 (강남구, 강남). 줄임말이 한 글자가 되면(중구 -> 중) 넣지 않는다
-         * - 역 : `역명역` 과 `역명역 노선명`. 노선마다 한 항목이라 `강남역` 은 2호선과 신분당선을 모두, `강남역 2호선` 은 2호선만 가리킨다
+         * 사전 이름 규칙. 통합검색이 내려주는 후보 값과 브랜드 이름만 넣는다. 목록·필터 API 는 고른 후보 값을 받으므로
+         * 사전은 그 값을 대상 하나로 되돌리면 된다. `강남`, `강남역` 같은 이름 조각은 뜻이 여럿이라(강남구·강남동, 양평역 두 곳)
+         * 넣지 않고, 어느 것인지는 통합검색에서 사용자가 고른다 (검색 정책 6장).
+         * - 지역 : 시군구 이하 법정동의 전체 경로 (서울특별시 강남구, 경상남도 진주시 강남동)
+         * - 역 : `역명역 노선명` (강남역 2호선)
          * - 지점 : 검색 색인의 `브랜드명 지점명`
          * - 브랜드 : 검색 색인에 있는 브랜드 이름
          */
@@ -60,17 +59,11 @@ class EntityDictionary(entries: List<DictionaryEntry>) {
             brandNames: Map<Long, String>,
             booths: List<PhotoBoothSearch>,
         ): EntityDictionary {
-            val regionEntries: List<DictionaryEntry> = regions.flatMap { region ->
-                val short: String = region.leafName.removeSuffix(DISTRICT_SUFFIX)
-                val districtNames: List<String> =
-                    listOf(region.leafName, short).filter { region.isSeoulDistrict && it.length > 1 }
-                (listOf(region.fullName) + districtNames).map {
-                    DictionaryEntry(it, SearchTarget.Region(code = region.code))
-                }
+            val regionEntries: List<DictionaryEntry> = regions.map {
+                DictionaryEntry(it.fullName, SearchTarget.Region(code = it.code))
             }
-            val stationEntries: List<DictionaryEntry> = stations.flatMap {
-                val target = SearchTarget.Station(name = it.name, lineName = it.lineName)
-                listOf(DictionaryEntry(it.nameWithSuffix, target), DictionaryEntry(it.keyword, target))
+            val stationEntries: List<DictionaryEntry> = stations.map {
+                DictionaryEntry(it.keyword, SearchTarget.Station(name = it.name, lineName = it.lineName))
             }
             val boothEntries: List<DictionaryEntry> = booths.map {
                 DictionaryEntry("${it.brandName} ${it.branchName}", SearchTarget.Booth(it.platform, it.idx))

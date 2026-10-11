@@ -177,18 +177,18 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
-        @DisplayName("자치구 + 브랜드 검색어 - 순서와 무관하게 그 자치구의 그 브랜드만 반환한다")
+        @DisplayName("지역 keyword + 브랜드 검색어 - 순서와 무관하게 그 지역의 그 브랜드만 반환한다")
         fun givenDistrictAndBrandKeyword_whenSearch_thenReturnsThatBrandInDistrict() {
             val expected = contains(booths.photoismGangnam1.id!!.toInt(), booths.photoismGangnamStation.id!!.toInt())
 
-            post("강남구 포토이즘").statusCode(HttpStatus.OK.value()).body("data.items.id", expected)
-            post("포토이즘 강남").statusCode(HttpStatus.OK.value()).body("data.items.id", expected)
+            post("서울특별시 강남구 포토이즘").statusCode(HttpStatus.OK.value()).body("data.items.id", expected)
+            post("포토이즘 서울특별시 강남구").statusCode(HttpStatus.OK.value()).body("data.items.id", expected)
         }
 
         @Test
-        @DisplayName("브랜드 + 역 검색어 - 역 반경 안의 그 브랜드만 반환한다 (다른 구 포함)")
+        @DisplayName("브랜드 + 역 keyword 검색어 - 역 반경 안의 그 브랜드만 반환한다 (다른 구 포함)")
         fun givenBrandAndStationKeyword_whenSearch_thenReturnsThatBrandNearStation() {
-            post("인생네컷 강남역")
+            post("인생네컷 강남역 2호선")
                 .statusCode(HttpStatus.OK.value())
                 .body(
                     "data.items.id",
@@ -230,15 +230,23 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         @Test
         @DisplayName("검색어의 브랜드와 브랜드 필터가 겹치지 않음 - 빈 배열을 반환한다")
         fun givenKeywordBrandOutsideBrandFilter_whenSearch_thenReturnsEmptyList() {
-            post("강남구 포토이즘", brandFilter(booths.lifeFourCut.id!!))
+            post("서울특별시 강남구 포토이즘", brandFilter(booths.lifeFourCut.id!!))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
         }
 
         @Test
-        @DisplayName("지역·역·지점을 찾지 못함 - 에러가 아니라 빈 배열 (없는 지역, 서울 밖 자치구, 브랜드만, 시도, 브랜드 없는 지점명)")
+        @DisplayName("지역·역·지점을 찾지 못함 - 에러가 아니라 빈 배열 (없는 지역, 후보 값이 아닌 지역·역 이름, 브랜드만, 시도, 브랜드 없는 지점명)")
         fun givenKeywordWithoutArea_whenSearch_thenReturnsEmptyList() {
-            listOf("서울특별시 없는구", "부산진구 포토이즘", "포토이즘", "서울특별시", "강남역점").forEach { keyword ->
+            listOf(
+                "서울특별시 없는구",
+                "부산진구 포토이즘",
+                "강남 포토이즘",
+                "포토이즘 강남역",
+                "포토이즘",
+                "서울특별시",
+                "강남역점",
+            ).forEach { keyword ->
                 post(keyword)
                     .statusCode(HttpStatus.OK.value())
                     .body("resultCode", equalTo(ResultCode.SUCCESS.code))

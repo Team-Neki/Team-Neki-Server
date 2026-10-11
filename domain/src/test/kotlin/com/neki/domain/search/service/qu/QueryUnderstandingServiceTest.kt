@@ -75,16 +75,12 @@ class QueryUnderstandingServiceTest :
             intent.entities.filter { it.type == EntityType.BRANCH }.map { it.keyword }
 
         test("자동완성 keyword 는 메모리 사전에서 그 하나가 되고, 범위를 찾으면 DB 를 보지 않는다") {
-            val sinbundang = SearchTarget.Station("강남", "신분당선")
             val monomansion = SearchTarget.Booth(platform = "MONOMANSION", idx = "m1")
             val cache = InMemoryEntityDictionaryCacheAdapter()
             cache.replace(
                 EntityDictionary(
                     listOf(
                         DictionaryEntry("포토이즘", SearchTarget.Brand(1)),
-                        DictionaryEntry("강남", gangnamGu),
-                        DictionaryEntry("강남역", gangnamLine2),
-                        DictionaryEntry("강남역", sinbundang),
                         DictionaryEntry("강남역 2호선", gangnamLine2),
                         DictionaryEntry("경상남도 진주시 강남동", SearchTarget.Region("4817010300")),
                         DictionaryEntry("모노맨션 강남역점", monomansion),
@@ -97,7 +93,7 @@ class QueryUnderstandingServiceTest :
             memoryOnly.understand("경상남도 진주시 강남동").targets shouldBe listOf(SearchTarget.Region("4817010300"))
             memoryOnly.understand("강남역 2호선").targets shouldBe listOf(gangnamLine2)
             memoryOnly.understand(" 모노맨션  강남역점 ").targets shouldBe listOf(monomansion)
-            memoryOnly.understand("포토이즘 강남역").targets shouldBe listOf(SearchTarget.Brand(1), gangnamLine2, sinbundang)
+            memoryOnly.understand("포토이즘 강남역 2호선").targets shouldBe listOf(SearchTarget.Brand(1), gangnamLine2)
         }
 
         test("사전에 없는 자동완성 keyword 는 DB 에서 정확 일치로 그 지역·역을 찾는다") {
@@ -170,17 +166,37 @@ class QueryUnderstandingServiceTest :
         }
 
         test("그 밖의 검색어는 메모리에 올린 사전으로 이해하고, 올리기 전에는 아무것도 찾지 않는다") {
-            service.understand("포토이즘 강남역").targets.shouldBeEmpty()
+            service.understand("포토이즘 강남역 2호선").targets.shouldBeEmpty()
 
-            // 서울특별시 강남구, 강남구, 강남(줄임말), 강남역·강남역 2호선(2호선), 포토이즘
+            // 서울특별시 강남구, 강남역 2호선, 포토이즘
             service.reloadDictionary() shouldBe mapOf(
-                EntityType.REGION to 3,
-                EntityType.STATION to 2,
+                EntityType.REGION to 1,
+                EntityType.STATION to 1,
                 EntityType.BRAND to 1,
                 EntityType.BRANCH to 0,
             )
 
-            service.understand("포토이즘 강남역").targets shouldBe listOf(SearchTarget.Brand(1), gangnamLine2)
+            service.understand("포토이즘 강남역 2호선").targets shouldBe listOf(SearchTarget.Brand(1), gangnamLine2)
+            // 사전은 통합검색 후보 값만 알아 이름 조각(강남, 강남역)은 범위가 되지 않는다
+            service.understand("포토이즘 강남역").targets shouldBe listOf(SearchTarget.Brand(1))
+            service.understand("강남 포토이즘").targets shouldBe listOf(SearchTarget.Brand(1))
+        }
+
+        test("지역은 전체 경로로만 찾아, 동 이름 속 다른 구 이름을 지역으로 잡지 않는다") {
+            val dictionary: EntityDictionary = EntityDictionary.of(
+                regions = listOf(
+                    LegalDong("1120000000", 2, "성동구", "서울특별시 성동구"),
+                    LegalDong("1168010500", 3, "삼성동", "서울특별시 강남구 삼성동"),
+                ),
+                stations = emptyList(),
+                brandNames = mapOf(1L to "포토이즘"),
+                booths = emptyList(),
+            )
+
+            // `삼성동` 안의 `성동` 은 성동구가 아니다
+            service.understand("삼성동 포토이즘", dictionary).targets shouldBe listOf(SearchTarget.Brand(1))
+            service.understand("서울특별시 강남구 삼성동 포토이즘", dictionary).targets shouldBe
+                listOf(SearchTarget.Region("1168010500"), SearchTarget.Brand(1))
         }
 
         test("엔티티가 없으면 정규화 검색어 전체가 하나의 조각이다 (한 글자여도)") {

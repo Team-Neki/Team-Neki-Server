@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component
  * description    : QU. 검색어를 받아 어떻게 이해했는지(QueryIntent)를 만드는 과정 전체이며, 검색어 해석의 유일한 입구다.
  *   순서는 Normalize -> NER(메모리 사전) -> (범위를 못 찾았으면 DB 의 자동완성 keyword 정확 일치) -> Intent 생성이고, 순서와 사전은 이 서비스가 갖는다.
  *   정규화 규칙 자체는 검색 색인(batch)과 사전 키가 같이 쓰므로 SearchNormalizer 한 곳에 있다.
- *   e.g. "강남" 은 지역, "강남역" 은 역, "강남점" 은 지점 (NER 이 지점명 속 지명을 엔티티로 잡지 않는다)
+ *   e.g. "서울특별시 강남구" 는 지역, "강남역 2호선" 은 역, "포토이즘 강남점" 은 지점, 사전에 없는 "강남" 은 범위가 아닌 조각
  */
 @Component
 class QueryUnderstandingService(
@@ -30,8 +30,8 @@ class QueryUnderstandingService(
 ) {
 
     /**
-     * 메모리 사전으로 먼저 이해한다. 사전에 자동완성 keyword(지역 전체 경로, `역명역 노선명`, 부스 `브랜드명 지점명`)도 있어
-     * longest match 로 그 하나가 되고, 서울 밖 지역(`경상남도 진주시 강남동`)도 전체 경로가 `강남` 보다 길어 이긴다.
+     * 메모리 사전으로 먼저 이해한다. 사전은 자동완성 keyword(지역 전체 경로, `역명역 노선명`, 부스 `브랜드명 지점명`)와 브랜드만 알아
+     * 고른 keyword 는 그 하나가 되고, `강남`, `강남역` 같은 이름 조각은 범위가 되지 않는다 (EntityDictionary.of).
      * 범위(지역·역·지점)를 하나도 못 찾았을 때만 DB 에서 자동완성 keyword 를 저장된 값 그대로 비교한다.
      * 사전이 아직 모르는 keyword(갱신 주기 사이에 색인에 들어온 지점, 사전 적재 실패)를 위한 것이다.
      */

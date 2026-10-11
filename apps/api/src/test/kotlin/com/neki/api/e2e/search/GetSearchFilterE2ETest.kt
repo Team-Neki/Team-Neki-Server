@@ -108,7 +108,7 @@ class GetSearchFilterE2ETest : SearchE2ETestBase() {
         @Test
         @DisplayName("검색어에 브랜드가 있음 - 그 브랜드만 집계한다")
         fun givenBrandInKeyword_whenGetFilter_thenCountsOnlyThatBrand() {
-            post("포토이즘 강남역")
+            post("포토이즘 강남역 2호선")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.brandFilter.code", contains("PHOTOISM"))
                 .body("data.brandFilter.count", contains(2))
@@ -145,7 +145,7 @@ class GetSearchFilterE2ETest : SearchE2ETestBase() {
                 "서울특별시 강남구" to SearchRequest.FilterGroup(),
                 "강남역 2호선" to SearchRequest.FilterGroup(),
                 "강남역 2호선" to photoismOnly,
-                "인생네컷 강남역" to SearchRequest.FilterGroup(),
+                "인생네컷 강남역 2호선" to SearchRequest.FilterGroup(),
                 "포토이즘 강남역점" to SearchRequest.FilterGroup(),
                 "포토이즘 강남역점" to photoismOnly,
             ).forEach { (keyword, filterGroup) ->

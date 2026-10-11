@@ -14,7 +14,7 @@ import jakarta.validation.constraints.NotNull
  */
 object SearchRequest {
 
-    private const val KEYWORD_DESCRIPTION = "자동완성 keyword(지역·역·부스) 또는 자치구·역 + 브랜드 검색어. 없거나 공백뿐이면 D-01"
+    private const val KEYWORD_DESCRIPTION = "자동완성 keyword(지역·역·부스) 또는 지역·역 keyword + 브랜드 검색어. 없거나 공백뿐이면 D-01"
 
     @Schema(
         name = "SearchPhotoBoothsRequest",
