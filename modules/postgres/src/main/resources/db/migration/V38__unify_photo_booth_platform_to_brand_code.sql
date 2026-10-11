@@ -17,6 +17,17 @@ SET source_platform = m.new_platform,
 FROM platform_to_code m
 WHERE l.source_platform = m.old_platform;
 
+-- 운영 tb_brand.platform 이 비어 매핑에서 빠진 브랜드가 있으면 그 지점은 옛 원천 키로 남는다.
+-- 그대로 두면 새 Workflow 의 stores-sync 가 같은 지점을 새로 만들므로, 남은 값이 있으면 V38 전체를 롤백한다.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM TB_PHOTO_BOOTH_LOCATION l
+               WHERE l.source_platform IS NOT NULL
+                 AND NOT EXISTS (SELECT 1 FROM TB_BRAND b WHERE b.code = l.source_platform AND b.deleted_at IS NULL)) THEN
+        RAISE EXCEPTION 'V38: tb_brand.code 로 바뀌지 않은 source_platform 이 남아 있습니다';
+    END IF;
+END $$;
+
 -- 2. 검색 색인 (read/write 는 색인 배치가 이름을 맞바꾸며 쓰므로 둘 다)
 UPDATE tb_photo_booth_search_read s
 SET platform = m.new_platform
@@ -44,6 +55,7 @@ END $$;
 
 DROP TABLE platform_to_code;
 
+COMMENT ON COLUMN TB_PHOTO_BOOTH_MANUAL.brand_id IS '브랜드 ID. enriched 의 platform 은 이 브랜드의 tb_brand.code';
 COMMENT ON COLUMN TB_BRAND.platform IS '사용 안 함 (BACKEND-228). 원천 키는 code 를 쓴다. 다음 마이그레이션에서 삭제';
 
 COMMENT ON COLUMN TB_PHOTO_BOOTH_LOCATION.source_platform IS '수집 원천 브랜드 코드 (tb_brand.code). source_idx와 함께 원천 식별자';
