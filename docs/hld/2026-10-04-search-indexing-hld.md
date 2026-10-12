@@ -66,7 +66,7 @@ related:
 
 ## 2. As-Is 와 설계를 결정한 제약
 
-- 수집 데이터는 Workflow 가 소유한다 : 원천 사이트 11곳의 지점 목록을 Workflow 가 수집하고, 좌표로 법정동 코드를 보강해 `tb_photo_booth_enriched` 에 현재 세대로 남깁니다. Server 는 이 테이블의 계약 8열(platform, idx, name, address, longitude, latitude, source_dt, b_code)만 알고, 나머지 운영 열은 모르도록 했습니다. **이 경계 때문에 색인은 Workflow 와 테이블 하나로만 만나는 별도 단계가 되었습니다.**
+- 수집 데이터는 Workflow 가 소유한다 : 원천 사이트 11곳의 지점 목록을 Workflow 가 수집하고, 좌표로 법정동 코드를 보강해 `tb_photo_booth_enriched` 에 현재 세대로 남깁니다. Server 는 이 테이블의 계약 7열(platform, idx, name, address, location, source_dt, b_code)만 알고, 나머지 운영 열은 모르도록 했습니다. **이 경계 때문에 색인은 Workflow 와 테이블 하나로만 만나는 별도 단계가 되었습니다.**
 - 검색 조건이 정해져 있다 : 검색 정책상 질의는 "고른 지역", "고른 역", "브랜드" 로 정해져 있고 데이터는 수천 건 규모입니다. 자유 형태의 전문 검색이 아니라 정해진 질의를 빠르게 답하는 문제라서, 별도 검색 엔진보다 질의마다 맞춘 인덱스가 맞았습니다.
 - 서빙 테이블은 Flyway 가 소유한다 : 이 저장소의 스키마는 api 가 Flyway 로 migrate 합니다. 색인을 매번 새 테이블로 만들고 지우면 Flyway 가 모르는 테이블이 생기므로, 테이블은 마이그레이션으로 고정하고 내용만 갈아 끼워야 했습니다.
 - 실행 주체가 따로 있다 : 실행 시각과 재시도는 Workflow(Prefect)가 정합니다. Server 쪽 실행 모듈은 상주 스케줄러가 아니라 한 번 실행하고 종료 코드로 결과를 알리는 프로세스여야 Prefect 가 성공·실패를 판단할 수 있었습니다(BACKEND-128).
@@ -136,7 +136,7 @@ flowchart LR
 
 | 경계 | 답하는 질문 |
 |---|---|
-| `tb_photo_booth_enriched` 8열 (Workflow -> 색인) | 지금 세대에 어떤 지점이 어디에 있는가 |
+| `tb_photo_booth_enriched` 7열 (Workflow -> 색인) | 지금 세대에 어떤 지점이 어디에 있는가 |
 | `searchIndexJob` 실행 계약 (`businessDate`, `force`, 종료 코드) | 이번 색인이 성공했는가 |
 | `tb_photo_booth_search_read` (+`_station`) (색인 -> 서빙) | 이 지역·이 역에 딸린 부스는 무엇인가 |
 
@@ -207,13 +207,13 @@ flowchart LR
 - Why : 브랜드 추가·변경을 배포 없이 데이터로 맞출 수 있음
 - Trade-off : platform 을 채우지 않은 브랜드는 조용히 빠질 수 있음 (경고 로그로만 드러남)
 - Consequence : 새 브랜드를 수집하면 `tb_brand.platform` 을 함께 채워야 검색에 나옴
-- Superseded (BACKEND-228, V38) : 수집 쪽 platform 값을 `tb_brand.code` 로 바꾸고 `tb_brand.platform` 은 더 쓰지 않는다(삭제는 후속 마이그레이션). 색인은 `tb_brand.code` 로 조인한다. 그래서 운영 중 브랜드 code 를 바꾸면 수집 원천 키와 어긋난다
+- Superseded (BACKEND-228, V38) : 수집 쪽 platform 값을 `tb_brand.code` 로 바꾸고 `tb_brand.platform` 은 더 쓰지 않는다(V39 에서 삭제). 색인은 `tb_brand.code` 로 조인한다. 그래서 운영 중 브랜드 code 를 바꾸면 수집 원천 키와 어긋난다
 
 ## 5. Data / Index Dependencies
 
 | 데이터 | 소유 | 갱신 | 색인이 쓰는 방식 |
 |---|---|---|---|
-| `tb_photo_booth_enriched` (8열) | Workflow | 매일 05:00 KST, 이름 교체 방식 | 지점 원천. 좌표 없는 행은 건너뜀, `b_code` 없는 행은 `region_ids` 빈 배열 |
+| `tb_photo_booth_enriched` (7열) | Workflow | 매일 05:00 KST, 이름 교체 방식 | 지점 원천. 좌표 없는 행은 건너뜀, `b_code` 없는 행은 `region_ids` 빈 배열 |
 | `tb_subway_station` | Workflow | 매월 1일 06:00 KST | 역 1km 연결 |
 | `tb_brand` (`platform`) | Server | 관리자·마이그레이션 | 브랜드 id·이름·코드 스냅샷 |
 | `BATCH_*` 메타 | Server (Notification 앱과 공동) | 실행마다 | 실행 이력, write/filter count |
@@ -269,7 +269,7 @@ failure isolation 단위는 세대입니다. 어느 step 에서 실패해도 `_r
 |---|---|
 | 실제 구현 | 코드 (`apps/batch/search`, `domain/search`) |
 | 색인 테이블 스키마 | Flyway V33 (`modules/postgres`) |
-| 원천 입력 계약 | BACKEND-64 (enriched 8열) |
+| 원천 입력 계약 | BACKEND-64 (enriched 7열, 좌표는 BACKEND-244 부터 `location geometry(Point, 4326)`) |
 | 실행 계약 (one-shot, 종료 코드) | BACKEND-128, `docs/superpowers/specs/2026-09-23-batch-module-design.md` |
 | 완료 판정 | `docs/oracle/search-index-job.md` |
 | 배치 이미지 태그 | Team-Neki-GitOps `overlays/prefect/images.env` |
