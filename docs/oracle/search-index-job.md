@@ -23,7 +23,7 @@
 | O-A-3 | auto | `grep -c "LIFE_FOUR_CUT" modules/postgres/src/main/resources/db/migration/V32__add_platform_to_brand.sql` >= 1 |
 | O-A-4 | auto | `grep -cE "ON DELETE CASCADE\|USING GIN\|USING GIST" modules/postgres/src/main/resources/db/migration/V33__create_photo_booth_search_tables.sql` = 6 (두 벌) |
 | O-A-10 | auto | 카드·연결 테이블이 read/write 두 벌 : `grep -c "^CREATE TABLE tb_photo_booth_search_" modules/postgres/src/main/resources/db/migration/V33__create_photo_booth_search_tables.sql` = 4 |
-| O-A-5 | auto | `grep -c 'name = "platform"' domain/src/main/kotlin/com/neki/domain/map/models/Brand.kt` = 1 |
+| O-A-5 | auto | `grep -c 'name = "platform"' domain/src/main/kotlin/com/neki/domain/map/models/Brand.kt` = 0 (BACKEND-228 부터 `code` 로 조인, V39 에서 컬럼 삭제) |
 | O-A-6 | auto | 컬럼명 전부 snake_case : `grep -ohE 'name = "[^"]+"' domain/src/main/kotlin/com/neki/domain/search/models/*.kt \| grep -c "[A-Z]"` = 0 |
 | O-A-7 | auto | 엔티티에 `unique = true` 없음 : `grep -rc "unique = true" domain/src/main/kotlin/com/neki/domain/search/models/ \| grep -v ":0" \| wc -l` = 0 |
 | O-A-8 | auto | `grep -c "@Immutable" domain/src/main/kotlin/com/neki/domain/search/models/PhotoBoothEnriched.kt domain/src/main/kotlin/com/neki/domain/search/models/SubwayStation.kt` 두 파일 모두 1 |
@@ -63,7 +63,7 @@
 | O-R-2 | auto | CI 통과 : `gh pr checks feat/BACKEND-65 --json name,state --jq '.[] \| select(.name=="Test") \| .state'` = `SUCCESS` |
 | O-R-3 | manual | api 배포로 V32, V33 적용 뒤 `deploy-batch.yml` 로 이미지 push, Prefect `search-index` flow 수동 실행 -> k8s Job 종료 코드 0, `select count(*) from tb_photo_booth_search_read` > 0, `select platform, count(*) from tb_photo_booth_search_read group by 1` 에 platform 이 채워진 브랜드가 전부 보임 |
 | O-R-4 | manual | 같은 `businessDate` 로 flow 를 한 번 더 실행 -> 두 테이블 건수 동일, `BATCH_JOB_INSTANCE` 에 인스턴스 하나 추가 |
-| O-R-5 | manual | `update tb_brand set platform = ... where code = ...` 로 나머지 5개 브랜드 채운 뒤 재실행 -> 그 브랜드 카드가 생김 |
+| O-R-5 | manual | `update tb_brand set platform = ... where code = ...` 로 나머지 5개 브랜드 채운 뒤 재실행 -> 그 브랜드 카드가 생김 (BACKEND-65 당시 판정. BACKEND-228 부터 platform 이 `tb_brand.code` 라 채울 컬럼이 없고 V39 에서 삭제) |
 | O-R-6 | manual | 티켓 BACKEND-65 DONE (배포 뒤) |
 | O-R-7 | manual | staging과 운영에서 swap 중 검색 API의 응답 시간과 DB 락 대기를 관찰하고, `BATCH_STEP_EXECUTION` 갱신과 커밋까지의 락 보유 시간이 검색 API의 합의된 허용 대기시간 이내인지 확인. 아래 절차로 결과와 허용 대기시간을 기록 |
 
