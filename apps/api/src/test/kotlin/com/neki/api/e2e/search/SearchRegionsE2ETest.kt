@@ -42,8 +42,8 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         accessToken = token
 
         // tb_legal_dong 의 실제 행. 시도·하위 계층·접두가 아닌 이름이 섞이도록 골랐다.
-        val photoGray: Brand = createBrand("포토그레이", "PHOTOGRAY", "PHOTOGRAY")
-        planB = createBrand("플랜비 스튜디오", "PLANB_STUDIO", "PLANB_STUDIO")
+        val photoGray: Brand = createBrand("포토그레이", "PHOTOGRAY")
+        planB = createBrand("플랜비 스튜디오", "PLANB_STUDIO")
 
         createLegalDong("1100000000", 1, "서울특별시", "서울특별시")
         createLegalDong("1165000000", 2, "서초구", "서울특별시 서초구")

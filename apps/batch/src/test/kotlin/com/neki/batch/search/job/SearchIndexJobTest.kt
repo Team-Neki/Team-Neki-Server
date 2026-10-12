@@ -226,7 +226,7 @@ class SearchIndexJobTest {
     }
 
     private fun givenBrand() {
-        brandRepository.save(Brand(name = "포토시그니처", code = "PHOTOSIGNATURE", platform = PLATFORM))
+        brandRepository.save(Brand(name = "포토시그니처", code = PLATFORM))
     }
 
     private fun givenEnriched(
@@ -268,7 +268,7 @@ class SearchIndexJobTest {
         jdbcTemplate.queryForObject("select count(*) from $table", Int::class.java)!!
 
     companion object {
-        private const val PLATFORM = "PHOTO_SIGNATURE"
+        private const val PLATFORM = "PHOTOSIGNATURE"
         private const val BUSINESS_DATE = "2026-09-25"
         private val SOURCE_DT: LocalDate = LocalDate.parse("2026-09-24")
     }

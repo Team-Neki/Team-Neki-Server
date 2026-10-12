@@ -41,10 +41,8 @@ class BuildSearchCardsTasklet(
         val force: Boolean =
             chunkContext.stepContext.jobParameters[SearchIndexJobConfig.PARAM_FORCE]?.toString() == "true"
 
-        // tb_brand.platform 이 NULL 인 브랜드는 수집 대상이 아니므로 매핑에서 뺀다
-        val brands: Map<String, Brand> = brandRepository.findAll()
-            .filter { it.platform != null }
-            .associateBy { it.platform!! }
+        // enriched 의 platform 은 tb_brand.code 다 (V38)
+        val brands: Map<String, Brand> = brandRepository.findAll().associateBy { it.code }
         val enriched: List<PhotoBoothEnriched> = repository.findAllEnriched()
         val stations: List<SubwayStation> = repository.findAllStations()
         val indexedAt = LocalDateTime.now()
@@ -76,7 +74,7 @@ class BuildSearchCardsTasklet(
         repository.replaceWrite(cards)
 
         skippedNoBrand.forEach { (platform, count) ->
-            log.warn("tb_brand.platform 에 없는 platform 이라 건너뜀 (platform={}, count={})", platform, count)
+            log.warn("tb_brand.code 에 없는 platform 이라 건너뜀 (platform={}, count={})", platform, count)
         }
         // BATCH_STEP_EXECUTION 의 write/filter count 로도 남긴다
         contribution.incrementWriteCount(cards.size.toLong())

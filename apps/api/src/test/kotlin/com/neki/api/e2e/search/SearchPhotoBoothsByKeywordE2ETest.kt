@@ -52,11 +52,11 @@ class SearchPhotoBoothsByKeywordE2ETest : SearchE2ETestBase() {
         val (_, token) = createTestUserAndToken()
         accessToken = token
 
-        photoism = createBrand("포토이즘", "PHOTOISM", "PHOTOISM")
-        val lifeFourCut: Brand = createBrand("인생네컷", "LIFEFOURCUTS", "LIFE_FOUR_CUT")
-        val planB: Brand = createBrand("플랜비 스튜디오", "PLANB_STUDIO", "PLANB_STUDIO")
-        val photoSignature: Brand = createBrand("포토시그니처", "PHOTOSIGNATURE", "PHOTOSIGNATURE")
-        photoGray = createBrand("포토그레이", "PHOTOGRAY", "PHOTOGRAY")
+        photoism = createBrand("포토이즘", "PHOTOISM")
+        val lifeFourCut: Brand = createBrand("인생네컷", "LIFEFOURCUTS")
+        val planB: Brand = createBrand("플랜비 스튜디오", "PLANB_STUDIO")
+        val photoSignature: Brand = createBrand("포토시그니처", "PHOTOSIGNATURE")
+        photoGray = createBrand("포토그레이", "PHOTOGRAY")
 
         photoismGangnam = index(photoism, "강남점", "서울 강남구", 127.0276, 37.4979)
         index(photoism, "강남역2호점", "서울 강남구", 127.0280, 37.4985)

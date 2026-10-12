@@ -41,7 +41,7 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         val (_, token) = createTestUserAndToken()
         accessToken = token
 
-        photoGray = createBrand("포토그레이", "PHOTOGRAY", "PHOTOGRAY")
+        photoGray = createBrand("포토그레이", "PHOTOGRAY")
 
         // tb_subway_station 의 실제 행. 같은 역이 노선마다 따로 있다.
         createSubwayStation("강남", "신분당선", 127.0278, 37.4966)

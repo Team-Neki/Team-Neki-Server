@@ -39,7 +39,7 @@ class PhotoBoothLocation(
     @Column(name = "location", nullable = false, columnDefinition = "geometry(Point, 4326)")
     var location: Point,
 
-    /** 수집 원천 platform. source_idx 와 함께 세대를 넘어 안정적인 원천 키 (V34). 카카오 수집 지점은 null, 동기화된 관리자 등록 지점은 브랜드 platform (V36) */
+    /** 수집 원천 브랜드 코드(tb_brand.code, V38). source_idx 와 함께 세대를 넘어 안정적인 원천 키 (V34). 어드민이 직접 넣은 지점은 null */
     @Column(name = "source_platform", length = 32)
     val sourcePlatform: String? = null,
 
