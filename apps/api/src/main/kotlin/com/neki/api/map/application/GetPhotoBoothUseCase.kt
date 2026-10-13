@@ -1,6 +1,7 @@
 package com.neki.api.map.application
 
 import com.neki.api.map.application.dto.MapResult
+import com.neki.api.map.application.dto.PhotoBoothAssembler
 import com.neki.core.annotation.UseCase
 import com.neki.core.transaction.TransactionRunner
 import com.neki.domain.map.dto.MapQuery
@@ -72,14 +73,6 @@ class GetPhotoBoothUseCase(
 
         val favoriteKeys: Set<PhotoBoothKey> = mapService.getFavoritedPhotoBoothKeys(query.userId)
 
-        MapResult.GetPhotoBoothsByKeys(
-            photoBooths = existingKeys.map {
-                MapResult.GetPhotoBoothsByKeys.PhotoBooth(
-                    key = it,
-                    favorite =
-                    it in favoriteKeys,
-                )
-            },
-        )
+        PhotoBoothAssembler.toPhotoBoothsByKeys(existingKeys, favoriteKeys)
     }
 }
