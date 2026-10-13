@@ -2,9 +2,11 @@ package com.neki.api.e2e.map
 
 import com.neki.core.code.ResultCode
 import com.neki.domain.map.models.Brand
+import com.neki.domain.map.models.PhotoBoothKey
 import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeEach
@@ -155,5 +157,27 @@ class GetFavoriteMapsE2ETest : MapE2ETestBase() {
             .body("data.items[0].id", equalTo(locationC.id!!.toInt()))
             .body("data.items[1].id", equalTo(locationA.id!!.toInt()))
             .body("data.items[2].id", equalTo(locationB.id!!.toInt()))
+    }
+
+    @Test
+    @DisplayName("V2 에서 한 즐겨찾기(포토부스 키)도 원천 키가 같은 위치로 바꿔 최근 순으로 함께 반환한다")
+    fun givenV2Favorite_whenGetFavoriteMaps_thenIncludedInRecentOrder() {
+        // given: A(V1) → B(V2) 순으로 즐겨찾기
+        val locationA = createLocation("A점", 127.027456, 37.497946)
+        val keyB = PhotoBoothKey(platform = testBrand.code, idx = "b")
+        val locationB = createSourcedPhotoBoothLocation(testBrand, keyB, "B점")
+
+        favoriteMap(userId = testUser.id!!, locationId = locationA.id!!)
+        Thread.sleep(10) // 즐겨찾기 시간 차이 확보
+        favoritePhotoBooth(userId = testUser.id!!, key = keyB)
+
+        // when & then: B, A
+        RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .`when`()
+            .get("/api/photo-booths/favorite")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("data.items.id", contains(locationB.id!!.toInt(), locationA.id!!.toInt()))
     }
 }
