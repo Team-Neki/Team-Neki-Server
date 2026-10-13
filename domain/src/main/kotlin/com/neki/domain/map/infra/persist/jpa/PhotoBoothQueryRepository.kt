@@ -16,6 +16,7 @@ import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Point
 import org.locationtech.jts.io.WKTReader
 import org.springframework.stereotype.Repository
+import kotlin.math.cos
 
 /**
  * fileName       : PhotoBoothQueryRepository
@@ -78,7 +79,9 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
 
     /**
      * geography 문법이 Hibernate/QueryDSL 에서 파싱 불가라 Native Query 로 작성 (V1 PhotoBoothLocationQueryRepository 와 같은 방식)
-     * 특정 좌표 기준 거리순 포토부스 조회
+     * 특정 좌표 기준 거리순 포토부스 조회.
+     * `location::geography` 조건은 geometry GIST 인덱스(Workflow 가 세대마다 건다, BACKEND-250)를 못 타서
+     * 반경을 덮는 bbox(`&&`)로 먼저 거른 뒤 ST_DWithin 으로 정확히 자른다
      */
     fun findByDistanceFromPoint(
         coordinate: Coordinate,
@@ -100,6 +103,7 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
             FROM tb_photo_booth_enriched e
             JOIN TB_BRAND b ON b.code = e.platform AND b.deleted_at IS NULL
             WHERE e.location IS NOT NULL
+              AND e.location && ST_Expand(ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :radiusInDegrees)
               AND ST_DWithin(
                 e.location::geography,
                 ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,
@@ -113,6 +117,7 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
             .setParameter("longitude", coordinate.x)
             .setParameter("latitude", coordinate.y)
             .setParameter("radiusInMeters", radiusInMeters)
+            .setParameter("radiusInDegrees", radiusInDegrees(coordinate.y, radiusInMeters))
 
         if (!brandIds.isNullOrEmpty()) {
             query.setParameter("brandIds", brandIds)
@@ -134,6 +139,10 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
             )
         }
     }
+
+    /** 반경을 넉넉히 덮는 위경도 차. 경도 1도의 길이가 위도에 따라 줄어 cos 로 나누고, 구면·타원체 차이를 덮으려 10% 더한다 */
+    private fun radiusInDegrees(latitude: Double, radiusInMeters: Int): Double =
+        radiusInMeters / (METERS_PER_DEGREE * cos(Math.toRadians(latitude))) * BBOX_MARGIN
 
     private fun selectPhotoBoothViews(): JPAQuery<Tuple> = queryFactory
         .select(
@@ -169,5 +178,11 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
             condition.or(enrichedPhotoBooth.key.platform.eq(platform).and(enrichedPhotoBooth.key.idx.`in`(idxs)))
         }
         return condition
+    }
+
+    companion object {
+        /** 위도 1도의 길이(m) */
+        private const val METERS_PER_DEGREE: Double = 111_320.0
+        private const val BBOX_MARGIN: Double = 1.1
     }
 }
