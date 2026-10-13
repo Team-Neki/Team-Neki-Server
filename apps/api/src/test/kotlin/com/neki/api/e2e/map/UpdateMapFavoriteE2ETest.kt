@@ -4,6 +4,8 @@ import com.neki.api.map.api.dto.MapRequest
 import com.neki.core.code.ResultCode
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.models.FavoriteMapId
+import com.neki.domain.map.models.FavoritePhotoBoothId
+import com.neki.domain.map.models.PhotoBoothKey
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -173,5 +175,51 @@ class UpdateMapFavoriteE2ETest : MapE2ETestBase() {
             .patch("/api/photo-booths/${location.id}/favorite")
             .then()
             .statusCode(HttpStatus.BAD_REQUEST.value())
+    }
+
+    @Test
+    @DisplayName("원천 키가 있는 위치를 즐겨찾기하면 V2 와 같은 새 테이블에 키로 저장된다")
+    fun givenSourcedLocation_whenFavorite_thenSavedByKey() {
+        // given
+        val key = PhotoBoothKey(platform = testBrand.code, idx = "1768232303")
+        val location = createSourcedPhotoBoothLocation(testBrand, key, "포토이즘 강남점")
+
+        // when & then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(MapRequest.UpdateMapFavorite(true))
+            .`when`()
+            .patch("/api/photo-booths/${location.id}/favorite")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        assertThat(favoritePhotoBoothRepository.existsById(FavoritePhotoBoothId(testUser.id!!, key.platform, key.idx)))
+            .isTrue()
+        assertThat(favoriteMapRepository.existsById(FavoriteMapId(testUser.id!!, location.id!!))).isFalse()
+    }
+
+    @Test
+    @DisplayName("V2 에서 한 즐겨찾기를 V1 로 해제하면 지워진다")
+    fun givenV2Favorite_whenUnmarkByV1_thenRemoved() {
+        // given
+        val key = PhotoBoothKey(platform = testBrand.code, idx = "1")
+        val location = createSourcedPhotoBoothLocation(testBrand, key, "포토이즘 강남점")
+        favoritePhotoBooth(testUser.id!!, key)
+
+        // when & then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(MapRequest.UpdateMapFavorite(false))
+            .`when`()
+            .patch("/api/photo-booths/${location.id}/favorite")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        assertThat(favoritePhotoBoothRepository.existsById(FavoritePhotoBoothId(testUser.id!!, key.platform, key.idx)))
+            .isFalse()
     }
 }

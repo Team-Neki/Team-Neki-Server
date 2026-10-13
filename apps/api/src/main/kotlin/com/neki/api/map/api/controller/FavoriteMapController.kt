@@ -41,7 +41,10 @@ class FavoriteMapController(
 ) {
     @Operation(
         summary = "포토부스 즐겨찾기",
-        description = "포토부스 위치를 즐겨찾기합니다. 멱등성 보장을 위해 body에 변경하고자하는 favorite 상태를 입력하면 됩니다.",
+        description = """
+            포토부스 위치를 즐겨찾기합니다. 멱등성 보장을 위해 body에 변경하고자하는 favorite 상태를 입력하면 됩니다.
+            V2(PATCH /api/v2/photo-booths/{photoBoothId}/favorite) 와 같은 즐겨찾기를 공유하므로 어느 쪽에서 바꿔도 양쪽에 반영됩니다.
+            """,
     )
     @PatchMapping("/{locationId}/favorite")
     fun favoriteMap(
@@ -59,7 +62,7 @@ class FavoriteMapController(
 
     @Operation(
         summary = "즐겨찾기한 포토부스 목록 조회",
-        description = "사용자가 즐겨찾기한 포토부스를 즐겨찾기한 순서대로 조회합니다.",
+        description = "사용자가 즐겨찾기한 포토부스를 최근 즐겨찾기한 순서대로 조회합니다. V2 에서 한 즐겨찾기도 포함합니다.",
     )
     @GetMapping("/favorite")
     fun getFavoriteMaps(

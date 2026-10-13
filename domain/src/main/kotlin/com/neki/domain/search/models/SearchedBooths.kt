@@ -5,7 +5,7 @@ package com.neki.domain.search.models
  * author         : koo
  * date           : 2026. 10. 2.
  * description    : 부스 목록과 브랜드 필터가 함께 쓰는 검색 결과 집합. 검색 색인 행을 지도 부스와 짝지은 것이다.
- *   지도에 없거나 관리자가 숨긴 지점은 들어오지 않으므로, 브랜드 칩의 개수와 목록 건수가 늘 맞는다.
+ *   색인 이후 지금 세대(enriched)에서 빠진 지점은 들어오지 않으므로, 브랜드 칩의 개수와 목록 건수가 늘 맞는다.
  */
 class SearchedBooths private constructor(private val booths: List<SearchedBooth>) {
 

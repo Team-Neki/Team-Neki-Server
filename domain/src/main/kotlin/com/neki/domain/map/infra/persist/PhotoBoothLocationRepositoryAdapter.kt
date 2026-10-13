@@ -5,9 +5,9 @@ import com.neki.domain.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
 import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
-import com.neki.domain.map.models.PhotoBoothSource
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
 import org.locationtech.jts.geom.Coordinate
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 /**
@@ -31,7 +31,7 @@ class PhotoBoothLocationRepositoryAdapter(
     override fun getPhotoBoothLocations(brandId: Long): List<PhotoBoothLocation> =
         jpaRepository.findAllByBrandId(brandId)
 
-    override fun existsById(locationId: Long): Boolean = jpaRepository.existsById(locationId)
+    override fun findById(locationId: Long): PhotoBoothLocation? = jpaRepository.findByIdOrNull(locationId)
 
     override fun listPolygonLocations(
         coordinates: List<Coordinate>,
@@ -44,7 +44,4 @@ class PhotoBoothLocationRepositoryAdapter(
         brandIds: List<Long>?,
     ): List<PhotoBoothLocationWithDistance> =
         queryRepository.findByDistanceFromPoint(coordinate, radiusInMeters, brandIds)
-
-    override fun findVisibleBySources(sources: Collection<PhotoBoothSource>): List<PhotoBoothLocation> =
-        queryRepository.findVisibleBySources(sources)
 }

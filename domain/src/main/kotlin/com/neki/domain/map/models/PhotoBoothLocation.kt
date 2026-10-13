@@ -61,7 +61,7 @@ class PhotoBoothLocation(
         this.location = location
     }
 
-    /** 원천 키. 카카오 수집 지점과 어드민이 직접 넣은 지점은 없다. TB_PHOTO_BOOTH_MANUAL 에서 동기화된 지점은 (platform, manual-<id>) */
-    fun source(): PhotoBoothSource? =
-        if (sourcePlatform != null && sourceIdx != null) PhotoBoothSource(sourcePlatform, sourceIdx) else null
+    /** 원천 키. 어드민이 직접 넣은 지점은 없다. TB_PHOTO_BOOTH_MANUAL 에서 동기화된 지점은 (platform, manual-<id>) */
+    fun source(): PhotoBoothKey? =
+        if (sourcePlatform != null && sourceIdx != null) PhotoBoothKey(sourcePlatform, sourceIdx) else null
 }

@@ -3,17 +3,23 @@ package com.neki.api.e2e.search
 import com.neki.api.e2e.E2ETestBase
 import com.neki.domain.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.domain.map.infra.persist.jpa.JpaFavoriteMapRepository
+import com.neki.domain.map.infra.persist.jpa.JpaFavoritePhotoBoothRepository
 import com.neki.domain.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.domain.map.infra.persist.jpa.JpaUserBrandOrderRepository
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.models.FavoriteMap
+import com.neki.domain.map.models.FavoritePhotoBooth
+import com.neki.domain.map.models.PhotoBoothKey
 import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.UserBrandOrder
 import com.neki.domain.search.infra.persist.jpa.JpaLegalDongRepository
+import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothEnrichedRepository
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothSearchRepository
 import com.neki.domain.search.infra.persist.jpa.JpaSubwayStationRepository
 import com.neki.domain.search.models.LegalDong
 import com.neki.domain.search.models.NearbyStation
+import com.neki.domain.search.models.PhotoBoothEnriched
+import com.neki.domain.search.models.PhotoBoothEnrichedId
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SubwayStation
 import com.neki.domain.search.models.SubwayStationId
@@ -32,7 +38,7 @@ import java.time.LocalDateTime
  * fileName       : SearchE2ETestBase
  * author         : darren
  * date           : 2026. 9. 25.
- * description    : 통합 검색 E2E 테스트를 위한 Base Class. 자동완성 원천(법정동, 역)과 부스 목록 원천(검색 색인, 지도 부스)
+ * description    : 통합 검색 E2E 테스트를 위한 Base Class. 자동완성 원천(법정동, 역)과 부스 목록 원천(검색 색인, 지금 세대 지도 부스 enriched)
  */
 abstract class SearchE2ETestBase : E2ETestBase() {
 
@@ -55,6 +61,12 @@ abstract class SearchE2ETestBase : E2ETestBase() {
     protected lateinit var favoriteMapRepository: JpaFavoriteMapRepository
 
     @Autowired
+    protected lateinit var favoritePhotoBoothRepository: JpaFavoritePhotoBoothRepository
+
+    @Autowired
+    protected lateinit var photoBoothEnrichedRepository: JpaPhotoBoothEnrichedRepository
+
+    @Autowired
     protected lateinit var userBrandOrderRepository: JpaUserBrandOrderRepository
 
     @Autowired
@@ -65,8 +77,10 @@ abstract class SearchE2ETestBase : E2ETestBase() {
     @AfterEach
     override fun tearDown() {
         favoriteMapRepository.deleteAllInBatch()
+        favoritePhotoBoothRepository.deleteAllInBatch()
         userBrandOrderRepository.deleteAllInBatch()
         photoBoothLocationRepository.deleteAllInBatch()
+        photoBoothEnrichedRepository.deleteAllInBatch()
         // 역 연결 테이블(ElementCollection)까지 지우려면 배치 삭제가 아니라 엔티티 단위로 지워야 한다
         photoBoothSearchRepository.deleteAll()
         brandRepository.deleteAllInBatch()
@@ -130,31 +144,52 @@ abstract class SearchE2ETestBase : E2ETestBase() {
     )
 
     /**
-     * stores-sync 가 만든 것과 같은 지도 부스(TB_PHOTO_BOOTH_LOCATION). 원천 키가 색인 행과 같다
+     * Workflow 가 적재한 것과 같은 지금 세대 지도 부스(tb_photo_booth_enriched). 원천 키가 색인 행과 같다.
+     * 응답에 나오는 부스 id(`source:<platform>:<idx>`)를 돌려준다
      */
-    protected fun createMapBooth(booth: PhotoBoothSearch, adminHidden: Boolean = false): PhotoBoothLocation =
-        photoBoothLocationRepository.save(
+    protected fun createMapBooth(booth: PhotoBoothSearch): String {
+        photoBoothEnrichedRepository.save(
+            PhotoBoothEnriched(
+                id = PhotoBoothEnrichedId(platform = booth.platform, idx = booth.idx),
+                name = "${booth.brandName} ${booth.branchName}",
+                address = booth.address,
+                location = booth.location,
+                sourceDt = booth.sourceDt,
+                bCode = null,
+            ),
+        )
+        return keyOf(booth).toBoothId()
+    }
+
+    /** 지도 V2 즐겨찾기 (TB_FAVORITE_PHOTO_BOOTH) */
+    protected fun favorite(userId: Long, boothId: String): FavoritePhotoBooth = favoritePhotoBoothRepository.save(
+        FavoritePhotoBooth(userId = userId, key = PhotoBoothKey.fromBoothId(boothId)!!),
+    )
+
+    /** 지도 V1 즐겨찾기 (TB_FAVORITE_MAP). 원천 키가 같은 지점 마스터 위치를 만들어 그 id 로 즐겨찾기한다 */
+    protected fun favoriteByLocation(userId: Long, booth: PhotoBoothSearch): FavoriteMap {
+        val location: PhotoBoothLocation = photoBoothLocationRepository.save(
             PhotoBoothLocation(
-                mapId = "source:${booth.platform}:${booth.idx}",
+                mapId = keyOf(booth).toBoothId(),
                 brandId = booth.brandId,
                 branchName = booth.branchName,
                 address = booth.address!!,
                 location = booth.location,
                 sourcePlatform = booth.platform,
                 sourceIdx = booth.idx,
-                adminHidden = adminHidden,
             ),
         )
+        return favoriteMapRepository.save(FavoriteMap(userId = userId, locationId = location.id!!))
+    }
 
-    protected fun favorite(userId: Long, location: PhotoBoothLocation): FavoriteMap =
-        favoriteMapRepository.save(FavoriteMap(userId = userId, locationId = location.id!!))
+    private fun keyOf(booth: PhotoBoothSearch) = PhotoBoothKey(platform = booth.platform, idx = booth.idx)
 
     protected fun orderBrands(userId: Long, vararg brands: Brand) {
         userBrandOrderRepository.saveAll(UserBrandOrder.ofOrderedBrandIds(userId, brands.map { it.id!! }))
     }
 
     /**
-     * 강남 일대 부스. 강남구 3개 + 숨김 1개 + 지도 미동기화 1개, 서초구 1개. 모두 강남역 2호선에 딸린다.
+     * 강남 일대 부스. 강남구 3개 + 색인 이후 지도(enriched)에서 빠진 1개, 서초구 1개. 모두 강남역 2호선에 딸린다.
      * 강남구청역 7호선에 딸린 부스는 없다. 사용자는 포토이즘 강남1호점을 즐겨찾기했다.
      */
     protected inner class GangnamBooths(userId: Long) {
@@ -173,24 +208,21 @@ abstract class SearchE2ETestBase : E2ETestBase() {
         private val gangnamGu: List<String> = listOf("1100000000", "1168000000", "1168010100")
         private val seochoGu: List<String> = listOf("1100000000", "1165000000", "1165010800")
 
-        val photoismGangnam1: PhotoBoothLocation = createMapBooth(
+        val photoismGangnam1: String = createMapBooth(
             createIndexedBooth(photoism, "p1", "강남1호점", 127.0271830, 37.5021077, gangnamGu, listOf(gangnamStation)),
         )
-        val photoismGangnamStation: PhotoBoothLocation = createMapBooth(
+        val photoismGangnamStation: String = createMapBooth(
             createIndexedBooth(photoism, "p2", "강남역점", 127.0289042, 37.4967118, gangnamGu, listOf(gangnamStation)),
         )
-        val lifeFourCutGangnamStation: PhotoBoothLocation = createMapBooth(
+        val lifeFourCutGangnamStation: String = createMapBooth(
             createIndexedBooth(lifeFourCut, "l1", "강남역점", 127.0288671, 37.5002916, gangnamGu, listOf(gangnamStation)),
         )
-        val lifeFourCutSeocho: PhotoBoothLocation = createMapBooth(
+        val lifeFourCutSeocho: String = createMapBooth(
             createIndexedBooth(lifeFourCut, "l2", "서초점", 127.0256833, 37.4995520, seochoGu, listOf(gangnamStation)),
         )
 
         init {
-            createMapBooth(
-                createIndexedBooth(photoism, "p3", "숨김점", 127.0280, 37.4990, gangnamGu, listOf(gangnamStation)),
-                adminHidden = true,
-            )
+            // 색인에는 있지만 그 뒤 지금 세대 enriched 에서 빠진(폐점 등) 지점
             createIndexedBooth(photoism, "p4", "미동기화점", 127.0281, 37.4991, gangnamGu, listOf(gangnamStation))
             favorite(userId, photoismGangnam1)
 

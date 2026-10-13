@@ -19,7 +19,7 @@ object SearchResult {
 
     data class GetPhotoBooths(val items: List<Item>) {
         data class Item(
-            val id: Long,
+            val id: String,
             val brandName: String,
             val brandCode: String,
             val branchName: String,
