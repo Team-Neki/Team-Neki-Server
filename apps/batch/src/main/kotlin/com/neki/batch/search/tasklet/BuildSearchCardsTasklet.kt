@@ -20,7 +20,7 @@ import java.time.LocalDateTime
  * fileName       : BuildSearchCardsTasklet
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : tb_photo_booth_enriched 8열로 검색 카드를 만들어 _write 에 채운다. 외부 호출 없이 DB 만 읽고 쓴다.
+ * description    : tb_photo_booth_enriched 7열로 검색 카드를 만들어 _write 에 채운다. 외부 호출 없이 DB 만 읽고 쓴다.
  *                  search 와 map 두 도메인의 포트를 잇는 조립이라 앱 계층(batch)에 둔다.
  *
  * TaskletStep 이 execute() 를 step 트랜잭션 안에서 돌리므로 비우기와 채우기가 한 트랜잭션이다. 별도 트랜잭션 선언은 두지 않는다.

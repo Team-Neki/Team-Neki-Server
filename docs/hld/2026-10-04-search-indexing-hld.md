@@ -21,7 +21,7 @@ related:
 - 해결하는 문제 : 검색 API 가 "이 지역의 부스", "이 역 근처의 부스" 를 요청마다 계산하지 않고 인덱스 하나로 답할 수 있도록, 수집한 지점 데이터를 검색 전용 형태로 미리 가공해 둠
 - 핵심 구조 : Workflow(Prefect) 가 매일 수집·보강한 `tb_photo_booth_enriched` 를 Server 의 one-shot Spring Batch 잡 `searchIndexJob` 이 읽어 검색 색인 `tb_photo_booth_search_write` 를 전량 재생성하고, 한 트랜잭션에서 `_read` 와 이름을 맞바꿈
 - 책임 : 수집·좌표 보강·실행 시각은 Workflow, 색인 규칙(지점명 정리, 정규화, 지역 계층 펼치기, 역 1km 매핑)과 교체는 Server(apps/batch). 서빙은 `_read` 이름만 읽음
-- 변경하는 것 : `apps/batch` 의 `searchIndexJob`, 검색 색인 테이블 두 벌(V33), `tb_brand.platform`(V32). 변경하지 않는 것 : Workflow 의 수집·보강 flow, 지도 API, 지점 마스터(`TB_PHOTO_BOOTH_LOCATION`)
+- 변경하는 것 : `apps/batch` 의 `searchIndexJob`, 검색 색인 테이블 두 벌(V33), `tb_brand.platform`(V32, BACKEND-228 로 쓰지 않게 되어 V39 에서 삭제). 변경하지 않는 것 : Workflow 의 수집·보강 flow, 지도 API, 지점 마스터(`TB_PHOTO_BOOTH_LOCATION`)
 - 가장 중요한 결정 : (1) Elasticsearch 대신 PostgreSQL 에 미리 계산한 색인 (2) 증분 갱신 대신 전량 재생성 + `_read`/`_write` 두 벌 이름 맞바꾸기 (3) 지역 계층과 역 반경을 색인 시점에 미리 펼쳐 두기
 - 미결 : 지점 마스터의 관리자 보정값(`override_*`)을 색인에 반영할지, 정규화 규칙 변경 시 재색인 절차
 
@@ -66,7 +66,7 @@ related:
 
 ## 2. As-Is 와 설계를 결정한 제약
 
-- 수집 데이터는 Workflow 가 소유한다 : 원천 사이트 11곳의 지점 목록을 Workflow 가 수집하고, 좌표로 법정동 코드를 보강해 `tb_photo_booth_enriched` 에 현재 세대로 남깁니다. Server 는 이 테이블의 계약 8열(platform, idx, name, address, longitude, latitude, source_dt, b_code)만 알고, 나머지 운영 열은 모르도록 했습니다. **이 경계 때문에 색인은 Workflow 와 테이블 하나로만 만나는 별도 단계가 되었습니다.**
+- 수집 데이터는 Workflow 가 소유한다 : 원천 사이트 11곳의 지점 목록을 Workflow 가 수집하고, 좌표로 법정동 코드를 보강해 `tb_photo_booth_enriched` 에 현재 세대로 남깁니다. Server 는 이 테이블의 계약 7열(platform, idx, name, address, location, source_dt, b_code)만 알고, 나머지 운영 열은 모르도록 했습니다. **이 경계 때문에 색인은 Workflow 와 테이블 하나로만 만나는 별도 단계가 되었습니다.**
 - 검색 조건이 정해져 있다 : 검색 정책상 질의는 "고른 지역", "고른 역", "브랜드" 로 정해져 있고 데이터는 수천 건 규모입니다. 자유 형태의 전문 검색이 아니라 정해진 질의를 빠르게 답하는 문제라서, 별도 검색 엔진보다 질의마다 맞춘 인덱스가 맞았습니다.
 - 서빙 테이블은 Flyway 가 소유한다 : 이 저장소의 스키마는 api 가 Flyway 로 migrate 합니다. 색인을 매번 새 테이블로 만들고 지우면 Flyway 가 모르는 테이블이 생기므로, 테이블은 마이그레이션으로 고정하고 내용만 갈아 끼워야 했습니다.
 - 실행 주체가 따로 있다 : 실행 시각과 재시도는 Workflow(Prefect)가 정합니다. Server 쪽 실행 모듈은 상주 스케줄러가 아니라 한 번 실행하고 종료 코드로 결과를 알리는 프로세스여야 Prefect 가 성공·실패를 판단할 수 있었습니다(BACKEND-128).
@@ -85,7 +85,7 @@ flowchart LR
     subgraph Batch["Team-Neki-Server apps/batch (one-shot)"]
         Build["buildSearchCardsStep"] --> Swap["swapSearchTablesStep"]
     end
-    Brand[("tb_brand.platform")]
+    Brand[("tb_brand.code")]
     Trigger --> Build
     Enriched --> Build
     Masters --> Build
@@ -136,14 +136,14 @@ flowchart LR
 
 | 경계 | 답하는 질문 |
 |---|---|
-| `tb_photo_booth_enriched` 8열 (Workflow -> 색인) | 지금 세대에 어떤 지점이 어디에 있는가 |
+| `tb_photo_booth_enriched` 7열 (Workflow -> 색인) | 지금 세대에 어떤 지점이 어디에 있는가 |
 | `searchIndexJob` 실행 계약 (`businessDate`, `force`, 종료 코드) | 이번 색인이 성공했는가 |
 | `tb_photo_booth_search_read` (+`_station`) (색인 -> 서빙) | 이 지역·이 역에 딸린 부스는 무엇인가 |
 
 ### 3.5 Data Flow
 
 1. 실행 : Prefect `search-index` flow 가 batch 이미지로 k8s Job 을 만들고 `--spring.batch.job.name=searchIndexJob businessDate=<사이클>` 로 실행
-2. 입력 읽기 : enriched 전체, `tb_brand`(platform 이 있는 것), 지하철역 전체를 읽음
+2. 입력 읽기 : enriched 전체, `tb_brand`(삭제되지 않은 것, enriched 의 platform 을 `code` 로 조인), 지하철역 전체를 읽음
 3. 행 조립 : 지점마다 platform 으로 브랜드를 찾고, 좌표가 있으면 `PhotoBoothSearchWrite.of()` 가 지점명 정리, 정규화 문자열, 지역 계층, 원천 사이트 키, 1km 안 역을 계산. 브랜드가 없거나 좌표가 없는 지점은 건너뛰고 건수를 남김
 4. 하한 검사 : 0건이거나 서빙 중 행 수의 절반 미만이면 실패 (`force=true` 면 절반 검사만 건너뜀)
 5. `_write` 채우기 : `_write` 와 연결 테이블을 비우고 새 행을 넣은 뒤 `ANALYZE` (갓 채운 테이블의 통계가 비어 첫 질의가 seq scan 을 고르지 않도록)
@@ -207,15 +207,15 @@ flowchart LR
 - Why : 브랜드 추가·변경을 배포 없이 데이터로 맞출 수 있음
 - Trade-off : platform 을 채우지 않은 브랜드는 조용히 빠질 수 있음 (경고 로그로만 드러남)
 - Consequence : 새 브랜드를 수집하면 `tb_brand.platform` 을 함께 채워야 검색에 나옴
-- Superseded (BACKEND-228, V38) : 수집 쪽 platform 값을 `tb_brand.code` 로 바꾸고 `tb_brand.platform` 은 더 쓰지 않는다(삭제는 후속 마이그레이션). 색인은 `tb_brand.code` 로 조인한다. 그래서 운영 중 브랜드 code 를 바꾸면 수집 원천 키와 어긋난다
+- Superseded (BACKEND-228, V38) : 수집 쪽 platform 값을 `tb_brand.code` 로 바꾸고 `tb_brand.platform` 은 더 쓰지 않는다(V39 에서 삭제). 색인은 `tb_brand.code` 로 조인한다. 그래서 운영 중 브랜드 code 를 바꾸면 수집 원천 키와 어긋난다
 
 ## 5. Data / Index Dependencies
 
 | 데이터 | 소유 | 갱신 | 색인이 쓰는 방식 |
 |---|---|---|---|
-| `tb_photo_booth_enriched` (8열) | Workflow | 매일 05:00 KST, 이름 교체 방식 | 지점 원천. 좌표 없는 행은 건너뜀, `b_code` 없는 행은 `region_ids` 빈 배열 |
+| `tb_photo_booth_enriched` (7열) | Workflow | 매일 05:00 KST, 이름 교체 방식 | 지점 원천. 좌표 없는 행은 건너뜀, `b_code` 없는 행은 `region_ids` 빈 배열 |
 | `tb_subway_station` | Workflow | 매월 1일 06:00 KST | 역 1km 연결 |
-| `tb_brand` (`platform`) | Server | 관리자·마이그레이션 | 브랜드 id·이름·코드 스냅샷 |
+| `tb_brand` (`code`) | Server | 관리자·마이그레이션 | 브랜드 id·이름·코드 스냅샷 |
 | `BATCH_*` 메타 | Server (Notification 앱과 공동) | 실행마다 | 실행 이력, write/filter count |
 
 색인은 05:30 KST 에 돌며 앞 단계와 시각으로만 순서를 맞춥니다. 앞 단계가 늦으면 그 시점의 현재 세대로 색인하고 다음 날 따라잡습니다. 그래서 "오늘 색인이 오늘 수집분인가" 는 보장하지 않고, 행마다 `source_dt` 와 `business_date` 를 따로 남겨 사후에 구분합니다.
@@ -224,7 +224,7 @@ flowchart LR
 
 - apps/batch : `searchIndexJob`(두 step), 스캔 범위에 `com.neki.domain.search` 와 map 영속 어댑터 추가
 - domain/search : 색인 엔티티 두 벌, 원천 읽기 전용 엔티티(`PhotoBoothEnriched`, `SubwayStation`), `SearchNormalizer`, 저장소 포트와 어댑터
-- modules/postgres : V32(`tb_brand.platform`), V33(색인 테이블 두 벌)
+- modules/postgres : V32(`tb_brand.platform`, V39 에서 삭제), V33(색인 테이블 두 벌), V38(원천 키 platform 을 `tb_brand.code` 로)
 - Workflow : `search-index` flow 가 batch 이미지로 Job 을 만듦 (Workflow 저장소)
 - 변경하지 않음 : 지도 API, 지점 마스터, 수집·보강 flow
 
@@ -269,7 +269,7 @@ failure isolation 단위는 세대입니다. 어느 step 에서 실패해도 `_r
 |---|---|
 | 실제 구현 | 코드 (`apps/batch/search`, `domain/search`) |
 | 색인 테이블 스키마 | Flyway V33 (`modules/postgres`) |
-| 원천 입력 계약 | BACKEND-64 (enriched 8열) |
+| 원천 입력 계약 | BACKEND-64 (enriched 7열, 좌표는 BACKEND-244 부터 `location geometry(Point, 4326)`) |
 | 실행 계약 (one-shot, 종료 코드) | BACKEND-128, `docs/superpowers/specs/2026-09-23-batch-module-design.md` |
 | 완료 판정 | `docs/oracle/search-index-job.md` |
 | 배치 이미지 태그 | Team-Neki-GitOps `overlays/prefect/images.env` |

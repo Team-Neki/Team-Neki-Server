@@ -7,6 +7,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
 import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.Point
 import java.io.Serializable
 import java.time.LocalDate
 
@@ -14,7 +15,7 @@ import java.time.LocalDate
  * fileName       : PhotoBoothEnriched
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : Workflow 가 소유하는 tb_photo_booth_enriched 의 읽기 전용 매핑. 색인 입력 계약(BACKEND-64) 8열만 안다
+ * description    : Workflow 가 소유하는 tb_photo_booth_enriched 의 읽기 전용 매핑. 색인 입력 계약(BACKEND-64) 7열만 안다. 좌표는 location 한 열 (BACKEND-244)
  */
 @Entity
 @Immutable
@@ -29,11 +30,8 @@ class PhotoBoothEnriched(
     @Column(name = "address")
     val address: String?,
 
-    @Column(name = "longitude")
-    val longitude: Double?,
-
-    @Column(name = "latitude")
-    val latitude: Double?,
+    @Column(name = "location", columnDefinition = "geometry(Point, 4326)")
+    val location: Point?,
 
     @Column(name = "source_dt", nullable = false)
     val sourceDt: LocalDate,
@@ -41,9 +39,8 @@ class PhotoBoothEnriched(
     @Column(name = "b_code", columnDefinition = "CHAR(10)")
     val bCode: String?,
 ) {
-    /** 경도/위도가 둘 다 있을 때만 좌표. 없으면 카드를 만들 수 없다 */
-    fun coordinateOrNull(): Coordinate? =
-        if (longitude != null && latitude != null) Coordinate(longitude, latitude) else null
+    /** 좌표가 없으면 카드를 만들 수 없다 */
+    fun coordinateOrNull(): Coordinate? = location?.coordinate
 }
 
 @Embeddable
