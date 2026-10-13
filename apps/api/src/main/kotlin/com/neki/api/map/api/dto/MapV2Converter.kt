@@ -2,6 +2,7 @@ package com.neki.api.map.api.dto
 
 import com.neki.api.map.application.dto.MapResult
 import com.neki.core.code.ResultCode
+import com.neki.core.domain.vo.BranchName
 import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.models.PhotoBoothKey
@@ -37,7 +38,7 @@ object MapV2Converter {
                 MapV2Response.GetPolygonPhotoBooths.Item(
                     id = it.key.toBoothId(),
                     brandName = it.brandName,
-                    branchName = it.branchName,
+                    branchName = BranchName.of(it.brandName, it.branchName),
                     address = it.address.orEmpty(),
                     longitude = it.location.x,
                     latitude = it.location.y,
@@ -52,7 +53,7 @@ object MapV2Converter {
                 MapV2Response.GetPointPhotoBooths.Item(
                     id = it.key.toBoothId(),
                     brandName = it.brandName,
-                    branchName = it.branchName,
+                    branchName = BranchName.of(it.brandName, it.branchName),
                     address = it.address.orEmpty(),
                     longitude = it.location.x,
                     latitude = it.location.y,
@@ -70,7 +71,7 @@ object MapV2Converter {
                 MapV2Response.GetFavoritePhotoBooths.Item(
                     id = it.key.toBoothId(),
                     brandName = it.brandName,
-                    branchName = it.branchName,
+                    branchName = BranchName.of(it.brandName, it.branchName),
                     address = it.address.orEmpty(),
                     longitude = it.location.x,
                     latitude = it.location.y,

@@ -70,10 +70,10 @@ class GetFavoriteMapsE2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @DisplayName("즐겨찾기한 포토부스 목록을 브랜드명과 함께 반환한다")
+    @DisplayName("즐겨찾기한 포토부스 목록을 브랜드명, 브랜드명 접두를 뗀 지점명과 함께 반환한다")
     fun givenFavorites_whenGetFavoriteMaps_thenReturnsFavoriteList() {
         // given
-        val location = createLocation("강남점", 127.027456, 37.497946)
+        val location = createLocation("포토이즘 강남점", 127.027456, 37.497946)
         favoriteMap(userId = testUser.id!!, locationId = location.id!!)
 
         // when & then

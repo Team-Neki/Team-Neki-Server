@@ -60,7 +60,7 @@ class GetFavoritePhotoBoothsV2E2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @DisplayName("즐겨찾기한 포토부스를 포토부스 id, 브랜드명과 함께 반환한다")
+    @DisplayName("즐겨찾기한 포토부스를 포토부스 id, 브랜드명, 브랜드명 접두를 뗀 지점명과 함께 반환한다")
     fun givenFavorite_whenGet_thenReturnsPhotoBooth() {
         // given
         val key: PhotoBoothKey = createEnrichedPhotoBooth(testBrand, "1768232303", "포토이즘 강남점", 127.027456, 37.497946)
@@ -71,7 +71,7 @@ class GetFavoritePhotoBoothsV2E2ETest : MapE2ETestBase() {
             .body("data.items", hasSize<Int>(1))
             .body("data.items[0].id", equalTo("source:PHOTOISM:1768232303"))
             .body("data.items[0].brandName", equalTo("포토이즘"))
-            .body("data.items[0].branchName", equalTo("포토이즘 강남점"))
+            .body("data.items[0].branchName", equalTo("강남점"))
             .body("data.items[0].address", equalTo("서울 강남구 포토이즘 강남점"))
             .body("data.items[0].longitude", equalTo(127.027456f))
             .body("data.items[0].latitude", equalTo(37.497946f))
