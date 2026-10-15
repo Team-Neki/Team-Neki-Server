@@ -12,7 +12,7 @@ import com.neki.domain.search.models.PhotoBoothSearch
 interface MapClient {
 
     /**
-     * 검색 색인 행의 원천 키 (platform, idx) 로 찾은 지도 부스. 관리자가 숨긴 지점과 지도에 아직 없는 행은 빠진다
+     * 검색 색인 행의 원천 키 (platform, idx) 로 찾은 지도 부스. 색인 이후 지금 세대(enriched)에서 빠진 행은 빠진다
      */
     fun findMapBooths(userId: Long, indexedBooths: List<PhotoBoothSearch>): List<MapBooth>
 

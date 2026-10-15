@@ -37,7 +37,7 @@ class SearchPhotoBoothsUseCase(
         // 2. Retrieval : 인식한 지역·역의 색인 행. 지역·역을 찾지 못하면 빈 목록
         val indexedBooths: List<PhotoBoothSearch> = photoBoothSearchService.findIndexedBooths(query, intent)
 
-        // 3. Map booth : 지도 부스 id 와 즐겨찾기는 map 도메인이 정본이다. 지도에 없거나 숨긴 지점은 빠진다
+        // 3. Map booth : 지도 부스 id 와 즐겨찾기는 map 도메인이 정본이다. 색인 이후 지도(enriched)에서 빠진 지점은 빠진다
         val mapBooths: List<MapBooth> = mapClient.findMapBooths(query.userId, indexedBooths)
         val booths: SearchedBooths = SearchedBooths.of(indexedBooths, mapBooths)
 

@@ -192,6 +192,10 @@ flowchart TB
 
 ### DEC-2. 응답 id 는 원천 키로 찾은 지도 부스 id
 
+> Superseded (지도 V2, V40) : 지도 부스를 지점 마스터(`TB_PHOTO_BOOTH_LOCATION`) 대신 지금 세대 `tb_photo_booth_enriched` 에서 찾는다.
+> 응답 id 는 원천 키 문자열 `source:<브랜드 코드>:<idx>` 이고(지도 V2 API 와 같음), 즐겨찾기는 `TB_FAVORITE_PHOTO_BOOTH`(원천 키) 와 기존 `TB_FAVORITE_MAP`(지점 마스터 id) 을 합쳐 본다.
+> 색인 이후 enriched 에서 빠진 부스는 빠지고, `admin_hidden` 은 더 보지 않는다. 서빙은 stores-sync 대신 enrich 를 선행 조건으로 가진다. 아래는 당시 결정이다.
+
 - Context : 색인 행 id 는 하루마다 바뀌고, 즐겨찾기는 지점 마스터 id 를 참조한다
 - Decision : 색인 행의 원천 키 (platform, idx) 로 지점 마스터를 찾아 그 id 와 즐겨찾기를 내리고, 마스터에 없거나 숨긴 부스는 뺀다
 - Alternatives : 색인 행 id 를 그대로 내리고 즐겨찾기는 항상 false / 색인에 지점 마스터 id 를 함께 저장

@@ -1,26 +1,24 @@
 package com.neki.api.map.application
 
 import com.neki.api.map.application.dto.MapResult
-import com.neki.api.map.application.dto.PhotoBoothLocationAssembler
 import com.neki.core.annotation.UseCase
 import com.neki.core.transaction.TransactionRunner
 import com.neki.domain.map.dto.MapQuery
-import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
-import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
+import com.neki.domain.map.service.MapService
 
 /**
  * fileName       : GetPhotoBoothLocationUseCase
  * author         : darren
  * date           : 2026. 01. 17.
- * description    : 포토부스 위치 조회
+ * description    : 포토부스 위치 조회 (지도 V1, 지점 마스터 TB_PHOTO_BOOTH_LOCATION). V2 는 [GetPhotoBoothUseCase]
  */
 @UseCase
 class GetPhotoBoothLocationUseCase(
     private val photoBoothLocationRepository: PhotoBoothLocationRepository,
-    private val favoriteMapRepository: FavoriteMapRepository,
+    private val mapService: MapService,
     private val transactionRunner: TransactionRunner,
 ) {
 
@@ -37,7 +35,7 @@ class GetPhotoBoothLocationUseCase(
             return@readOnly MapResult.GetPolygonLocation(emptyList(), emptySet())
         }
 
-        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+        val favoriteLocationIds: Set<Long> = mapService.getFavoritedLocationIds(
             userId = query.userId,
             locationIds = locations.map { it.id },
         )
@@ -60,29 +58,11 @@ class GetPhotoBoothLocationUseCase(
             return@readOnly MapResult.GetPointLocation(emptyList(), emptySet())
         }
 
-        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+        val favoriteLocationIds: Set<Long> = mapService.getFavoritedLocationIds(
             userId = query.userId,
             locationIds = locations.map { it.id },
         )
 
         MapResult.GetPointLocation(locations, favoriteLocationIds)
-    }
-
-    /**
-     * 수집 원천 키로 포토부스 위치 조회. 관리자가 숨긴 지점과 아직 동기화되지 않은 원천 키는 빠진다
-     */
-    fun execute(query: MapQuery.GetSourceLocations): MapResult.GetSourceLocations = transactionRunner.readOnly {
-        val locations: List<PhotoBoothLocation> = photoBoothLocationRepository.findVisibleBySources(query.sources)
-
-        if (locations.isEmpty()) {
-            return@readOnly MapResult.GetSourceLocations(emptyList())
-        }
-
-        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
-            userId = query.userId,
-            locationIds = locations.mapNotNull { it.id },
-        )
-
-        PhotoBoothLocationAssembler.toSourceLocations(locations, favoriteLocationIds)
     }
 }

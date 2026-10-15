@@ -62,7 +62,7 @@ data class UserLocation(val latitude: Double, val longitude: Double) {
 }
 
 /**
- * 검색 색인 행과 원천 키 (platform, idx) 가 같은 지도 부스(map 의 TB_PHOTO_BOOTH_LOCATION). 색인 행 id 는 색인 세대마다 바뀌므로
- * 응답 id 와 즐겨찾기는 이 값을 쓴다.
+ * 검색 색인 행과 원천 키 (platform, idx) 가 같은 지도 부스(map 이 읽는 지금 세대 tb_photo_booth_enriched). 색인 행 id 는 색인 세대마다
+ * 바뀌므로 응답 id 와 즐겨찾기는 이 값을 쓴다. id 는 map 이 정한 부스 id(`source:<platform>:<idx>`)로, 지도 V2 즐겨찾기 API 에 그대로 쓴다.
  */
-data class MapBooth(val platform: String, val idx: String, val locationId: Long, val favorite: Boolean)
+data class MapBooth(val platform: String, val idx: String, val id: String, val favorite: Boolean)

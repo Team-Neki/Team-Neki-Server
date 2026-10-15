@@ -50,8 +50,11 @@ object SearchResponse {
     ) {
         @Schema(name = "SearchPhotoBoothInfo")
         data class Item(
-            @field:Schema(description = "부스 ID", example = "2560")
-            val id: Long,
+            @field:Schema(
+                description = "부스 ID. 지도 V2 조회·즐겨찾기 API 와 같은 값",
+                example = "source:PHOTOISM:1768232303",
+            )
+            val id: String,
 
             @field:Schema(description = "브랜드 이름", example = "포토이즘")
             val brandName: String,

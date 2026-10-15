@@ -5,8 +5,8 @@ import com.neki.api.testfixture.FakeTransactionRunner
 import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
-import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
+import com.neki.domain.map.service.MapService
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
@@ -21,7 +21,7 @@ import org.locationtech.jts.geom.PrecisionModel
 
 /**
  * fileName       : GetPhotoBoothLocationUseCaseTest
- * description    : GetPhotoBoothLocationUseCase 단위 테스트
+ * description    : GetPhotoBoothLocationUseCase(지도 V1) 단위 테스트
  */
 class GetPhotoBoothLocationUseCaseTest :
     FunSpec({
@@ -30,15 +30,15 @@ class GetPhotoBoothLocationUseCaseTest :
         val userId = 1L
 
         lateinit var photoBoothLocationRepository: PhotoBoothLocationRepository
-        lateinit var favoriteMapRepository: FavoriteMapRepository
+        lateinit var mapService: MapService
         lateinit var useCase: GetPhotoBoothLocationUseCase
 
         beforeTest {
             photoBoothLocationRepository = mockk()
-            favoriteMapRepository = mockk()
+            mapService = mockk()
             useCase = GetPhotoBoothLocationUseCase(
                 photoBoothLocationRepository,
-                favoriteMapRepository,
+                mapService,
                 FakeTransactionRunner(),
             )
         }
@@ -82,7 +82,7 @@ class GetPhotoBoothLocationUseCaseTest :
                 )
             } returns locationDtos
             // 1번 부스만 즐겨찾기한 상태
-            every { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L, 2L)) } returns setOf(1L)
+            every { mapService.getFavoritedLocationIds(userId, listOf(1L, 2L)) } returns setOf(1L)
 
             // When
             val result = useCase.execute(query)
@@ -99,7 +99,7 @@ class GetPhotoBoothLocationUseCaseTest :
                     brandIds = null,
                 )
             }
-            verify(exactly = 1) { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L, 2L)) }
+            verify(exactly = 1) { mapService.getFavoritedLocationIds(userId, listOf(1L, 2L)) }
         }
 
         test("Polygon 검색 - 결과가 없으면 빈 리스트를 반환하고 즐겨찾기를 조회하지 않는다") {
@@ -127,7 +127,7 @@ class GetPhotoBoothLocationUseCaseTest :
             // Then
             result.locations.shouldBeEmpty()
             result.favoriteLocationIds.shouldBeEmpty()
-            verify(exactly = 0) { favoriteMapRepository.findFavoritedLocationIds(any(), any()) }
+            verify(exactly = 0) { mapService.getFavoritedLocationIds(any(), any()) }
         }
 
         // ── Point 검색 ────────────────────────────────────────────────────────────
@@ -161,7 +161,7 @@ class GetPhotoBoothLocationUseCaseTest :
                     brandIds = null,
                 )
             } returns locationDtos
-            every { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L)) } returns setOf(1L)
+            every { mapService.getFavoritedLocationIds(userId, listOf(1L)) } returns setOf(1L)
 
             // When
             val result = useCase.execute(query)
@@ -179,7 +179,7 @@ class GetPhotoBoothLocationUseCaseTest :
                     brandIds = null,
                 )
             }
-            verify(exactly = 1) { favoriteMapRepository.findFavoritedLocationIds(userId, listOf(1L)) }
+            verify(exactly = 1) { mapService.getFavoritedLocationIds(userId, listOf(1L)) }
         }
 
         test("Point 검색 - 결과가 없으면 빈 리스트를 반환하고 즐겨찾기를 조회하지 않는다") {
@@ -206,6 +206,6 @@ class GetPhotoBoothLocationUseCaseTest :
             // Then
             result.locations.shouldBeEmpty()
             result.favoriteLocationIds.shouldBeEmpty()
-            verify(exactly = 0) { favoriteMapRepository.findFavoritedLocationIds(any(), any()) }
+            verify(exactly = 0) { mapService.getFavoritedLocationIds(any(), any()) }
         }
     })
