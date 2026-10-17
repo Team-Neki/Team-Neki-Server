@@ -3,6 +3,7 @@ package com.neki.domain.notification.infra.persist
 import com.neki.domain.notification.infra.persist.jpa.JpaNotificationRepository
 import com.neki.domain.notification.models.Notification
 import com.neki.domain.notification.repository.NotificationRepository
+import org.springframework.data.domain.Limit
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -13,4 +14,7 @@ class NotificationRepositoryAdapter(private val jpaRepository: JpaNotificationRe
     override fun save(notification: Notification): Notification = jpaRepository.save(notification)
 
     override fun deleteByUserId(userId: Long) = jpaRepository.deleteByUserId(userId)
+
+    override fun findPushAgreedAfter(afterUserId: Long, limit: Int): List<Notification> =
+        jpaRepository.findByPushAgreedTrueAndUserIdGreaterThanOrderByUserIdAsc(afterUserId, Limit.of(limit))
 }

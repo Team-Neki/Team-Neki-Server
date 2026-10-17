@@ -11,6 +11,7 @@ import com.neki.domain.photo.repository.PhotoImageFolderRepository
 import com.neki.domain.photo.repository.PhotoImageRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 /**
  * fileName       : PhotoImageRepositoryAdapter
@@ -24,6 +25,15 @@ class PhotoImageRepositoryAdapter(
     private val queryRepository: PhotoImageQueryRepository,
     private val photoImageFolderRepository: PhotoImageFolderRepository,
 ) : PhotoImageRepository {
+
+    override fun findUserIdsUploadedBetween(
+        userIds: Collection<Long>,
+        start: LocalDateTime,
+        endExclusive: LocalDateTime,
+    ): Set<Long> = queryRepository.findUserIdsUploadedBetween(userIds, start, endExclusive)
+
+    override fun findLastUploadedAtByUserIds(userIds: Collection<Long>): Map<Long, LocalDateTime> =
+        queryRepository.findLastUploadedAtByUserIds(userIds)
 
     override fun getOwnedPhotoWithFavorite(userId: Long, photoId: Long): PhotoWithFavorite? =
         queryRepository.findOwnedPhotoWithFavorite(userId, photoId)

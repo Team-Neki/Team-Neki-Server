@@ -17,3 +17,8 @@ spring:
     jdbc:
       # Flyway 비활성이므로 메타 테이블은 Spring Batch 의 H2 스크립트로 만든다
       initialize-schema: always
+
+neki:
+  notification:
+    # domain 의 CsvHolidayRepositoryAdapter 가 읽는 공휴일. 기본값 holidays.csv 대신 테스트 행을 쓴다
+    holiday-csv: holidays-test.csv

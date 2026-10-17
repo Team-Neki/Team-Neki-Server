@@ -101,9 +101,11 @@ PostgreSQL(5432), Redis(6379), LocalStack S3(4566)가 함께 올라옵니다.
 ```bash
 ./gradlew :apps:api:bootRun      # API 서버
 ./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=searchIndexJob businessDate=2026-09-25"  # 배치 잡 1회 실행
+./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=weekendExploreJob businessDate=2026-10-06"  # 알림 발송 잡 (weeklyReminderJob, weekendExploreJob, holidayExploreJob)
 ```
 
 루트에서 `./gradlew bootRun` 을 실행하면 두 앱이 함께 실행되므로 모듈을 지정합니다.
+알림 발송 잡은 Firebase 키가 있어야 합니다. `local` 프로파일은 `classpath:firebase-service-account.json` 을 읽으므로, 키 파일을 클래스패스에 두거나 `--firebase.credentials-location=file:/path/to/key.json` 을 args 에 더합니다. 키가 없으면 첫 발송에서 `PUSH_NOT_CONFIGURED` 로 실패합니다.
 `local` 프로파일이 기본으로 적용됩니다. 의존성별 설정은 `modules/{module}/src/main/resources/application-{module}.yaml` 에 프로파일 문서로 나뉘어 있습니다. 환경변수나 추가 설정이 필요한 경우 팀 노션을 참고하세요.
 
 ### 3. 빌드 및 테스트

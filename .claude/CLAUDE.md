@@ -9,6 +9,7 @@ Instructions for Claude Code when working with this repository.
 ./gradlew build                    # Build project
 ./gradlew :apps:api:bootRun        # Run API locally (requires Docker). 루트 bootRun 은 api/batch 를 둘 다 실행하므로 금지
 ./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=searchIndexJob businessDate=2026-09-25"  # 배치 잡 1회 실행 후 종료
+./gradlew :apps:batch:bootRun --args="--spring.batch.job.name=weekendExploreJob businessDate=2026-10-06"  # 알림 발송 잡 (weeklyReminderJob, weekendExploreJob, holidayExploreJob). 로컬은 Firebase 키 파일 필요
 ./gradlew test                     # Run all tests
 ./gradlew spotlessApply            # Format code (ktlint)
 
