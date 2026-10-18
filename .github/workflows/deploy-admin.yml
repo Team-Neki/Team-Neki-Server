@@ -1,0 +1,145 @@
+name: Deploy Admin API (GHCR + GitOps)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "배포할 브랜치/태그/SHA. 비우면 워크플로를 실행한 ref"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-admin-api
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/team-neki/neki-admin-api
+  GITOPS_REPO: Team-Neki/Team-Neki-GitOps
+  GITOPS_PATH: overlays/admin-api/deployment.yaml
+  IMAGE_LINE: '^[[:space:]]*image: ghcr[.]io/team-neki/neki-admin-api:[^[:space:]]+$'
+
+jobs:
+  preflight:
+    name: Check GitOps deployment target
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check GitOps token
+        env:
+          GITOPS_PAT: ${{ secrets.GITOPS_PAT }}
+        run: |
+          test -n "$GITOPS_PAT" || {
+            echo "::error::GITOPS_PAT를 이 저장소에서 사용할 수 있어야 합니다."
+            exit 1
+          }
+
+      - name: Checkout GitOps
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          ref: main
+          token: ${{ secrets.GITOPS_PAT }}
+          persist-credentials: false
+
+      - name: Check image line exists exactly once
+        run: |
+          test -f "$GITOPS_PATH"
+          test "$(grep -cE "$IMAGE_LINE" "$GITOPS_PATH" || true)" = 1 || {
+            echo "::error::GitOps admin-api PR을 먼저 머지해야 합니다. 이미지 줄이 정확히 하나 필요합니다."
+            exit 1
+          }
+
+  build:
+    name: Test, build and push admin image
+    needs: preflight
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Checkout selected ref
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: gradle
+
+      - name: Test and build admin bootJar
+        run: ./gradlew :apps:admin:test :apps:admin:bootJar --no-daemon
+
+      - name: Resolve checked-out commit tag
+        id: tag
+        run: echo "tag=sha-$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push admin image
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5.4.0
+        with:
+          context: .
+          push: true
+          build-args: APP_MODULE=admin
+          tags: ${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}
+          labels: org.opencontainers.image.source=https://github.com/Team-Neki/Team-Neki-Server
+          cache-from: type=gha,scope=admin-api
+          cache-to: type=gha,mode=max,scope=admin-api
+
+  deploy:
+    name: Update admin image in GitOps
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # 선택 ref의 코드를 이 runner에서 실행하지 않아 GitOps PAT와 격리한다.
+      - name: Checkout GitOps
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          ref: main
+          token: ${{ secrets.GITOPS_PAT }}
+
+      - name: Update image and push
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          printf '%s' "$TAG" | grep -Eq '^sha-[0-9a-f]{40}$'
+          # 다른 배포가 main을 갱신하면 최신 main에 이미지 변경만 다시 적용한다.
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            test "$(grep -cE "$IMAGE_LINE" "$GITOPS_PATH" || true)" = 1
+            sed -E "s#^([[:space:]]*image: )ghcr[.]io/team-neki/neki-admin-api:[^[:space:]]+\$#\1${IMAGE}:${TAG}#" "$GITOPS_PATH" > "$GITOPS_PATH.tmp"
+            mv "$GITOPS_PATH.tmp" "$GITOPS_PATH"
+            grep -qF "image: ${IMAGE}:${TAG}" "$GITOPS_PATH"
+            if git diff --quiet -- "$GITOPS_PATH"; then
+              echo "Already deployed: $TAG"
+              exit 0
+            fi
+            git config user.name 'github-actions[bot]'
+            git config user.email 'github-actions[bot]@users.noreply.github.com'
+            git add "$GITOPS_PATH"
+            git commit -m "chore(admin-api): update image to ${TAG}"
+            if git push origin HEAD:main; then
+              echo "GitOps updated. ArgoCD Application admin-api will sync this image."
+              exit 0
+            fi
+            sleep "$((attempt * 5))"
+          done
+          exit 1
