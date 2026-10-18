@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  * author         : koo
  * date           : 2026. 8. 3.
  * description    : 포즈 자체의 목록 조회와 등록.
- *                  스크랩은 [PoseScrapService], 조회수는 [PoseViewService], 무작위 추첨은 [RandomPoseService] 가 맡는다
+ *                  스크랩은 [PoseScrapService], 무작위 추첨은 [RandomPoseService] 가 맡는다
  */
 @Component
 class PoseService(private val poseRepository: PoseRepository) {

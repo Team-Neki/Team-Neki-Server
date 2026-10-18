@@ -1,0 +1,1 @@
+ALTER TABLE TB_POSE DROP COLUMN view_count;

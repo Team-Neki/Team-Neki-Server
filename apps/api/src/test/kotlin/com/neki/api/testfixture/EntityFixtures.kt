@@ -171,14 +171,12 @@ fun aPose(
     mediaId: Long = 1L,
     headCount: HeadCount = HeadCount.TWO,
     memo: String? = null,
-    viewCount: Long = 0L,
 ): Pose = Pose(
     id = id,
     userId = userId,
     mediaId = mediaId,
     headCount = headCount,
     memo = memo,
-    viewCount = viewCount,
 )
 
 // ── ScrapPose ─────────────────────────────────────────────────────────────────
