@@ -133,7 +133,7 @@ class GetSearchFilterE2ETest : SearchE2ETestBase() {
         }
 
         @Test
-        @DisplayName("같은 keyword·필터면 브랜드 개수 합계가 부스 목록 건수와 같다 (숨김·미동기화 지점은 양쪽에서 빠진다)")
+        @DisplayName("같은 keyword·필터면 브랜드 개수 합계가 부스 목록 건수와 같다 (지도에서 빠진 지점은 양쪽에서 빠진다)")
         fun givenSameRequest_whenGetFilterAndPhotoBooths_thenCountsMatchList() {
             val photoismOnly = SearchRequest.FilterGroup(
                 brandFilter = SearchRequest.FilterGroup.BrandFilter(

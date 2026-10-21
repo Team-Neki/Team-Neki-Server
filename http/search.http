@@ -486,7 +486,7 @@ Content-Type: application/json
 %}
 
 ### [FAV-1] PB-1 에서 즐겨찾기 안 한 부스를 즐겨찾기 (FAV-3 에서 되돌림)
-PATCH {{host}}/api/photo-booths/{{favTargetId}}/favorite
+PATCH {{host}}/api/v2/photo-booths/{{favTargetId}}/favorite
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
@@ -513,14 +513,14 @@ Content-Type: application/json
 > {%
   client.test("FAV-2", function () {
     client.assert(response.status === 200, "status " + response.status);
-    var targetId = Number(client.global.get("favTargetId"));
+    var targetId = client.global.get("favTargetId");
     var target = response.body.data.items.filter(function (i) { return i.id === targetId; })[0];
     client.assert(target !== undefined && target.favorite === true, "favorite 가 반영되지 않음 : " + targetId);
   });
 %}
 
 ### [FAV-3] 즐겨찾기를 되돌린다
-PATCH {{host}}/api/photo-booths/{{favTargetId}}/favorite
+PATCH {{host}}/api/v2/photo-booths/{{favTargetId}}/favorite
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 

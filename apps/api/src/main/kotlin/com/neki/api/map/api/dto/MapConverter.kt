@@ -1,6 +1,7 @@
 package com.neki.api.map.api.dto
 
 import com.neki.api.map.application.dto.MapResult
+import com.neki.core.domain.vo.BranchName
 import com.neki.core.properties.AppProperties
 import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.dto.MapQuery
@@ -80,7 +81,7 @@ object MapConverter {
                 MapResponse.GetPolygonLocation.Item(
                     id = it.id,
                     brandName = it.brandName,
-                    branchName = it.branchName,
+                    branchName = BranchName.of(it.brandName, it.branchName),
                     address = it.address,
                     longitude = it.location.x,
                     latitude = it.location.y,
@@ -95,7 +96,7 @@ object MapConverter {
                 MapResponse.GetFavoriteMap.Item(
                     id = it.id,
                     brandName = it.brandName,
-                    branchName = it.branchName,
+                    branchName = BranchName.of(it.brandName, it.branchName),
                     address = it.address,
                     longitude = it.location.x,
                     latitude = it.location.y,
@@ -109,7 +110,7 @@ object MapConverter {
                 MapResponse.GetPointLocation.Item(
                     id = it.id,
                     brandName = it.brandName,
-                    branchName = it.branchName,
+                    branchName = BranchName.of(it.brandName, it.branchName),
                     address = it.address,
                     longitude = it.location.x,
                     latitude = it.location.y,

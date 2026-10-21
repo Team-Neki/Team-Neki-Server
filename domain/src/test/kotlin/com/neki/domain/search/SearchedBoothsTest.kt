@@ -44,8 +44,8 @@ class SearchedBoothsTest :
                 indexedAt = LocalDateTime.of(2026, 10, 2, 5, 30),
             )
 
-        fun mapBooth(booth: PhotoBoothSearch, locationId: Long) =
-            MapBooth(booth.platform, booth.idx, locationId, favorite = false)
+        fun mapBooth(booth: PhotoBoothSearch) =
+            MapBooth(booth.platform, booth.idx, "source:${booth.platform}:${booth.idx}", favorite = false)
 
         // 사용자 위치(위도 37.4979)에서 near 가 가장 가깝고 far 가 가장 멀다
         val near = indexed("a", 1, "포토이즘", "강남역점", 37.4980)
@@ -55,7 +55,7 @@ class SearchedBoothsTest :
 
         val booths: SearchedBooths = SearchedBooths.of(
             listOf(near, far, sameSpotAsNear, unsynced),
-            listOf(mapBooth(near, 10), mapBooth(far, 11), mapBooth(sameSpotAsNear, 12)),
+            listOf(mapBooth(near), mapBooth(far), mapBooth(sameSpotAsNear)),
         )
 
         test("지도 부스와 원천 키가 같은 색인 행만 남는다") {
@@ -64,13 +64,14 @@ class SearchedBoothsTest :
 
         test("사용자 위치가 있으면 가까운 순이고, 거리가 같으면 지점명 순이다") {
             booths.ordered(UserLocation(latitude = 37.4979, longitude = 127.0276)).map {
-                it.mapBooth.locationId
+                it.mapBooth.id
             } shouldBe
-                listOf(12L, 10L, 11L)
+                listOf(sameSpotAsNear, near, far).map { "source:${it.platform}:${it.idx}" }
         }
 
         test("사용자 위치가 없으면 브랜드명, 지점명 순이다") {
-            booths.ordered(null).map { it.mapBooth.locationId } shouldBe listOf(12L, 11L, 10L)
+            booths.ordered(null).map { it.mapBooth.id } shouldBe
+                listOf(sameSpotAsNear, far, near).map { "source:${it.platform}:${it.idx}" }
         }
 
         test("브랜드별로 세고 사용자 순서를 따르며, 순서에 없는 브랜드는 뒤에 id 순이다") {

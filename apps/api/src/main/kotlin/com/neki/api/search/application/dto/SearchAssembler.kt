@@ -69,11 +69,11 @@ object SearchAssembler {
         SearchResult.GetPhotoBooths(
             items = booths.map {
                 SearchResult.GetPhotoBooths.Item(
-                    id = it.mapBooth.locationId,
+                    id = it.mapBooth.id,
                     brandName = it.indexed.brandName,
                     brandCode = it.indexed.brandCode,
                     branchName = it.indexed.branchName,
-                    // 지도에 있는 수집 지점은 주소가 NOT NULL 이라(V34 ck_photo_booth_location_source) 비는 일은 없다
+                    // enriched 의 주소는 nullable 이라 색인 행도 비어 있을 수 있다. 지도 V1 응답과 같이 빈 문자열로 내린다
                     address = it.indexed.address.orEmpty(),
                     latitude = it.latitude,
                     longitude = it.longitude,

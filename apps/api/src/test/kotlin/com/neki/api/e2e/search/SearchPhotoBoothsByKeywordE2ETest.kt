@@ -312,7 +312,7 @@ class SearchPhotoBoothsByKeywordE2ETest : SearchE2ETestBase() {
                 .post("/api/search/photo-booths")
                 .then()
                 .statusCode(HttpStatus.OK.value())
-                .body("data.items.id", contains(mapBooth.id!!.toInt()))
+                .body("data.items.id", contains(mapBooth))
         }
 
         @Test
