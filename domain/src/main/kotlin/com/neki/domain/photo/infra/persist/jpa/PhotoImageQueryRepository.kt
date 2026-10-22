@@ -10,6 +10,7 @@ import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 /**
  * fileName       : PhotoImageQueryRepository
@@ -19,6 +20,34 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 class PhotoImageQueryRepository(private val queryFactory: JPAQueryFactory) {
+
+    fun findUserIdsUploadedBetween(
+        userIds: Collection<Long>,
+        start: LocalDateTime,
+        endExclusive: LocalDateTime,
+    ): Set<Long> {
+        if (userIds.isEmpty()) return emptySet()
+        return queryFactory.select(photoImage.userId).distinct()
+            .from(photoImage)
+            .where(
+                photoImage.userId.`in`(userIds),
+                photoImage.createdAt.goe(start),
+                photoImage.createdAt.lt(endExclusive),
+            )
+            .fetch()
+            .toSet()
+    }
+
+    fun findLastUploadedAtByUserIds(userIds: Collection<Long>): Map<Long, LocalDateTime> {
+        if (userIds.isEmpty()) return emptyMap()
+        val lastUploadedAt = photoImage.createdAt.max()
+        return queryFactory.select(photoImage.userId, lastUploadedAt)
+            .from(photoImage)
+            .where(photoImage.userId.`in`(userIds))
+            .groupBy(photoImage.userId)
+            .fetch()
+            .associate { it.get(photoImage.userId)!! to it.get(lastUploadedAt)!! }
+    }
 
     fun findOwnedPhotos(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<PhotoImage> =
         queryFactory.selectFrom(photoImage)

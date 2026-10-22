@@ -1,0 +1,6 @@
+# 테스트용 공휴일. CsvHolidayRepositoryAdapterTest 가 읽는다. apps/batch 테스트 리소스에 같은 파일이 있다 (NotificationPushJobsTest)
+holiday_date,name,notify_offset_days
+
+2026-06-18,테스트공휴일,0
+2026-06-20,전날알림,-1
+2026-12-25,성탄절

@@ -10,6 +10,8 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":modules:postgres"))
     implementation(project(":modules:jasypt"))
+    // 알림 발송 잡이 FirebaseConfig 의 FirebaseMessaging 빈을 쓴다 (키 파일이 있을 때만 뜬다)
+    implementation(project(":modules:firebase"))
 
     implementation("org.springframework.boot:spring-boot-starter-batch")
     // 검색 카드의 location(Point) 을 만든다. :domain 이 implementation 으로 갖고 있어 전이되지 않는다 (apps/api 와 같은 선언)
