@@ -7,6 +7,7 @@ import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.jdbc.core.JdbcTemplate
 
 /**
  * fileName       : E2ETestBase
@@ -21,6 +22,30 @@ abstract class E2ETestBase {
 
     @Autowired
     protected lateinit var userRepository: JpaUserRepository
+
+    @Autowired
+    protected lateinit var jdbcTemplate: JdbcTemplate
+
+    /** V34의 COLLECTED 제약에 맞춰 JPA가 매핑하지 않는 수집 원본 필드를 채운다. */
+    protected fun markCollectedLocation(id: Long, platform: String, idx: String) {
+        jdbcTemplate.update(
+            """
+            UPDATE tb_photo_booth_location
+            SET source_type = 'COLLECTED',
+                source_platform = ?,
+                source_idx = ?,
+                source_name = branch_name,
+                source_address = address,
+                source_location = location,
+                source_dt = CURRENT_DATE,
+                source_collected_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """.trimIndent(),
+            platform,
+            idx,
+            id,
+        )
+    }
 
     @AfterEach
     protected open fun tearDown() {

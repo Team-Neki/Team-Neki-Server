@@ -175,10 +175,9 @@ abstract class SearchE2ETestBase : E2ETestBase() {
                 branchName = booth.branchName,
                 address = booth.address!!,
                 location = booth.location,
-                sourcePlatform = booth.platform,
-                sourceIdx = booth.idx,
             ),
         )
+        markCollectedLocation(location.id!!, booth.platform, booth.idx)
         return favoriteMapRepository.save(FavoriteMap(userId = userId, locationId = location.id!!))
     }
 
