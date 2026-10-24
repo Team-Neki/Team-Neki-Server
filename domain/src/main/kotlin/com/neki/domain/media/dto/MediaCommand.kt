@@ -22,6 +22,16 @@ object MediaCommand {
         )
     }
 
+    data class GenerateAdminUploadTicket(val ownerId: Long, val items: List<Item>) {
+        data class Item(
+            val mediaType: MediaType,
+            val contentType: String,
+            val width: Int? = null,
+            val height: Int? = null,
+            val size: Long? = null,
+        )
+    }
+
     data class GenerateQrDumpUploadTicket(val ownerId: Long)
 
     data class DeleteMedias(val ownerId: Long, val mediaIds: List<Long>)
