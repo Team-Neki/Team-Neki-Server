@@ -1,6 +1,6 @@
 # Admin 소셜 SSO 로그인과 세션 운영
 
-현재 admin은 Google OIDC로 사용자를 식별하며 다른 OIDC 제공자는 등록 설정과 `AdminIdentityProvider` 구현으로 추가합니다. 계정은 제공자별 식별 키와 공통 `ADMIN_SSO` 타입으로 저장하고, 기존 `TB_USERS.role`의 `ROLE_ADMIN`을 매 관리 요청마다 조회합니다. 로그인 세션이 유효하면 DB의 권한 부여와 회수가 다음 요청에 반영됩니다. 세션은 Spring Session JDBC `ADMIN_SESSION`에 저장하며 유휴 만료는 30분입니다.
+현재 admin은 Google OIDC로 사용자를 식별하며 다른 OIDC 또는 OAuth2 제공자는 등록 설정과 `AdminIdentityProvider` 구현으로 추가합니다. 계정은 제공자별 식별 키와 공통 `ADMIN_SSO` 타입으로 저장하고, 기존 `TB_USERS.role`의 `ROLE_ADMIN`을 매 관리 요청마다 조회합니다. 로그인 세션이 유효하면 DB의 권한 부여와 회수가 다음 요청에 반영됩니다. 세션은 Spring Session JDBC `ADMIN_SESSION`에 저장하며 유휴 만료는 30분입니다.
 
 ## 로컬 실행
 
@@ -33,9 +33,9 @@
 
 Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location`, me의 `X-CSRF-TOKEN` 응답 헤더, 클라이언트가 전송한 Cookie·CSRF 요청 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. Next가 임의 요청에 CSRF 토큰을 대신 발급해 붙이지 않습니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
 
-## OIDC 제공자 추가
+## 소셜 제공자 추가
 
-새 제공자는 admin의 Spring OAuth2 client 등록·자격증명을 설정하고 `domain/user/infra/security/admin/provider`에 `AdminIdentityProvider` 구현체를 추가합니다. 구현체는 제공자별 신원 검증 후 subject와 확인된 이메일을 반환합니다. 공통 인증 코드가 등록 ID와 subject로 고유 키(최대 512자)를 만듭니다. 등록 ID는 계정 키의 네임스페이스이므로 변경하려면 기존 계정 키를 마이그레이션해야 합니다. domain 서비스와 application facade는 제공자별로 수정하지 않습니다. 현재 운영 등록은 Google이며 테스트의 `alternate`는 확장 경로 검증용입니다.
+새 OIDC/OAuth2 제공자는 admin의 Spring OAuth2 client 등록·자격증명을 설정하고 `domain/user/infra/security/admin/provider`에 `AdminIdentityProvider` 구현체를 추가합니다. 구현체는 제공자별 신원 검증 후 subject와 확인된 이메일을 반환합니다. 공통 인증 코드가 등록 ID와 subject로 고유 키(최대 512자)를 만듭니다. 등록 ID는 계정 키의 네임스페이스이므로 변경하려면 기존 계정 키를 마이그레이션해야 합니다. domain 서비스와 application facade는 제공자별로 수정하지 않습니다. 현재 운영 등록은 Google OIDC이며 테스트의 `alternate`는 일반 OAuth2 확장 경로 검증용입니다.
 
 ## 수동 권한 부여
 

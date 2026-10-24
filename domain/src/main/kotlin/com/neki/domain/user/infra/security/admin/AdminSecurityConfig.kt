@@ -20,6 +20,7 @@ class AdminSecurityConfig {
     fun adminSecurityFilterChain(
         http: HttpSecurity,
         oidcUsers: AdminOidcUserService,
+        oauth2Users: AdminOAuth2UserService,
         authorization: AdminAuthorizationManager,
         responses: AdminSecurityResponses,
     ): SecurityFilterChain = http
@@ -31,7 +32,10 @@ class AdminSecurityConfig {
             it.anyRequest().denyAll()
         }
         .oauth2Login {
-            it.userInfoEndpoint { endpoint -> endpoint.oidcUserService(oidcUsers) }
+            it.userInfoEndpoint { endpoint ->
+                endpoint.oidcUserService(oidcUsers)
+                endpoint.userService(oauth2Users)
+            }
             // 내부 Service host가 브라우저로 노출되지 않도록 동일 origin의 상대 경로를 전달한다.
             it.successHandler { _, response, _ ->
                 response.status = 302

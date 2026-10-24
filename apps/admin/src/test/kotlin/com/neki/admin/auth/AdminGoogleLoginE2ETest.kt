@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
 import com.neki.domain.user.infra.security.admin.AdminIdentityProvider
-import com.neki.domain.user.infra.security.admin.AdminOidcProfile
+import com.neki.domain.user.infra.security.admin.AdminSocialProfile
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
@@ -30,7 +30,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestComponent
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.security.oauth2.core.oidc.user.OidcUser
+import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -122,7 +122,7 @@ class AdminGoogleLoginE2ETest {
     }
 
     @Test
-    @DisplayName("같은 subject라도 다른 OIDC 제공자는 별도 관리 계정으로 등록된다")
+    @DisplayName("같은 subject라도 다른 OAuth2 제공자는 별도 관리 계정으로 등록된다")
     fun givenSameSubjectFromTwoProviders_whenLoggingIn_thenSeparateAccountsCreated() {
         val google: JsonNode = me(completeLogin())
         val alternate: JsonNode = me(completeLogin(registrationId = "alternate"))
@@ -153,7 +153,7 @@ class AdminGoogleLoginE2ETest {
         val start = mvc.perform(get("/oauth2/authorization/$registrationId"))
             .andExpect(status().is3xxRedirection).andReturn().response
         val parameters: Map<String, String> = decodeQuery(URI(start.redirectedUrl!!).rawQuery)
-        provider.nonce = parameters.getValue("nonce")
+        provider.nonce = parameters["nonce"].orEmpty()
         val initialCookie: Cookie = start.getCookie("ADMINSESSION")!!
         val callback = mvc.perform(
             get("/login/oauth2/code/$registrationId").cookie(initialCookie)
@@ -322,9 +322,9 @@ class AdminGoogleLoginE2ETest {
 class AlternateAdminIdentityProvider : AdminIdentityProvider {
     override val registrationId: String = "alternate"
 
-    override fun extract(user: OidcUser): AdminOidcProfile = AdminOidcProfile(
-        subject = user.subject,
-        email = user.email!!,
-        name = user.fullName,
+    override fun extract(user: OAuth2User): AdminSocialProfile = AdminSocialProfile(
+        subject = user.attributes.getValue("sub") as String,
+        email = user.attributes.getValue("email") as String,
+        name = user.attributes["name"] as? String,
     )
 }

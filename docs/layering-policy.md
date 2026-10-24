@@ -39,7 +39,7 @@ apps/api/src/main/kotlin/com/neki/api/<domain>/
 
 `infra/client`(교차 도메인 호출)만 apps/api 에 남습니다. domain 모듈이 apps/api 를 의존하면 순환 의존이 생기기 때문입니다. 자기 도메인 인터페이스(repository/external)만 구현하는 기술 어댑터(persist/cache/storage/security)는 인터페이스 옆에 두는 것이 자연스러워 domain 모듈로 옮겼습니다. 그 대가로 domain 모듈이 `modules:*`(postgres, redis, aws, discord, firebase)와 spring-security/oauth2-client 같은 기술 의존성을 갖게 되었습니다 — 도메인이 자기 애그리거트의 영속성·캐시·외부 저장소를 구현하는 데 필요한 만큼만 추가합니다.
 
-admin의 OIDC 로그인·인가·보안 응답은 `domain/user/infra/security/admin`에 둡니다. 이 구현은 domain의 `AdminAccountAccess` 인터페이스를 호출하고, admin application facade가 인터페이스를 구현해 모듈 의존 방향을 유지합니다. 제공자별 신원 검증은 같은 infra 패키지의 `AdminIdentityProvider` 구현체가 맡습니다. 사용자 영속성 구현체 `UserRepositoryAdapter`는 `domain/user/infra/persist`에 둡니다.
+admin의 OIDC/OAuth2 로그인·인가·보안 응답은 `domain/user/infra/security/admin`에 둡니다. 이 구현은 domain의 `AdminAccountAccess` 인터페이스를 호출하고, admin application facade가 인터페이스를 구현해 모듈 의존 방향을 유지합니다. 제공자별 신원 검증은 같은 infra 패키지의 `AdminIdentityProvider` 구현체가 맡습니다. 사용자 영속성 구현체 `UserRepositoryAdapter`는 `domain/user/infra/persist`에 둡니다.
 
 ## 타입 소유권
 

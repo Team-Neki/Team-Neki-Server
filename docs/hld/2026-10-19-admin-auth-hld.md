@@ -236,7 +236,7 @@ OAuth 브라우저 리다이렉트 자체와 다른 origin의 API 호출에 대�
 | 영역 | 변경 범위 |
 |---|---|
 | `apps/admin` | 전용 보안 체인, OAuth 로그인 연결, 인증 결과·세션·CSRF·접근 제어, PostgreSQL 프로파일 |
-| `domain/user` | 기존 User·ADMIN 재사용, 제공자 공통 계정 키와 현재 사용자 권한 조회. OIDC 보안 및 제공자별 신원 추출 구현은 infra에 배치 |
+| `domain/user` | 기존 User·ADMIN 재사용, 제공자 공통 계정 키와 현재 사용자 권한 조회. OIDC/OAuth2 보안 및 제공자별 신원 추출 구현은 infra에 배치 |
 | `modules/postgres` | V41 세션 테이블, V42 관리자 SSO 계정 전환과 식별 키 고유 인덱스 |
 | Team-Neki-Admin | 로그인·대기·오류 UI, 로그인·콜백·쿠키·CSRF 프록시 |
 | Team-Neki-GitOps | 인증 구현 후 PostgreSQL·Google 자격증명·외부 URL 설정. API Service 내부 배치 유지 |

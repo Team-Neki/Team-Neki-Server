@@ -33,7 +33,7 @@ class AdminSecurityResponses(private val mapper: ObjectMapper) :
         request: HttpServletRequest,
         response: HttpServletResponse,
         exception: AuthenticationException,
-    ) = write(response, 401, ResultCode.SECURITY_ERROR, "Google 로그인에 실패했습니다.")
+    ) = write(response, 401, ResultCode.SECURITY_ERROR, "소셜 로그인에 실패했습니다.")
 
     override fun onLogoutSuccess(
         request: HttpServletRequest,

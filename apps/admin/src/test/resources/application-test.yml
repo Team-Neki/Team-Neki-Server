@@ -34,7 +34,7 @@ spring:
             client-id: admin-test-client
             client-secret: admin-test-secret
             authorization-grant-type: authorization_code
-            scope: openid,email,profile
+            scope: email,profile
             redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
         provider:
           google:

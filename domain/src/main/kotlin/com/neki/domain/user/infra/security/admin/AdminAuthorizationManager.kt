@@ -16,7 +16,8 @@ class AdminAuthorizationManager(private val accounts: AdminAccountAccess) :
         context: RequestAuthorizationContext,
     ): AuthorizationDecision {
         val auth: Authentication = authentication.get()
-        val principal: AdminPrincipal = auth.principal as? AdminPrincipal ?: return AuthorizationDecision(false)
+        val principal: AdminAuthenticatedPrincipal = auth.principal as? AdminAuthenticatedPrincipal
+            ?: return AuthorizationDecision(false)
         if (!auth.isAuthenticated) return AuthorizationDecision(false)
         return AuthorizationDecision(accounts.isAdmin(principal.userId, principal.identityKey))
     }
