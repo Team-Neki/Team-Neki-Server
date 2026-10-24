@@ -26,21 +26,11 @@ jobs:
     name: Check GitOps deployment target
     runs-on: ubuntu-latest
     steps:
-      - name: Check GitOps token
-        env:
-          GITOPS_PAT: ${{ secrets.GITOPS_PAT }}
-        run: |
-          test -n "$GITOPS_PAT" || {
-            echo "::error::GITOPS_PAT를 이 저장소에서 사용할 수 있어야 합니다."
-            exit 1
-          }
-
       - name: Checkout GitOps
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: ${{ env.GITOPS_REPO }}
           ref: main
-          token: ${{ secrets.GITOPS_PAT }}
           persist-credentials: false
 
       - name: Check image line exists exactly once
@@ -65,7 +55,16 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
           persist-credentials: false
+
+      - name: Allow only commits already merged into main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main || {
+            echo "::error::선택한 커밋은 main에 포함되어 있지 않습니다."
+            exit 1
+          }
 
       - name: Set up JDK 21
         uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
@@ -106,6 +105,7 @@ jobs:
     name: Update admin image in GitOps
     needs: build
     runs-on: ubuntu-latest
+    environment: admin-production
     steps:
       # 선택 ref의 코드를 이 runner에서 실행하지 않아 GitOps PAT와 격리한다.
       - name: Checkout GitOps
