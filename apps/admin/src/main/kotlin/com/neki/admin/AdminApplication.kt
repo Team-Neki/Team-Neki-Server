@@ -2,10 +2,12 @@ package com.neki.admin
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 // :core 와 :domain 은 com.neki.admin 밖에 있으므로, admin 이 실제로 쓰는 범위만 지정한다.
@@ -15,7 +17,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 // spring-security 는 :domain 의 런타임 의존성으로 전이되어 자동설정이 모든 요청을 막는다.
 // 어드민 인증 도입(docs/superpowers/plans/2026-08-16-admin-auth.md) 전까지 시큐리티 자동설정을 제외한다.
 @SpringBootApplication(
-    scanBasePackages = ["com.neki.admin", "com.neki.core", "com.neki.config.postgres"],
+    scanBasePackages = [
+        "com.neki.admin",
+        "com.neki.core",
+        "com.neki.config.postgres",
+        "com.neki.config.jasypt",
+    ],
     exclude = [
         SecurityAutoConfiguration::class,
         SecurityFilterAutoConfiguration::class,
@@ -25,7 +32,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 // 엔티티는 :domain·:core 에 있고, JPA 리포지터리는 admin 의 infra 에만 둔다.
 @EntityScan("com.neki.domain", "com.neki.core")
 @EnableJpaRepositories("com.neki.admin")
-class AdminApplication
+class AdminApplication {
+
+    // API 가 공유 스키마의 테이블을 생성·변경한다. admin 은 기존 마이그레이션 이력만 검증한다.
+    @Bean
+    fun flywayValidateOnly(): FlywayMigrationStrategy = FlywayMigrationStrategy { it.validate() }
+}
 
 fun main(args: Array<String>) {
     runApplication<AdminApplication>(*args)

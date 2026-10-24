@@ -1,0 +1,4 @@
+spring:
+  config:
+    import:
+      - classpath:application-h2.yaml

@@ -5,7 +5,8 @@ spring:
     active: local
   config:
     import:
-      - classpath:application-h2.yaml
+      - classpath:application-postgres.yaml
+      - classpath:application-jasypt.yaml
 
 server:
   port: 8081

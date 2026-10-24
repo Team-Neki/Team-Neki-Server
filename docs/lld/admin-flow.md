@@ -6,16 +6,25 @@
 
 어드민 앱은 `:domain`의 도메인 서비스를 재사용하는 실행 모듈입니다. `apps:api`를 의존하지 않고 API 계층과 인프라 어댑터를 자체로 소유합니다.
 
-컴포넌트 스캔은 `com.neki.admin` + `com.neki.core` + `com.neki.config.postgres`로 한정합니다. `:domain` 전체를 스캔하면 사용하지 않는 도메인 서비스와 그 서비스의 인프라 의존성까지 요구하기 때문입니다. 도메인 서비스는 각 기능의 설정 클래스에서 명시적으로 등록합니다.
+컴포넌트 스캔은 `com.neki.admin` + `com.neki.core` + `com.neki.config.postgres` + `com.neki.config.jasypt`로 한정합니다. `:domain` 전체를 스캔하면 사용하지 않는 도메인 서비스와 그 서비스의 인프라 의존성까지 요구하기 때문입니다. 도메인 서비스는 각 기능의 설정 클래스에서 명시적으로 등록합니다.
 
 공통 구성은 다음과 같습니다.
 
 - `AdminApplication`: 컴포넌트·엔티티·JPA 리포지터리 스캔 범위 지정
 - `modules:postgres`의 `QueryDslConfig`와 `JpaAuditingConfig`: QueryDSL과 JPA Auditing 공통 설정 재사용
-- `modules:postgres`의 `application-h2.yaml`: admin의 `spring.config.import`로 연결·JPA·Flyway·H2 콘솔 설정 로드
+- `modules:postgres`의 `application-postgres.yaml`: API와 동일한 PostgreSQL 연결·JPA·Flyway 설정 로드
+- `modules:jasypt`: API와 동일한 `JASYPT_PASSWORD`로 staging/prod의 암호화된 연결 정보 복호화
 - `ExceptionHandler`: `apps:api`와 같은 `ExceptionMsg` 응답 형식으로 예외 처리
-- `local` 프로파일: 8081 포트, 메모리 H2, Flyway 비활성화
-- `test` 프로파일: H2 기반 애플리케이션 컨텍스트 검증
+- `local`/`staging`/`prod` 프로파일: API와 같은 DB·스키마의 기존 테이블 사용, 8081 포트
+- `test` 프로파일: postgres 모듈의 `application-h2.yaml`을 import해 H2 기반 컨텍스트 검증
+
+## 공유 PostgreSQL 사용
+
+admin은 API와 동일한 접속 정보와 도메인 엔티티를 사용합니다. 별도 스키마나 `currentSchema`·`default_schema`를 지정하지 않으므로 API와 같은 기본 스키마의 `TB_BRAND`, `TB_POSE` 등 기존 테이블을 조회·수정합니다.
+
+테이블 생성·변경은 API가 기존 `modules/postgres`의 Flyway 마이그레이션으로 수행합니다. admin의 `FlywayMigrationStrategy`는 `validate()`만 호출하므로 마이그레이션이나 이력 기록을 수행하지 않습니다. 새 마이그레이션이 있으면 API를 먼저 배포해야 하며, 초기 로컬 DB도 API로 먼저 준비합니다.
+
+DB 설정은 `modules/postgres/src/main/resources`에서 관리합니다. admin의 메인·테스트 YAML은 필요한 파일을 `spring.config.import`로 가져옵니다. `local`/`staging`/`prod` 실행에는 기존 API와 동일한 `JASYPT_PASSWORD`를 제공합니다. H2 드라이버와 메모리 DB 설정은 테스트에서만 사용합니다.
 
 ## 요청 처리 구조
 
@@ -44,7 +53,3 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 ## 현재 제한
 
 인증 도입 전까지 Spring Security 자동설정을 제외합니다. 외부 노출 전 인증이 필요하며 계획은 `docs/superpowers/plans/2026-08-16-admin-auth.md`에 있습니다.
-
-메모리 H2 구성은 재시작 시 데이터가 초기화됩니다. 운영 PostgreSQL 연결과 프로파일 분리는 후속 작업입니다.
-
-DB 설정은 `modules/postgres/src/main/resources`에서 관리합니다. admin의 `application.yaml`에는 앱 이름·활성 프로파일·설정 import·포트만 둡니다. H2 설정은 명시적으로 import한 앱의 `local`/`test`에서만 적용되며, DB 이름은 앱 이름에서 파생합니다. H2 콘솔은 `local`에서만 기본 활성화됩니다. API·배치는 기존 `application-postgres.yaml`을 사용합니다.
