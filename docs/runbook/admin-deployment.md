@@ -6,10 +6,11 @@
 
 GitOps의 `overlays/admin-api/deployment.yaml` 이미지 줄이 정확히 하나인지 빌드 전에
 확인하고, 이미지 push 후 별도 runner에서 해당 줄만 갱신한다. 빌드하는 코드에는
-`GITOPS_PAT`를 제공하지 않는다. `GITHUB_TOKEN`에는 이미지 push를 위한
-`packages: write`, `GITOPS_PAT`에는 Team-Neki-GitOps main push 권한이 필요하다.
-`GITOPS_PAT`는 `admin-production` 보호 환경의 secret으로만 등록하고 필수 승인자를
-설정한다. 선택한 ref는 main에 포함된 커밋이어야 하며 이전 main SHA로 롤백할 수 있다.
+`ADMIN_GITOPS_PAT`를 제공하지 않는다. `GITHUB_TOKEN`에는 이미지 push를 위한
+`packages: write`, `ADMIN_GITOPS_PAT`에는 Team-Neki-GitOps main push 권한이 필요하다.
+`ADMIN_GITOPS_PAT`는 `admin-production` 보호 환경의 secret으로만 등록하고 필수 승인자를
+설정한다. 해당 환경 secret이 없으면 배포는 실패한다. 선택한 ref는 main에 포함된
+커밋이어야 하며 이전 main SHA로 롤백할 수 있다.
 동시 실행은 직렬화하며 대기 run은 GitHub 정책에 따라 새 요청으로 대체될 수 있다.
 
 ## 최초 실행

@@ -113,7 +113,7 @@ jobs:
         with:
           repository: ${{ env.GITOPS_REPO }}
           ref: main
-          token: ${{ secrets.GITOPS_PAT }}
+          token: ${{ secrets.ADMIN_GITOPS_PAT }}
 
       - name: Update image and push
         env:
