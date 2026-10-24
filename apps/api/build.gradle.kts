@@ -52,3 +52,12 @@ tasks.processResources {
 
 tasks.jar { enabled = false }
 tasks.bootJar { layered { enabled = true } }
+
+// Temporary CI diagnosis; remove after the Flyway failure is identified.
+tasks.named<Test>("test") {
+    filter { includeTestsMatching("com.neki.api.NekiApplicationTests") }
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
