@@ -1,4 +1,4 @@
-package com.neki.admin.auth.infra.security
+package com.neki.admin.auth.api.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.core.api.dto.BaseResponse

@@ -2,8 +2,8 @@ package com.neki.admin.auth
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.neki.admin.auth.api.security.AdminPrincipal
 import com.neki.admin.auth.application.AdminAccountFacade
-import com.neki.admin.auth.infra.security.AdminPrincipal
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
 import com.neki.domain.user.models.ProviderType

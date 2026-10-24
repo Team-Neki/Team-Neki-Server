@@ -1,10 +1,10 @@
 package com.neki.admin.auth.application
 
-import com.neki.admin.auth.application.dto.AdminAccountAssembler
 import com.neki.admin.auth.application.dto.AdminAccountResult
 import com.neki.core.annotation.UseCase
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.dto.UserQuery
+import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
 import com.neki.domain.user.service.AdminAccountService
 import org.springframework.dao.DataIntegrityViolationException
@@ -27,6 +27,11 @@ class AdminAccountFacade(private val accounts: AdminAccountService) {
     fun findActive(userId: Long, subject: String): AdminAccountResult? {
         val user: User = accounts.findActiveGoogleAccount(UserQuery.GetActiveGoogleAccount(userId, subject))
             ?: return null
-        return AdminAccountAssembler.from(user)
+        return AdminAccountResult(
+            userId = user.id!!,
+            email = user.email,
+            name = user.name,
+            admin = user.hasRole(RoleType.ADMIN),
+        )
     }
 }

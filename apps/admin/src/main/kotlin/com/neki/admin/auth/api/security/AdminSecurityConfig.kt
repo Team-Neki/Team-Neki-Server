@@ -1,4 +1,4 @@
-package com.neki.admin.auth.infra.security
+package com.neki.admin.auth.api.security
 
 import com.neki.domain.user.infra.persist.UserRepositoryAdapter
 import com.neki.domain.user.service.AdminAccountService

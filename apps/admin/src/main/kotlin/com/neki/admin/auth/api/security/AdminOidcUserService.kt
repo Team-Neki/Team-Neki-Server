@@ -1,4 +1,4 @@
-package com.neki.admin.auth.infra.security
+package com.neki.admin.auth.api.security
 
 import com.neki.admin.auth.application.AdminAccountFacade
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest
