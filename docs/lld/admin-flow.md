@@ -53,4 +53,4 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 
 ## 현재 제한
 
-Spring Security가 `/admin/v1/**` 요청을 인증·인가하고 변경 요청에 CSRF를 검사합니다. 임시 `AdminWriteGuard`는 제거했습니다. media 소유자와 관리자 계정의 연계 검증은 후속 작업으로 남아 있습니다.
+Spring Security가 `/admin/v1/**` 요청을 인증·인가하고 변경 요청에 CSRF를 검사합니다. 임시 `AdminWriteGuard`는 제거했습니다. 관리자 업로드 티켓은 업로더의 ID를 `TB_MEDIA.owner_id`에 기록하고 공동 관리 대상으로 표시합니다. Brand/Pose는 이 표시가 있는 미디어만 연결하며, 현재 ADMIN 권한이 있는 다른 관리자도 등록·수정할 수 있습니다.
