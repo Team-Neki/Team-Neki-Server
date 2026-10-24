@@ -9,7 +9,7 @@ import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.TestPropertySource
 
 /** 전체 운영 마이그레이션을 적용한 새 PostGIS DB에서 admin의 Flyway/Hibernate 검증을 확인한다. */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @ActiveProfiles("prod")
 @TestPropertySource(
     properties = [
