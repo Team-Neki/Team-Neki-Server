@@ -24,7 +24,7 @@ class BrandOrderService(
 ) {
 
     fun getOrderedBrand(query: MapQuery.GetBrand): List<Brand> {
-        val brands: List<Brand> = brandRepository.findAll()
+        val brands: List<Brand> = brandRepository.findAll().filter(Brand::exposeToMap)
 
         val sortOrderMap: Map<Long, Int> = userBrandOrderRepository.findSortOrderMapByUserId(query.userId)
 
@@ -34,7 +34,9 @@ class BrandOrderService(
     fun updateBrandOrder(command: MapCommand.UpdateBrandOrder) {
         val brandIds: List<Long> = command.brandIds
 
-        val existingBrandIds: Set<Long> = brandRepository.findAll().mapNotNull(Brand::id).toSet()
+        val existingBrandIds: Set<Long> = brandRepository.findAll().filter(
+            Brand::exposeToMap,
+        ).mapNotNull(Brand::id).toSet()
         if (!existingBrandIds.containsAll(brandIds)) {
             throw BusinessException(ResultCode.NOT_FOUND)
         }

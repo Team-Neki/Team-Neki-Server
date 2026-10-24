@@ -8,6 +8,7 @@ import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.service.PhotoBoothSearchService
 import com.neki.domain.search.service.qu.QueryUnderstandingService
+import com.neki.domain.search.service.qu.SearchNormalizer
 
 /**
  * fileName       : SearchPhotoBoothsByKeywordUseCase
@@ -19,13 +20,28 @@ import com.neki.domain.search.service.qu.QueryUnderstandingService
 class SearchPhotoBoothsByKeywordUseCase(
     private val photoBoothSearchService: PhotoBoothSearchService,
     private val queryUnderstandingService: QueryUnderstandingService,
+    private val visibleBrandFilter: VisibleBrandFilter,
 ) {
 
     fun execute(query: SearchQuery.SearchPhotoBoothsByKeyword): SearchResult.Completion {
-        val booths: PageWithTotalCount<PhotoBoothSearch> = photoBoothSearchService.searchByKeyword(query)
+        val visibleBrandIds = if (SearchNormalizer.normalize(query.keyword).length <
+            SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH
+        ) {
+            emptyList()
+        } else {
+            visibleBrandFilter.allVisibleIds()
+        }
+        val booths: PageWithTotalCount<PhotoBoothSearch> = photoBoothSearchService.searchByKeyword(
+            query,
+            visibleBrandIds,
+        )
 
         // 검색어에 적힌 브랜드는 부스 목록 요청의 브랜드 필터로 내려준다
-        val brandIds: List<Long> = queryUnderstandingService.recognizeBrandIds(query.keyword)
+        val visibleBrandIdSet = visibleBrandIds.toSet()
+        val brandIds: List<Long> = queryUnderstandingService.recognizeBrandIds(query.keyword).filter {
+            it in
+                visibleBrandIdSet
+        }
 
         return SearchAssembler.toPhotoBoothCompletion(booths, query.userLocation, brandIds)
     }

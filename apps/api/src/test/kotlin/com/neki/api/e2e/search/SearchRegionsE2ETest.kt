@@ -121,6 +121,18 @@ class SearchRegionsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
+        @DisplayName("숨긴 브랜드의 이름은 지역 검색에서 빼되 브랜드 필터에는 넣지 않는다")
+        fun givenHiddenBrand_whenSearch_thenReturnsRegionWithoutHiddenBrandFilter() {
+            planB.exposeToMap = false
+            brandRepository.saveAndFlush(planB)
+
+            get("keyword" to "강남 플랜비 스튜디오")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items[0].keyword", equalTo("서울특별시 강남구"))
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+        }
+
+        @Test
         @DisplayName("부스 탭과 같은 검색어에서 브랜드 낱말은 빼고 찾는다")
         fun givenKeywordWithBrandWord_whenSearch_thenIgnoresBrandWord() {
             listOf("강남 포토그레이", "포토그레이 강남", "강남 플랜비 스튜디오").forEach { keyword ->

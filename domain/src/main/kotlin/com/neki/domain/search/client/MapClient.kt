@@ -20,4 +20,7 @@ interface MapClient {
      * 사용자별 노출 순서로 정렬된 모든 브랜드 id
      */
     fun findOrderedBrandIds(userId: Long): List<Long>
+
+    /** null 이면 모든 노출 브랜드, ID 목록을 주면 그중 노출 브랜드만 반환한다. */
+    fun findVisibleBrandIds(ids: List<Long>?): List<Long>
 }
