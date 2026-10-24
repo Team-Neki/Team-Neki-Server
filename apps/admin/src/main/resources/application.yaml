@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: admin
+  profiles:
+    active: local
+  config:
+    import:
+      - classpath:application-postgres.yaml
+      - classpath:application-jasypt.yaml
+      - classpath:application-s3.yaml
+
+server:
+  port: 8081

@@ -1,0 +1,9 @@
+spring:
+  config:
+    import:
+      - classpath:application-h2.yaml
+aws:
+  s3:
+    access-key: test
+    secret-key: test
+    bucket: test
