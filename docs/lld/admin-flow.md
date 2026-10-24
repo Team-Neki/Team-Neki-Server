@@ -6,12 +6,12 @@
 
 어드민 앱은 `:domain`의 도메인 서비스를 재사용하는 실행 모듈입니다. `apps:api`를 의존하지 않고 API 계층과 인프라 어댑터를 자체로 소유합니다.
 
-컴포넌트 스캔은 `com.neki.admin` + `com.neki.core`로 한정합니다. `:domain` 전체를 스캔하면 사용하지 않는 도메인 서비스와 그 서비스의 인프라 의존성까지 요구하기 때문입니다. 도메인 서비스는 각 기능의 설정 클래스에서 명시적으로 등록합니다.
+컴포넌트 스캔은 `com.neki.admin` + `com.neki.core` + `com.neki.config.postgres`로 한정합니다. `:domain` 전체를 스캔하면 사용하지 않는 도메인 서비스와 그 서비스의 인프라 의존성까지 요구하기 때문입니다. 도메인 서비스는 각 기능의 설정 클래스에서 명시적으로 등록합니다.
 
 공통 구성은 다음과 같습니다.
 
 - `AdminApplication`: 컴포넌트·엔티티·JPA 리포지터리 스캔 범위 지정
-- `QueryDslConfig`: QueryDSL과 JPA Auditing 구성
+- `modules:postgres`의 `QueryDslConfig`와 `JpaAuditingConfig`: QueryDSL과 JPA Auditing 공통 설정 재사용
 - `ExceptionHandler`: `apps:api`와 같은 `ExceptionMsg` 응답 형식으로 예외 처리
 - `local` 프로파일: 8081 포트, 메모리 H2, Flyway 비활성화
 - `test` 프로파일: H2 기반 애플리케이션 컨텍스트 검증

@@ -15,7 +15,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 // spring-security 는 :domain 의 런타임 의존성으로 전이되어 자동설정이 모든 요청을 막는다.
 // 어드민 인증 도입(docs/superpowers/plans/2026-08-16-admin-auth.md) 전까지 시큐리티 자동설정을 제외한다.
 @SpringBootApplication(
-    scanBasePackages = ["com.neki.admin", "com.neki.core"],
+    scanBasePackages = ["com.neki.admin", "com.neki.core", "com.neki.config.postgres"],
     exclude = [
         SecurityAutoConfiguration::class,
         SecurityFilterAutoConfiguration::class,
