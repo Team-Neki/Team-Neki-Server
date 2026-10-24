@@ -1,5 +1,6 @@
 package com.neki.domain.user.infra.security.admin
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService
@@ -7,6 +8,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
 class AdminOAuth2UserService(private val identities: AdminSocialIdentityResolver) :
     OAuth2UserService<OAuth2UserRequest, OAuth2User> {
     private val delegate = DefaultOAuth2UserService()

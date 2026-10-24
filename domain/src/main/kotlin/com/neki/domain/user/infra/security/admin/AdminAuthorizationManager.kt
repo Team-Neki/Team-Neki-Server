@@ -1,6 +1,7 @@
 package com.neki.domain.user.infra.security.admin
 
 import com.neki.domain.user.service.AdminAccountAccess
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.authorization.AuthorizationManager
 import org.springframework.security.core.Authentication
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component
 import java.util.function.Supplier
 
 @Component
+@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
 class AdminAuthorizationManager(private val accounts: AdminAccountAccess) :
     AuthorizationManager<RequestAuthorizationContext> {
     override fun check(

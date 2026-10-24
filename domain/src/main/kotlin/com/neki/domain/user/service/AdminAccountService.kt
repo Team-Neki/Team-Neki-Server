@@ -6,9 +6,11 @@ import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
 import com.neki.domain.user.repository.UserRepository
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
 class AdminAccountService(private val userRepository: UserRepository) {
     fun findAdminAccount(query: UserQuery.GetAdminAccount): User? =
         userRepository.findByOid(query.identityKey, ProviderType.ADMIN_SSO)

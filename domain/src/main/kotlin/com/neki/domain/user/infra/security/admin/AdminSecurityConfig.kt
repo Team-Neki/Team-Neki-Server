@@ -2,6 +2,7 @@ package com.neki.domain.user.infra.security.admin
 
 import com.neki.domain.user.infra.persist.UserRepositoryAdapter
 import com.neki.domain.user.service.AdminAccountService
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -13,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.savedrequest.NullRequestCache
 
 @Configuration
+@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
 @ComponentScan(basePackageClasses = [AdminOidcUserService::class])
 @Import(UserRepositoryAdapter::class, AdminAccountService::class)
 class AdminSecurityConfig {

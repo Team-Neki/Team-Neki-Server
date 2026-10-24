@@ -42,7 +42,7 @@ Request -> Controller -> Mapper(toCommand/toQuery) -> Facade -> 도메인 Servic
 | --- | --- | --- |
 | application 계층 | `*UseCase` (기능 단위 클래스) | `*Facade` (도메인 단위 클래스) |
 | DTO | `Request`/`Response`/`Converter` 분리 | `XxxAdminDto` object 하위 중첩 + Mapper 확장 함수 |
-| 인증 | JWT (`@AuthenticationPrincipal`) | Google OIDC 로그인·JDBC 세션, 요청마다 현재 DB ADMIN 권한 확인 |
+| 인증 | JWT (`@AuthenticationPrincipal`) | 소셜 OAuth2 로그인·JDBC 세션, 요청마다 현재 DB ADMIN 권한 확인 |
 | media 검증 | `MediaClient.verifyMediasUploaded` 후 보상 롤백 | 공유 트랜잭션에서 S3 존재 확인·상태 전환 |
 
 admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade 하나에 조회·등록·수정·삭제를 위임합니다. 기능이 늘어나면 Facade가 비대해질 수 있습니다.

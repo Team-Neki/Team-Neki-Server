@@ -2,12 +2,14 @@ package com.neki.domain.user.infra.security.admin
 
 import com.neki.domain.user.models.AdminIdentity
 import com.neki.domain.user.service.AdminAccountAccess
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
 class AdminSocialIdentityResolver(
     private val accounts: AdminAccountAccess,
     private val providers: List<AdminIdentityProvider>,
