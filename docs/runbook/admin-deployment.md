@@ -1,8 +1,8 @@
 # Admin API 배포
 
 `deploy-admin.yml`은 수동 실행으로 `apps/admin`을 테스트하고 공용 Dockerfile의
-`APP_MODULE=admin`으로 `ghcr.io/team-neki/neki-admin-api:sha-<전체 커밋 SHA>`를
-게시한다. 선택한 ref의 실제 체크아웃 SHA를 사용한다.
+`APP_MODULE=admin`으로 `ghcr.io/team-neki/neki-admin-api:sha-<전체 커밋 SHA>-run-<실행 ID>-attempt-<시도 번호>`를
+게시한다. 선택한 ref의 실제 체크아웃 SHA를 사용하며, 재실행해도 기존 이미지 태그를 덮어쓰지 않는다.
 
 GitOps의 `overlays/admin-api/deployment.yaml` 이미지 줄이 정확히 하나인지 빌드 전에
 확인하고, 이미지 push 후 별도 runner에서 해당 줄만 갱신한다. 빌드하는 코드에는

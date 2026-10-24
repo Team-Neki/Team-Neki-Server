@@ -78,7 +78,7 @@ jobs:
 
       - name: Resolve checked-out commit tag
         id: tag
-        run: echo "tag=sha-$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: echo "tag=sha-$(git rev-parse HEAD)-run-${GITHUB_RUN_ID}-attempt-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
@@ -124,7 +124,7 @@ jobs:
         env:
           TAG: ${{ needs.build.outputs.tag }}
         run: |
-          printf '%s' "$TAG" | grep -Eq '^sha-[0-9a-f]{40}$'
+          printf '%s' "$TAG" | grep -Eq '^sha-[0-9a-f]{40}-run-[0-9]+-attempt-[0-9]+$'
           # 다른 배포가 main을 갱신하면 최신 main에 이미지 변경만 다시 적용한다.
           for attempt in 1 2 3; do
             git fetch origin main
