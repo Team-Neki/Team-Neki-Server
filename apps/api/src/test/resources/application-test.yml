@@ -7,8 +7,7 @@ spring:
   jpa:
     hibernate:
       # 스키마는 운영과 같이 Flyway 가 만든다
-      # ponytail: validate 는 Workflow 가 소유해 Flyway 밖에 있는 tb_photo_booth_enriched 가 없어 실패한다. 테스트용 DDL 을 두면 validate 로 올릴 수 있다
-      ddl-auto: none
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
@@ -16,6 +15,7 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+    locations: classpath:db/migration,classpath:db/test-migration
     # postgis 이미지가 public 에 spatial_ref_sys 를 만들어 빈 DB 도 비어 있지 않게 보인다 (baseline-version 0 은 application-postgres.yaml)
     baseline-on-migrate: true
 
