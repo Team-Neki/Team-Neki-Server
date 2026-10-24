@@ -23,6 +23,8 @@ interface BrandRepository {
 
     fun findAll(): List<Brand>
 
+    fun findVisibleIds(ids: List<Long>?): List<Long>
+
     fun findAll(query: BrandQuery.GetBrands): List<Brand>
 
     fun count(query: BrandQuery.GetBrands): Long

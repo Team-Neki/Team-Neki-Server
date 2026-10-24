@@ -1,7 +1,6 @@
 package com.neki.domain.search.infra.persist.jpa
 
 import com.neki.core.domain.vo.Pagination
-import com.neki.domain.map.models.QBrand.brand
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.QNearbyStation.nearbyStation
 import com.neki.domain.search.models.QPhotoBoothSearch.photoBoothSearch
@@ -73,20 +72,19 @@ class PhotoBoothSearchQueryRepository(private val queryFactory: JPAQueryFactory)
         terms: List<List<String>>,
         userLocation: UserLocation?,
         pagination: Pagination,
+        visibleBrandIds: List<Long>,
     ): List<PhotoBoothSearch> = queryFactory
         .selectFrom(photoBoothSearch)
-        .join(brand).on(brand.id.eq(photoBoothSearch.brandId), brand.exposeToMap.isTrue)
-        .where(keywordMatches(keyword, terms))
+        .where(keywordMatches(keyword, terms), photoBoothSearch.brandId.`in`(visibleBrandIds))
         .orderBy(relevance(keyword, terms).asc(), *keywordOrder(userLocation))
         .offset(pagination.offset.toLong())
         .limit(pagination.limit.toLong())
         .fetch()
 
-    fun countByKeyword(keyword: String, terms: List<List<String>>): Long = queryFactory
+    fun countByKeyword(keyword: String, terms: List<List<String>>, visibleBrandIds: List<Long>): Long = queryFactory
         .select(photoBoothSearch.count())
         .from(photoBoothSearch)
-        .join(brand).on(brand.id.eq(photoBoothSearch.brandId), brand.exposeToMap.isTrue)
-        .where(keywordMatches(keyword, terms))
+        .where(keywordMatches(keyword, terms), photoBoothSearch.brandId.`in`(visibleBrandIds))
         .fetchOne() ?: 0L
 
     /** 지점명이 있고, 검색어 전체가 이름 앞부분이거나 낱말이 전부 브랜드명·지점명·주소에 있는 행 */

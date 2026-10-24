@@ -54,10 +54,11 @@ class PhotoBoothSearchRepositoryAdapter(
         terms: List<List<String>>,
         userLocation: UserLocation?,
         pagination: Pagination,
-    ): List<PhotoBoothSearch> = queryRepository.findByKeyword(keyword, terms, userLocation, pagination)
+        visibleBrandIds: List<Long>,
+    ): List<PhotoBoothSearch> = queryRepository.findByKeyword(keyword, terms, userLocation, pagination, visibleBrandIds)
 
-    override fun countByKeyword(keyword: String, terms: List<List<String>>): Long =
-        queryRepository.countByKeyword(keyword, terms)
+    override fun countByKeyword(keyword: String, terms: List<List<String>>, visibleBrandIds: List<Long>): Long =
+        queryRepository.countByKeyword(keyword, terms, visibleBrandIds)
 
     override fun findAllCurrent(): List<PhotoBoothSearch> = readRepository.findAll()
 

@@ -44,9 +44,10 @@ interface PhotoBoothSearchRepository {
         terms: List<List<String>>,
         userLocation: UserLocation?,
         pagination: Pagination,
+        visibleBrandIds: List<Long>,
     ): List<PhotoBoothSearch>
 
-    fun countByKeyword(keyword: String, terms: List<List<String>>): Long
+    fun countByKeyword(keyword: String, terms: List<List<String>>, visibleBrandIds: List<Long>): Long
 
     /** 검색 API 가 읽는(_read) 색인 행 전체. NER 사전의 지점 원천 */
     fun findAllCurrent(): List<PhotoBoothSearch>

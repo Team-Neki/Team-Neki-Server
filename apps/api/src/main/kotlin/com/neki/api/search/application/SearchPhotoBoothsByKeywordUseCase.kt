@@ -23,10 +23,18 @@ class SearchPhotoBoothsByKeywordUseCase(
 ) {
 
     fun execute(query: SearchQuery.SearchPhotoBoothsByKeyword): SearchResult.Completion {
-        val booths: PageWithTotalCount<PhotoBoothSearch> = photoBoothSearchService.searchByKeyword(query)
+        val visibleBrandIds = visibleBrandFilter.allVisibleIds()
+        val booths: PageWithTotalCount<PhotoBoothSearch> = photoBoothSearchService.searchByKeyword(
+            query,
+            visibleBrandIds,
+        )
 
         // 검색어에 적힌 브랜드는 부스 목록 요청의 브랜드 필터로 내려준다
-        val brandIds: List<Long> = visibleBrandFilter.filter(queryUnderstandingService.recognizeBrandIds(query.keyword))
+        val visibleBrandIdSet = visibleBrandIds.toSet()
+        val brandIds: List<Long> = queryUnderstandingService.recognizeBrandIds(query.keyword).filter {
+            it in
+                visibleBrandIdSet
+        }
 
         return SearchAssembler.toPhotoBoothCompletion(booths, query.userLocation, brandIds)
     }

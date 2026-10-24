@@ -5,6 +5,7 @@ import com.neki.api.map.application.GetPhotoBoothUseCase
 import com.neki.api.map.application.dto.MapResult
 import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.PhotoBoothKey
+import com.neki.domain.map.repository.BrandRepository
 import com.neki.domain.search.client.MapClient
 import com.neki.domain.search.models.MapBooth
 import com.neki.domain.search.models.PhotoBoothSearch
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component
 class SearchMapClient(
     private val getPhotoBoothUseCase: GetPhotoBoothUseCase,
     private val getBrandUseCase: GetBrandUseCase,
+    private val brandRepository: BrandRepository,
 ) : MapClient {
 
     override fun findMapBooths(userId: Long, indexedBooths: List<PhotoBoothSearch>): List<MapBooth> {
@@ -45,4 +47,6 @@ class SearchMapClient(
 
     override fun findOrderedBrandIds(userId: Long): List<Long> =
         getBrandUseCase.execute(MapQuery.GetBrand(userId)).map { it.id }
+
+    override fun findVisibleBrandIds(ids: List<Long>?): List<Long> = brandRepository.findVisibleIds(ids)
 }
