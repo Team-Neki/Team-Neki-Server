@@ -46,6 +46,12 @@ class PoseService(private val poseRepository: PoseRepository) {
 
     fun saveAll(poses: List<Pose>): List<Pose> = poseRepository.saveAll(poses)
 
+    fun updatePoseMedia(command: PoseCommand.UpdatePoseMedia): Pose {
+        val pose: Pose = poseRepository.findById(command.poseId)
+        pose.changeMedia(command.mediaId)
+        return pose
+    }
+
     private fun validateNoDuplicateMediaIds(uploads: List<PoseCommand.UploadPoses.Item>) {
         val duplicates: Set<Long> = uploads.map { it.mediaId }
             .groupingBy { it }
