@@ -25,8 +25,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @Import(AdminAuthTestController::class)
 class AdminAuthorizationDatabaseErrorTest {
     @Autowired private lateinit var mvc: MockMvc
+
     @Autowired private lateinit var users: JpaUserRepository
+
     @Autowired private lateinit var sessions: JdbcIndexedSessionRepository
+
     @SpyBean private lateinit var accounts: AdminAccountFacade
 
     @Test
