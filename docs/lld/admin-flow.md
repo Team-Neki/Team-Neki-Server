@@ -17,7 +17,7 @@
 - `ExceptionHandler`: `apps:api`와 같은 `ExceptionMsg` 응답 형식으로 예외 처리
 - `AdminMediaVerifier`: LOGO/POSE media의 존재·타입·상태를 확인하고 S3 객체가 있으면 UPLOADED로 전환
 - `local`/`staging`/`prod` 프로파일: API와 같은 DB·스키마의 기존 테이블 사용, 8081 포트
-- `test` 프로파일: postgres 모듈의 `application-h2.yaml`을 import해 H2 기반 컨텍스트 검증
+- `test` 프로파일: admin 테스트 설정의 H2로 인증·세션 컨텍스트 검증
 
 ## 공유 PostgreSQL 사용
 
@@ -42,7 +42,7 @@ Request -> Controller -> Mapper(toCommand/toQuery) -> Facade -> 도메인 Servic
 | --- | --- | --- |
 | application 계층 | `*UseCase` (기능 단위 클래스) | `*Facade` (도메인 단위 클래스) |
 | DTO | `Request`/`Response`/`Converter` 분리 | `XxxAdminDto` object 하위 중첩 + Mapper 확장 함수 |
-| 인증 | JWT (`@AuthenticationPrincipal`) | 미구현 |
+| 인증 | JWT (`@AuthenticationPrincipal`) | 소셜 OAuth2 로그인·JDBC 세션, 요청마다 현재 DB ADMIN 권한 확인 |
 | media 검증 | `MediaClient.verifyMediasUploaded` 후 보상 롤백 | 공유 트랜잭션에서 S3 존재 확인·상태 전환 |
 
 admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade 하나에 조회·등록·수정·삭제를 위임합니다. 기능이 늘어나면 Facade가 비대해질 수 있습니다.
@@ -53,5 +53,4 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 
 ## 현재 제한
 
-인증 도입 전까지 Spring Security 자동설정을 제외합니다. `AdminWriteGuard`가 test 외 프로필에서 `/admin/v1/` 변경 요청을 403으로 차단합니다. 인증 구현 시 이 임시 제한을 인증·인가 규칙으로 교체해야 합니다. 계획은 `docs/superpowers/plans/2026-08-16-admin-auth.md`에 있습니다.
-media 소유자와 관리자 계정의 연계 검증은 인증 도입 후 추가해야 합니다.
+Spring Security가 `/admin/v1/**` 요청을 인증·인가하고 변경 요청에 CSRF를 검사합니다. 임시 `AdminWriteGuard`는 제거했습니다. media 소유자와 관리자 계정의 연계 검증은 후속 작업으로 남아 있습니다.

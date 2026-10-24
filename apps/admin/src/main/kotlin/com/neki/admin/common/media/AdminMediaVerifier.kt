@@ -17,7 +17,9 @@ class AdminMediaVerifier(
         val medias: List<Media> = mediaRepository.findAllById(mediaIds)
         if (medias.size != mediaIds.distinct().size ||
             medias.any {
-                it.mediaType != mediaType || it.status !in setOf(MediaStatus.INITIATED, MediaStatus.UPLOADED)
+                !it.adminManaged ||
+                    it.mediaType != mediaType ||
+                    it.status !in setOf(MediaStatus.INITIATED, MediaStatus.UPLOADED)
             }
         ) {
             throw BusinessException(ResultCode.UPLOAD_FAILED)

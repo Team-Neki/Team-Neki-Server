@@ -48,6 +48,9 @@ class Media(
 
     @Column(name = "size", nullable = true)
     val size: Long? = null,
+
+    @Column(name = "admin_managed", nullable = false)
+    val adminManaged: Boolean = false,
 ) : BaseTimeEntity() {
 
     fun markAsUploaded() {
