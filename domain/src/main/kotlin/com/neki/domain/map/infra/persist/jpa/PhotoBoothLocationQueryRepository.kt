@@ -46,7 +46,7 @@ class PhotoBoothLocationQueryRepository(
                 ),
             )
             .from(photoBoothLocation)
-            .leftJoin(brand).on(brand.id.eq(photoBoothLocation.brandId))
+            .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.exposeToMap.isTrue)
             .where(
                 Expressions.booleanTemplate(
                     "ST_Contains(ST_MakePolygon(ST_GeomFromText('LINESTRING($lineString)', 4326)), {0}) = true",
@@ -83,7 +83,7 @@ class PhotoBoothLocationQueryRepository(
                     ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography
                 ) AS integer) AS distance_meters
             FROM TB_PHOTO_BOOTH_LOCATION
-            LEFT JOIN TB_BRAND on TB_BRAND.id = TB_PHOTO_BOOTH_LOCATION.brand_id
+            JOIN TB_BRAND on TB_BRAND.id = TB_PHOTO_BOOTH_LOCATION.brand_id AND TB_BRAND.expose_to_map = true AND TB_BRAND.deleted_at IS NULL
             WHERE ST_DWithin(
                 location::geography,
                 ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography,

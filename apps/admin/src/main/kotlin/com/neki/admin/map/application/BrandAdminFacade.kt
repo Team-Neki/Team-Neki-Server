@@ -19,7 +19,11 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 @Transactional(readOnly = true)
-class BrandAdminFacade(private val brandService: BrandService, private val mediaVerifier: AdminMediaVerifier) {
+class BrandAdminFacade(
+    private val brandService: BrandService,
+    private val mediaVerifier: AdminMediaVerifier,
+    private val references: BrandReferenceGuard,
+) {
 
     fun getBrands(query: BrandQuery.GetBrands): BrandAdminDto.Response.GetBrands {
         val brands: CountedPage<Brand> = brandService.getBrands(query)
@@ -38,7 +42,11 @@ class BrandAdminFacade(private val brandService: BrandService, private val media
     }
 
     @Transactional
-    fun deleteBrand(command: BrandCommand.DeleteBrand) = brandService.deleteBrand(command)
+    fun deleteBrand(command: BrandCommand.DeleteBrand) {
+        val brand = brandService.getBrand(command.brandId)
+        references.requireUnreferenced(brand)
+        brandService.deleteBrand(command)
+    }
 
     @Transactional
     fun addBrand(command: BrandCommand.AddBrand) {

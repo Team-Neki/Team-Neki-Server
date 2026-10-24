@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.LocalDate
 
@@ -42,9 +43,11 @@ object BrandAdminDto {
          * 넘기지 않은 필드는 변경하지 않는다. 하나도 넘기지 않으면 400 이다.
          */
         data class UpdateBrand(
-            @field:Size(min = 1, max = 50, message = "name은 1자 이상 50자 이하여야 합니다.")
+            @field:Pattern(regexp = ".*\\S.*", message = "name은 공백일 수 없습니다.")
+            @field:Size(max = 50, message = "name은 50자 이하여야 합니다.")
             val name: String? = null,
-            @field:Size(min = 1, max = 30, message = "code는 1자 이상 30자 이하여야 합니다.")
+            @field:Pattern(regexp = ".*\\S.*", message = "code는 공백일 수 없습니다.")
+            @field:Size(max = 30, message = "code는 30자 이하여야 합니다.")
             val code: String? = null,
             val mediaId: Long? = null,
             val supportAndroidQr: Boolean? = null,
@@ -53,9 +56,11 @@ object BrandAdminDto {
         )
 
         data class AddBrand(
-            @field:Size(min = 1, max = 50, message = "name은 1자 이상 50자 이하여야 합니다.")
+            @field:NotBlank(message = "name은 공백일 수 없습니다.")
+            @field:Size(max = 50, message = "name은 50자 이하여야 합니다.")
             val name: String,
-            @field:Size(min = 1, max = 30, message = "code는 1자 이상 30자 이하여야 합니다.")
+            @field:NotBlank(message = "code는 공백일 수 없습니다.")
+            @field:Size(max = 30, message = "code는 30자 이하여야 합니다.")
             val code: String,
             @field:NotNull(message = "mediaId는 필수 입력값입니다.")
             val mediaId: Long?,
@@ -79,6 +84,8 @@ object BrandAdminDto {
             data class BrandInfo(
                 val id: Long,
                 val name: String,
+                val code: String,
+                val mediaId: Long?,
                 val supportAndroidQr: Boolean,
                 val supportIosQr: Boolean,
                 val exposeToMap: Boolean,
@@ -93,6 +100,8 @@ object BrandAdminDto {
                         BrandInfo(
                             it.id!!,
                             it.name,
+                            it.code,
+                            it.mediaId,
                             it.supportAndroidQr,
                             it.supportIosQr,
                             it.exposeToMap,
