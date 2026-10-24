@@ -45,7 +45,7 @@ dev 검증은 두 단계로 나뉩니다. staging 전송 스트림이 아직 없
 | O-D-2 | manual | 토큰 유효, userId 기록 | O-D-2 통과. 로그에 찍힌 `userId` 를 O-D-7 에서 사용 |
 | O-D-3 | manual | 토큰 없으면 403 D-996 | O-D-3 통과 |
 | O-D-4 | manual | 빈 배치는 400 D-01 | O-D-4 통과 |
-| O-D-5 | manual | 스트림이 없으면 400 D-15 (fake 가 아니라 실제 어댑터가 붙었다는 증거) | O-D-5 통과. staging pod 로그에 `Firehose putRecordBatch failed: stream=team-neki-log-raw-staging-client-log` 1건 |
+| O-D-5 | manual | 스트림이 없으면 503 D-15 (fake 가 아니라 실제 어댑터가 붙었다는 증거) | O-D-5 통과. staging pod 로그에 `Firehose putRecordBatch failed: stream=team-neki-log-raw-staging-client-log` 1건 |
 
 ### 2단계 : 스트림 생성 후
 
