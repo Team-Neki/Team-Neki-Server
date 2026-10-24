@@ -143,6 +143,18 @@ class SearchStationsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
+        @DisplayName("숨긴 브랜드의 이름은 역 검색에서 빼되 브랜드 필터에는 넣지 않는다")
+        fun givenHiddenBrand_whenSearch_thenReturnsStationWithoutHiddenBrandFilter() {
+            photoGray.exposeToMap = false
+            brandRepository.saveAndFlush(photoGray)
+
+            get("keyword" to "강남 포토그레이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items[0].keyword", equalTo("강남역 2호선"))
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+        }
+
+        @Test
         @DisplayName("브랜드 이름 일부만 적으면 브랜드로 보지 않는다")
         fun givenBrandPrefix_whenSearch_thenReturnsDefaultFilterGroup() {
             get("keyword" to "강남 포토그")

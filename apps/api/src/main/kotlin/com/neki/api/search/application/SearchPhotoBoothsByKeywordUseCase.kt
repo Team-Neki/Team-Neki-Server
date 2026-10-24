@@ -4,7 +4,6 @@ import com.neki.api.search.application.dto.SearchAssembler
 import com.neki.api.search.application.dto.SearchResult
 import com.neki.core.annotation.UseCase
 import com.neki.core.domain.vo.PageWithTotalCount
-import com.neki.domain.map.repository.BrandRepository
 import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.service.PhotoBoothSearchService
@@ -20,16 +19,14 @@ import com.neki.domain.search.service.qu.QueryUnderstandingService
 class SearchPhotoBoothsByKeywordUseCase(
     private val photoBoothSearchService: PhotoBoothSearchService,
     private val queryUnderstandingService: QueryUnderstandingService,
-    private val brandRepository: BrandRepository,
+    private val visibleBrandFilter: VisibleBrandFilter,
 ) {
 
     fun execute(query: SearchQuery.SearchPhotoBoothsByKeyword): SearchResult.Completion {
         val booths: PageWithTotalCount<PhotoBoothSearch> = photoBoothSearchService.searchByKeyword(query)
 
         // 검색어에 적힌 브랜드는 부스 목록 요청의 브랜드 필터로 내려준다
-        val recognizedBrandIds = queryUnderstandingService.recognizeBrandIds(query.keyword)
-        val visibleBrandIds = brandRepository.findAll().filter { it.exposeToMap }.mapNotNull { it.id }.toSet()
-        val brandIds: List<Long> = recognizedBrandIds.filter { it in visibleBrandIds }
+        val brandIds: List<Long> = visibleBrandFilter.filter(queryUnderstandingService.recognizeBrandIds(query.keyword))
 
         return SearchAssembler.toPhotoBoothCompletion(booths, query.userLocation, brandIds)
     }
