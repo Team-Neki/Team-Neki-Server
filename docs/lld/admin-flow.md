@@ -12,6 +12,7 @@
 
 - `AdminApplication`: 컴포넌트·엔티티·JPA 리포지터리 스캔 범위 지정
 - `modules:postgres`의 `QueryDslConfig`와 `JpaAuditingConfig`: QueryDSL과 JPA Auditing 공통 설정 재사용
+- `modules:postgres`의 `application-h2.yaml`: admin의 `spring.config.import`로 연결·JPA·Flyway·H2 콘솔 설정 로드
 - `ExceptionHandler`: `apps:api`와 같은 `ExceptionMsg` 응답 형식으로 예외 처리
 - `local` 프로파일: 8081 포트, 메모리 H2, Flyway 비활성화
 - `test` 프로파일: H2 기반 애플리케이션 컨텍스트 검증
@@ -45,3 +46,5 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 인증 도입 전까지 Spring Security 자동설정을 제외합니다. 외부 노출 전 인증이 필요하며 계획은 `docs/superpowers/plans/2026-08-16-admin-auth.md`에 있습니다.
 
 메모리 H2 구성은 재시작 시 데이터가 초기화됩니다. 운영 PostgreSQL 연결과 프로파일 분리는 후속 작업입니다.
+
+DB 설정은 `modules/postgres/src/main/resources`에서 관리합니다. admin의 `application.yaml`에는 앱 이름·활성 프로파일·설정 import·포트만 둡니다. H2 설정은 명시적으로 import한 앱의 `local`/`test`에서만 적용되며, DB 이름은 앱 이름에서 파생합니다. H2 콘솔은 `local`에서만 기본 활성화됩니다. API·배치는 기존 `application-postgres.yaml`을 사용합니다.
