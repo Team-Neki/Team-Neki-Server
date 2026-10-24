@@ -1,0 +1,97 @@
+# 클라이언트 행동 이벤트 수집 API staging 검증 (BACKEND-166, docs/oracle/client-log-collection.md)
+#
+# 실행 환경: staging. accessToken 은 http/http-client.private.env.json 에 둔다 (gitignore 대상)
+#   { "staging": { "accessToken": "<staging 앱 로그인 accessToken>" } }
+
+### O-D-1 배포 확인: /api/logs 가 OpenAPI 문서에 있다
+GET {{host}}/v3/api-docs
+
+> {%
+    client.test("O-D-1 /api/logs 노출", () => {
+        client.assert(response.status === 200, "status=" + response.status);
+        client.assert(response.body.paths["/api/logs"] !== undefined, "/api/logs 가 없음. 배포 이미지 확인");
+    });
+%}
+
+### O-D-2 토큰 유효 확인, S3 대조용 userId 기록
+GET {{host}}/api/users/info
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.test("O-D-2 토큰 유효", () => {
+        client.assert(response.status === 200, "status=" + response.status + ". accessToken 재발급 필요");
+    });
+    client.global.set("userId", response.body.data.userId);
+    client.log("S3 대조용 userId = " + response.body.data.userId);
+%}
+
+### O-D-3 잘못된 Authorization 은 익명으로 처리하지 않고 403 D-998
+POST {{host}}/api/logs
+Authorization: Basic malformed
+Content-Type: application/json
+
+{
+  "platform": "IOS",
+  "logs": [{"eventId":"0f8b6c2e-3d4a-4f5b-9c1d-2e7a8b9c0d1e","eventType":"oracle_invalid_auth","eventProperties":{},"occurredAt":"2026-10-02T10:00:00Z","sessionId":1790935140000,"sequenceNumber":1,"deviceId":"oracle-device-1","userIdAtOccurrence":null,"appVersion":"0.0.0-oracle","context":{"osName":"iOS"}}]
+}
+
+> {%
+    client.test("O-D-3 잘못된 인증 거부", () => {
+        client.assert(response.status === 403, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-998", "resultCode=" + response.body.resultCode);
+    });
+%}
+
+### O-D-4 빈 배치는 400 D-01
+POST {{host}}/api/logs
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "platform": "IOS",
+  "logs": []
+}
+
+> {%
+    client.test("O-D-4 빈 배치 거부", () => {
+        client.assert(response.status === 400, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-01", "resultCode=" + response.body.resultCode);
+    });
+%}
+
+### O-D-6 2건을 보내면 D-0. 이어서 문서의 O-D-7~10 으로 S3 와 레코드 묶음을 확인한다
+POST {{host}}/api/logs
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "platform": "IOS",
+  "logs": [
+    {"eventId":"2f8b6c2e-3d4a-4f5b-9c1d-2e7a8b9c0d1e","eventType":"oracle_authenticated","eventProperties":{"oracle":"BACKEND-166","seq":1,"userId":-1},"occurredAt":"2026-10-02T10:00:00Z","sessionId":1790935140000,"sequenceNumber":1,"deviceId":"oracle-device-1","userIdAtOccurrence":"999","appVersion":"0.0.0-oracle","context":{"osName":"iOS","osVersion":"18.0"}},
+    {"eventId":"3f8b6c2e-3d4a-4f5b-9c1d-2e7a8b9c0d1e","eventType":"oracle_authenticated","eventProperties":{"oracle":"BACKEND-166","seq":2,"nested":{"level":"ERROR","tags":["a","b"]}},"occurredAt":"2026-10-02T10:00:01Z","sessionId":1790935140000,"sequenceNumber":2,"deviceId":"oracle-device-1","userIdAtOccurrence":null,"appVersion":"0.0.0-oracle","context":{"osName":"iOS","osVersion":"18.0"}}
+  ]
+}
+
+> {%
+    client.test("O-D-6 Firehose 전달 성공", () => {
+        client.assert(response.status === 200, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-0", "resultCode=" + response.body.resultCode);
+    });
+    client.log("S3 에서 userId=" + client.global.get("userId") + ", log.eventProperties.seq=1,2 인 줄을 찾는다");
+%}
+
+### O-D-11 [O-D-10 이후] 토큰 없이 익명 이벤트도 접수한다
+POST {{host}}/api/logs
+Content-Type: application/json
+
+{
+  "platform": "IOS",
+  "logs": [{"eventId":"4f8b6c2e-3d4a-4f5b-9c1d-2e7a8b9c0d1e","eventType":"oracle_anonymous","eventProperties":{"oracle":"BACKEND-166"},"occurredAt":"2026-10-02T10:00:00Z","sessionId":1790935140000,"sequenceNumber":1,"deviceId":"oracle-device-1","userIdAtOccurrence":null,"appVersion":"0.0.0-oracle","context":{"osName":"iOS"}}]
+}
+
+> {%
+    client.test("O-D-11 익명 이벤트 접수", () => {
+        client.assert(response.status === 200, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-0", "resultCode=" + response.body.resultCode);
+    });
+%}

@@ -40,25 +40,20 @@ class ExceptionHandler {
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {
         log.warn("[BUSINESS_ERROR] code={} | message={}", ex.resultCode.code, ex.resultCode.message)
 
-        if (ex.resultCode == ResultCode.INVALID_TOKEN_ERROR) {
-            return ResponseEntity(
-                ExceptionMsg(
-                    resultCode = ex.resultCode.code,
-                    message = ex.resultCode.message,
-                ),
-                HttpStatus.FORBIDDEN,
-            )
+        val status = when (ex.resultCode) {
+            ResultCode.INVALID_TOKEN_ERROR -> HttpStatus.FORBIDDEN
+            ResultCode.LOG_SEND_FAILED -> HttpStatus.SERVICE_UNAVAILABLE
+            ResultCode.LOG_PAYLOAD_TOO_LARGE -> HttpStatus.PAYLOAD_TOO_LARGE
+            else -> HttpStatus.BAD_REQUEST
         }
 
-        val temp = ResponseEntity(
+        return ResponseEntity(
             ExceptionMsg(
                 resultCode = ex.resultCode.code,
                 message = ex.resultCode.message,
             ),
-            HttpStatus.BAD_REQUEST,
+            status,
         )
-
-        return temp
     }
 
     @ExceptionHandler(ClientAbortException::class, AsyncRequestNotUsableException::class)
