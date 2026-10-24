@@ -3,6 +3,8 @@ package com.neki.admin
 import com.neki.config.aws.S3Properties
 import com.neki.domain.media.infra.storage.fake.FakeMediaStorageConfig
 import com.neki.domain.media.infra.storage.s3.S3MediaStorageAdapterConfig
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy
@@ -41,6 +43,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @EnableConfigurationProperties(S3Properties::class)
 @Import(S3MediaStorageAdapterConfig::class, FakeMediaStorageConfig::class)
 class AdminApplication {
+    @Bean
+    fun meterRegistry(): MeterRegistry = SimpleMeterRegistry()
 
     // API 가 공유 스키마의 테이블을 생성·변경한다. admin 은 기존 마이그레이션 이력만 검증한다.
     @Bean

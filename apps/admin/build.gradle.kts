@@ -14,6 +14,7 @@ dependencies {
 
     // admin 은 공유 DB 의 마이그레이션을 검증만 한다.
     implementation("org.flywaydb:flyway-core")
+    implementation("io.micrometer:micrometer-core")
 
     testRuntimeOnly("com.h2database:h2")
 }
