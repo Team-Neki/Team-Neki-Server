@@ -10,24 +10,25 @@ import org.springframework.stereotype.Component
 
 @Component
 class AdminAccountService(private val userRepository: UserRepository) {
-    fun findGoogleAccount(query: UserQuery.GetGoogleAccount): User? =
-        userRepository.findByOid(query.subject, ProviderType.GOOGLE)
+    fun findAdminAccount(query: UserQuery.GetAdminAccount): User? =
+        userRepository.findByOid(query.identityKey, ProviderType.ADMIN_SSO)
 
-    fun registerGoogleAccount(command: UserCommand.RegisterGoogleAccount): User {
-        val points: IntArray = (command.name?.takeIf { it.isNotBlank() } ?: "Google 사용자")
+    fun registerAdminAccount(command: UserCommand.RegisterAdminAccount): User {
+        val identity = command.identity
+        val points: IntArray = (identity.name?.takeIf { it.isNotBlank() } ?: "소셜 사용자")
             .codePoints().limit(10).toArray()
         return userRepository.save(
             User(
-                email = command.email,
+                email = identity.email,
                 name = String(points, 0, points.size),
-                oid = command.subject,
+                oid = identity.key,
                 roles = RoleType.USER.role,
-                providerType = ProviderType.GOOGLE,
+                providerType = ProviderType.ADMIN_SSO,
                 profileImageId = null,
             ),
         )
     }
 
-    fun findActiveGoogleAccount(query: UserQuery.GetActiveGoogleAccount): User? = userRepository.findById(query.userId)
-        ?.takeIf { it.providerType == ProviderType.GOOGLE && it.oid == query.subject }
+    fun findActiveAdminAccount(query: UserQuery.GetActiveAdminAccount): User? = userRepository.findById(query.userId)
+        ?.takeIf { it.providerType == ProviderType.ADMIN_SSO && it.oid == query.identityKey }
 }

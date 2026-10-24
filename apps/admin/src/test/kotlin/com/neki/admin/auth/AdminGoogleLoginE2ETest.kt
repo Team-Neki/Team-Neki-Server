@@ -3,6 +3,8 @@ package com.neki.admin.auth
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
+import com.neki.domain.user.infra.security.admin.AdminIdentityProvider
+import com.neki.domain.user.infra.security.admin.AdminOidcProfile
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
@@ -25,7 +27,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.context.TestComponent
+import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -43,6 +48,7 @@ import java.util.UUID
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(AlternateAdminIdentityProvider::class)
 @DisplayName("실제 OIDC code 교환과 서명 토큰 검증을 통한 Google 로그인")
 class AdminGoogleLoginE2ETest {
 
@@ -76,8 +82,8 @@ class AdminGoogleLoginE2ETest {
         val me: JsonNode = me(cookie)
         val user: User = users.findById(me["userId"].asLong()).orElseThrow()
 
-        assertThat(user.providerType).isEqualTo(ProviderType.valueOf("GOOGLE"))
-        assertThat(user.oid).isEqualTo(provider.subject)
+        assertThat(user.providerType).isEqualTo(ProviderType.ADMIN_SSO)
+        assertThat(user.oid).isEqualTo("google:${provider.subject}")
         assertThat(user.email).isEqualTo(provider.email)
         assertThat(user.name!!.codePointCount(0, user.name!!.length)).isLessThanOrEqualTo(10)
         assertThat(user.roles).isEqualTo(RoleType.USER.role)
@@ -91,7 +97,7 @@ class AdminGoogleLoginE2ETest {
     @Test
     @DisplayName("기존 Google 계정의 ADMIN 권한을 보존하고 로그인 반복으로 계정을 중복 생성하지 않는다")
     fun givenExistingAdmin_whenGoogleLoginRepeated_thenSameUserAndRolesPreserved() {
-        val user: User = createUser(ProviderType.valueOf("GOOGLE"), provider.subject, "ROLE_USER,ROLE_ADMIN")
+        val user: User = createUser(ProviderType.ADMIN_SSO, "google:${provider.subject}", "ROLE_USER,ROLE_ADMIN")
 
         val first: JsonNode = me(completeLogin())
         val second: JsonNode = me(completeLogin())
@@ -116,6 +122,18 @@ class AdminGoogleLoginE2ETest {
     }
 
     @Test
+    @DisplayName("같은 subject라도 다른 OIDC 제공자는 별도 관리 계정으로 등록된다")
+    fun givenSameSubjectFromTwoProviders_whenLoggingIn_thenSeparateAccountsCreated() {
+        val google: JsonNode = me(completeLogin())
+        val alternate: JsonNode = me(completeLogin(registrationId = "alternate"))
+
+        assertThat(google["userId"].asLong()).isNotEqualTo(alternate["userId"].asLong())
+        assertThat(users.findById(alternate["userId"].asLong()).orElseThrow().oid)
+            .isEqualTo("alternate:${provider.subject}")
+        assertThat(users.count()).isEqualTo(2)
+    }
+
+    @Test
     @DisplayName("서명은 유효해도 로그인 요청의 nonce와 다른 ID 토큰은 거부한다")
     fun givenWrongNonce_whenGoogleCallbackReceived_thenAuthenticationRejected() {
         provider.nonceOverride = "not-the-request-nonce"
@@ -131,14 +149,14 @@ class AdminGoogleLoginE2ETest {
         assertThat(users.count()).isZero()
     }
 
-    private fun completeLogin(expectSuccess: Boolean = true): Cookie {
-        val start = mvc.perform(get("/oauth2/authorization/google"))
+    private fun completeLogin(expectSuccess: Boolean = true, registrationId: String = "google"): Cookie {
+        val start = mvc.perform(get("/oauth2/authorization/$registrationId"))
             .andExpect(status().is3xxRedirection).andReturn().response
         val parameters: Map<String, String> = decodeQuery(URI(start.redirectedUrl!!).rawQuery)
         provider.nonce = parameters.getValue("nonce")
         val initialCookie: Cookie = start.getCookie("ADMINSESSION")!!
         val callback = mvc.perform(
-            get("/login/oauth2/code/google").cookie(initialCookie)
+            get("/login/oauth2/code/$registrationId").cookie(initialCookie)
                 .param("code", "accepted-code").param("state", parameters.getValue("state")),
         )
         if (!expectSuccess) {
@@ -180,12 +198,14 @@ class AdminGoogleLoginE2ETest {
                 System.getenv("SPRING_DATASOURCE_URL")
                     ?: "jdbc:h2:mem:admin-google-login-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
             }
-            val prefix = "spring.security.oauth2.client.provider.google"
-            registry.add("$prefix.issuer-uri") { provider.issuer }
-            registry.add("$prefix.authorization-uri") { "${provider.issuer}/authorize" }
-            registry.add("$prefix.token-uri") { "${provider.issuer}/token" }
-            registry.add("$prefix.jwk-set-uri") { "${provider.issuer}/jwks" }
-            registry.add("$prefix.user-info-uri") { "${provider.issuer}/userinfo" }
+            listOf("google", "alternate").forEach { registrationId ->
+                val prefix = "spring.security.oauth2.client.provider.$registrationId"
+                registry.add("$prefix.issuer-uri") { provider.issuer }
+                registry.add("$prefix.authorization-uri") { "${provider.issuer}/authorize" }
+                registry.add("$prefix.token-uri") { "${provider.issuer}/token" }
+                registry.add("$prefix.jwk-set-uri") { "${provider.issuer}/jwks" }
+                registry.add("$prefix.user-info-uri") { "${provider.issuer}/userinfo" }
+            }
         }
 
         @JvmStatic
@@ -296,4 +316,15 @@ class AdminGoogleLoginE2ETest {
             close()
         }
     }
+}
+
+@TestComponent
+class AlternateAdminIdentityProvider : AdminIdentityProvider {
+    override val registrationId: String = "alternate"
+
+    override fun extract(user: OidcUser): AdminOidcProfile = AdminOidcProfile(
+        subject = user.subject,
+        email = user.email!!,
+        name = user.fullName,
+    )
 }

@@ -1,5 +1,7 @@
 package com.neki.domain.user.dto
 
+import com.neki.domain.user.models.AdminIdentity
+
 /**
  * fileName       : UserCommand
  * author         : koo
@@ -7,7 +9,7 @@ package com.neki.domain.user.dto
  * description    : User domain command
  */
 object UserCommand {
-    data class RegisterGoogleAccount(val subject: String, val email: String, val name: String?)
+    data class RegisterAdminAccount(val identity: AdminIdentity)
 
     data class UpdateUserInfo(val userId: Long, val name: String)
 

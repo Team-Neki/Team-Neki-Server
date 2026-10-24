@@ -23,6 +23,7 @@ class UserRepositoryAdapter(private val jpaRepository: JpaUserRepository) : User
 
     override fun findById(id: Long): User? = jpaRepository.findByIdOrNull(id)
 
-    // Google 계정은 admin 전용이며 모바일 서비스의 가입자 집계에는 포함하지 않는다.
-    override fun countByOidIsNotNull(): Long = jpaRepository.countByOidIsNotNullAndProviderTypeNot(ProviderType.GOOGLE)
+    // 어드민 전용 SSO 계정은 모바일 서비스의 가입자 집계에 포함하지 않는다.
+    override fun countByOidIsNotNull(): Long =
+        jpaRepository.countByOidIsNotNullAndProviderTypeNot(ProviderType.ADMIN_SSO)
 }

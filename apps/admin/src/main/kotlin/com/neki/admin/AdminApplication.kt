@@ -3,6 +3,7 @@ package com.neki.admin
 import com.neki.config.aws.S3Properties
 import com.neki.domain.media.infra.storage.fake.FakeMediaStorageConfig
 import com.neki.domain.media.infra.storage.s3.S3MediaStorageAdapterConfig
+import com.neki.domain.user.infra.security.admin.AdminSecurityConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy
@@ -28,7 +29,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @EntityScan("com.neki.domain", "com.neki.core")
 @EnableJpaRepositories("com.neki.admin", "com.neki.domain.user.infra.persist.jpa")
 @EnableConfigurationProperties(S3Properties::class)
-@Import(S3MediaStorageAdapterConfig::class, FakeMediaStorageConfig::class)
+@Import(S3MediaStorageAdapterConfig::class, FakeMediaStorageConfig::class, AdminSecurityConfig::class)
 class AdminApplication {
     // 공유 DB DDL은 api만 적용한다. 미적용·불일치 스키마에서는 admin 기동을 거부한다.
     @Bean

@@ -24,7 +24,7 @@ class User(
     @Column(nullable = true)
     var password: String,
 
-    @Column(nullable = true, length = 255)
+    @Column(nullable = true, length = 512)
     var oid: String?,
 
     @Column(nullable = false, length = 10)
