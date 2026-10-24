@@ -12,6 +12,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
@@ -32,7 +33,7 @@ class AdminSecurityResponses(private val mapper: ObjectMapper) :
         response: HttpServletResponse,
         exception: AuthenticationException,
     ) {
-        if (exception is AuthenticationServiceException && exception.cause is DataAccessException) {
+        if (exception.hasDatabaseCause()) {
             log.error("[DATABASE_ERROR] admin authorization failed", exception)
             write(response, 503, ResultCode.ERROR, ResultCode.ERROR.message)
         } else {
@@ -47,7 +48,14 @@ class AdminSecurityResponses(private val mapper: ObjectMapper) :
         request: HttpServletRequest,
         response: HttpServletResponse,
         exception: AuthenticationException,
-    ) = write(response, 401, ResultCode.SECURITY_ERROR, "소셜 로그인에 실패했습니다.")
+    ) {
+        if (exception.hasDatabaseCause()) {
+            log.error("[DATABASE_ERROR] admin social login failed", exception)
+            write(response, 503, ResultCode.ERROR, ResultCode.ERROR.message)
+        } else {
+            write(response, 401, ResultCode.SECURITY_ERROR, "소셜 로그인에 실패했습니다.")
+        }
+    }
 
     override fun onLogoutSuccess(
         request: HttpServletRequest,
@@ -62,4 +70,8 @@ class AdminSecurityResponses(private val mapper: ObjectMapper) :
         response.setHeader("Cache-Control", "no-store")
         mapper.writeValue(response.outputStream, BaseResponse<Any>(resultCode = code.code, message = message))
     }
+
+    private fun AuthenticationException.hasDatabaseCause(): Boolean =
+        (this is AuthenticationServiceException || this is OAuth2AuthenticationException) &&
+            generateSequence(cause) { it.cause }.any { it is DataAccessException }
 }

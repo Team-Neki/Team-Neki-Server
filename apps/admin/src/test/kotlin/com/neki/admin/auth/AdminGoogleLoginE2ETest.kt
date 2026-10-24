@@ -2,6 +2,8 @@ package com.neki.admin.auth
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.neki.admin.auth.application.AdminAccountFacade
+import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
 import com.neki.domain.user.infra.security.admin.AdminIdentityProvider
 import com.neki.domain.user.infra.security.admin.AdminSocialProfile
@@ -24,11 +26,14 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.doThrow
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestComponent
+import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.context.annotation.Import
+import org.springframework.dao.DataRetrievalFailureException
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.test.context.ActiveProfiles
@@ -36,6 +41,7 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.net.InetSocketAddress
 import java.net.URI
@@ -66,6 +72,9 @@ class AdminGoogleLoginE2ETest {
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
+
+    @SpyBean
+    private lateinit var accounts: AdminAccountFacade
 
     @BeforeEach
     fun setUp() {
@@ -146,6 +155,31 @@ class AdminGoogleLoginE2ETest {
     fun givenUnverifiedEmail_whenGoogleCallbackReceived_thenAuthenticationRejected() {
         provider.emailVerified = false
         completeLogin(expectSuccess = false)
+        assertThat(users.count()).isZero()
+    }
+
+    @Test
+    fun databaseFailureDuringGoogleCallbackReturns503() {
+        doThrow(DataRetrievalFailureException("database unavailable"))
+            .`when`(accounts).findOrCreate(
+                UserCommand.RegisterAdminAccount(
+                    identityKey = "google:${provider.subject}",
+                    email = provider.email,
+                    name = "Google 관리자 이름이 긴 경우",
+                ),
+            )
+
+        val start = mvc.perform(get("/oauth2/authorization/google"))
+            .andExpect(status().is3xxRedirection).andReturn().response
+        val parameters = decodeQuery(URI(start.redirectedUrl!!).rawQuery)
+        provider.nonce = parameters["nonce"].orEmpty()
+        val initialCookie = start.getCookie("ADMINSESSION")!!
+
+        mvc.perform(
+            get("/login/oauth2/code/google").cookie(initialCookie)
+                .param("code", "accepted-code").param("state", parameters.getValue("state")),
+        ).andExpect(status().isServiceUnavailable)
+            .andExpect(jsonPath("$.resultCode").value("D-99"))
         assertThat(users.count()).isZero()
     }
 

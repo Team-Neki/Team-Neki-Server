@@ -3,6 +3,7 @@ package com.neki.domain.user.infra.security.admin
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.service.AdminAccountAccess
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.dao.DataAccessException
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
 import org.springframework.security.oauth2.core.OAuth2Error
 import org.springframework.security.oauth2.core.user.OAuth2User
@@ -32,6 +33,10 @@ class AdminSocialIdentityResolver(
             email = profile.email,
             name = profile.name,
         )
-        return accounts.findOrCreate(command) to command.identityKey
+        return try {
+            accounts.findOrCreate(command) to command.identityKey
+        } catch (exception: DataAccessException) {
+            throw OAuth2AuthenticationException(OAuth2Error("admin_database_unavailable"), exception)
+        }
     }
 }
