@@ -90,6 +90,36 @@ class AdminAuthE2ETest {
     }
 
     @Test
+    @DisplayName("프로필 미디어 ID는 기존 VARCHAR 사용자 컬럼에 숫자 문자열로 저장하고 다시 읽는다")
+    fun givenProfileMediaId_whenPersisted_thenMatchesExistingColumn() {
+        val user = createUser()
+        user.updateProfileImage(123L)
+        users.saveAndFlush(user)
+
+        assertThat(
+            jdbc.queryForObject("SELECT profile_image_id FROM TB_USERS WHERE id = ?", String::class.java, user.id),
+        )
+            .isEqualTo("123")
+        assertThat(users.findById(user.id!!).orElseThrow().profileImageId).isEqualTo(123L)
+    }
+
+    @Test
+    @DisplayName("기존 문자열 프로필 값은 관리자 권한 변경 때 보존한다")
+    fun givenLegacyProfileValue_whenRoleChanges_thenRawValueIsPreserved() {
+        val user = createUser()
+        jdbc.update("UPDATE TB_USERS SET profile_image_id = ? WHERE id = ?", "legacy/image-key", user.id)
+
+        val loaded = users.findById(user.id!!).orElseThrow()
+        assertThat(loaded.profileImageId).isNull()
+        loaded.roles = "${RoleType.USER.role},${RoleType.ADMIN.role}"
+        users.saveAndFlush(loaded)
+
+        assertThat(
+            jdbc.queryForObject("SELECT profile_image_id FROM TB_USERS WHERE id = ?", String::class.java, user.id),
+        ).isEqualTo("legacy/image-key")
+    }
+
+    @Test
     @DisplayName("익명 API 요청은 로그인 화면 이동 대신 401을 반환한다")
     fun givenAnonymous_whenRequestingMeOrAdmin_thenUnauthorized() {
         mvc.perform(get("/admin/v1/auth/me")).andExpect(status().isUnauthorized)

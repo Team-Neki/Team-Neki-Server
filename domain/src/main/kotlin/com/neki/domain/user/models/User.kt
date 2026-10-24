@@ -34,7 +34,8 @@ class User(
     @Column(nullable = false, length = 10)
     val providerType: ProviderType,
 
-    @Column(name = "profile_image_id", nullable = true)
+    @Convert(converter = ProfileImageIdConverter::class)
+    @Column(name = "profile_image_id", nullable = true, length = 255)
     var profileImageId: Long?,
 
     @Column(name = "role", nullable = false, length = 255)
@@ -71,6 +72,14 @@ class User(
     }
 
     fun hasRole(role: RoleType): Boolean = roles.split(',').any { it.trim() == role.role }
+}
+
+/** V1의 VARCHAR 컬럼에 미디어 ID를 숫자 문자열로 저장한다. */
+@Converter
+class ProfileImageIdConverter : AttributeConverter<Long, String> {
+    override fun convertToDatabaseColumn(attribute: Long?): String? = attribute?.toString()
+
+    override fun convertToEntityAttribute(dbData: String?): Long? = dbData?.toLongOrNull()
 }
 
 enum class RoleType(val role: String, val roleName: String) {
