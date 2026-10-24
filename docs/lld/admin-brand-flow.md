@@ -24,28 +24,25 @@
 - 전부 null이면 `BrandCommand.UpdateBrand.hasNoChanges`가 `INVALID_PARAMETER`로 판정
 - 엔티티 변경은 `Brand.updateInfo`가 담당하며 null 인자를 무시
 
-이미지 파일은 admin을 거치지 않습니다. 기존 apps:api의 media 경로에서 presigned URL을 발급받고 S3에 업로드한 뒤, admin은 mediaId를 브랜드에 연결합니다.
+이미지 바이너리는 admin 서버를 거치지 않습니다. 관리자 세션으로 admin의 업로드 티켓을 발급받아 S3에 직접 올린 뒤, 권한이 있는 관리자가 mediaId를 브랜드에 연결합니다.
 
 ```mermaid
 sequenceDiagram
     participant A as 관리자 도구
-    participant API as apps:api (media)
     participant S3 as S3
     participant ADM as apps:admin
     participant DB as DB
 
-    A->>API: POST /api/media/upload (mediaType: LOGO)
-    API->>DB: Media 생성 (INITIATED)
-    API-->>A: mediaId + presigned URL
+    A->>ADM: POST /admin/v1/media/upload (세션·CSRF, LOGO)
+    ADM->>DB: Media 생성 (ownerId=업로더, adminManaged=true)
+    ADM-->>A: mediaId + presigned URL
     A->>S3: PUT presigned URL (이미지 바이너리)
-    A->>ADM: PATCH /admin/v1/brand/{brandId}
-    ADM->>DB: mediaId 존재·LOGO 타입·상태 확인
+    A->>ADM: PATCH /admin/v1/brand/{brandId} (다른 ADMIN도 가능)
+    ADM->>DB: 관리자 미디어·LOGO 타입·상태 확인
     ADM->>S3: INITIATED면 객체 존재 확인 (HEAD)
     ADM->>DB: Media를 UPLOADED로 전환
     ADM->>DB: brand.updateInfo(mediaId)
     ADM-->>A: 200 OK
 ```
 
-이미지 변경은 dirty checking으로 반영됩니다. mediaId가 없거나 LOGO 타입이 아니거나 S3 업로드가 끝나지 않았으면 브랜드 변경 전체를 롤백합니다. 이전 mediaId의 TB_MEDIA 레코드와 S3 객체는 정리하지 않습니다. media 소유자와 관리자 계정의 연계 검증은 인증 도입과 함께 완료해야 합니다.
-
-media 발급은 apps:api의 JWT 인증을 요구하므로 인증 없는 admin만으로 업로드 flow를 완결할 수 없습니다. admin 인증 도입 시 media 발급 경로를 함께 정리해야 합니다.
+이미지 변경은 dirty checking으로 반영됩니다. mediaId가 없거나 관리자 업로드 미디어가 아니거나 LOGO 타입이 아니거나 S3 업로드가 끝나지 않았으면 브랜드 변경 전체를 롤백합니다. 등록·수정·삭제 권한은 현재 세션의 ADMIN 여부로 검사하며, 업로더의 `ownerId`와 일치할 필요는 없습니다. 이전 mediaId의 TB_MEDIA 레코드와 S3 객체는 정리하지 않습니다.
