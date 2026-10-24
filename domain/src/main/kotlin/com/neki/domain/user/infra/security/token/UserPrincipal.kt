@@ -1,5 +1,6 @@
 package com.neki.domain.user.infra.security.token
 
+import com.neki.core.security.AuthenticatedUser
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.User
 import org.springframework.security.core.GrantedAuthority
@@ -17,7 +18,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User
  */
 class UserPrincipal(
     @get:JvmName("id")
-    val id: Long,
+    override val id: Long,
     @get:JvmName("name")
     val name: String?,
     @get:JvmName("providerType")
@@ -30,7 +31,8 @@ class UserPrincipal(
     val attributes: MutableMap<String, Any> = mutableMapOf<String, Any>(),
     @get:JvmName("password")
     private val password: String,
-) : UserDetails,
+) : AuthenticatedUser,
+    UserDetails,
     OidcUser,
     OAuth2User {
 

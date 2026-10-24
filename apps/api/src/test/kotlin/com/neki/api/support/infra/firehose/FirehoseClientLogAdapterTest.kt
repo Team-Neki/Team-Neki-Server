@@ -19,6 +19,8 @@ import org.junit.jupiter.api.assertThrows
 import software.amazon.awssdk.services.firehose.FirehoseClient
 import software.amazon.awssdk.services.firehose.model.PutRecordBatchRequest
 import software.amazon.awssdk.services.firehose.model.PutRecordBatchResponse
+import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -31,8 +33,24 @@ class FirehoseClientLogAdapterTest {
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
     private val adapter = FirehoseClientLogAdapter(firehoseClient, objectMapper, "team-neki-log-raw-test")
 
-    private fun command(vararg logs: Map<String, Any?>) =
-        ClientLogCommand.Collect(userId = 7, platform = Platform.ANDROID, logs = logs.toList())
+    private fun command(vararg properties: Map<String, Any?>) = ClientLogCommand.Collect(
+        userId = 7,
+        platform = Platform.ANDROID,
+        logs = properties.mapIndexed { index, value ->
+            ClientLogCommand.Event(
+                eventId = UUID.nameUUIDFromBytes(index.toString().toByteArray()),
+                eventType = "test_event",
+                eventProperties = value,
+                occurredAt = Instant.parse("2026-10-02T10:00:00Z"),
+                sessionId = 1_790_935_140_000,
+                sequenceNumber = index + 1,
+                deviceId = "device-12345",
+                userIdAtOccurrence = null,
+                appVersion = "1.4.0",
+                context = mapOf("osName" to "Android"),
+            )
+        },
+    )
 
     @Test
     @DisplayName("로그마다 서버 필드와 원본 log 를 담은 NDJSON 줄을 만들어 레코드 하나에 이어 붙인다")
@@ -43,7 +61,11 @@ class FirehoseClientLogAdapterTest {
 
         adapter.send(
             command(
-                mapOf("userId" to 999, "appVersion" to "1.4.0", "message" to "boom"),
+                mapOf(
+                    "userId" to 999,
+                    "appVersion" to "1.4.0",
+                    "extra" to mapOf("tags" to listOf("a", "b"), "success" to false),
+                ),
                 mapOf("event" to "tap"),
             ),
         )
@@ -59,9 +81,23 @@ class FirehoseClientLogAdapterTest {
         assertEquals(7, first["userId"]) // 클라이언트가 보낸 userId 는 log 아래에 남고 덮어쓰지 못한다
         assertEquals("ANDROID", first["platform"])
         assertEquals(setOf("userId", "platform", "receivedAt", "log"), first.keys)
-        assertEquals(mapOf("userId" to 999, "appVersion" to "1.4.0", "message" to "boom"), first["log"])
+        val firstLog = first["log"] as Map<*, *>
+        assertEquals("test_event", firstLog["eventType"])
+        assertEquals("1.4.0", firstLog["appVersion"])
+        assertEquals(1_790_935_140_000, firstLog["sessionId"])
+        assertEquals(1, firstLog["sequenceNumber"])
+        assertEquals(
+            mapOf(
+                "userId" to 999,
+                "appVersion" to "1.4.0",
+                "extra" to mapOf("tags" to listOf("a", "b"), "success" to false),
+            ),
+            firstLog["eventProperties"],
+        )
+        assertEquals(mapOf("osName" to "Android"), firstLog["context"])
         assertTrue(first["receivedAt"] is String)
-        assertEquals(mapOf("event" to "tap"), objectMapper.readValue(lines[1], Map::class.java)["log"])
+        val secondLog = objectMapper.readValue(lines[1], Map::class.java)["log"] as Map<*, *>
+        assertEquals(mapOf("event" to "tap"), secondLog["eventProperties"])
     }
 
     @Test
@@ -80,8 +116,26 @@ class FirehoseClientLogAdapterTest {
         assertEquals(2, records.size)
         assertTrue(records.all { it.size <= 1_000 * 1024 })
         val seqs: List<Any?> = records.flatMap { it.decodeToString().removeSuffix("\n").split("\n") }
-            .map { (objectMapper.readValue(it, Map::class.java)["log"] as Map<*, *>)["seq"] }
+            .map {
+                val log = objectMapper.readValue(it, Map::class.java)["log"] as Map<*, *>
+                (log["eventProperties"] as Map<*, *>)["seq"]
+            }
         assertEquals(listOf(1, 2, 3), seqs)
+    }
+
+    @Test
+    @DisplayName("익명 이벤트는 S3 줄의 인증 userId 를 null 로 남긴다")
+    fun anonymousEventHasNoAuthenticatedUser() {
+        val request = slot<PutRecordBatchRequest>()
+        every { firehoseClient.putRecordBatch(capture(request)) } returns
+            PutRecordBatchResponse.builder().failedPutCount(0).build()
+
+        adapter.send(command(mapOf("event" to "app_open")).copy(userId = null))
+
+        val line = request.captured.records().single().data().asUtf8String().trimEnd()
+        val record = objectMapper.readValue(line, Map::class.java)
+        assertTrue(record.containsKey("userId"))
+        assertEquals(null, record["userId"])
     }
 
     @Test
@@ -127,11 +181,23 @@ class FirehoseClientLogAdapterTest {
     }
 
     @Test
-    @DisplayName("Firehose 레코드 한도(1,000KiB)를 넘는 로그는 보내지 않고 INVALID_PARAMETER 를 던진다")
+    @DisplayName("Firehose 레코드 한도(1,000KiB)를 넘는 로그는 보내지 않고 크기 오류를 던진다")
     fun oversizedRecordIsRejectedWithoutCall() {
         val ex = assertThrows<BusinessException> { adapter.send(command(mapOf("m" to "x".repeat(1_000 * 1024)))) }
 
-        assertEquals(ResultCode.INVALID_PARAMETER, ex.resultCode)
+        assertEquals(ResultCode.LOG_PAYLOAD_TOO_LARGE, ex.resultCode)
+        verify(exactly = 0) { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) }
+    }
+
+    @Test
+    @DisplayName("요청 전체가 4MiB 를 넘으면 배치 분할을 위한 크기 오류를 반환한다")
+    fun oversizedBatchIsRejectedWithoutCall() {
+        val value = "x".repeat(400 * 1024)
+        val properties = Array(11) { mapOf("m" to value) }
+
+        val ex = assertThrows<BusinessException> { adapter.send(command(*properties)) }
+
+        assertEquals(ResultCode.LOG_PAYLOAD_TOO_LARGE, ex.resultCode)
         verify(exactly = 0) { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) }
     }
 }

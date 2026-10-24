@@ -3,7 +3,12 @@ package com.neki.api.support.api.dto
 import com.neki.domain.support.models.Platform
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
+import java.time.Instant
+import java.util.UUID
 
 /**
  * fileName       : ClientLogRequest
@@ -17,21 +22,34 @@ object ClientLogRequest {
         @field:Schema(description = "앱 플랫폼", example = "IOS")
         val platform: Platform,
 
-        // 요청 하나의 건수 상한. 바이트 상한(로그 1,000KiB, 요청 4MiB)은 Firehose 어댑터가 본다
         @field:Size(min = 1, max = 500, message = "로그는 1건 이상 500건 이하로 보내야 합니다.")
-        @field:ArraySchema(
-            arraySchema = Schema(
-                description = "로그 목록. 각 원소는 형식 제한이 없는 JSON 객체. " +
-                    "appVersion 은 로그가 발생한 시점의 앱 버전을 각 로그에 넣는다. " +
-                    "eventId 는 로그가 생길 때 한 번 만든 UUID 로, 재전송해도 바꾸지 않는다",
-            ),
-            schema = Schema(
-                type = "object",
-                example = """{"eventId":"0f8b6c2e-3d4a-4f5b-9c1d-2e7a8b9c0d1e","appVersion":"1.4.0",""" +
-                    """"level":"ERROR","message":"photo upload failed",""" +
-                    """"occurredAt":"2026-10-02T10:00:00Z"}""",
-            ),
-        )
-        val logs: List<Map<String, Any?>>,
+        @field:Valid
+        @field:ArraySchema(arraySchema = Schema(description = "발생 시점 정보를 포함한 행동 이벤트 목록"))
+        val logs: List<Event>,
+    )
+
+    data class Event(
+        @field:Schema(description = "이벤트가 생길 때 만든 UUID. 재전송 시 유지")
+        val eventId: UUID,
+        @field:NotBlank
+        @field:Size(max = 64)
+        val eventType: String,
+        val eventProperties: Map<String, Any?>,
+        @field:Schema(description = "이벤트 발생 시각. UTC ISO 8601")
+        val occurredAt: Instant,
+        @field:Positive
+        @field:Schema(description = "분석 세션 시작 시각. epoch milliseconds")
+        val sessionId: Long,
+        @field:Positive
+        @field:Schema(description = "같은 기기·세션에서 이벤트가 생길 때 증가시키는 순번")
+        val sequenceNumber: Int,
+        @field:NotBlank
+        val deviceId: String,
+        @field:Schema(description = "이벤트 발생 당시 앱이 알고 있던 사용자 ID. 익명은 null. 인증된 ID와 별도로 보관")
+        val userIdAtOccurrence: String? = null,
+        @field:NotBlank
+        val appVersion: String,
+        @field:Schema(description = "발생 당시의 앱 빌드·기기·OS 등 SDK 자동 속성")
+        val context: Map<String, Any?>,
     )
 }

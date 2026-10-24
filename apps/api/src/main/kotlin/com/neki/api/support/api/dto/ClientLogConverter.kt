@@ -12,11 +12,24 @@ import org.springframework.stereotype.Component
 object ClientLogConverter {
     @Component
     class RequestConverter {
-        fun toCollectCommand(userId: Long, request: ClientLogRequest.Collect): ClientLogCommand.Collect =
+        fun toCollectCommand(userId: Long?, request: ClientLogRequest.Collect): ClientLogCommand.Collect =
             ClientLogCommand.Collect(
                 userId = userId,
                 platform = request.platform,
-                logs = request.logs,
+                logs = request.logs.map {
+                    ClientLogCommand.Event(
+                        eventId = it.eventId,
+                        eventType = it.eventType,
+                        eventProperties = it.eventProperties,
+                        occurredAt = it.occurredAt,
+                        sessionId = it.sessionId,
+                        sequenceNumber = it.sequenceNumber,
+                        deviceId = it.deviceId,
+                        userIdAtOccurrence = it.userIdAtOccurrence,
+                        appVersion = it.appVersion,
+                        context = it.context,
+                    )
+                },
             )
     }
 }

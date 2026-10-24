@@ -54,9 +54,9 @@ class FirehoseClientLogAdapter(
         val receivedAt: String = Instant.now().toString()
         val lines: List<ByteArray> = command.logs.map { toLine(command, it, receivedAt) }
 
-        // 한도를 넘는 요청은 재시도해도 실패하므로 재시도 대상(LOG_SEND_FAILED)이 아닌 400 으로 끊는다
+        // 한도를 넘는 요청은 같은 크기로 재시도해도 실패한다. 클라이언트가 배치를 나눌 수 있게 구분한다.
         if (lines.any { it.size > MAX_RECORD_BYTES } || lines.sumOf { it.size } > MAX_BATCH_BYTES) {
-            throw BusinessException(ResultCode.INVALID_PARAMETER)
+            throw BusinessException(ResultCode.LOG_PAYLOAD_TOO_LARGE)
         }
 
         val request: PutRecordBatchRequest = PutRecordBatchRequest.builder()
@@ -107,12 +107,28 @@ class FirehoseClientLogAdapter(
         return records
     }
 
-    private fun toLine(command: ClientLogCommand.Collect, clientLog: Map<String, Any?>, receivedAt: String): ByteArray {
+    private fun toLine(
+        command: ClientLogCommand.Collect,
+        clientLog: ClientLogCommand.Event,
+        receivedAt: String,
+    ): ByteArray {
+        val event: Map<String, Any?> = mapOf(
+            "eventId" to clientLog.eventId.toString(),
+            "eventType" to clientLog.eventType,
+            "eventProperties" to clientLog.eventProperties,
+            "occurredAt" to clientLog.occurredAt.toString(),
+            "sessionId" to clientLog.sessionId,
+            "sequenceNumber" to clientLog.sequenceNumber,
+            "deviceId" to clientLog.deviceId,
+            "userIdAtOccurrence" to clientLog.userIdAtOccurrence,
+            "appVersion" to clientLog.appVersion,
+            "context" to clientLog.context,
+        )
         val record: Map<String, Any?> = mapOf(
             "userId" to command.userId,
             "platform" to command.platform,
             "receivedAt" to receivedAt,
-            "log" to clientLog,
+            "log" to event,
         )
 
         return objectMapper.writeValueAsBytes(record) + '\n'.code.toByte()

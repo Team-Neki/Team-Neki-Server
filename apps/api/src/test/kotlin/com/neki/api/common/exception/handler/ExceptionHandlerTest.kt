@@ -16,4 +16,12 @@ class ExceptionHandlerTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.statusCode)
         assertEquals(ResultCode.LOG_SEND_FAILED.code, response.body?.resultCode)
     }
+
+    @Test
+    fun oversizedLogCanBeSplit() {
+        val response = handler.businessExceptionHandler(BusinessException(ResultCode.LOG_PAYLOAD_TOO_LARGE))
+
+        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE, response.statusCode)
+        assertEquals(ResultCode.LOG_PAYLOAD_TOO_LARGE.code, response.body?.resultCode)
+    }
 }

@@ -43,6 +43,7 @@ class ExceptionHandler {
         val status = when (ex.resultCode) {
             ResultCode.INVALID_TOKEN_ERROR -> HttpStatus.FORBIDDEN
             ResultCode.LOG_SEND_FAILED -> HttpStatus.SERVICE_UNAVAILABLE
+            ResultCode.LOG_PAYLOAD_TOO_LARGE -> HttpStatus.PAYLOAD_TOO_LARGE
             else -> HttpStatus.BAD_REQUEST
         }
 

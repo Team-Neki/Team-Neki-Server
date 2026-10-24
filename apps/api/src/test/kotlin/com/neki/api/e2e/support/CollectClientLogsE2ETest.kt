@@ -2,7 +2,6 @@ package com.neki.api.e2e.support
 
 import com.neki.api.e2e.E2ETestBase
 import com.neki.core.code.ResultCode
-import com.neki.domain.support.dto.ClientLogCommand
 import com.neki.domain.support.infra.firehose.fake.FakeClientLogSender
 import com.neki.domain.support.models.Platform
 import com.neki.domain.user.models.User
@@ -20,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import java.util.UUID
 
 /**
  * fileName       : CollectClientLogsE2ETest
@@ -57,39 +57,50 @@ class CollectClientLogsE2ETest : E2ETestBase() {
     }
 
     @Test
-    @DisplayName("로그 배치를 보내면 토큰의 userId 와 함께 원본 JSON 그대로 전달된다")
+    @DisplayName("인증된 행동 이벤트의 발생 시점 정보와 인증 시점 userId 를 따로 전달한다")
     fun givenLogs_whenCollect_thenSentWithUserId() {
-        val logs: List<Map<String, Any?>> = listOf(
-            mapOf(
-                "appVersion" to "1.4.0",
-                "level" to "ERROR",
-                "message" to "upload failed",
-                "extra" to mapOf("code" to 500),
-            ),
-            mapOf("appVersion" to "1.3.9", "event" to "tap_pose"),
-        )
+        val logs = listOf(event(userIdAtOccurrence = "999", properties = mapOf("count" to 2)))
 
         post(mapOf("platform" to "IOS", "logs" to logs))
             .statusCode(HttpStatus.OK.value())
             .body("resultCode", equalTo(ResultCode.SUCCESS.code))
 
-        assertEquals(
-            listOf(ClientLogCommand.Collect(testUser.id!!, Platform.IOS, logs)),
-            fakeClientLogSender.sent,
-        )
+        val sent = fakeClientLogSender.sent.single()
+        assertEquals(testUser.id, sent.userId)
+        assertEquals(Platform.IOS, sent.platform)
+        assertEquals("999", sent.logs.single().userIdAtOccurrence)
+        assertEquals(1_790_935_140_000, sent.logs.single().sessionId)
+        assertEquals(1, sent.logs.single().sequenceNumber)
+        assertEquals(mapOf("count" to 2), sent.logs.single().eventProperties)
     }
 
     @Test
-    @DisplayName("토큰 없이 요청하면 403 으로 거부되고 전달하지 않는다")
-    fun givenNoToken_whenCollect_thenRejected() {
+    @DisplayName("토큰 없는 익명 행동 이벤트도 받되 인증 userId 는 비운다")
+    fun givenNoToken_whenCollectThenAnonymous() {
         RestAssured.given()
             .contentType(ContentType.JSON)
-            .body(mapOf("platform" to "IOS", "logs" to listOf(mapOf("a" to 1))))
+            .body(mapOf("platform" to "IOS", "logs" to listOf(event())))
+            .`when`()
+            .post("/api/logs")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        assertEquals(null, fakeClientLogSender.sent.single().userId)
+    }
+
+    @Test
+    @DisplayName("잘못된 Authorization 형식은 익명으로 통과시키지 않는다")
+    fun givenMalformedAuthorizationThenRejected() {
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Basic malformed")
+            .body(mapOf("platform" to "IOS", "logs" to listOf(event())))
             .`when`()
             .post("/api/logs")
             .then()
             .statusCode(HttpStatus.FORBIDDEN.value())
-            .body("resultCode", equalTo(ResultCode.MISSING_TOKEN_ERROR.code))
+            .body("resultCode", equalTo(ResultCode.INVALID_TOKEN_ERROR.code))
 
         assertTrue(fakeClientLogSender.sent.isEmpty())
     }
@@ -97,7 +108,7 @@ class CollectClientLogsE2ETest : E2ETestBase() {
     @Test
     @DisplayName("로그가 비었거나 500건을 넘으면 400 을 반환한다")
     fun givenEmptyOrTooManyLogs_whenCollect_thenBadRequest() {
-        listOf(emptyList(), List(501) { mapOf("i" to it) }).forEach { logs ->
+        listOf(emptyList(), List(501) { event() }).forEach { logs ->
             post(mapOf("platform" to "ANDROID", "logs" to logs))
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
@@ -107,15 +118,35 @@ class CollectClientLogsE2ETest : E2ETestBase() {
     }
 
     @Test
-    @DisplayName("지원하지 않는 플랫폼이거나 로그 원소가 객체가 아니면 400 을 반환한다")
+    @DisplayName("지원하지 않는 플랫폼이나 필수 이벤트 필드 누락은 400 을 반환한다")
     fun givenInvalidPlatformOrNonObjectLog_whenCollect_thenBadRequest() {
-        post(mapOf("platform" to "WEB", "logs" to listOf(mapOf("a" to 1))))
+        post(mapOf("platform" to "WEB", "logs" to listOf(event())))
             .statusCode(HttpStatus.BAD_REQUEST.value())
-        post(mapOf("platform" to "IOS", "logs" to listOf("plain string")))
+        post(mapOf("platform" to "IOS", "logs" to listOf(event() - "sessionId")))
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+        post(mapOf("platform" to "IOS", "logs" to listOf(event() + ("eventType" to ""))))
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+        post(mapOf("platform" to "IOS", "logs" to listOf(event() + ("sequenceNumber" to 0))))
             .statusCode(HttpStatus.BAD_REQUEST.value())
 
         assertTrue(fakeClientLogSender.sent.isEmpty())
     }
+
+    private fun event(
+        userIdAtOccurrence: String? = null,
+        properties: Map<String, Any?> = emptyMap(),
+    ): Map<String, Any?> = mapOf(
+        "eventId" to UUID.randomUUID().toString(),
+        "eventType" to "photo_upload",
+        "eventProperties" to properties,
+        "occurredAt" to "2026-10-02T10:00:00Z",
+        "sessionId" to 1_790_935_140_000,
+        "sequenceNumber" to 1,
+        "deviceId" to "device-12345",
+        "userIdAtOccurrence" to userIdAtOccurrence,
+        "appVersion" to "1.4.0",
+        "context" to mapOf("osName" to "iOS", "osVersion" to "18.0"),
+    )
 
     private fun post(body: Map<String, Any>) = RestAssured.given()
         .contentType(ContentType.JSON)

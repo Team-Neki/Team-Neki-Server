@@ -1,4 +1,4 @@
-# 오라클 : 클라이언트 로그 수집 API (BACKEND-166)
+# 오라클 : 클라이언트 행동 이벤트 수집 API (BACKEND-166)
 
 이 문서는 BACKEND-166 작업의 완료 판정 기준을 다룹니다. auto 는 명령이 판정하고, manual 은 dev(staging) 배포 후 사람이 확인합니다. 명령은 저장소 루트에서 그대로 실행합니다. dev 요청은 `http/client-log.http` 에 있고, 각 요청의 `client.test` 가 판정을 대신합니다.
 
@@ -20,13 +20,13 @@
 | O-A-2 | auto | staging·prod 스트림 이름이 Platform ADR-0004 와 같음 : `grep -cE "delivery-stream: team-neki-log-raw-(staging\|production)-client-log$" modules/aws/src/main/resources/application-s3.yaml` = 2 |
 | O-A-3 | auto | 실제 어댑터는 staging·prod 에서만 뜸 : `grep -l '@Profile("!test & !local")' modules/aws/src/main/kotlin/com/neki/config/aws/FirehoseConfig.kt domain/src/main/kotlin/com/neki/domain/support/infra/firehose/FirehoseClientLogAdapter.kt \| wc -l` = 2 |
 | O-A-4 | auto | fake 는 test·local 에서만 뜸 : `grep -c '@Profile("test \| local")' domain/src/main/kotlin/com/neki/domain/support/infra/firehose/fake/FakeClientLogSender.kt` = 1 |
-| O-A-5 | auto | 결과 코드 D-15 가 하나뿐 : `grep -c '"D-15"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 1 |
-| O-A-6 | auto | `/api/logs` 가 인증 예외 목록에 없음 (JWT 필수) : `grep -c "/api/logs" domain/src/main/kotlin/com/neki/domain/user/infra/security/config/SecurityConfig.kt` = 0 |
+| O-A-5 | auto | 결과 코드 D-15 와 D-16 이 각각 하나뿐 : `grep -Ec '"D-1[56]"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 2 |
+| O-A-6 | auto | `/api/logs` POST 만 익명 허용, 잘못된 Authorization 은 거절 : `CollectClientLogsE2ETest` 의 익명·잘못된 헤더 테스트 통과 |
 | O-A-7 | auto | support 도메인 밖으로 새지 않음 (새 도메인 패키지 없음) : `test ! -e domain/src/main/kotlin/com/neki/domain/clientlog && test ! -e apps/api/src/main/kotlin/com/neki/api/clientlog` 종료코드 0 |
 
 ## O-D. dev 배포 후 검증
 
-dev 검증은 두 단계로 나뉩니다. staging 전송 스트림이 아직 없으므로, 먼저 스트림 없이 배포해 실제 Firehose 어댑터가 붙었는지와 실패 계약(D-15)을 확인합니다. 그 다음 스트림을 만들고 S3 적재까지 확인합니다. 배포 전에 스트림을 이미 만들었다면 O-D-5 는 건너뛰고 "해당 없음" 으로 기록합니다.
+staging 전송 스트림은 이미 생성되어 있습니다. 배포 후 API 응답과 S3 적재를 확인합니다. 스트림 미생성 상태를 전제로 한 O-D-5 는 과거 계획이므로 해당 없음으로 기록하고, D-15 응답은 자동 테스트로 확인합니다.
 
 ### 준비
 
@@ -34,29 +34,30 @@ dev 검증은 두 단계로 나뉩니다. staging 전송 스트림이 아직 없
 - 토큰 : `http/http-client.private.env.json` 에 `{ "dev": { "accessToken": "..." } }` 작성. dev 앱 로그인 응답이나 `POST /api/auth/refresh` 응답의 `data.accessToken` 사용
 - 실행 : IntelliJ HTTP Client 에서 환경 `dev` 선택 후 요청별 실행. CLI 는 `ijhttp --env-file http/http-client.env.json --private-env-file http/http-client.private.env.json --env dev http/client-log.http`
 - S3 확인 변수 : `BUCKET=team-neki-log-staging`, `PREFIX=raw/client-log/` (Platform ADR-0004. 운영은 `team-neki-log-production` 의 같은 경로)
-- 2단계 선행 : Team-Neki-Platform#23 머지 후 apply (`infra` -> `raw/infra` 순서)
+- 전제 : Team-Neki-Platform#23 에서 생성한 staging 스트림이 `ACTIVE`
 
-### 1단계 : 스트림 생성 전
+### API 응답
 
 | id | 종류 | 판정 | 명령/절차 |
 |---|---|---|---|
 | O-D-0 | manual | staging 이미지가 브랜치 HEAD 로 갱신됨 | Team-Neki-GitOps 에서 `grep -o 'yapp-dev:[^ ]*' overlays/staging/deployment.yaml` 의 접미사 = `git rev-parse --short=7 feat/BACKEND-166`, ArgoCD `staging` 앱 Synced·Healthy |
 | O-D-1 | manual | OpenAPI 문서에 `/api/logs` 노출 | `http/client-log.http` 의 O-D-1 통과 |
 | O-D-2 | manual | 토큰 유효, userId 기록 | O-D-2 통과. 로그에 찍힌 `userId` 를 O-D-7 에서 사용 |
-| O-D-3 | manual | 토큰 없으면 403 D-996 | O-D-3 통과 |
+| O-D-3 | manual | 잘못된 Authorization 은 403 D-998 | O-D-3 통과 |
 | O-D-4 | manual | 빈 배치는 400 D-01 | O-D-4 통과 |
-| O-D-5 | manual | 스트림이 없으면 503 D-15 (fake 가 아니라 실제 어댑터가 붙었다는 증거) | O-D-5 통과. staging pod 로그에 `Firehose putRecordBatch failed: stream=team-neki-log-raw-staging-client-log` 1건 |
+| O-D-5 | manual | 해당 없음. 스트림 생성 전 실패 응답을 확인하려던 과거 계획 | 이미 staging 스트림이 생성됨. 503 D-15 는 `ExceptionHandlerTest` 와 어댑터 실패 테스트로 확인 |
 
-### 2단계 : 스트림 생성 후
+### Firehose·S3 적재
 
 | id | 종류 | 판정 | 명령/절차 |
 |---|---|---|---|
 | O-D-S | manual | staging 스트림 ACTIVE, 목적지가 staging 버킷의 `raw/client-log/`, GZIP | `aws firehose describe-delivery-stream --delivery-stream-name team-neki-log-raw-staging-client-log --query 'DeliveryStreamDescription.[DeliveryStreamStatus,Destinations[0].ExtendedS3DestinationDescription.[BucketARN,Prefix,CompressionFormat,BufferingHints.IntervalInSeconds]]'` = `ACTIVE`, `arn:aws:s3:::team-neki-log-staging`, `raw/client-log/year=...`, `GZIP` |
 | O-D-6 | manual | 2건 전송 성공 D-0 | O-D-6 통과 |
-| O-D-7 | manual | 버퍼 시간(O-D-S 의 `IntervalInSeconds`) 경과 후 S3 에 2줄 적재, 서버 필드가 붙고 클라이언트 JSON(`appVersion`, `userId` 포함)은 `log` 아래에 그대로 남음 | `KEY=$(aws s3 ls s3://$BUCKET/$PREFIX --recursive \| sort \| tail -1 \| awk '{print $4}')` 뒤 `aws s3 cp s3://$BUCKET/$KEY - \| gunzip \| grep '"oracle":"BACKEND-166"' \| jq -c '{keys: keys, userId, platform, receivedAt, appVersion: .log.appVersion, seq: .log.seq, logUserId: .log.userId}'` 에서 seq 1, 2 두 줄. 두 줄 모두 `keys` = `["log","platform","receivedAt","userId"]`, `userId` = O-D-2 값, `platform` = `IOS`, `appVersion` = `0.0.0-oracle`, `receivedAt` 존재. seq 1 의 `logUserId` = -1 |
+| O-D-7 | manual | 버퍼 시간 경과 후 인증 이벤트 2줄 적재. 인증 ID와 발생 당시 보고 ID, 세션·발생 시각·속성이 각각 유지됨 | `KEY=$(aws s3 ls s3://$BUCKET/$PREFIX --recursive \| sort \| tail -1 \| awk '{print $4}')` 뒤 `aws s3 cp s3://$BUCKET/$KEY - \| gunzip \| grep '"eventType":"oracle_authenticated"' \| jq -c '{userId, platform, receivedAt, eventId: .log.eventId, occurredAt: .log.occurredAt, sessionId: .log.sessionId, sequenceNumber: .log.sequenceNumber, deviceId: .log.deviceId, appVersion: .log.appVersion, seq: .log.eventProperties.seq, reportedUserId: .log.userIdAtOccurrence}'` 에서 seq 1, 2 두 줄. 두 줄 모두 `userId` = O-D-2 값, `platform` = `IOS`, `sessionId` = `1790935140000`. seq 1 의 `reportedUserId` = `999` |
 | O-D-8 | manual | 묶어 보낸 레코드가 줄 단위로 끊김 (NDJSON) | `aws s3 cp s3://$BUCKET/$KEY - \| gunzip \| grep -c '}{'` = 0 |
 | O-D-9 | manual | O-D-6 이후 전송 실패 로그 없음 | 노드에서 `kubectl -n staging logs deploy/yapp-app-staging --since=15m \| grep -c "Firehose putRecordBatch"` = 0 (O-D-6 직후 실행) |
 | O-D-10 | manual | 로그 2건이 Firehose 레코드 1건으로 묶여 들어감 (레코드당 5KB 과금 대응) | O-D-6 외 다른 전송이 없던 창에서 `aws cloudwatch get-metric-statistics --namespace AWS/Firehose --metric-name IncomingRecords --dimensions Name=DeliveryStreamName,Value=team-neki-log-raw-staging-client-log --start-time $(date -u -v-15M +%Y-%m-%dT%H:%M:%SZ) --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) --period 900 --statistics Sum --query 'Datapoints[].Sum'` = `[1.0]` |
+| O-D-11 | manual | O-D-10 후 토큰 없는 이벤트를 보내면 200 D-0, S3 에서 서버 `userId` 는 null | `http/client-log.http` 의 O-D-11 통과 후 버퍼 시간 경과. `KEY=$(aws s3 ls s3://$BUCKET/$PREFIX --recursive \| sort \| tail -1 \| awk '{print $4}')` 를 다시 실행하고 `aws s3 cp s3://$BUCKET/$KEY - \| gunzip \| grep '"eventType":"oracle_anonymous"' \| jq -c '{userId, reportedUserId: .log.userIdAtOccurrence}'` 에서 두 값 모두 null |
 
 Platform ADR-0004 에 따라 GZIP 으로 적재되므로 O-D-7, O-D-8 은 `gunzip` 을 거칩니다. Loki 는 현재 `prod` 네임스페이스만 수집하므로 staging 로그는 `kubectl` 로 확인합니다.
 
@@ -87,13 +88,13 @@ Platform#23 apply 직후 기록입니다. Server 는 아직 staging 에 배포�
 | O-A-2 | 통과 | 2 |
 | O-A-3 | 통과 | 2 |
 | O-A-4 | 통과 | 1 |
-| O-A-5 | 통과 | 1 |
-| O-A-6 | 통과 | 0 |
+| O-A-5 | 당시 D-15 계약 통과 | 1. D-16 은 후속 변경으로 새로 검증 |
+| O-A-6 | 당시 JWT 필수 계약 통과 | 0. 익명 수집 계약은 후속 변경으로 새로 검증 |
 | O-A-7 | 통과 | 종료코드 0 |
 | O-D-0 ~ O-D-4 | 미검증 | staging 배포 전 |
 | O-D-5 | 해당 없음 | Server 배포 전에 스트림이 생성됨 (Platform#23 apply) |
 | O-D-S | 통과 | `ACTIVE`, `arn:aws:s3:::team-neki-log-staging`, `raw/client-log/year=...`, `GZIP`, 300초 |
-| O-D-6 ~ O-D-10 | 미검증 | staging 배포 후 |
+| O-D-6 ~ O-D-11 | 미검증 | staging 배포 후 |
 | O-R-1 | 통과 | `OPEN main` |
 | O-R-2 | 통과 | `Test` = `SUCCESS` (Spotless, CodeRabbit 도 통과) |
 | O-R-3 | 미검증 | O-D 미완 |
