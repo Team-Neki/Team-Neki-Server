@@ -77,6 +77,7 @@ object BrandAdminDto {
          */
         data class GetBrands(val brandCounts: Long, val totalPages: Int, val brandInfos: List<BrandInfo>) {
             data class BrandInfo(
+                val id: Long,
                 val name: String,
                 val supportAndroidQr: Boolean,
                 val supportIosQr: Boolean,
@@ -90,6 +91,7 @@ object BrandAdminDto {
                     totalPages = page.totalPages,
                     brandInfos = page.items.map {
                         BrandInfo(
+                            it.id!!,
                             it.name,
                             it.supportAndroidQr,
                             it.supportIosQr,

@@ -1,8 +1,11 @@
 package com.neki.admin.map
 
+import com.neki.admin.common.media.JpaAdminMediaRepository
 import com.neki.admin.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.core.code.ResultCode
 import com.neki.domain.map.models.Brand
+import com.neki.domain.media.models.Media
+import com.neki.domain.media.models.MediaStatus
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
@@ -16,10 +19,12 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import com.neki.domain.media.models.MediaType as DomainMediaType
 
 /**
  * fileName       : BrandAdminMediaFlowTest
@@ -37,46 +42,86 @@ class BrandAdminMediaFlowTest {
     lateinit var brandRepository: JpaBrandRepository
 
     @Autowired
+    lateinit var mediaRepository: JpaAdminMediaRepository
+
+    @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
 
     @BeforeEach
     fun setUp() {
         brandRepository.deleteAll()
+        mediaRepository.deleteAll()
     }
+
+    private fun seedMedia(type: DomainMediaType = DomainMediaType.LOGO): Media = mediaRepository.save(
+        Media(
+            storageKey = "logo/test-${System.nanoTime()}.png",
+            ownerId = 1L,
+            mediaType = type,
+            contentType = "image/png",
+        ),
+    )
 
     private fun seedBrand(): Brand =
         brandRepository.save(Brand.of("포토그레이", "PHOTOGRAY", 1L, supportAndroidQr = true, supportIosQr = true))
 
     @Test
-    @DisplayName("등록 시 mediaId가 함께 저장된다")
+    @DisplayName("등록 시 mediaId와 exposeToMap이 함께 저장된다")
     fun addBrandStoresMediaId() {
+        val media: Media = seedMedia()
         mockMvc.perform(
             post("/admin/v1/brand")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":1,
-                        "supportAndroidQr":true,"supportIosQr":true,"exposeToMap":false}""",
+                    """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":${media.id},
+                        "supportAndroidQr":true,"supportIosQr":true,"exposeToMap":true}""",
                 ),
         ).andExpect(status().isCreated)
 
         val saved: Brand? = brandRepository.findByCode("PHOTOGRAY")
-        saved!!.mediaId shouldBe 1L
+        saved!!.mediaId shouldBe media.id
+        saved.exposeToMap shouldBe true
+        mediaRepository.findById(media.id!!).get().status shouldBe MediaStatus.UPLOADED
+
+        mockMvc.perform(get("/admin/v1/brand"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.data.brandInfos[0].id").value(saved.id))
     }
 
     @Test
     @DisplayName("mediaId만 넘겨 수정하면 이미지만 교체된다")
     fun updateOnlyMediaId() {
         val brand: Brand = seedBrand()
+        val media: Media = seedMedia()
 
         mockMvc.perform(
             patch("/admin/v1/brand/{brandId}", brand.id)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"mediaId":2}"""),
+                .content("""{"mediaId":${media.id}}"""),
         ).andExpect(status().isOk)
 
         val updated: Brand = brandRepository.findById(brand.id!!).get()
-        updated.mediaId shouldBe 2L
+        updated.mediaId shouldBe media.id
         updated.name shouldBe "포토그레이"
+        mediaRepository.findById(media.id!!).get().status shouldBe MediaStatus.UPLOADED
+    }
+
+    @Test
+    fun wrongMediaTypeDoesNotCreateBrand() {
+        val media: Media = seedMedia(DomainMediaType.POSE)
+
+        mockMvc.perform(
+            post("/admin/v1/brand")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":${media.id},
+                    "supportAndroidQr":true,"supportIosQr":true,"exposeToMap":true}""",
+                ),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.UPLOAD_FAILED.code))
+
+        brandRepository.count() shouldBe 0L
     }
 
     @Test

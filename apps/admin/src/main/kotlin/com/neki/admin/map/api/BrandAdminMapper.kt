@@ -28,4 +28,4 @@ fun toUpdateCommand(brandId: Long, request: BrandAdminDto.Request.UpdateBrand): 
     )
 
 fun BrandAdminDto.Request.AddBrand.toCommand(): BrandCommand.AddBrand =
-    BrandCommand.AddBrand(name, code, mediaId!!, supportAndroidQr, supportIosQr)
+    BrandCommand.AddBrand(name, code, mediaId!!, supportAndroidQr, supportIosQr, exposeToMap)

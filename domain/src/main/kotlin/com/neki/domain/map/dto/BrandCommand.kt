@@ -31,5 +31,6 @@ object BrandCommand {
         val mediaId: Long,
         val supportAndroidQr: Boolean,
         val supportIosQr: Boolean,
+        val exposeToMap: Boolean,
     )
 }

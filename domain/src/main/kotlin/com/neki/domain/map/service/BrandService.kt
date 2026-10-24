@@ -68,6 +68,7 @@ class BrandService(private val brandRepository: BrandRepository) {
             command.mediaId,
             command.supportAndroidQr,
             command.supportIosQr,
+            command.exposeToMap,
         )
         brandRepository.save(brand)
     }

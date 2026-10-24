@@ -1,11 +1,13 @@
 package com.neki.admin.map.application
 
+import com.neki.admin.common.media.AdminMediaVerifier
 import com.neki.admin.map.api.BrandAdminDto
 import com.neki.core.domain.vo.CountedPage
 import com.neki.domain.map.dto.BrandCommand
 import com.neki.domain.map.dto.BrandQuery
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.service.BrandService
+import com.neki.domain.media.models.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -17,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 @Transactional(readOnly = true)
-class BrandAdminFacade(private val brandService: BrandService) {
+class BrandAdminFacade(private val brandService: BrandService, private val mediaVerifier: AdminMediaVerifier) {
 
     fun getBrands(query: BrandQuery.GetBrands): BrandAdminDto.Response.GetBrands {
         val brands: CountedPage<Brand> = brandService.getBrands(query)
@@ -30,11 +32,17 @@ class BrandAdminFacade(private val brandService: BrandService) {
     }
 
     @Transactional
-    fun updateBrand(command: BrandCommand.UpdateBrand) = brandService.updateBrand(command)
+    fun updateBrand(command: BrandCommand.UpdateBrand) {
+        brandService.updateBrand(command)
+        command.mediaId?.let { mediaVerifier.verifyAndConfirm(listOf(it), MediaType.LOGO) }
+    }
 
     @Transactional
     fun deleteBrand(command: BrandCommand.DeleteBrand) = brandService.deleteBrand(command)
 
     @Transactional
-    fun addBrand(command: BrandCommand.AddBrand) = brandService.addBrand(command)
+    fun addBrand(command: BrandCommand.AddBrand) {
+        brandService.addBrand(command)
+        mediaVerifier.verifyAndConfirm(listOf(command.mediaId), MediaType.LOGO)
+    }
 }

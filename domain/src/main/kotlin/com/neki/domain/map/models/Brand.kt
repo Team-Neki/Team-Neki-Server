@@ -70,13 +70,14 @@ class Brand(
     }
 
     companion object {
-        fun of(name: String, code: String, mediaId: Long, supportAndroidQr: Boolean, supportIosQr: Boolean): Brand =
+        fun of(name: String, code: String, mediaId: Long, supportAndroidQr: Boolean, supportIosQr: Boolean, exposeToMap: Boolean = false): Brand =
             Brand(
                 name = name,
                 code = code,
                 mediaId = mediaId,
                 supportAndroidQr = supportAndroidQr,
                 supportIosQr = supportIosQr,
+                exposeToMap = exposeToMap,
             )
     }
 }
