@@ -23,3 +23,10 @@ dependencies {
 
 tasks.jar { enabled = false }
 tasks.bootJar { layered { enabled = true } }
+
+tasks.named<Test>("test") {
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
