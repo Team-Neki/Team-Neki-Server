@@ -7,7 +7,8 @@ spring:
   jpa:
     hibernate:
       # 스키마는 운영과 같이 Flyway 가 만든다
-      ddl-auto: validate
+      # Workflow 소유 참조 테이블은 이 저장소의 Flyway 대상이 아니므로 검증하지 않는다.
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
