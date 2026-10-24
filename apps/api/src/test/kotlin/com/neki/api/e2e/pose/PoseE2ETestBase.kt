@@ -5,7 +5,6 @@ import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.media.models.MediaType
-import com.neki.domain.pose.infra.cache.fake.FakePoseViewCacheAdapter
 import com.neki.domain.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.domain.pose.infra.persist.jpa.JpaScrapPoseRepository
 import com.neki.domain.pose.models.HeadCount
@@ -31,15 +30,11 @@ abstract class PoseE2ETestBase : E2ETestBase() {
     @Autowired
     protected lateinit var mediaRepository: JpaMediaRepository
 
-    @Autowired
-    protected lateinit var fakePoseViewCache: FakePoseViewCacheAdapter
-
     @AfterEach
     override fun tearDown() {
         scrapPoseRepository.deleteAllInBatch()
         poseRepository.deleteAllInBatch()
         mediaRepository.deleteAllInBatch()
-        fakePoseViewCache.clearAll()
         super.tearDown()
     }
 

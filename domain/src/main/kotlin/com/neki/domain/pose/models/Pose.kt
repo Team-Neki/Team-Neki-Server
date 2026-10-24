@@ -38,7 +38,4 @@ class Pose(
 
     @Column(name = "memo", nullable = true)
     var memo: String? = null,
-
-    @Column(name = "view_count", nullable = false)
-    var viewCount: Long = 0,
 ) : BaseTimeEntity()

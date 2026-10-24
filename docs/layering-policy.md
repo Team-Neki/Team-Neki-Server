@@ -71,7 +71,7 @@ apps/api/src/main/kotlin/com/neki/api/<domain>/
 
 ### 도메인 서비스 규칙
 
-- 자기 도메인의 인터페이스만 의존함. repository 외에 cache·storage·generator 등 자기 도메인 인터페이스는 의존해도 됨. e.g. `PoseService`가 `PoseViewCache`, `RandomGenerator`를 의존
+- 자기 도메인의 인터페이스만 의존함. repository 외에 cache·storage·generator 등 자기 도메인 인터페이스는 의존해도 됨. e.g. `RandomPoseService`가 `RandomGenerator`를 의존
 - 다른 도메인 호출 클라이언트(`*Client`)와 다른 도메인 서비스는 의존하지 않음. 교차 도메인 호출은 유스케이스가 함
 - 파라미터로 `Command`/`Query`를 그대로 받음. 스칼라로 분해해서 넘기지 않음
 - 여러 command가 같은 모양을 공유하면 인터페이스로 묶음. e.g. `FolderCommand.PhotosToTargetFolders`
