@@ -8,6 +8,7 @@ import com.neki.domain.search.dto.SearchQuery
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.service.PhotoBoothSearchService
 import com.neki.domain.search.service.qu.QueryUnderstandingService
+import com.neki.domain.search.service.qu.SearchNormalizer
 
 /**
  * fileName       : SearchPhotoBoothsByKeywordUseCase
@@ -23,7 +24,13 @@ class SearchPhotoBoothsByKeywordUseCase(
 ) {
 
     fun execute(query: SearchQuery.SearchPhotoBoothsByKeyword): SearchResult.Completion {
-        val visibleBrandIds = visibleBrandFilter.allVisibleIds()
+        val visibleBrandIds = if (SearchNormalizer.normalize(query.keyword).length <
+            SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH
+        ) {
+            emptyList()
+        } else {
+            visibleBrandFilter.allVisibleIds()
+        }
         val booths: PageWithTotalCount<PhotoBoothSearch> = photoBoothSearchService.searchByKeyword(
             query,
             visibleBrandIds,

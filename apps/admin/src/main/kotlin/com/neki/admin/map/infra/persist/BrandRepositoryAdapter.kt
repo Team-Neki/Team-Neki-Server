@@ -35,6 +35,12 @@ class BrandRepositoryAdapter(
 
     override fun findAll(): List<Brand> = jpaRepository.findAllByOrderByIdAsc()
 
+    override fun findVisibleIds(ids: List<Long>?): List<Long> = when {
+        ids == null -> jpaRepository.findVisibleIds()
+        ids.isEmpty() -> emptyList()
+        else -> jpaRepository.findVisibleIdsByIdIn(ids)
+    }
+
     override fun findAll(query: BrandQuery.GetBrands): List<Brand> = queryRepository.findAll(query)
 
     override fun count(query: BrandQuery.GetBrands): Long = queryRepository.count(query)
