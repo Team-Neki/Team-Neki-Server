@@ -41,7 +41,7 @@ related:
 
 | 항목 | 기본안 | 결정 상태 |
 |---|---|---|
-| CSRF 토큰 전달 | `/auth/me` 응답에 포함하고 클라이언트 메모리에 보관 | 기본안 |
+| CSRF 토큰 전달 | `/auth/me`의 `X-CSRF-TOKEN` 응답 헤더로 전달하고 클라이언트 메모리에 보관 | 구현 |
 | 세션 쿠키 | 어드민 전용 쿠키와 운영 보안 속성 적용 | 이름은 구현 시 지정 |
 | Next 연결 계약 | 로그인 시작과 콜백을 함께 프록시하고 쿠키·리다이렉트를 중계 | 외부 경로·헤더 처리 합의 필요 |
 
@@ -85,7 +85,7 @@ flowchart LR
 | 구성요소 | 책임 |
 |---|---|
 | 브라우저 | 로그인 화면 이동, 세션 쿠키 전송, CSRF 토큰을 포함한 변경 요청 |
-| Next 서버 | 허용된 admin 경로 중계, 요청 쿠키·CSRF 헤더 전달, 응답 쿠키·리다이렉트 전달 |
+| Next 서버 | 허용된 admin 경로 중계, 요청 쿠키·CSRF 헤더 전달, 응답 쿠키·CSRF 헤더·리다이렉트 전달 |
 | Spring Security | OAuth 요청 상관관계와 OIDC 응답 검증, 인증 상태 저장, 세션·CSRF·접근 제어 |
 | admin 애플리케이션 | 사용자와 Google 신원 연결, ADMIN 보유 여부 조회, 관리자 로그인 결과 결정 |
 | 도메인과 JPA | 기존 사용자·권한 저장 및 도메인 규칙 |
@@ -206,7 +206,7 @@ Spring의 인증 상태와 OAuth 진행 중 세션을 같은 JDBC 저장소에 �
 
 OAuth 시작 시 만들어진 세션이 콜백까지 이어져야 하며, 인증 완료 시 세션 고정 공격 방지 기능을 유지합니다. 로그아웃은 서버 세션을 무효화하고 같은 이름·범위의 쿠키를 삭제합니다. [Spring 세션 관리](https://docs.spring.io/spring-security/reference/6.5/servlet/authentication/session-management.html)
 
-변경 요청과 로그아웃은 CSRF 토큰을 검증합니다. Spring이 세션에 연결된 토큰을 생성·저장하고 `/auth/me` 응답으로 클라이언트에 전달하는 것을 기본안으로 합니다. 클라이언트는 토큰을 런타임 메모리에 보관하고 POST·PATCH·DELETE 요청과 로그아웃의 `X-CSRF-TOKEN` 헤더에 넣습니다. Next는 브라우저가 보낸 토큰을 Spring에 그대로 중계하며, 요청마다 토큰을 대신 발급받아 붙이는 방식으로 구현하지 않습니다.
+변경 요청과 로그아웃은 CSRF 토큰을 검증합니다. Spring이 세션에 연결된 토큰을 생성·저장하고 `/auth/me`의 `X-CSRF-TOKEN` 응답 헤더로 클라이언트에 전달합니다. 클라이언트는 토큰을 런타임 메모리에 보관하고 POST·PATCH·DELETE 요청과 로그아웃의 같은 이름의 요청 헤더에 넣습니다. Next는 me의 응답 헤더와 브라우저가 보낸 요청 헤더를 그대로 중계하며, 요청마다 토큰을 대신 발급받아 붙이는 방식으로 구현하지 않습니다.
 
 토큰을 영구 저장하거나 매 요청 새로 발급받을 필요는 없습니다. 페이지 새로고침으로 메모리 값이 사라지면 `/auth/me`에서 다시 받습니다. 로그인으로 이전 토큰이 초기화되면 새 토큰을 받고, 로그아웃·세션 만료 시 클라이언트의 보관 값을 버립니다. 로그아웃 이후 다음 로그인은 OAuth 흐름으로 시작하며, 인증 완료 후 `/auth/me`에서 새 토큰을 받습니다. OAuth의 state 검증과 관리 API의 CSRF 검증을 각각 유지합니다. [Spring CSRF](https://docs.spring.io/spring-security/reference/6.5/servlet/exploits/csrf.html)
 
@@ -223,7 +223,7 @@ Google redirect URI를 외부 Next 콜백 주소로 바꾸고, 로그인 시작�
 | 방향 | 필요한 중계 계약 |
 |---|---|
 | 브라우저 → Next → Spring | 어드민 세션 쿠키, CSRF 헤더, 허용된 쿼리와 본문 전달 |
-| Spring → Next → 브라우저 | 상태 코드, 모든 `Set-Cookie`, `Location` 보존. 로그인 응답을 Next 서버가 자동으로 따라가지 않음 |
+| Spring → Next → 브라우저 | 상태 코드, 모든 `Set-Cookie`, `Location`, me의 `X-CSRF-TOKEN` 응답 헤더 보존. 로그인 응답을 Next 서버가 자동으로 따라가지 않음 |
 | Google → 외부 콜백 | Google 등록 URI, 인증 시작 요청과 code 교환의 `redirect_uri`를 같은 외부 주소로 유지 |
 | 외부 주소 해석 | 환경별 외부 URL을 명시하거나 신뢰된 프록시의 forwarded 헤더만 사용. 임의 입력으로 콜백 주소를 만들지 않음 |
 
@@ -298,6 +298,6 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 
 ## 15 구현 결과와 검증 범위
 
-2026-10-24 `feat/BACKEND-83-admin-auth`에서 서버 직접 콜백, 기존 사용자 등록, 매 요청 ADMIN 조회, JDBC 세션, me의 CSRF 응답, 로그아웃을 구현합니다. 운영 적용 전 설계인 항목은 여전히 draft로 관리합니다. 실행·수동 권한 부여·배포 순서는 [admin 인증 runbook](../runbook/admin-auth.md)을 따릅니다.
+2026-10-24 `feat/BACKEND-83-admin-auth`에서 서버 직접 콜백, 기존 사용자 등록, 매 요청 ADMIN 조회, JDBC 세션, me의 CSRF 응답 헤더, 로그아웃을 구현합니다. 운영 적용 전 설계인 항목은 여전히 draft로 관리합니다. 실행·수동 권한 부여·배포 순서는 [admin 인증 runbook](../runbook/admin-auth.md)을 따릅니다.
 
 Next의 프록시와 로그인 UI는 아직 구현 범위에 포함하지 않습니다. OAuth 성공은 고정 상대 경로 `/admin/v1/auth/me`로 이동하므로 프록시가 내부 Service host를 브라우저에 노출하지 않고 응답을 전달할 수 있습니다. 실제 Google 자격증명을 사용하는 로그인과 운영 ArgoCD rollout은 환경 준비 후 확인합니다.

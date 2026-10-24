@@ -107,8 +107,8 @@ class AdminAuthE2ETest {
         assertThat(me["userId"].asLong()).isEqualTo(user.id)
         assertThat(me["email"].asText()).isEqualTo(user.email)
         assertThat(me["admin"].asBoolean()).isFalse()
-        assertThat(me["csrfToken"].asText()).isNotBlank()
-        assertThat(me["csrfHeaderName"].asText()).isEqualTo("X-CSRF-TOKEN")
+        assertThat(me.has("csrfToken")).isFalse()
+        assertThat(csrf(login.cookie)).isNotBlank()
         mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM ADMIN_SESSION_ATTRIBUTES", Int::class.java))
             .isGreaterThan(0)
@@ -120,7 +120,7 @@ class AdminAuthE2ETest {
     fun givenPendingSession_whenAdminGranted_thenSameSessionImmediatelyAllowed() {
         val user: User = createUser()
         val login = login(user)
-        val csrf: JsonNode = me(login.cookie)
+        val csrf: String = csrf(login.cookie)
         mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
 
         user.roles = "${RoleType.USER.role},${RoleType.ADMIN.role}"
@@ -130,7 +130,7 @@ class AdminAuthE2ETest {
         assertThat(me(login.cookie)["admin"].asBoolean()).isTrue()
         mvc.perform(
             post("/admin/v1/test").cookie(login.cookie)
-                .header(csrf["csrfHeaderName"].asText(), csrf["csrfToken"].asText()),
+                .header("X-CSRF-TOKEN", csrf),
         ).andExpect(status().isOk)
     }
 
@@ -180,12 +180,11 @@ class AdminAuthE2ETest {
     @DisplayName("ADMIN이어도 CSRF 토큰이 없거나 틀린 변경 요청은 실행되지 않는다")
     fun givenAdminSession_whenCsrfMissingOrInvalid_thenWriteNotExecuted() {
         val login = login(createUser(RoleType.ADMIN.role))
-        val csrf: JsonNode = me(login.cookie)
 
         mvc.perform(post("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
         mvc.perform(
             post("/admin/v1/test").cookie(login.cookie)
-                .header(csrf["csrfHeaderName"].asText(), "invalid-token"),
+                .header("X-CSRF-TOKEN", "invalid-token"),
         ).andExpect(status().isForbidden)
         assertThat(routes.writes.get()).isZero()
     }
@@ -195,10 +194,10 @@ class AdminAuthE2ETest {
     fun givenAdminSession_whenUsingCsrfFromMe_thenWriteAllowed() {
         val login = login(createUser(RoleType.ADMIN.role))
         repeat(2) {
-            val csrf: JsonNode = me(login.cookie)
+            val csrf: String = csrf(login.cookie)
             mvc.perform(
                 post("/admin/v1/test").cookie(login.cookie)
-                    .header(csrf["csrfHeaderName"].asText(), csrf["csrfToken"].asText()),
+                    .header("X-CSRF-TOKEN", csrf),
             ).andExpect(status().isOk)
         }
         assertThat(routes.writes.get()).isEqualTo(2)
@@ -208,11 +207,11 @@ class AdminAuthE2ETest {
     @DisplayName("대기 사용자도 CSRF로 로그아웃할 수 있고 이후 기존 세션을 재사용할 수 없다")
     fun givenPendingSession_whenLoggingOutWithCsrf_thenSessionDeleted() {
         val login = login(createUser())
-        val csrf: JsonNode = me(login.cookie)
+        val csrf: String = csrf(login.cookie)
         mvc.perform(post("/admin/v1/auth/logout").cookie(login.cookie)).andExpect(status().isForbidden)
         mvc.perform(
             post("/admin/v1/auth/logout").cookie(login.cookie)
-                .header(csrf["csrfHeaderName"].asText(), csrf["csrfToken"].asText()),
+                .header("X-CSRF-TOKEN", csrf),
         ).andExpect(status().isOk)
 
         assertThat(sessions.findById(login.id)).isNull()
@@ -309,10 +308,14 @@ class AdminAuthE2ETest {
     private fun me(cookie: Cookie): JsonNode {
         val response = mvc.perform(get("/admin/v1/auth/me").cookie(cookie))
             .andExpect(status().isOk).andReturn().response
+        assertThat(response.getHeader("X-CSRF-TOKEN")).isNotBlank()
         val body: JsonNode = objectMapper.readTree(response.contentAsString)
         assertThat(body["resultCode"].asText()).isEqualTo("D-0")
         return body["data"]
     }
+
+    private fun csrf(cookie: Cookie): String = mvc.perform(get("/admin/v1/auth/me").cookie(cookie))
+        .andExpect(status().isOk).andReturn().response.getHeader("X-CSRF-TOKEN")!!
 
     private data class Login(val id: String, val cookie: Cookie)
 }

@@ -82,7 +82,7 @@ class AdminGoogleLoginE2ETest {
         assertThat(user.name!!.codePointCount(0, user.name!!.length)).isLessThanOrEqualTo(10)
         assertThat(user.roles).isEqualTo(RoleType.USER.role)
         assertThat(me["admin"].asBoolean()).isFalse()
-        assertThat(me["csrfToken"].asText()).isNotBlank()
+        assertThat(me.has("csrfToken")).isFalse()
         assertThat(provider.tokenRequests).isEqualTo(1)
         assertThat(userRepository.countByOidIsNotNull()).isZero()
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM ADMIN_SESSION", Int::class.java)).isEqualTo(1)
@@ -155,6 +155,7 @@ class AdminGoogleLoginE2ETest {
     private fun me(cookie: Cookie): JsonNode {
         val response = mvc.perform(get("/admin/v1/auth/me").cookie(cookie))
             .andExpect(status().isOk).andReturn().response
+        assertThat(response.getHeader("X-CSRF-TOKEN")).isNotBlank()
         return objectMapper.readTree(response.contentAsString)["data"]
     }
 

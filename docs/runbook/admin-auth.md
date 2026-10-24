@@ -16,7 +16,7 @@ admin은 Google OIDC로 사용자를 식별하고 기존 `TB_USERS.role`의 `ROL
    ./gradlew :apps:admin:bootRun
    ```
 
-4. 브라우저에서 `http://localhost:8081/oauth2/authorization/google`로 이동합니다. 인증 성공 후 `/admin/v1/auth/me`에 사용자·현재 권한·CSRF 토큰이 표시됩니다. 최초 Google 사용자는 ADMIN이 없습니다. 이메일이 같아도 다른 제공자의 계정과 합치지 않습니다.
+4. 브라우저에서 `http://localhost:8081/oauth2/authorization/google`로 이동합니다. 인증 성공 후 `/admin/v1/auth/me` 본문에서 사용자·현재 권한을, `X-CSRF-TOKEN` 응답 헤더에서 CSRF 토큰을 확인합니다. 최초 Google 사용자는 ADMIN이 없습니다. 이메일이 같아도 다른 제공자의 계정과 합치지 않습니다.
 
 운영에서는 `prod` 프로파일, HTTPS와 Secret의 실제 DataSource/OAuth 값을 사용합니다. 로컬 이외 프로파일은 Secure 쿠키를 사용합니다. 토큰·세션 쿠키를 로그나 URL에 넣지 않습니다.
 
@@ -28,11 +28,10 @@ admin은 Google OIDC로 사용자를 식별하고 기존 `TB_USERS.role`의 `ROL
 |---|---|
 | `userId`, `email`, `name` | 현재 Google 로그인에 연결된 기존 사용자 정보 |
 | `admin` | 현재 DB에 ADMIN 권한이 있는지 |
-| `csrfToken`, `csrfHeaderName` | 변경 요청과 로그아웃에 사용할 토큰 및 헤더 이름 |
 
-변경 요청은 세션 쿠키와 `X-CSRF-TOKEN`을 함께 전송합니다. 토큰은 클라이언트 메모리에 보관하고 새로고침 시 me에서 다시 받습니다. 세션이 만료되면 다시 로그인합니다. `POST /admin/v1/auth/logout`은 CSRF 검증 후 세션을 무효화하고 HTTP 200 `BaseResponse`를 반환합니다.
+`GET /admin/v1/auth/me`는 `X-CSRF-TOKEN` 응답 헤더에 토큰을 담습니다. 변경 요청은 세션 쿠키와 같은 이름의 `X-CSRF-TOKEN` 요청 헤더를 함께 전송합니다. 토큰은 클라이언트 메모리에 보관하고 새로고침 시 me에서 다시 받습니다. 세션이 만료되면 다시 로그인합니다. `POST /admin/v1/auth/logout`은 CSRF 검증 후 세션을 무효화하고 HTTP 200 `BaseResponse`를 반환합니다.
 
-Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location`, 클라이언트가 전송한 Cookie·CSRF 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. Next가 임의 요청에 CSRF 토큰을 대신 발급해 붙이지 않습니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
+Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location`, me의 `X-CSRF-TOKEN` 응답 헤더, 클라이언트가 전송한 Cookie·CSRF 요청 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. Next가 임의 요청에 CSRF 토큰을 대신 발급해 붙이지 않습니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
 
 ## 수동 권한 부여
 
