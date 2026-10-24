@@ -18,6 +18,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.geom.PrecisionModel
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecution
@@ -226,7 +229,7 @@ class SearchIndexJobTest {
     }
 
     private fun givenBrand() {
-        brandRepository.save(Brand(name = "포토시그니처", code = "PHOTOSIGNATURE", platform = PLATFORM))
+        brandRepository.save(Brand(name = "포토시그니처", code = PLATFORM))
     }
 
     private fun givenEnriched(
@@ -243,8 +246,11 @@ class SearchIndexJobTest {
                 id = PhotoBoothEnrichedId(platform, idx),
                 name = name,
                 address = address,
-                longitude = longitude,
-                latitude = latitude,
+                location = if (longitude != null && latitude != null) {
+                    GEOMETRY_FACTORY.createPoint(Coordinate(longitude, latitude))
+                } else {
+                    null
+                },
                 sourceDt = SOURCE_DT,
                 bCode = bCode,
             ),
@@ -268,8 +274,9 @@ class SearchIndexJobTest {
         jdbcTemplate.queryForObject("select count(*) from $table", Int::class.java)!!
 
     companion object {
-        private const val PLATFORM = "PHOTO_SIGNATURE"
+        private const val PLATFORM = "PHOTOSIGNATURE"
         private const val BUSINESS_DATE = "2026-09-25"
         private val SOURCE_DT: LocalDate = LocalDate.parse("2026-09-24")
+        private val GEOMETRY_FACTORY = GeometryFactory(PrecisionModel(), 4326)
     }
 }

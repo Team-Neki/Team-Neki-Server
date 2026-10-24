@@ -1,9 +1,7 @@
-# 클라이언트 행동 이벤트 수집 API dev 검증 (BACKEND-166, docs/oracle/client-log-collection.md)
+# 클라이언트 행동 이벤트 수집 API staging 검증 (BACKEND-166, docs/oracle/client-log-collection.md)
 #
-# 실행 환경: dev. accessToken 은 http/http-client.private.env.json 에 둔다 (gitignore 대상)
-#   { "dev": { "accessToken": "<dev 앱 로그인 accessToken>" } }
-#
-# O-D-5 는 스트림 생성 전, O-D-6 이후는 생성 후 실행한다.
+# 실행 환경: staging. accessToken 은 http/http-client.private.env.json 에 둔다 (gitignore 대상)
+#   { "staging": { "accessToken": "<staging 앱 로그인 accessToken>" } }
 
 ### O-D-1 배포 확인: /api/logs 가 OpenAPI 문서에 있다
 GET {{host}}/v3/api-docs
@@ -61,24 +59,7 @@ Content-Type: application/json
     });
 %}
 
-### O-D-5 [스트림 생성 전] 실제 Firehose 어댑터가 붙어 D-15 를 돌려준다
-POST {{host}}/api/logs
-Authorization: Bearer {{accessToken}}
-Content-Type: application/json
-
-{
-  "platform": "IOS",
-  "logs": [{"eventId":"1f8b6c2e-3d4a-4f5b-9c1d-2e7a8b9c0d1e","eventType":"oracle_before_stream","eventProperties":{"oracle":"BACKEND-166"},"occurredAt":"2026-10-02T10:00:00Z","sessionId":1790935140000,"sequenceNumber":1,"deviceId":"oracle-device-1","userIdAtOccurrence":null,"appVersion":"0.0.0-oracle","context":{"osName":"iOS"}}]
-}
-
-> {%
-    client.test("O-D-5 스트림 없음 -> D-15", () => {
-        client.assert(response.status === 503, "status=" + response.status);
-        client.assert(response.body.resultCode === "D-15", "resultCode=" + response.body.resultCode + ". D-0 이면 fake 가 붙었거나 스트림이 이미 있음");
-    });
-%}
-
-### O-D-6 [스트림 생성 후] 2건을 보내면 D-0. 이어서 문서의 O-D-7~10 으로 S3 와 레코드 묶음을 확인한다
+### O-D-6 2건을 보내면 D-0. 이어서 문서의 O-D-7~10 으로 S3 와 레코드 묶음을 확인한다
 POST {{host}}/api/logs
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json

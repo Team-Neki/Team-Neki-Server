@@ -19,7 +19,7 @@ interface PhotoBoothLocationRepository {
 
     fun getPhotoBoothLocations(brandId: Long): List<PhotoBoothLocation>
 
-    fun existsById(locationId: Long): Boolean
+    fun findById(locationId: Long): PhotoBoothLocation?
 
     fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationView>
 

@@ -38,6 +38,16 @@ object MediaResult {
         data class Item(val mediaId: Long, val uploadUrl: String, val contentType: String)
     }
 
+    /**
+     * QR 덤프 업로드 티켓 생성 결과
+     */
+    data class GenerateQrDumpUploadTicket(
+        val method: String,
+        val expiresAt: Instant,
+        val uploadUrl: String,
+        val contentType: String,
+    )
+
     data class GetImageByKey(val binaryData: ByteArray, val contentType: String) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

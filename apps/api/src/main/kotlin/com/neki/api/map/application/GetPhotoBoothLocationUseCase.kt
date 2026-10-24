@@ -6,19 +6,19 @@ import com.neki.core.transaction.TransactionRunner
 import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.PhotoBoothLocationView
 import com.neki.domain.map.models.PhotoBoothLocationWithDistance
-import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
+import com.neki.domain.map.service.MapService
 
 /**
  * fileName       : GetPhotoBoothLocationUseCase
  * author         : darren
  * date           : 2026. 01. 17.
- * description    : 포토부스 위치 조회
+ * description    : 포토부스 위치 조회 (지도 V1, 지점 마스터 TB_PHOTO_BOOTH_LOCATION). V2 는 [GetPhotoBoothUseCase]
  */
 @UseCase
 class GetPhotoBoothLocationUseCase(
     private val photoBoothLocationRepository: PhotoBoothLocationRepository,
-    private val favoriteMapRepository: FavoriteMapRepository,
+    private val mapService: MapService,
     private val transactionRunner: TransactionRunner,
 ) {
 
@@ -35,7 +35,7 @@ class GetPhotoBoothLocationUseCase(
             return@readOnly MapResult.GetPolygonLocation(emptyList(), emptySet())
         }
 
-        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+        val favoriteLocationIds: Set<Long> = mapService.getFavoritedLocationIds(
             userId = query.userId,
             locationIds = locations.map { it.id },
         )
@@ -58,7 +58,7 @@ class GetPhotoBoothLocationUseCase(
             return@readOnly MapResult.GetPointLocation(emptyList(), emptySet())
         }
 
-        val favoriteLocationIds: Set<Long> = favoriteMapRepository.findFavoritedLocationIds(
+        val favoriteLocationIds: Set<Long> = mapService.getFavoritedLocationIds(
             userId = query.userId,
             locationIds = locations.map { it.id },
         )

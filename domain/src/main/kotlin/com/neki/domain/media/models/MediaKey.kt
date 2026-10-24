@@ -1,5 +1,7 @@
 package com.neki.domain.media.models
 
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 
 /**
@@ -9,6 +11,17 @@ import java.util.UUID
  * description    : 이미지 저장을 위한 key
  */
 object MediaKey {
+
+    /**
+     * QR 파싱 실패 HTML 덤프. presigned URL 이 이 값까지 서명하므로 클라이언트는 같은 헤더로 PUT 해야 한다.
+     * charset 을 포함하는 이유: OkHttp 가 String body 에 charset=utf-8 을 자동으로 붙인다.
+     */
+    const val QR_DUMP_CONTENT_TYPE = "text/html; charset=utf-8"
+
+    // MediaType 에 넣지 않는다. 넣으면 /api/media/upload 에서 클라이언트가 이 prefix 를 고를 수 있다.
+    private const val QR_DUMP_PREFIX = "qr-dumps"
+
+    private val KOREA_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
 
     private val CONTENT_TYPE_EXTENSIONS = mapOf(
         "image/jpeg" to "jpg",
@@ -52,6 +65,13 @@ object MediaKey {
         val extension = extractExtensionFromContentType(contentType)
         return "${type.prefix}/${UUID.randomUUID()}.$extension"
     }
+
+    /**
+     * QR 덤프 storage key. 날짜(KST)/사용자 단위로 S3 에서 바로 훑어볼 수 있게 나눈다.
+     * 예: "qr-dumps/2026-10-02/42/550e8400-...-446655440000.html"
+     */
+    fun generateQrDump(ownerId: Long): String =
+        "$QR_DUMP_PREFIX/${LocalDate.now(KOREA_ZONE)}/$ownerId/${UUID.randomUUID()}.html"
 
     /**
      * objectKey의 확장자로 contentType 해석

@@ -1,6 +1,6 @@
 # 오라클 : 클라이언트 행동 이벤트 수집 API (BACKEND-166)
 
-이 문서는 BACKEND-166 작업의 완료 판정 기준을 다룹니다. auto 는 명령이 판정하고, manual 은 dev(staging) 배포 후 사람이 확인합니다. 명령은 저장소 루트에서 그대로 실행합니다. dev 요청은 `http/client-log.http` 에 있고, 각 요청의 `client.test` 가 판정을 대신합니다.
+이 문서는 BACKEND-166 작업의 완료 판정 기준을 다룹니다. auto 는 명령이 판정하고, manual 은 staging 배포 후 사람이 확인합니다. 명령은 저장소 루트에서 그대로 실행합니다. staging 요청은 `http/client-log.http` 에 있고, 각 요청의 `client.test` 가 판정을 대신합니다.
 
 ## 공통 (O-0)
 
@@ -24,15 +24,15 @@
 | O-A-6 | auto | `/api/logs` POST 만 익명 허용, 잘못된 Authorization 은 거절 : `CollectClientLogsE2ETest` 의 익명·잘못된 헤더 테스트 통과 |
 | O-A-7 | auto | support 도메인 밖으로 새지 않음 (새 도메인 패키지 없음) : `test ! -e domain/src/main/kotlin/com/neki/domain/clientlog && test ! -e apps/api/src/main/kotlin/com/neki/api/clientlog` 종료코드 0 |
 
-## O-D. dev 배포 후 검증
+## O-D. staging 배포 후 검증
 
 staging 전송 스트림은 이미 생성되어 있습니다. 배포 후 API 응답과 S3 적재를 확인합니다. 스트림 미생성 상태를 전제로 한 O-D-5 는 과거 계획이므로 해당 없음으로 기록하고, D-15 응답은 자동 테스트로 확인합니다.
 
 ### 준비
 
 - 배포 : `gh workflow run deploy-api-staging.yml --ref feat/BACKEND-166` (staging 은 수동 dispatch 만 가능)
-- 토큰 : `http/http-client.private.env.json` 에 `{ "dev": { "accessToken": "..." } }` 작성. dev 앱 로그인 응답이나 `POST /api/auth/refresh` 응답의 `data.accessToken` 사용
-- 실행 : IntelliJ HTTP Client 에서 환경 `dev` 선택 후 요청별 실행. CLI 는 `ijhttp --env-file http/http-client.env.json --private-env-file http/http-client.private.env.json --env dev http/client-log.http`
+- 토큰 : `http/http-client.private.env.json` 에 `{ "staging": { "accessToken": "..." } }` 작성. staging 앱 로그인 응답이나 `POST /api/auth/refresh` 응답의 `data.accessToken` 사용
+- 실행 : IntelliJ HTTP Client 에서 환경 `staging` 선택 후 요청별 실행. CLI 는 `ijhttp --env-file http/http-client.env.json --private-env-file http/http-client.private.env.json --env staging http/client-log.http`
 - S3 확인 변수 : `BUCKET=team-neki-log-staging`, `PREFIX=raw/client-log/` (Platform ADR-0004. 운영은 `team-neki-log-production` 의 같은 경로)
 - 전제 : Team-Neki-Platform#23 에서 생성한 staging 스트림이 `ACTIVE`
 

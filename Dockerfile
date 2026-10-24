@@ -39,6 +39,10 @@ USER spring:spring
 # 환경변수 설정 (기본값, 런타임에 오버라이드 가능)
 ENV SPRING_PROFILES_ACTIVE=staging
 ENV JASYPT_PASSWORD=""
+# heap 상한은 컨테이너 메모리 limit 의 50% (JVM 기본값 25% 로는 1Gi 에서 약 247MB)
+# ENTRYPOINT 에 넣으면 env 로 못 덮으므로 여기 둔다. 매니페스트의 env 로 환경별 값을 줄 수 있다
+# limit 이 없는 컨테이너는 노드 메모리의 50% 가 되므로, 이 이미지를 띄우는 곳에는 memory limit 을 둔다
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=50.0"
 
 # 애플리케이션 실행
 # Layered JAR는 org.springframework.boot.loader.launch.JarLauncher를 사용

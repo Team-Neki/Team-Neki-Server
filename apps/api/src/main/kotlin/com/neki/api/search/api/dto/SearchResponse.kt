@@ -9,6 +9,40 @@ import io.swagger.v3.oas.annotations.media.Schema
  * description    : Search 관련 응답 DTO
  */
 object SearchResponse {
+    @Schema(name = "SearchCompletionResponse")
+    data class Completion(
+        @field:Schema(description = "검색 결과. 지역·역·부스 세 탭이 같은 모양이다")
+        val items: List<Item>,
+
+        @field:Schema(description = "다음 페이지 존재 여부", example = "false")
+        val hasNext: Boolean,
+
+        @field:Schema(description = "검색어에 걸린 전체 건수. 탭 건수 배지용", example = "3")
+        val totalCount: Long,
+
+        @field:Schema(
+            description = "부스 목록·필터 요청 body 의 filterGroup 과 같은 타입이라 그대로 보낸다. 검색어에 브랜드명이 있으면 " +
+                "그 브랜드가 걸려 있고, 없으면 기본 필터(brands = [], DEFAULT). 지역·역·부스 세 탭 모두 내려준다",
+        )
+        val filterGroup: SearchRequest.FilterGroup,
+    ) {
+        @Schema(name = "SearchCompletionInfo")
+        data class Item(
+            @field:Schema(
+                description = "화면에 그대로 보여 주고, 고르면 부스 목록 요청에 넘기는 값",
+                example = "서울특별시 강남구",
+            )
+            val keyword: String,
+
+            @field:Schema(
+                description = "입력 좌표에서의 거리(km). 소수 둘째 자리에서 반올림. 역·부스 검색에서 위치를 줬을 때만 있고 그 밖에는 null",
+                example = "1.3",
+                nullable = true,
+            )
+            val distanceKm: Double?,
+        )
+    }
+
     @Schema(name = "SearchPhotoBoothsResponse")
     data class GetPhotoBooths(
         @field:Schema(description = "부스 목록. 페이징 없이 전체를 내려준다")
@@ -16,8 +50,11 @@ object SearchResponse {
     ) {
         @Schema(name = "SearchPhotoBoothInfo")
         data class Item(
-            @field:Schema(description = "부스 ID", example = "2560")
-            val id: Long,
+            @field:Schema(
+                description = "부스 ID. 지도 V2 조회·즐겨찾기 API 와 같은 값",
+                example = "source:PHOTOISM:1768232303",
+            )
+            val id: String,
 
             @field:Schema(description = "브랜드 이름", example = "포토이즘")
             val brandName: String,

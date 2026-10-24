@@ -24,6 +24,7 @@ enum class ResultCode(val code: String, val message: String) {
     PUSH_NOT_CONFIGURED("D-11", "푸시 알림이 설정되지 않았습니다."),
     PUSH_SEND_FAILED("D-12", "푸시 알림 발송에 실패했습니다."),
     CONFLICT_BRAND("D-13", "이미 존재하는 브랜드입니다."),
+    INVALID_PAGINATION("D-14", "페이지 조회 조건이 올바르지 않습니다."),
     LOG_SEND_FAILED("D-15", "로그 전송에 실패했습니다. 잠시 후 다시 시도해주세요."),
     LOG_PAYLOAD_TOO_LARGE("D-16", "로그 크기가 제한을 초과했습니다. 배치를 나눠 다시 보내주세요."),
 

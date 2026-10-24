@@ -25,4 +25,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
+    // infra/storage 어댑터가 S3 조회 구간 Timer 를 직접 기록한다 (registry 는 apps/api 의 actuator 가 만든다)
+    implementation("io.micrometer:micrometer-core")
 }
