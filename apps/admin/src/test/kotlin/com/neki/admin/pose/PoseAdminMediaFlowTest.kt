@@ -161,6 +161,22 @@ class PoseAdminMediaFlowTest {
     }
 
     @Test
+    fun emptyUploadsAndOversizedMemoReturn400() {
+        mockMvc.perform(
+            adminPost("/admin/v1/pose").contentType(MediaType.APPLICATION_JSON).content("""{"uploads":[]}"""),
+        ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
+
+        mockMvc.perform(
+            adminPost("/admin/v1/pose").contentType(MediaType.APPLICATION_JSON)
+                .content("""{"uploads":[{"mediaId":1,"headCount":"ONE","memo":"${"a".repeat(256)}"}]}"""),
+        ).andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
+
+        poseRepository.count() shouldBe 0L
+    }
+
+    @Test
     @DisplayName("이미지 교체 시 mediaId가 갱신된다")
     fun updatePoseMediaReplacesImage() {
         val pose: Pose = seedPose()

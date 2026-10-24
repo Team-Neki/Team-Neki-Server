@@ -6,7 +6,9 @@ import com.neki.domain.pose.models.Pose
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
 
 /**
@@ -29,11 +31,12 @@ object PoseAdminDto {
             val size: Int = DEFAULT_SIZE,
         )
 
-        data class UploadPoses(@field:Valid val uploads: List<Item>) {
+        data class UploadPoses(@field:NotEmpty @field:Valid val uploads: List<Item>) {
             data class Item(
                 @field:NotNull(message = "mediaId는 필수 입력값입니다.")
                 val mediaId: Long?,
                 val headCount: HeadCount,
+                @field:Size(max = 255, message = "memo는 255자 이하여야 합니다.")
                 val memo: String?,
             )
         }
