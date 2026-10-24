@@ -18,6 +18,7 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
 
     testRuntimeOnly("com.h2database:h2")
+    testRuntimeOnly("org.testcontainers:postgresql")
 }
 
 tasks.jar { enabled = false }
