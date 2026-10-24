@@ -53,5 +53,5 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 
 ## 현재 제한
 
-인증 도입 전까지 Spring Security 자동설정을 제외합니다. 외부 노출 전 인증이 필요하며 계획은 `docs/superpowers/plans/2026-08-16-admin-auth.md`에 있습니다.
+인증 도입 전까지 Spring Security 자동설정을 제외합니다. `AdminWriteGuard`가 test 외 프로필에서 `/admin/v1/` 변경 요청을 403으로 차단합니다. 인증 구현 시 이 임시 제한을 인증·인가 규칙으로 교체해야 합니다. 계획은 `docs/superpowers/plans/2026-08-16-admin-auth.md`에 있습니다.
 media 소유자와 관리자 계정의 연계 검증은 인증 도입 후 추가해야 합니다.
