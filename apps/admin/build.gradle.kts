@@ -17,6 +17,7 @@ dependencies {
     implementation("org.springframework.session:spring-session-jdbc")
     implementation("org.flywaydb:flyway-core")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
+    implementation("io.micrometer:micrometer-core")
 
     testRuntimeOnly("com.h2database:h2")
     testRuntimeOnly("org.testcontainers:postgresql")
