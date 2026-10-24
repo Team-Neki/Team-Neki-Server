@@ -1,10 +1,15 @@
 package com.neki.admin
 
+import com.neki.config.aws.S3Properties
+import com.neki.domain.media.infra.storage.fake.FakeMediaStorageConfig
+import com.neki.domain.media.infra.storage.s3.S3MediaStorageAdapterConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 // :core 와 :domain 은 com.neki.admin 밖에 있으므로, admin 이 실제로 쓰는 범위만 지정한다.
@@ -16,11 +21,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "com.neki.core",
         "com.neki.config.postgres",
         "com.neki.config.jasypt",
+        "com.neki.config.aws",
     ],
 )
 // admin 기능 리포지터리와 기존 사용자 JPA 리포지터리만 등록한다.
 @EntityScan("com.neki.domain", "com.neki.core")
 @EnableJpaRepositories("com.neki.admin", "com.neki.domain.user.infra.persist.jpa")
+@EnableConfigurationProperties(S3Properties::class)
+@Import(S3MediaStorageAdapterConfig::class, FakeMediaStorageConfig::class)
 class AdminApplication {
     // 공유 DB DDL은 api만 적용한다. 미적용·불일치 스키마에서는 admin 기동을 거부한다.
     @Bean

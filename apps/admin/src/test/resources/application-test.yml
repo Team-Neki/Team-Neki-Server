@@ -49,3 +49,9 @@ server:
 jasypt:
   encryptor:
     password: admin-test-key
+
+aws:
+  s3:
+    access-key: test
+    secret-key: test
+    bucket: test
