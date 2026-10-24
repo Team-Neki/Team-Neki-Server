@@ -52,12 +52,14 @@ class Brand(
     fun updateInfo(
         name: String?,
         code: String?,
+        mediaId: Long?,
         supportAndroidQr: Boolean?,
         supportIosQr: Boolean?,
         exposeToMap: Boolean?,
     ) {
         name?.let { this.name = it }
         code?.let { this.code = it }
+        mediaId?.let { this.mediaId = it }
         supportAndroidQr?.let { this.supportAndroidQr = it }
         supportIosQr?.let { this.supportIosQr = it }
         exposeToMap?.let { this.exposeToMap = it }
@@ -68,13 +70,20 @@ class Brand(
     }
 
     companion object {
-        fun of(name: String, code: String, mediaId: Long, supportAndroidQr: Boolean, supportIosQr: Boolean): Brand =
-            Brand(
-                name = name,
-                code = code,
-                mediaId = mediaId,
-                supportAndroidQr = supportAndroidQr,
-                supportIosQr = supportIosQr,
-            )
+        fun of(
+            name: String,
+            code: String,
+            mediaId: Long,
+            supportAndroidQr: Boolean,
+            supportIosQr: Boolean,
+            exposeToMap: Boolean = false,
+        ): Brand = Brand(
+            name = name,
+            code = code,
+            mediaId = mediaId,
+            supportAndroidQr = supportAndroidQr,
+            supportIosQr = supportIosQr,
+            exposeToMap = exposeToMap,
+        )
     }
 }
