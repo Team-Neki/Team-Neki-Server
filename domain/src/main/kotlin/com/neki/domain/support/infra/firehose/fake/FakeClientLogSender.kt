@@ -10,9 +10,9 @@ import java.util.concurrent.CopyOnWriteArrayList
  * fileName       : FakeClientLogSender
  * author         : koo
  * date           : 2026. 10. 2.
- * description    : test·local 용 ClientLogSender. 받은 command 를 메모리에 쌓기만 한다.
+ * description    : staging·prod 외 프로필용 ClientLogSender. 받은 command 를 메모리에 쌓기만 한다.
  */
-@Profile("test | local")
+@Profile("!staging & !prod")
 @Component
 class FakeClientLogSender : ClientLogSender {
 

@@ -16,7 +16,7 @@ import java.time.Duration
  * description    : Kinesis Firehose 연결 설정. LocalStack 은 s3 만 띄우므로 local 은 fake 어댑터를 쓴다.
  *                  S3 와 같은 yapp IAM 사용자 키를 쓴다 (Firehose 권한은 BACKEND-125 에서 부여).
  */
-@Profile("!test & !local")
+@Profile("staging | prod")
 @Configuration
 class FirehoseConfig(private val s3Props: S3Properties) {
 

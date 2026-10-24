@@ -28,7 +28,7 @@ import java.util.concurrent.Semaphore
  *                  로그 1건 = 레코드 1건이면 수백 바이트 로그도 5KB 값을 낸다 (Platform ADR-0004).
  *                  클라이언트 JSON 은 log 필드 아래에 그대로 둬서 서버가 붙이는 userId 등을 덮어쓰지 못하게 한다.
  */
-@Profile("!test & !local")
+@Profile("staging | prod")
 @Component
 class FirehoseClientLogAdapter(
     private val firehoseClient: FirehoseClient,

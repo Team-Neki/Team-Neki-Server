@@ -18,8 +18,8 @@
 |---|---|---|
 | O-A-1 | auto | 엔드포인트·어댑터 테스트(NDJSON 묶음·분할 포함)와 아키텍처 규칙 통과 : `./gradlew :apps:api:test --tests '*CollectClientLogsE2ETest' --tests '*FirehoseClientLogAdapterTest' --tests '*ArchitectureRulesTest' -q` 종료코드 0 |
 | O-A-2 | auto | staging·prod 스트림 이름이 Platform ADR-0004 와 같음 : `grep -cE "delivery-stream: team-neki-log-raw-(staging\|production)-client-log$" modules/aws/src/main/resources/application-s3.yaml` = 2 |
-| O-A-3 | auto | 실제 어댑터는 staging·prod 에서만 뜸 : `grep -l '@Profile("!test & !local")' modules/aws/src/main/kotlin/com/neki/config/aws/FirehoseConfig.kt domain/src/main/kotlin/com/neki/domain/support/infra/firehose/FirehoseClientLogAdapter.kt \| wc -l` = 2 |
-| O-A-4 | auto | fake 는 test·local 에서만 뜸 : `grep -c '@Profile("test \| local")' domain/src/main/kotlin/com/neki/domain/support/infra/firehose/fake/FakeClientLogSender.kt` = 1 |
+| O-A-3 | auto | 실제 어댑터는 staging·prod 에서만 뜸 : `grep -lF '@Profile("staging' modules/aws/src/main/kotlin/com/neki/config/aws/FirehoseConfig.kt domain/src/main/kotlin/com/neki/domain/support/infra/firehose/FirehoseClientLogAdapter.kt \| wc -l` = 2 |
+| O-A-4 | auto | fake 는 staging·prod 외 프로필에서 뜸 : `grep -cF '@Profile("!staging' domain/src/main/kotlin/com/neki/domain/support/infra/firehose/fake/FakeClientLogSender.kt` = 1 |
 | O-A-5 | auto | 결과 코드 D-15 와 D-16 이 각각 하나뿐 : `grep -Ec '"D-1[56]"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 2 |
 | O-A-6 | auto | `/api/logs` POST 만 익명 허용, 잘못된 Authorization 은 거절 : `CollectClientLogsE2ETest` 의 익명·잘못된 헤더 테스트 통과 |
 | O-A-7 | auto | support 도메인 밖으로 새지 않음 (새 도메인 패키지 없음) : `test ! -e domain/src/main/kotlin/com/neki/domain/clientlog && test ! -e apps/api/src/main/kotlin/com/neki/api/clientlog` 종료코드 0 |
