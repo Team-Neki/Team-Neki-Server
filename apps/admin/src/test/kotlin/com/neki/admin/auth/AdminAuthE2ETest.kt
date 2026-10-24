@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.application.AdminAccountFacade
 import com.neki.core.api.dto.BaseResponse
+import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
 import com.neki.domain.user.infra.security.admin.AdminPrincipal
-import com.neki.domain.user.models.AdminIdentity
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
@@ -292,7 +292,9 @@ class AdminAuthE2ETest {
             val futures = (1..8).map {
                 executor.submit<Long> {
                     start.await()
-                    accounts.findOrCreate(AdminIdentity("google:$subject", "concurrent@example.com", "동시 로그인"))
+                    accounts.findOrCreate(
+                        UserCommand.RegisterAdminAccount("google:$subject", "concurrent@example.com", "동시 로그인"),
+                    )
                 }
             }
             start.countDown()

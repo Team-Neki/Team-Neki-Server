@@ -5,6 +5,7 @@ import com.neki.admin.auth.api.dto.AdminAuthResponse
 import com.neki.admin.auth.application.AdminAccountFacade
 import com.neki.admin.auth.application.dto.AdminAccountResult
 import com.neki.core.api.dto.BaseResponse
+import com.neki.domain.user.dto.UserCommand
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.BadCredentialsException
@@ -25,7 +26,7 @@ class AdminAuthController(private val accounts: AdminAccountFacade) {
         csrfToken: CsrfToken,
         response: HttpServletResponse,
     ): BaseResponse<AdminAuthResponse> {
-        val user: AdminAccountResult = accounts.findActive(userId, identityKey)
+        val user: AdminAccountResult = accounts.findActive(UserCommand.AdminAccountAccess(userId, identityKey))
             ?: throw BadCredentialsException("사용할 수 없는 계정입니다.")
         response.setHeader(csrfToken.headerName, csrfToken.token)
         return BaseResponse(

@@ -1,6 +1,6 @@
 package com.neki.domain.user.infra.security.admin
 
-import com.neki.domain.user.models.AdminIdentity
+import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.service.AdminAccountAccess
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException
@@ -19,12 +19,19 @@ class AdminSocialIdentityResolver(
             ?: throw OAuth2AuthenticationException(OAuth2Error("unsupported_provider"))
         val profile: AdminSocialProfile = provider.extract(user)
         val identityKey = "$registrationId:${profile.subject}"
-        if (registrationId.isBlank() || profile.subject.isBlank() || identityKey.length > 512 ||
-            profile.email.isBlank() || profile.email.length > 255
+        if (registrationId.isBlank() ||
+            profile.subject.isBlank() ||
+            identityKey.length > 512 ||
+            profile.email.isBlank() ||
+            profile.email.length > 255
         ) {
             throw OAuth2AuthenticationException(OAuth2Error("invalid_user_info"))
         }
-        val identity = AdminIdentity(key = identityKey, email = profile.email, name = profile.name)
-        return accounts.findOrCreate(identity) to identity.key
+        val command = UserCommand.RegisterAdminAccount(
+            identityKey = identityKey,
+            email = profile.email,
+            name = profile.name,
+        )
+        return accounts.findOrCreate(command) to command.identityKey
     }
 }

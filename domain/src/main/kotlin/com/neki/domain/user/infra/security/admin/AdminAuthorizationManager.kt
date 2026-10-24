@@ -1,5 +1,6 @@
 package com.neki.domain.user.infra.security.admin
 
+import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.service.AdminAccountAccess
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.security.authorization.AuthorizationDecision
@@ -21,6 +22,8 @@ class AdminAuthorizationManager(private val accounts: AdminAccountAccess) :
         val principal: AdminAuthenticatedPrincipal = auth.principal as? AdminAuthenticatedPrincipal
             ?: return AuthorizationDecision(false)
         if (!auth.isAuthenticated) return AuthorizationDecision(false)
-        return AuthorizationDecision(accounts.isAdmin(principal.userId, principal.identityKey))
+        return AuthorizationDecision(
+            accounts.isAdmin(UserCommand.AdminAccountAccess(principal.userId, principal.identityKey)),
+        )
     }
 }

@@ -16,14 +16,13 @@ class AdminAccountService(private val userRepository: UserRepository) {
         userRepository.findByOid(query.identityKey, ProviderType.ADMIN_SSO)
 
     fun registerAdminAccount(command: UserCommand.RegisterAdminAccount): User {
-        val identity = command.identity
-        val points: IntArray = (identity.name?.takeIf { it.isNotBlank() } ?: "소셜 사용자")
+        val points: IntArray = (command.name?.takeIf { it.isNotBlank() } ?: "소셜 사용자")
             .codePoints().limit(10).toArray()
         return userRepository.save(
             User(
-                email = identity.email,
+                email = command.email,
                 name = String(points, 0, points.size),
-                oid = identity.key,
+                oid = command.identityKey,
                 roles = RoleType.USER.role,
                 providerType = ProviderType.ADMIN_SSO,
                 profileImageId = null,
