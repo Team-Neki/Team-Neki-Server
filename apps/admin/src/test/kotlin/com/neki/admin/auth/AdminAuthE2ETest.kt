@@ -2,7 +2,7 @@ package com.neki.admin.auth
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.neki.admin.auth.application.AdminAccountService
+import com.neki.admin.auth.application.AdminAccountFacade
 import com.neki.admin.auth.infra.security.AdminPrincipal
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
@@ -79,7 +79,7 @@ class AdminAuthE2ETest {
     private lateinit var routes: AdminAuthTestController
 
     @Autowired
-    private lateinit var accounts: AdminAccountService
+    private lateinit var accounts: AdminAccountFacade
 
     @BeforeEach
     fun setUp() {
@@ -262,7 +262,7 @@ class AdminAuthE2ETest {
             val futures = (1..8).map {
                 executor.submit<Long> {
                     start.await()
-                    accounts.findOrCreate(subject, "concurrent@example.com", "동시 로그인").id!!
+                    accounts.findOrCreate(subject, "concurrent@example.com", "동시 로그인")
                 }
             }
             start.countDown()

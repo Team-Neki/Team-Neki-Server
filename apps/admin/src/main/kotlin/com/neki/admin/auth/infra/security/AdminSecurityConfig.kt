@@ -1,6 +1,7 @@
 package com.neki.admin.auth.infra.security
 
 import com.neki.domain.user.infra.persist.UserRepositoryAdapter
+import com.neki.domain.user.service.AdminAccountService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -11,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.savedrequest.NullRequestCache
 
 @Configuration
-@Import(UserRepositoryAdapter::class)
+@Import(UserRepositoryAdapter::class, AdminAccountService::class)
 class AdminSecurityConfig {
     @Bean
     fun adminSecurityFilterChain(

@@ -69,6 +69,8 @@ class User(
         this.email = null
         this.oid = null
     }
+
+    fun hasRole(role: RoleType): Boolean = roles.split(',').any { it.trim() == role.role }
 }
 
 enum class RoleType(val role: String, val roleName: String) {

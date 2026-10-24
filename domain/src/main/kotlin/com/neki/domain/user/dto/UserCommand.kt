@@ -7,6 +7,8 @@ package com.neki.domain.user.dto
  * description    : User domain command
  */
 object UserCommand {
+    data class RegisterGoogleAccount(val subject: String, val email: String, val name: String?)
+
     data class UpdateUserInfo(val userId: Long, val name: String)
 
     data class UpdateUserProfileImage(val userId: Long, val mediaId: Long?)
