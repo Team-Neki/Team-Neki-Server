@@ -3,7 +3,9 @@ package com.neki.admin.auth
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.application.AdminAccountFacade
+import com.neki.admin.common.media.JpaAdminMediaRepository
 import com.neki.core.api.dto.BaseResponse
+import com.neki.domain.media.models.MediaType
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
 import com.neki.domain.user.infra.security.admin.AdminPrincipal
@@ -64,6 +66,9 @@ class AdminAuthE2ETest {
     private lateinit var users: JpaUserRepository
 
     @Autowired
+    private lateinit var media: JpaAdminMediaRepository
+
+    @Autowired
     private lateinit var jdbcSessions: JdbcIndexedSessionRepository
 
     @Suppress("UNCHECKED_CAST")
@@ -86,8 +91,57 @@ class AdminAuthE2ETest {
     fun setUp() {
         jdbc.update("DELETE FROM ADMIN_SESSION_ATTRIBUTES")
         jdbc.update("DELETE FROM ADMIN_SESSION")
+        media.deleteAllInBatch()
         users.deleteAllInBatch()
         routes.writes.set(0)
+    }
+
+    @Test
+    @DisplayName("관리자 세션 업로드는 업로더 ID를 보존하고 관리자 공동 관리 미디어로 표시한다")
+    fun givenAdminSession_whenIssuingMediaTicket_thenUploaderOwnsSharedMedia() {
+        val uploader = createUser(RoleType.ADMIN.role)
+        val login = login(uploader)
+        val request = """{"items":[{"mediaType":"POSE","contentType":"image/png"}]}"""
+
+        mvc.perform(post("/admin/v1/media/upload").contentType("application/json").content(request))
+            .andExpect(status().isForbidden)
+        mvc.perform(
+            post("/admin/v1/media/upload").cookie(login.cookie).contentType("application/json").content(request),
+        )
+            .andExpect(status().isForbidden)
+
+        val response = mvc.perform(
+            post("/admin/v1/media/upload").cookie(login.cookie)
+                .header("X-CSRF-TOKEN", csrf(login.cookie))
+                .contentType("application/json").content(request),
+        ).andExpect(status().isOk).andReturn().response
+
+        val item = objectMapper.readTree(response.contentAsString)["data"]["items"][0]
+        val saved = media.findById(item["mediaId"].asLong()).orElseThrow()
+        assertThat(saved.ownerId).isEqualTo(uploader.id)
+        assertThat(saved.adminManaged).isTrue()
+        assertThat(saved.mediaType).isEqualTo(MediaType.POSE)
+        assertThat(item["uploadTicket"].asText()).contains("/pose/")
+    }
+
+    @Test
+    @DisplayName("관리자가 아니거나 관리 범위 밖의 미디어 타입이면 업로드 티켓을 발급하지 않는다")
+    fun givenNonAdminOrUnsupportedType_whenIssuingMediaTicket_thenNoMediaIsCreated() {
+        val pending = login(createUser())
+        val request = """{"items":[{"mediaType":"PHOTO_BOOTH","contentType":"image/png"}]}"""
+        mvc.perform(
+            post("/admin/v1/media/upload").cookie(pending.cookie)
+                .header("X-CSRF-TOKEN", csrf(pending.cookie))
+                .contentType("application/json").content(request),
+        ).andExpect(status().isForbidden)
+
+        val admin = login(createUser(RoleType.ADMIN.role))
+        mvc.perform(
+            post("/admin/v1/media/upload").cookie(admin.cookie)
+                .header("X-CSRF-TOKEN", csrf(admin.cookie))
+                .contentType("application/json").content(request),
+        ).andExpect(status().isBadRequest)
+        assertThat(media.count()).isZero()
     }
 
     @Test

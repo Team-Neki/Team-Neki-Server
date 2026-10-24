@@ -237,7 +237,7 @@ OAuth 브라우저 리다이렉트 자체와 다른 origin의 API 호출에 대�
 |---|---|
 | `apps/admin` | 전용 보안 체인, OAuth 로그인 연결, 인증 결과·세션·CSRF·접근 제어, PostgreSQL 프로파일 |
 | `domain/user` | 기존 User·ADMIN 재사용, 제공자 공통 계정 키와 현재 사용자 권한 조회. OIDC/OAuth2 보안 및 제공자별 신원 추출 구현은 infra에 배치 |
-| `modules/postgres` | V41 세션 테이블, V42 관리자 SSO 계정 전환과 식별 키 고유 인덱스 |
+| `modules/postgres` | V41 세션 테이블, V42 관리자 SSO 계정 전환과 식별 키 고유 인덱스, V43 관리자 업로드 미디어 표시 |
 | Team-Neki-Admin | 로그인·대기·오류 UI, 로그인·콜백·쿠키·CSRF 프록시 |
 | Team-Neki-GitOps | 인증 구현 후 PostgreSQL·Google 자격증명·외부 URL 설정. API Service 내부 배치 유지 |
 | 기존 모바일 API | JWT 발급·검증 유지. Google admin 로그인을 모바일 로그인 제공자로 자동 확장하지 않음 |
@@ -263,7 +263,7 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 
 ## 12 구현 순서와 완료 조건
 
-1. 기존 User·ADMIN 구조를 확인하고 관리자 SSO 식별 키 제약과 Spring Session JDBC 테이블의 PostgreSQL V41·V42 마이그레이션을 준비합니다.
+1. 기존 User·ADMIN 구조를 확인하고 관리자 SSO 식별 키 제약, Spring Session JDBC 테이블, 공동 관리 미디어 표시의 PostgreSQL V41·V42·V43 마이그레이션을 준비합니다.
 2. Spring 직접 콜백으로 Google 로그인과 ADMIN 미보유 사용자의 대기 안내를 구현합니다.
 3. DB 쿼리 권한 부여·회수 절차와 매 관리 요청의 현재 ADMIN 인가를 연결합니다.
 4. 세션 쿠키·유휴 만료 30분·로그아웃·CSRF 및 서버 재시작 후 세션 복원을 검증합니다.
@@ -282,7 +282,7 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 - 로그아웃·만료 세션은 재사용할 수 없고 서버 재시작은 PostgreSQL의 유효 세션을 보존합니다.
 - Next 경유 로그인과 일반 API에서 쿠키·콜백·리다이렉트가 이어지고 사용자 간 캐시가 공유되지 않습니다.
 
-기존 PR #315는 닫혔고 실행 모듈 [#356](https://github.com/Team-Neki/Team-Neki-Server/pull/356), 배포 workflow [#357](https://github.com/Team-Neki/Team-Neki-Server/pull/357), 브랜드 [#358](https://github.com/Team-Neki/Team-Neki-Server/pull/358), 포즈 [#359](https://github.com/Team-Neki/Team-Neki-Server/pull/359)로 분리됐습니다. 인증은 실행 모듈을 기반으로 별도 구현하며 API가 V41·V42 마이그레이션을 먼저 적용해야 합니다. [GitOps PR #43](https://github.com/Team-Neki/Team-Neki-GitOps/pull/43)은 `prod`와 PostgreSQL·OAuth Secret으로 갱신합니다. `replicas: 1`을 유지하고 PostgreSQL 세션 공유를 전제로 RollingUpdate를 사용합니다. 운영 자격증명과 Next의 외부 경로는 별도 환경 설정입니다.
+기존 PR #315는 닫혔고 실행 모듈 [#356](https://github.com/Team-Neki/Team-Neki-Server/pull/356), 인증 [#361](https://github.com/Team-Neki/Team-Neki-Server/pull/361), 배포 workflow [#357](https://github.com/Team-Neki/Team-Neki-Server/pull/357), 브랜드 [#358](https://github.com/Team-Neki/Team-Neki-Server/pull/358), 포즈 [#359](https://github.com/Team-Neki/Team-Neki-Server/pull/359)로 분리됐습니다. 인증은 실행 모듈을 기반으로 하고 배포·브랜드·포즈 PR은 인증 PR을 기반으로 합니다. API가 V41·V42·V43 마이그레이션을 먼저 적용해야 합니다. [GitOps PR #43](https://github.com/Team-Neki/Team-Neki-GitOps/pull/43)은 `prod`와 PostgreSQL·OAuth Secret으로 갱신합니다. `replicas: 1`을 유지하고 PostgreSQL 세션 공유를 전제로 RollingUpdate를 사용합니다. 운영 자격증명과 Next의 외부 경로는 별도 환경 설정입니다.
 
 ## 13 구현 전 합의할 항목
 

@@ -4,7 +4,7 @@
 
 ## 로컬 실행
 
-1. API가 사용하는 PostgreSQL을 준비하고 API의 기존 Flyway 배포 경로로 V42까지 적용합니다. V42는 기존 Google 관리 계정을 `ADMIN_SSO`의 `google:<subject>` 키로 옮기고 이전 형식의 admin 세션을 삭제합니다. `apps/admin`은 Flyway validate만 수행하며 미적용 마이그레이션이 있으면 시작하지 않습니다.
+1. API가 사용하는 PostgreSQL을 준비하고 API의 기존 Flyway 배포 경로로 V43까지 적용합니다. V42는 기존 Google 관리 계정을 `ADMIN_SSO`의 `google:<subject>` 키로 옮기고 이전 형식의 admin 세션을 삭제합니다. V43은 관리자 업로드 미디어 표시 컬럼을 추가합니다. `apps/admin`은 Flyway validate만 수행하며 미적용 마이그레이션이 있으면 시작하지 않습니다.
 2. Google Console에 Web application 클라이언트를 만들고 redirect URI `http://localhost:8081/login/oauth2/code/google`을 등록합니다.
 3. 다음 환경변수를 제공하고 admin을 실행합니다. 로컬 DataSource 기본값은 `modules/postgres` 설정을 따릅니다. 다른 개발 DB를 쓸 때는 Spring DataSource 환경변수 세 개를 모두 지정합니다.
 
@@ -30,6 +30,8 @@
 | `admin` | 현재 DB에 ADMIN 권한이 있는지 |
 
 `GET /admin/v1/auth/me`는 `X-CSRF-TOKEN` 응답 헤더에 토큰을 담습니다. 변경 요청은 세션 쿠키와 같은 이름의 `X-CSRF-TOKEN` 요청 헤더를 함께 전송합니다. 토큰은 클라이언트 메모리에 보관하고 새로고침 시 me에서 다시 받습니다. 세션이 만료되면 다시 로그인합니다. `POST /admin/v1/auth/logout`은 CSRF 검증 후 세션을 무효화하고 HTTP 200 `BaseResponse`를 반환합니다.
+
+관리자 이미지는 세션과 CSRF 헤더로 `POST /admin/v1/media/upload`에 업로드 티켓을 요청합니다. 항목은 `mediaType`(`LOGO` 또는 `POSE`), `contentType`(`image/jpeg`, `image/png`, `image/webp`)과 선택적 크기 정보로 구성합니다. 반환된 URL에 해당 Content-Type으로 PUT한 뒤 Brand/Pose 등록·수정에 `mediaId`를 전달합니다. `TB_MEDIA.owner_id`는 티켓을 발급한 관리자의 사용자 ID이며, 관리자 경로에서 만든 미디어는 공동 관리 대상으로 표시합니다. 관리 권한이 있는 다른 사용자도 해당 미디어를 Brand/Pose에 연결할 수 있습니다. 일반 사용자 업로드 미디어는 관리자 콘텐츠에 연결할 수 없습니다.
 
 Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location`, me의 `X-CSRF-TOKEN` 응답 헤더, 클라이언트가 전송한 Cookie·CSRF 요청 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. Next가 임의 요청에 CSRF 토큰을 대신 발급해 붙이지 않습니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
 
@@ -89,7 +91,7 @@ COMMIT;
 
 ## 배포 순서
 
-1. 실행 모듈 #356과 이 인증 변경의 공유 V41·V42 마이그레이션을 main에 반영하고 기존 API 배포로 DB에 적용합니다. 이전 admin 인증 이미지가 실행 중이면 V42 적용 전에 admin 요청을 중단하고, 새 이미지 배포 후 사용자가 다시 로그인하도록 합니다.
+1. 실행 모듈 #356과 이 인증 변경의 공유 V41·V42·V43 마이그레이션을 main에 반영하고 기존 API 배포로 DB에 적용합니다. 이전 admin 인증 이미지가 실행 중이면 V42 적용 전에 admin 요청을 중단하고, 새 이미지 배포 후 사용자가 다시 로그인하도록 합니다.
 2. workflow #357을 통해 인증 변경이 포함된 admin 이미지를 GHCR에 게시합니다.
 3. GitOps #43의 `overlays/admin-api/secret.example.yaml`을 기준으로 실제 Secret을 별도로 적용합니다. Google client ID/secret과 외부 redirect URI가 필요합니다. DB는 API와 같은 공통 설정을 쓰고 기존 `neki-secrets`의 Jasypt 키로 복호화합니다. 실제 Secret은 커밋하지 않습니다.
 4. GHCR 패키지 접근과 GitOps 이미지 태그를 확인한 뒤 `admin-api` Application을 등록합니다. `replicas: 1`, RollingUpdate, 내부 ClusterIP Service를 사용합니다.
