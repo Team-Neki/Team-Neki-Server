@@ -16,8 +16,11 @@ class AdminOidcUserService(private val accounts: AdminAccountFacade) : OAuth2Use
     override fun loadUser(userRequest: OidcUserRequest): OidcUser {
         val google: OidcUser = delegate.loadUser(userRequest)
         val email: String? = google.email
-        if (userRequest.clientRegistration.registrationId != "google" || google.subject.isNullOrBlank() ||
-            email.isNullOrBlank() || email.length > 255 || google.emailVerified != true
+        if (userRequest.clientRegistration.registrationId != "google" ||
+            google.subject.isNullOrBlank() ||
+            email.isNullOrBlank() ||
+            email.length > 255 ||
+            google.emailVerified != true
         ) {
             throw OAuth2AuthenticationException(OAuth2Error("invalid_user_info"))
         }
