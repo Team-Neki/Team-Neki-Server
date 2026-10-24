@@ -70,6 +70,8 @@ class BrandAdminMediaFlowTest {
 
     @BeforeEach
     fun setUp() {
+        jdbcTemplate.update("DELETE FROM tb_photo_booth_search_read")
+        jdbcTemplate.update("DELETE FROM tb_photo_booth_search_write")
         brandRepository.deleteAll()
         mediaRepository.deleteAll()
         val uploader = AdminTestSession.createUser(userRepository, RoleType.ADMIN.role)
@@ -256,6 +258,29 @@ class BrandAdminMediaFlowTest {
     fun referencedBrandCannotBeDeleted() {
         val brand = seedBrand()
         jdbcTemplate.update("INSERT INTO TB_PHOTO_BOOTH_MANUAL (id, brand_id) VALUES (?, ?)", 999L, brand.id)
+
+        mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.CONFLICT_BRAND.code))
+        brandRepository.findById(brand.id!!).get().deletedAt shouldBe null
+    }
+
+    @Test
+    fun searchIndexOnlyBrandCannotBeDeleted() {
+        val brand = seedBrand()
+        jdbcTemplate.update(
+            """INSERT INTO tb_photo_booth_search_read
+                (id, platform, idx, brand_id, brand_name, brand_code, branch_name, location,
+                 normalized_brand_name, normalized_branch_name, search_text, region_ids,
+                 site_key, source_dt, business_date, indexed_at)
+                VALUES (1, ?, 'search-only', ?, ?, ?, '강남점', CAST('SRID=4326;POINT (127 37)' AS GEOMETRY),
+                        '포토그레이', '강남점', '포토그레이 강남점', ARRAY[],
+                        'test-search-only', CURRENT_DATE, CURRENT_DATE, CURRENT_TIMESTAMP)""",
+            brand.code,
+            brand.id,
+            brand.name,
+            brand.code,
+        )
 
         mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
             .andExpect(status().isBadRequest)

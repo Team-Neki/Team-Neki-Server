@@ -16,7 +16,17 @@ class BrandReferenceGuard(private val jdbc: JdbcTemplate) {
                 brand.code,
             ) ||
             exists("SELECT EXISTS (SELECT 1 FROM TB_PHOTO_BOOTH_MANUAL WHERE brand_id = ?)", brand.id) ||
-            exists("SELECT EXISTS (SELECT 1 FROM TB_FAVORITE_PHOTO_BOOTH WHERE platform = ?)", brand.code)
+            exists("SELECT EXISTS (SELECT 1 FROM TB_FAVORITE_PHOTO_BOOTH WHERE platform = ?)", brand.code) ||
+            exists(
+                "SELECT EXISTS (SELECT 1 FROM tb_photo_booth_search_read WHERE brand_id = ? OR platform = ?)",
+                brand.id,
+                brand.code,
+            ) ||
+            exists(
+                "SELECT EXISTS (SELECT 1 FROM tb_photo_booth_search_write WHERE brand_id = ? OR platform = ?)",
+                brand.id,
+                brand.code,
+            )
         ) {
             throw BusinessException(ResultCode.CONFLICT_BRAND)
         }

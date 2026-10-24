@@ -1,6 +1,7 @@
 package com.neki.domain.search.infra.persist.jpa
 
 import com.neki.core.domain.vo.Pagination
+import com.neki.domain.map.models.QBrand.brand
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.QNearbyStation.nearbyStation
 import com.neki.domain.search.models.QPhotoBoothSearch.photoBoothSearch
@@ -74,6 +75,7 @@ class PhotoBoothSearchQueryRepository(private val queryFactory: JPAQueryFactory)
         pagination: Pagination,
     ): List<PhotoBoothSearch> = queryFactory
         .selectFrom(photoBoothSearch)
+        .join(brand).on(brand.id.eq(photoBoothSearch.brandId), brand.exposeToMap.isTrue)
         .where(keywordMatches(keyword, terms))
         .orderBy(relevance(keyword, terms).asc(), *keywordOrder(userLocation))
         .offset(pagination.offset.toLong())
@@ -83,6 +85,7 @@ class PhotoBoothSearchQueryRepository(private val queryFactory: JPAQueryFactory)
     fun countByKeyword(keyword: String, terms: List<List<String>>): Long = queryFactory
         .select(photoBoothSearch.count())
         .from(photoBoothSearch)
+        .join(brand).on(brand.id.eq(photoBoothSearch.brandId), brand.exposeToMap.isTrue)
         .where(keywordMatches(keyword, terms))
         .fetchOne() ?: 0L
 

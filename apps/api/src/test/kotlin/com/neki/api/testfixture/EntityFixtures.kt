@@ -190,11 +190,18 @@ fun aScrapPose(userId: Long = 1L, poseId: Long = 1L): ScrapPose = ScrapPose(
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
 
-fun aBrand(id: Long = 1L, name: String = "인생네컷", code: String = "lifefour", mediaId: Long? = null): Brand = Brand(
+fun aBrand(
+    id: Long = 1L,
+    name: String = "인생네컷",
+    code: String = "lifefour",
+    mediaId: Long? = null,
+    exposeToMap: Boolean = true,
+): Brand = Brand(
     id = id,
     name = name,
     code = code,
     mediaId = mediaId,
+    exposeToMap = exposeToMap,
 )
 
 // ── PhotoBoothLocation ────────────────────────────────────────────────────────

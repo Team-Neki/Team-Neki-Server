@@ -104,7 +104,8 @@ abstract class SearchE2ETestBase : E2ETestBase() {
         ),
     )
 
-    protected fun createBrand(name: String, code: String): Brand = brandRepository.save(Brand(name = name, code = code))
+    protected fun createBrand(name: String, code: String): Brand =
+        brandRepository.save(Brand(name = name, code = code, exposeToMap = true))
 
     /**
      * 색인 잡이 만든 것과 같은 검색 색인 행(_read). branchName 은 브랜드명 접두를 뗀 값을 준다.
