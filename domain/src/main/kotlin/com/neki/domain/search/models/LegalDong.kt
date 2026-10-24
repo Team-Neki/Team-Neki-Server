@@ -5,6 +5,8 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 
 /**
  * fileName       : LegalDong
@@ -20,10 +22,12 @@ import org.hibernate.annotations.Immutable
 class LegalDong(
     /** 법정동코드 10자리 */
     @Id
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "code", nullable = false, columnDefinition = "char(10)")
     val code: String,
 
     /** 계층. 1 시도, 2 시군구, 3 읍면동, 4 리 */
+    @JdbcTypeCode(SqlTypes.SMALLINT)
     @Column(name = "level", nullable = false, columnDefinition = "smallint")
     val level: Int,
 

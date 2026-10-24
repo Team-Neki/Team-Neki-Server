@@ -6,6 +6,8 @@ import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import org.hibernate.annotations.Immutable
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Point
 import java.io.Serializable
@@ -36,6 +38,7 @@ class PhotoBoothEnriched(
     @Column(name = "source_dt", nullable = false)
     val sourceDt: LocalDate,
 
+    @JdbcTypeCode(SqlTypes.CHAR)
     @Column(name = "b_code", columnDefinition = "CHAR(10)")
     val bCode: String?,
 ) {
