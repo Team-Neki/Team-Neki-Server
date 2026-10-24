@@ -15,7 +15,8 @@ class AdminMediaVerifier(
 ) {
     fun verifyAndConfirm(mediaIds: List<Long>, mediaType: MediaType) {
         val medias: List<Media> = mediaRepository.findAllById(mediaIds)
-        if (medias.size != mediaIds.distinct().size || medias.any {
+        if (medias.size != mediaIds.distinct().size ||
+            medias.any {
                 it.mediaType != mediaType || it.status !in setOf(MediaStatus.INITIATED, MediaStatus.UPLOADED)
             }
         ) {
