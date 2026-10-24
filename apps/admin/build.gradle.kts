@@ -11,8 +11,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    // admin 은 공유 DB 의 마이그레이션을 검증만 한다.
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.session:spring-session-jdbc")
     implementation("org.flywaydb:flyway-core")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
 
     testRuntimeOnly("com.h2database:h2")
 }

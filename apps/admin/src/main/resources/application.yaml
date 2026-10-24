@@ -2,11 +2,53 @@ spring:
   application:
     name: admin
   profiles:
-    active: local
+    default: local
   config:
     import:
       - classpath:application-postgres.yaml
       - classpath:application-jasypt.yaml
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    # apps/api가 migrate하며 admin의 FlywayMigrationStrategy는 validate만 수행한다.
+    enabled: true
+  session:
+    timeout: 30m
+    jdbc:
+      table-name: ADMIN_SESSION
+      initialize-schema: never
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: openid,email,profile
+            # 프록시 연결 시에도 인증 요청과 code 교환에 동일한 외부 콜백 주소를 사용한다.
+            redirect-uri: ${ADMIN_OAUTH_REDIRECT_URI:http://localhost:8081/login/oauth2/code/google}
 
 server:
   port: 8081
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        name: ADMINSESSION
+        http-only: true
+        secure: true
+        same-site: lax
+        path: /
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
