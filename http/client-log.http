@@ -72,7 +72,7 @@ Content-Type: application/json
 
 > {%
     client.test("O-D-5 스트림 없음 -> D-15", () => {
-        client.assert(response.status === 400, "status=" + response.status);
+        client.assert(response.status === 503, "status=" + response.status);
         client.assert(response.body.resultCode === "D-15", "resultCode=" + response.body.resultCode + ". D-0 이면 fake 가 붙었거나 스트림이 이미 있음");
     });
 %}
