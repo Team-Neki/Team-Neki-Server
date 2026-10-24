@@ -35,10 +35,13 @@ sequenceDiagram
     API-->>A: mediaId + presigned URL
     A->>S3: PUT presigned URL (이미지 바이너리)
     A->>ADM: PATCH /admin/v1/pose/{poseId}
+    ADM->>DB: mediaId 존재·POSE 타입·상태 확인
+    ADM->>S3: INITIATED면 객체 존재 확인 (HEAD)
+    ADM->>DB: Media를 UPLOADED로 전환
     ADM->>DB: pose.changeMedia(mediaId)
     ADM-->>A: 200 OK
 ```
 
-admin은 media 상태 확인(`verifyMediasUploaded`)과 UPLOADED 전이를 수행하지 않아 업로드가 끝나지 않은 mediaId를 연결하면 깨진 이미지가 될 수 있습니다. 이전 mediaId의 TB_MEDIA 레코드와 S3 객체도 정리하지 않습니다.
+admin은 mediaId가 없거나 POSE 타입이 아니거나 S3 업로드가 끝나지 않았으면 포즈 변경 전체를 롤백합니다. 이전 mediaId의 TB_MEDIA 레코드와 S3 객체는 정리하지 않습니다. media 소유자와 관리자 계정의 연계 검증은 인증 도입과 함께 완료해야 합니다.
 
 media 발급은 apps:api의 JWT 인증을 요구하므로 인증 없는 admin만으로 업로드 flow를 완결할 수 없습니다. admin 인증 도입 시 media 발급 경로를 함께 정리해야 합니다.

@@ -3,6 +3,7 @@ package com.neki.admin.pose.api
 import com.neki.core.domain.vo.CountedPage
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
@@ -28,7 +29,7 @@ object PoseAdminDto {
             val size: Int = DEFAULT_SIZE,
         )
 
-        data class UploadPoses(val uploads: List<Item>) {
+        data class UploadPoses(@field:Valid val uploads: List<Item>) {
             data class Item(
                 @field:NotNull(message = "mediaId는 필수 입력값입니다.")
                 val mediaId: Long?,

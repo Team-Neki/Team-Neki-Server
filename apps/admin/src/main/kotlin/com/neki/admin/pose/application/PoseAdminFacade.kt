@@ -1,7 +1,9 @@
 package com.neki.admin.pose.application
 
+import com.neki.admin.common.media.AdminMediaVerifier
 import com.neki.admin.pose.api.PoseAdminDto
 import com.neki.core.domain.vo.CountedPage
+import com.neki.domain.media.models.MediaType
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.Pose
@@ -17,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Service
 @Transactional(readOnly = true)
-class PoseAdminFacade(private val poseService: PoseService) {
+class PoseAdminFacade(private val poseService: PoseService, private val mediaVerifier: AdminMediaVerifier) {
 
     fun getPoses(query: PoseQuery.GetAllPoses): PoseAdminDto.Response.GetPoses {
         val poses: CountedPage<Pose> = poseService.listAllPoses(query)
@@ -28,10 +30,12 @@ class PoseAdminFacade(private val poseService: PoseService) {
     fun uploadPoses(command: PoseCommand.UploadPoses) {
         val poses: List<Pose> = poseService.createPoses(command)
         poseService.saveAll(poses)
+        mediaVerifier.verifyAndConfirm(command.uploads.map { it.mediaId }, MediaType.POSE)
     }
 
     @Transactional
     fun updatePoseMedia(command: PoseCommand.UpdatePoseMedia) {
         poseService.updatePoseMedia(command)
+        mediaVerifier.verifyAndConfirm(listOf(command.mediaId), MediaType.POSE)
     }
 }
