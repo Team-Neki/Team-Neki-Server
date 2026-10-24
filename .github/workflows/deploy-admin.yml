@@ -107,6 +107,11 @@ jobs:
     runs-on: ubuntu-latest
     environment: admin-production
     steps:
+      - name: Check protected GitOps token
+        env:
+          ADMIN_GITOPS_PAT: ${{ secrets.ADMIN_GITOPS_PAT }}
+        run: test -n "$ADMIN_GITOPS_PAT" || { echo "::error::admin-production 환경 secret ADMIN_GITOPS_PAT가 필요합니다."; exit 1; }
+
       # 선택 ref의 코드를 이 runner에서 실행하지 않아 GitOps PAT와 격리한다.
       - name: Checkout GitOps
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
