@@ -62,7 +62,7 @@ class ExceptionHandler {
 
         return ResponseEntity(
             ExceptionMsg(resultCode = ResultCode.ERROR.code, message = ResultCode.ERROR.message),
-            HttpStatus.BAD_REQUEST,
+            HttpStatus.INTERNAL_SERVER_ERROR,
         )
     }
 }
