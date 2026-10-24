@@ -1,5 +1,6 @@
 package com.neki.domain.search
 
+import com.neki.domain.search.service.qu.SearchNormalizer
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -19,6 +20,22 @@ class SearchNormalizerTest :
 
             // Then
             result shouldBe "photogray홍대점"
+        }
+
+        test("collapseSpaces - 앞뒤 공백을 자르고 연속 공백과 탭을 한 칸으로 맞춘다") {
+            // When
+            val result: String = SearchNormalizer.collapseSpaces("  서울특별시 \t  강남구 ")
+
+            // Then
+            result shouldBe "서울특별시 강남구"
+        }
+
+        test("collapseSpaces - 대소문자와 구분자는 건드리지 않는다") {
+            // When
+            val result: String = SearchNormalizer.collapseSpaces("북구청 (대구iM뱅크파크)")
+
+            // Then
+            result shouldBe "북구청 (대구iM뱅크파크)"
         }
 
         test("branchName - 브랜드명 접두를 떼고 지점명만 남긴다") {

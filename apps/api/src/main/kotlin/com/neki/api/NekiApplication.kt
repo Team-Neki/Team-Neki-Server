@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.scheduling.annotation.EnableScheduling
 
 // 앱 클래스가 com.neki.api 로 내려오면서 기본 스캔 범위가 좁아졌다.
 // :core, :domain, :modules 는 com.neki 아래 별도 트리에 있으므로 명시적으로 지정한다.
@@ -13,6 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @ConfigurationPropertiesScan("com.neki")
 @EntityScan("com.neki.domain", "com.neki.core")
 @EnableJpaRepositories("com.neki.api", "com.neki.domain")
+@EnableScheduling
 class NekiApplication
 
 fun main(args: Array<String>) {

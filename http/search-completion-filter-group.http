@@ -1,0 +1,113 @@
+# 부스 자동완성 검색 색인 전환과 역·부스 자동완성 filterGroup(BACKEND-207) staging 검증 요청. 위에서부터 순서대로 실행한다.
+# 판정 기준은 docs/oracle/search-completion-filter-group.md 참고. accessToken 설정은 http/search.http 머리말과 같다.
+
+### [FG-0] 브랜드 목록 : 포토이즘 id 저장
+GET {{host}}/api/photo-booths/brand
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("FG-0", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var photoism = response.body.data.filter(function (b) { return b.code === "PHOTOISM"; })[0];
+    client.assert(photoism !== undefined, "PHOTOISM 브랜드가 있어야 함");
+    client.global.set("photoismId", String(photoism.id));
+  });
+%}
+
+### [FG-1] 역 자동완성 : 브랜드 없는 검색어는 기본 filterGroup
+GET {{host}}/api/search/completion/stations?keyword=강남
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("FG-1", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var fg = response.body.data.filterGroup;
+    client.assert(fg.brandFilter.brands.length === 0, "brands " + JSON.stringify(fg.brandFilter.brands));
+    client.assert(fg.sortFilter.type === "DEFAULT", "sortFilter " + fg.sortFilter.type);
+  });
+%}
+
+### [FG-2] 역 자동완성 : 브랜드가 섞인 검색어는 그 브랜드를 건 filterGroup
+GET {{host}}/api/search/completion/stations?keyword=강남%20포토이즘
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("FG-2", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var data = response.body.data;
+    client.assert(data.items.length > 0, "역 후보가 없음");
+    var brands = data.filterGroup.brandFilter.brands;
+    client.assert(brands.length === 1 && String(brands[0].brandId) === client.global.get("photoismId"),
+      "brands " + JSON.stringify(brands));
+    client.global.set("stationKeywordParam", encodeURIComponent(data.items[0].keyword));
+    client.global.set("stationFilterGroup", JSON.stringify(data.filterGroup));
+  });
+%}
+
+### [FG-3] FG-2 의 첫 역과 filterGroup 을 그대로 부스 목록에 : 포토이즘만
+POST {{host}}/api/search/photo-booths?keyword={{stationKeywordParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {{stationFilterGroup}}
+}
+
+> {%
+  client.test("FG-3", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    client.assert(items.length > 0, "부스가 없음");
+    client.assert(items.every(function (i) { return i.brandCode === "PHOTOISM"; }), "포토이즘 외 브랜드가 섞임");
+  });
+%}
+
+### [FG-4] 부스 자동완성 : 검색 색인에서 찾고, 브랜드가 섞인 검색어는 그 브랜드를 건 filterGroup
+GET {{host}}/api/search/completion/photo-booths?keyword=포토이즘%20강남
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("FG-4", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var data = response.body.data;
+    client.assert(data.items.length > 0, "부스 후보가 없음");
+    var brands = data.filterGroup.brandFilter.brands;
+    client.assert(brands.length === 1 && String(brands[0].brandId) === client.global.get("photoismId"),
+      "brands " + JSON.stringify(brands));
+    client.global.set("boothKeywordParam", encodeURIComponent(data.items[0].keyword));
+    client.global.set("boothFilterGroup", JSON.stringify(data.filterGroup));
+    client.log("FG-4 totalCount=" + data.totalCount + " first=" + data.items[0].keyword);
+  });
+%}
+
+### [FG-5] FG-4 의 첫 부스와 filterGroup 을 그대로 부스 목록에 : 그 지점 (지도에서 숨긴 지점이면 빈 목록)
+POST {{host}}/api/search/photo-booths?keyword={{boothKeywordParam}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "filterGroup": {{boothFilterGroup}}
+}
+
+> {%
+  client.test("FG-5", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var items = response.body.data.items;
+    client.assert(items.length >= 1, "그 지점이 나오지 않음 (지도 숨김·미동기화인지 S-1 로 확인)");
+    client.assert(items.every(function (i) { return i.brandCode === "PHOTOISM"; }), "포토이즘 외 브랜드가 섞임");
+  });
+%}
+
+### [FG-6] 지역 자동완성 : 브랜드가 섞인 검색어는 그 브랜드를 건 filterGroup
+GET {{host}}/api/search/completion/regions?keyword=강남%20포토이즘
+Authorization: Bearer {{accessToken}}
+
+> {%
+  client.test("FG-6", function () {
+    client.assert(response.status === 200, "status " + response.status);
+    var brands = response.body.data.filterGroup.brandFilter.brands;
+    client.assert(brands.length === 1 && String(brands[0].brandId) === client.global.get("photoismId"),
+      "brands " + JSON.stringify(brands));
+    client.assert(response.body.data.filterGroup.sortFilter.type === "DEFAULT", "sortFilter");
+  });
+%}

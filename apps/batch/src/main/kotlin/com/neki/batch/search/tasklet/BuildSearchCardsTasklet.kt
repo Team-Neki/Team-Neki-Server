@@ -20,7 +20,7 @@ import java.time.LocalDateTime
  * fileName       : BuildSearchCardsTasklet
  * author         : koo
  * date           : 2026. 9. 25.
- * description    : tb_photo_booth_enriched 8열로 검색 카드를 만들어 _write 에 채운다. 외부 호출 없이 DB 만 읽고 쓴다.
+ * description    : tb_photo_booth_enriched 7열로 검색 카드를 만들어 _write 에 채운다. 외부 호출 없이 DB 만 읽고 쓴다.
  *                  search 와 map 두 도메인의 포트를 잇는 조립이라 앱 계층(batch)에 둔다.
  *
  * TaskletStep 이 execute() 를 step 트랜잭션 안에서 돌리므로 비우기와 채우기가 한 트랜잭션이다. 별도 트랜잭션 선언은 두지 않는다.
@@ -41,10 +41,8 @@ class BuildSearchCardsTasklet(
         val force: Boolean =
             chunkContext.stepContext.jobParameters[SearchIndexJobConfig.PARAM_FORCE]?.toString() == "true"
 
-        // tb_brand.platform 이 NULL 인 브랜드는 수집 대상이 아니므로 매핑에서 뺀다
-        val brands: Map<String, Brand> = brandRepository.findAll()
-            .filter { it.platform != null }
-            .associateBy { it.platform!! }
+        // enriched 의 platform 은 tb_brand.code 다 (V38)
+        val brands: Map<String, Brand> = brandRepository.findAll().associateBy { it.code }
         val enriched: List<PhotoBoothEnriched> = repository.findAllEnriched()
         val stations: List<SubwayStation> = repository.findAllStations()
         val indexedAt = LocalDateTime.now()
@@ -76,7 +74,7 @@ class BuildSearchCardsTasklet(
         repository.replaceWrite(cards)
 
         skippedNoBrand.forEach { (platform, count) ->
-            log.warn("tb_brand.platform 에 없는 platform 이라 건너뜀 (platform={}, count={})", platform, count)
+            log.warn("tb_brand.code 에 없는 platform 이라 건너뜀 (platform={}, count={})", platform, count)
         }
         // BATCH_STEP_EXECUTION 의 write/filter count 로도 남긴다
         contribution.incrementWriteCount(cards.size.toLong())

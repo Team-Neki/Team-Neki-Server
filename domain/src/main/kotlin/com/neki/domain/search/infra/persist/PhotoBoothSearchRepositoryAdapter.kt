@@ -1,13 +1,17 @@
 package com.neki.domain.search.infra.persist
 
+import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothEnrichedRepository
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothSearchRepository
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothSearchWriteRepository
 import com.neki.domain.search.infra.persist.jpa.JpaSubwayStationRepository
+import com.neki.domain.search.infra.persist.jpa.PhotoBoothSearchQueryRepository
 import com.neki.domain.search.models.PhotoBoothEnriched
 import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.PhotoBoothSearchWrite
+import com.neki.domain.search.models.SearchTarget
 import com.neki.domain.search.models.SubwayStation
+import com.neki.domain.search.models.UserLocation
 import com.neki.domain.search.repository.PhotoBoothSearchRepository
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
@@ -24,6 +28,7 @@ class PhotoBoothSearchRepositoryAdapter(
     private val writeRepository: JpaPhotoBoothSearchWriteRepository,
     private val enrichedRepository: JpaPhotoBoothEnrichedRepository,
     private val stationRepository: JpaSubwayStationRepository,
+    private val queryRepository: PhotoBoothSearchQueryRepository,
     private val jdbcTemplate: JdbcTemplate,
 ) : PhotoBoothSearchRepository {
 
@@ -38,6 +43,25 @@ class PhotoBoothSearchRepositoryAdapter(
     override fun findAllStations(): List<SubwayStation> = stationRepository.findAll()
 
     override fun countCurrent(): Long = readRepository.count()
+
+    override fun findByScope(scope: SearchTarget.Scope, brandIds: List<Long>?): List<PhotoBoothSearch> =
+        queryRepository.findByScope(scope, brandIds)
+
+    override fun findByBoothName(boothName: String): List<PhotoBoothSearch> = queryRepository.findByBoothName(boothName)
+
+    override fun findByKeyword(
+        keyword: String,
+        terms: List<List<String>>,
+        userLocation: UserLocation?,
+        pagination: Pagination,
+    ): List<PhotoBoothSearch> = queryRepository.findByKeyword(keyword, terms, userLocation, pagination)
+
+    override fun countByKeyword(keyword: String, terms: List<List<String>>): Long =
+        queryRepository.countByKeyword(keyword, terms)
+
+    override fun findAllCurrent(): List<PhotoBoothSearch> = readRepository.findAll()
+
+    override fun findIndexedBrandNames(): Map<Long, String> = queryRepository.findBrandNames()
 
     // 트랜잭션은 호출자(TaskletStep 의 step 트랜잭션)가 연다. 여기서 열면 비우기와 채우기가 한 트랜잭션이라는 보장이 흐려진다
     override fun replaceWrite(cards: List<PhotoBoothSearchWrite>) {
