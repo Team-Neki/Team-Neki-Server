@@ -15,6 +15,7 @@
 - `modules:postgres`의 `application-postgres.yaml`: API와 동일한 PostgreSQL 연결·JPA·Flyway 설정 로드
 - `modules:jasypt`: API와 동일한 `JASYPT_PASSWORD`로 staging/prod의 암호화된 연결 정보 복호화
 - `ExceptionHandler`: `apps:api`와 같은 `ExceptionMsg` 응답 형식으로 예외 처리
+- `AdminMediaVerifier`: LOGO/POSE media의 존재·타입·상태를 확인하고 S3 객체가 있으면 UPLOADED로 전환
 - `local`/`staging`/`prod` 프로파일: API와 같은 DB·스키마의 기존 테이블 사용, 8081 포트
 - `test` 프로파일: postgres 모듈의 `application-h2.yaml`을 import해 H2 기반 컨텍스트 검증
 
@@ -42,7 +43,7 @@ Request -> Controller -> Mapper(toCommand/toQuery) -> Facade -> 도메인 Servic
 | application 계층 | `*UseCase` (기능 단위 클래스) | `*Facade` (도메인 단위 클래스) |
 | DTO | `Request`/`Response`/`Converter` 분리 | `XxxAdminDto` object 하위 중첩 + Mapper 확장 함수 |
 | 인증 | JWT (`@AuthenticationPrincipal`) | 미구현 |
-| media 검증 | `MediaClient.verifyMediasUploaded` 후 보상 롤백 | 미구현 |
+| media 검증 | `MediaClient.verifyMediasUploaded` 후 보상 롤백 | 공유 트랜잭션에서 S3 존재 확인·상태 전환 |
 
 admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade 하나에 조회·등록·수정·삭제를 위임합니다. 기능이 늘어나면 Facade가 비대해질 수 있습니다.
 
@@ -53,3 +54,4 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 ## 현재 제한
 
 인증 도입 전까지 Spring Security 자동설정을 제외합니다. 외부 노출 전 인증이 필요하며 계획은 `docs/superpowers/plans/2026-08-16-admin-auth.md`에 있습니다.
+media 소유자와 관리자 계정의 연계 검증은 인증 도입 후 추가해야 합니다.
