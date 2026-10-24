@@ -2,11 +2,13 @@ package com.neki.admin.common.media
 
 import com.neki.core.code.ResultCode
 import com.neki.core.exception.BusinessException
+import com.neki.domain.media.dto.MediaCommand
 import com.neki.domain.media.external.MediaStorage
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaKey
-import com.neki.domain.media.models.MediaStorageUploadTicket
 import com.neki.domain.media.models.MediaType
+import com.neki.domain.media.models.MediaUploadTicket
+import com.neki.domain.media.models.MediaUploadTickets
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,10 +18,12 @@ class AdminMediaUploadFacade(
     private val mediaStorage: MediaStorage,
 ) {
     @Transactional
-    fun issueTickets(uploaderId: Long, request: AdminMediaDto.UploadRequest): AdminMediaDto.UploadResponse {
-        val tickets: List<Pair<Media, MediaStorageUploadTicket>> = request.items.map { item ->
-            val type = item.mediaType!!
-            val contentType = item.contentType!!
+    fun issueTickets(command: MediaCommand.GenerateAdminUploadTicket): MediaUploadTickets {
+        if (command.items.isEmpty()) throw BusinessException(ResultCode.INVALID_PARAMETER)
+
+        val tickets: List<MediaUploadTicket> = command.items.map { item ->
+            val type = item.mediaType
+            val contentType = item.contentType
             if (type !in setOf(MediaType.LOGO, MediaType.POSE) ||
                 contentType !in setOf("image/jpeg", "image/png", "image/webp")
             ) {
@@ -30,7 +34,7 @@ class AdminMediaUploadFacade(
             val media = mediaRepository.save(
                 Media(
                     storageKey = key,
-                    ownerId = uploaderId,
+                    ownerId = command.ownerId,
                     mediaType = type,
                     contentType = contentType,
                     width = item.width,
@@ -39,15 +43,9 @@ class AdminMediaUploadFacade(
                     adminManaged = true,
                 ),
             )
-            media to mediaStorage.generateUploadTicket(key, contentType)
+            MediaUploadTicket(media, mediaStorage.generateUploadTicket(key, contentType))
         }
 
-        return AdminMediaDto.UploadResponse(
-            method = tickets.first().second.method,
-            expiresAt = tickets.first().second.expiresAt,
-            items = tickets.map { (media, ticket) ->
-                AdminMediaDto.UploadResponse.Item(media.id!!, ticket.url, ticket.contentType)
-            },
-        )
+        return MediaUploadTickets(tickets)
     }
 }
