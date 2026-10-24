@@ -1,20 +1,23 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    # Testcontainers JDBC URL: 첫 연결 때 docker-compose 와 같은 postgis 이미지를 띄우고 JVM 이 끝나면 지운다.
+    # TC_DAEMON 은 컨텍스트가 닫혀 연결이 0 이 돼도 컨테이너를 유지해 캐시된 다른 컨텍스트와 공유하게 한다
+    url: jdbc:tc:postgis:14-3.4:///neki?TC_DAEMON=true
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      # 스키마는 운영과 같이 Flyway 가 만든다
+      # ponytail: validate 는 Workflow 가 소유해 Flyway 밖에 있는 tb_photo_booth_enriched 가 없어 실패한다. 테스트용 DDL 을 두면 validate 로 올릴 수 있다
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
         show_sql: false
     open-in-view: false
   flyway:
-    enabled: false
+    enabled: true
+    # postgis 이미지가 public 에 spatial_ref_sys 를 만들어 빈 DB 도 비어 있지 않게 보인다 (baseline-version 0 은 application-postgres.yaml)
+    baseline-on-migrate: true
 
 app:
   auth:
