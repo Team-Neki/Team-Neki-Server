@@ -114,16 +114,17 @@ abstract class MapE2ETestBase : E2ETestBase() {
     /**
      * stores-sync 가 만든 것과 같은 지점 마스터 위치. 원천 키가 key 와 같다
      */
-    protected fun createSourcedPhotoBoothLocation(brand: Brand, key: PhotoBoothKey, name: String): PhotoBoothLocation =
-        photoBoothLocationRepository.save(
+    protected fun createSourcedPhotoBoothLocation(brand: Brand, key: PhotoBoothKey, name: String): PhotoBoothLocation {
+        val saved = photoBoothLocationRepository.save(
             PhotoBoothLocation(
                 mapId = key.toBoothId(),
                 brandId = brand.id!!,
                 branchName = name,
                 address = "서울 강남구 $name",
                 location = geometryFactory.createPoint(Coordinate(127.027456, 37.497946)),
-                sourcePlatform = key.platform,
-                sourceIdx = key.idx,
             ),
         )
+        markCollectedLocation(saved.id!!, key.platform, key.idx)
+        return photoBoothLocationRepository.findById(saved.id!!).orElseThrow()
+    }
 }
