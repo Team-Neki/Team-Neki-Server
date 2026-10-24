@@ -5,7 +5,7 @@ import com.neki.core.exception.BusinessException
 
 enum class ProviderType(val value: String) {
     LOCAL("local"),
-    GOOGLE("google"),
+    ADMIN_SSO("admin_sso"),
     APPLE("apple"),
     KAKAO("kakao"),
     TEST("test"),

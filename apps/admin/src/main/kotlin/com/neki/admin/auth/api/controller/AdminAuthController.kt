@@ -21,11 +21,11 @@ class AdminAuthController(private val accounts: AdminAccountFacade) {
     @GetMapping("/me")
     fun me(
         @AuthenticationPrincipal(expression = "userId") userId: Long,
-        @AuthenticationPrincipal(expression = "subject") subject: String,
+        @AuthenticationPrincipal(expression = "identityKey") identityKey: String,
         csrfToken: CsrfToken,
         response: HttpServletResponse,
     ): BaseResponse<AdminAuthResponse> {
-        val user: AdminAccountResult = accounts.findActive(userId, subject)
+        val user: AdminAccountResult = accounts.findActive(userId, identityKey)
             ?: throw BadCredentialsException("사용할 수 없는 계정입니다.")
         response.setHeader(csrfToken.headerName, csrfToken.token)
         return BaseResponse(

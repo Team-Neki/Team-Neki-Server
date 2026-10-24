@@ -3,6 +3,7 @@ package com.neki.admin
 import com.neki.config.aws.S3Properties
 import com.neki.domain.media.infra.storage.fake.FakeMediaStorageConfig
 import com.neki.domain.media.infra.storage.s3.S3MediaStorageAdapterConfig
+import com.neki.domain.user.infra.security.admin.AdminSecurityConfig
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -30,7 +31,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @EntityScan("com.neki.domain", "com.neki.core")
 @EnableJpaRepositories("com.neki.admin", "com.neki.domain.user.infra.persist.jpa")
 @EnableConfigurationProperties(S3Properties::class)
-@Import(S3MediaStorageAdapterConfig::class, FakeMediaStorageConfig::class)
+@Import(S3MediaStorageAdapterConfig::class, FakeMediaStorageConfig::class, AdminSecurityConfig::class)
 class AdminApplication {
     @Bean
     fun meterRegistry(): MeterRegistry = SimpleMeterRegistry()

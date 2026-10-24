@@ -29,8 +29,21 @@ spring:
             client-secret: admin-test-secret
             scope: openid,email,profile
             redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+          alternate:
+            provider: alternate
+            client-id: admin-test-client
+            client-secret: admin-test-secret
+            authorization-grant-type: authorization_code
+            scope: email,profile
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
         provider:
           google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            user-name-attribute: sub
+          alternate:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
             token-uri: https://oauth2.googleapis.com/token
             jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs

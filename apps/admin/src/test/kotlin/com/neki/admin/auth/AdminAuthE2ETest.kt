@@ -2,10 +2,11 @@ package com.neki.admin.auth
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.neki.admin.auth.api.security.AdminPrincipal
 import com.neki.admin.auth.application.AdminAccountFacade
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
+import com.neki.domain.user.infra.security.admin.AdminPrincipal
+import com.neki.domain.user.models.AdminIdentity
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
@@ -291,7 +292,7 @@ class AdminAuthE2ETest {
             val futures = (1..8).map {
                 executor.submit<Long> {
                     start.await()
-                    accounts.findOrCreate(subject, "concurrent@example.com", "동시 로그인")
+                    accounts.findOrCreate(AdminIdentity("google:$subject", "concurrent@example.com", "동시 로그인"))
                 }
             }
             start.countDown()
@@ -307,9 +308,9 @@ class AdminAuthE2ETest {
         User(
             email = "admin-${UUID.randomUUID()}@example.com",
             name = "관리자",
-            oid = UUID.randomUUID().toString(),
+            oid = "google:${UUID.randomUUID()}",
             roles = roles,
-            providerType = ProviderType.valueOf("GOOGLE"),
+            providerType = ProviderType.ADMIN_SSO,
             profileImageId = null,
         ),
     )
@@ -320,10 +321,10 @@ class AdminAuthE2ETest {
             "test-id-token",
             now,
             now.plusSeconds(3600),
-            mapOf("sub" to user.oid!!, "email" to user.email!!, "email_verified" to true),
+            mapOf("sub" to user.oid!!.removePrefix("google:"), "email" to user.email!!, "email_verified" to true),
         )
         val delegate = DefaultOidcUser(listOf(OidcUserAuthority(idToken)), idToken)
-        val principal = AdminPrincipal(user.id!!, delegate)
+        val principal = AdminPrincipal(user.id!!, user.oid!!, delegate)
         val authentication = OAuth2AuthenticationToken(principal, principal.authorities, "google")
         val session = sessions.createSession()
         session.setAttribute(
