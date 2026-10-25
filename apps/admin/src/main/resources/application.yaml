@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: admin
+  profiles:
+    active: local
+  config:
+    import:
+      - classpath:application-postgres.yaml
+      - classpath:application-jasypt.yaml
+      - classpath:application-s3.yaml
+
+server:
+  port: 8081
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+# 운영 환경에서는 API 스펙을 외부에 노출하지 않는다 (봇/스캐너 탐색 차단)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
