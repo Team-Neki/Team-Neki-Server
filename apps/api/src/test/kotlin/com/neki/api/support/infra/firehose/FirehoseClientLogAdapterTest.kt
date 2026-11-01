@@ -1,0 +1,203 @@
+package com.neki.api.support.infra.firehose
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.neki.core.code.ResultCode
+import com.neki.core.exception.BusinessException
+import com.neki.domain.support.dto.ClientLogCommand
+import com.neki.domain.support.infra.firehose.FirehoseClientLogAdapter
+import com.neki.domain.support.models.Platform
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import software.amazon.awssdk.services.firehose.FirehoseClient
+import software.amazon.awssdk.services.firehose.model.PutRecordBatchRequest
+import software.amazon.awssdk.services.firehose.model.PutRecordBatchResponse
+import java.time.Instant
+import java.util.UUID
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
+@DisplayName("FirehoseClientLogAdapter")
+class FirehoseClientLogAdapterTest {
+
+    private val firehoseClient: FirehoseClient = mockk()
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
+    private val adapter = FirehoseClientLogAdapter(firehoseClient, objectMapper, "team-neki-log-raw-test")
+
+    private fun command(vararg properties: Map<String, Any?>) = ClientLogCommand.Collect(
+        userId = 7,
+        platform = Platform.ANDROID,
+        logs = properties.mapIndexed { index, value ->
+            ClientLogCommand.Event(
+                eventId = UUID.nameUUIDFromBytes(index.toString().toByteArray()),
+                eventType = "test_event",
+                eventProperties = value,
+                occurredAt = Instant.parse("2026-10-02T10:00:00Z"),
+                sessionId = 1_790_935_140_000,
+                sequenceNumber = index + 1,
+                deviceId = "device-12345",
+                userIdAtOccurrence = null,
+                appVersion = "1.4.0",
+                context = mapOf("osName" to "Android"),
+            )
+        },
+    )
+
+    @Test
+    @DisplayName("로그마다 서버 필드와 원본 log 를 담은 NDJSON 줄을 만들어 레코드 하나에 이어 붙인다")
+    fun packsNdjsonLinesIntoOneRecord() {
+        val request = slot<PutRecordBatchRequest>()
+        every { firehoseClient.putRecordBatch(capture(request)) } returns
+            PutRecordBatchResponse.builder().failedPutCount(0).build()
+
+        adapter.send(
+            command(
+                mapOf(
+                    "userId" to 999,
+                    "appVersion" to "1.4.0",
+                    "extra" to mapOf("tags" to listOf("a", "b"), "success" to false),
+                ),
+                mapOf("event" to "tap"),
+            ),
+        )
+
+        assertEquals("team-neki-log-raw-test", request.captured.deliveryStreamName())
+        assertEquals(1, request.captured.records().size)
+        val data: String = request.captured.records().single().data().asUtf8String()
+        assertTrue(data.endsWith("\n"))
+        val lines: List<String> = data.removeSuffix("\n").split("\n")
+        assertEquals(2, lines.size)
+
+        val first: Map<*, *> = objectMapper.readValue(lines[0], Map::class.java)
+        assertEquals(7, first["userId"]) // 클라이언트가 보낸 userId 는 log 아래에 남고 덮어쓰지 못한다
+        assertEquals("ANDROID", first["platform"])
+        assertEquals(setOf("userId", "platform", "receivedAt", "log"), first.keys)
+        val firstLog = first["log"] as Map<*, *>
+        assertEquals("test_event", firstLog["eventType"])
+        assertEquals("1.4.0", firstLog["appVersion"])
+        assertEquals(1_790_935_140_000, firstLog["sessionId"])
+        assertEquals(1, firstLog["sequenceNumber"])
+        assertEquals(
+            mapOf(
+                "userId" to 999,
+                "appVersion" to "1.4.0",
+                "extra" to mapOf("tags" to listOf("a", "b"), "success" to false),
+            ),
+            firstLog["eventProperties"],
+        )
+        assertEquals(mapOf("osName" to "Android"), firstLog["context"])
+        assertTrue(first["receivedAt"] is String)
+        val secondLog = objectMapper.readValue(lines[1], Map::class.java)["log"] as Map<*, *>
+        assertEquals(mapOf("event" to "tap"), secondLog["eventProperties"])
+    }
+
+    @Test
+    @DisplayName("레코드 한도(1,000KiB)를 넘으면 줄 순서를 지키며 레코드를 나눈다")
+    fun splitsRecordsAtLimitKeepingOrder() {
+        val request = slot<PutRecordBatchRequest>()
+        every { firehoseClient.putRecordBatch(capture(request)) } returns
+            PutRecordBatchResponse.builder().failedPutCount(0).build()
+        val big = "x".repeat(400 * 1024)
+
+        adapter.send(
+            command(mapOf("seq" to 1, "m" to big), mapOf("seq" to 2, "m" to big), mapOf("seq" to 3, "m" to big)),
+        )
+
+        val records: List<ByteArray> = request.captured.records().map { it.data().asByteArray() }
+        assertEquals(2, records.size)
+        assertTrue(records.all { it.size <= 1_000 * 1024 })
+        val seqs: List<Any?> = records.flatMap { it.decodeToString().removeSuffix("\n").split("\n") }
+            .map {
+                val log = objectMapper.readValue(it, Map::class.java)["log"] as Map<*, *>
+                (log["eventProperties"] as Map<*, *>)["seq"]
+            }
+        assertEquals(listOf(1, 2, 3), seqs)
+    }
+
+    @Test
+    @DisplayName("익명 이벤트는 S3 줄의 인증 userId 를 null 로 남긴다")
+    fun anonymousEventHasNoAuthenticatedUser() {
+        val request = slot<PutRecordBatchRequest>()
+        every { firehoseClient.putRecordBatch(capture(request)) } returns
+            PutRecordBatchResponse.builder().failedPutCount(0).build()
+
+        adapter.send(command(mapOf("event" to "app_open")).copy(userId = null))
+
+        val line = request.captured.records().single().data().asUtf8String().trimEnd()
+        val record = objectMapper.readValue(line, Map::class.java)
+        assertTrue(record.containsKey("userId"))
+        assertEquals(null, record["userId"])
+    }
+
+    @Test
+    @DisplayName("일부 레코드가 실패하면 재시도 대상인 LOG_SEND_FAILED 를 던진다")
+    fun partialFailureThrowsRetryable() {
+        every { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) } returns
+            PutRecordBatchResponse.builder().failedPutCount(1).build()
+
+        val ex = assertThrows<BusinessException> { adapter.send(command(mapOf("a" to 1), mapOf("b" to 2))) }
+
+        assertEquals(ResultCode.LOG_SEND_FAILED, ex.resultCode)
+    }
+
+    @Test
+    @DisplayName("동시 전송이 상한(20)에 차면 Firehose 를 부르지 않고 LOG_SEND_FAILED 를 던지고, 전송이 끝나면 자리를 돌려준다")
+    fun rejectsWhenTooManyInFlight() {
+        val maxInFlight = 20
+        val entered = CountDownLatch(maxInFlight)
+        val release = CountDownLatch(1)
+        every { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) } answers {
+            entered.countDown()
+            release.await(5, TimeUnit.SECONDS)
+            PutRecordBatchResponse.builder().failedPutCount(0).build()
+        }
+        val pool = Executors.newFixedThreadPool(maxInFlight)
+
+        try {
+            val sending = List(maxInFlight) { pool.submit(Callable { adapter.send(command(mapOf("seq" to it))) }) }
+            assertTrue(entered.await(5, TimeUnit.SECONDS))
+
+            val ex = assertThrows<BusinessException> { adapter.send(command(mapOf("seq" to -1))) }
+            assertEquals(ResultCode.LOG_SEND_FAILED, ex.resultCode)
+
+            release.countDown()
+            sending.forEach { it.get(5, TimeUnit.SECONDS) }
+        } finally {
+            release.countDown()
+            pool.shutdownNow()
+        }
+
+        adapter.send(command(mapOf("seq" to maxInFlight)))
+        verify(exactly = maxInFlight + 1) { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) }
+    }
+
+    @Test
+    @DisplayName("Firehose 레코드 한도(1,000KiB)를 넘는 로그는 보내지 않고 크기 오류를 던진다")
+    fun oversizedRecordIsRejectedWithoutCall() {
+        val ex = assertThrows<BusinessException> { adapter.send(command(mapOf("m" to "x".repeat(1_000 * 1024)))) }
+
+        assertEquals(ResultCode.LOG_PAYLOAD_TOO_LARGE, ex.resultCode)
+        verify(exactly = 0) { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) }
+    }
+
+    @Test
+    @DisplayName("요청 전체가 4MiB 를 넘으면 배치 분할을 위한 크기 오류를 반환한다")
+    fun oversizedBatchIsRejectedWithoutCall() {
+        val value = "x".repeat(400 * 1024)
+        val properties = Array(11) { mapOf("m" to value) }
+
+        val ex = assertThrows<BusinessException> { adapter.send(command(*properties)) }
+
+        assertEquals(ResultCode.LOG_PAYLOAD_TOO_LARGE, ex.resultCode)
+        verify(exactly = 0) { firehoseClient.putRecordBatch(any<PutRecordBatchRequest>()) }
+    }
+}

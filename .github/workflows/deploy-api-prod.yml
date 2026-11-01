@@ -65,6 +65,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
                -d '{
+                 "flags": 4096,
                  "embeds": [{
                    "title": "🚀 Prod 배포 시작 (GitOps)",
                    "description": "이미지 빌드 완료, GitOps 레포 업데이트 중...",
@@ -149,6 +150,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
                -d '{
+                 "flags": 4096,
                  "embeds": [{
                    "title": "✅ Prod GitOps 업데이트 완료",
                    "description": "ArgoCD가 자동으로 배포를 진행합니다",

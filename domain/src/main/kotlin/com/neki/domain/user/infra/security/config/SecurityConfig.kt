@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.web.SecurityFilterChain
@@ -72,6 +73,7 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
         .cors { it.configurationSource(corsConfigurationSource) }
         .authorizeHttpRequests {
             it.requestMatchers("/api/auth/**", "/api/users/register", "/api/versions/**", "/api/terms").permitAll()
+            it.requestMatchers(HttpMethod.POST, "/api/logs").permitAll()
             it.requestMatchers("/api/poses/admin/upload").hasRole("ADMIN")
             it.anyRequest().authenticated()
         }
