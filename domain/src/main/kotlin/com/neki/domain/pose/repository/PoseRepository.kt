@@ -37,6 +37,4 @@ interface PoseRepository {
     fun countPoses(headCount: HeadCount, excludeIds: List<Long>): Long
 
     fun findPoseByOffset(offset: Long, headCount: HeadCount, excludeIds: List<Long>): Pose?
-
-    fun incrementViewCount(poseId: Long)
 }
