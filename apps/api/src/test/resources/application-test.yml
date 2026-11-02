@@ -16,6 +16,9 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+    # db/test-migration 은 운영 마이그레이션 사이에 끼워 실행할 테스트 전용 SQL 이다.
+    # 버전은 V<앞 운영 버전>_1 형식만 쓰고, 운영(db/migration) 은 정수 버전만 써서 서로 겹치지 않게 한다.
+    # 데이터 정리는 여기서 하지 않는다. 매 테스트 전 E2ETestBase 가 전체 테이블을 TRUNCATE 한다
     locations: classpath:db/migration,classpath:db/test-migration
     # postgis 이미지가 public 에 spatial_ref_sys 를 만들어 빈 DB 도 비어 있지 않게 보인다 (baseline-version 0 은 application-postgres.yaml)
     baseline-on-migrate: true
