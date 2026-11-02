@@ -1,5 +1,7 @@
 package com.neki.api.support.api.dto
 
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
 import com.neki.domain.support.models.Platform
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
@@ -25,6 +27,8 @@ object ClientLogRequest {
         @field:Size(min = 1, max = 500, message = "로그는 1건 이상 500건 이하로 보내야 합니다.")
         @field:Valid
         @field:ArraySchema(arraySchema = Schema(description = "발생 시점 정보를 포함한 행동 이벤트 목록"))
+        // @Valid 는 null 원소를 건너뛰므로 [null] 은 역직렬화에서 400 으로 끊는다
+        @param:JsonSetter(contentNulls = Nulls.FAIL)
         val logs: List<Event>,
     )
 

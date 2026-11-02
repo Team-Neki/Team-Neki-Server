@@ -132,6 +132,16 @@ class CollectClientLogsE2ETest : E2ETestBase() {
         assertTrue(fakeClientLogSender.sent.isEmpty())
     }
 
+    @Test
+    @DisplayName("logs 에 null 원소가 있으면 500 이 아닌 400 을 반환한다")
+    fun givenNullLog_whenCollect_thenBadRequest() {
+        post(mapOf("platform" to "IOS", "logs" to listOf(null)))
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+
+        assertTrue(fakeClientLogSender.sent.isEmpty())
+    }
+
     private fun event(
         userIdAtOccurrence: String? = null,
         properties: Map<String, Any?> = emptyMap(),
@@ -148,7 +158,7 @@ class CollectClientLogsE2ETest : E2ETestBase() {
         "context" to mapOf("osName" to "iOS", "osVersion" to "18.0"),
     )
 
-    private fun post(body: Map<String, Any>) = RestAssured.given()
+    private fun post(body: Map<String, Any?>) = RestAssured.given()
         .contentType(ContentType.JSON)
         .header("Authorization", "Bearer $accessToken")
         .body(body)
