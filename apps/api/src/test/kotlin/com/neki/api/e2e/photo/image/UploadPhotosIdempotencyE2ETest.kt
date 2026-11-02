@@ -201,12 +201,19 @@ class UploadPhotosIdempotencyE2ETest : PhotoImageE2ETestBase() {
     @DisplayName("memo가 255자를 넘는 항목이 있으면 400 INVALID_PARAMETER를 반환하고 저장하지 않는다")
     fun givenItemMemoOver255Chars_whenUpload_thenReturnsBadRequest() {
         // given
-        val mediaIds = createMediaIds(1)
+        // 정상 항목을 앞에 두어, 앞 항목만 먼저 저장되는 부분 저장 회귀도 잡는다
+        val mediaIds = createMediaIds(2)
         val uploadRequest = PhotoImageRequest.UploadPhoto(
             folderId = null,
             uploads = listOf(
                 PhotoImageRequest.UploadPhoto.Item(
-                    mediaId = mediaIds.first(),
+                    mediaId = mediaIds[0],
+                    uploadMethod = UploadMethod.DIRECT_UPLOAD,
+                    memo = null,
+                    capturedAt = null,
+                ),
+                PhotoImageRequest.UploadPhoto.Item(
+                    mediaId = mediaIds[1],
                     uploadMethod = UploadMethod.DIRECT_UPLOAD,
                     memo = "a".repeat(256),
                     capturedAt = null,
