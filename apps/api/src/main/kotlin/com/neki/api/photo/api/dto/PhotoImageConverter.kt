@@ -105,6 +105,7 @@ object PhotoImageConverter {
                 height = result.height,
                 memo = result.memo,
                 createdAt = result.createdAt,
+                capturedAt = result.capturedAt,
             )
 
         fun toGetFavoriteSummaryResponse(

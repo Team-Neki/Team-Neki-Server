@@ -2,10 +2,12 @@ package com.neki.api.e2e.photo.image
 
 import com.neki.core.code.ResultCode
 import com.neki.domain.media.models.MediaStatus
+import com.neki.domain.photo.models.PhotoImage
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.notNullValue
+import org.hamcrest.Matchers.nullValue
 import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -15,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import java.time.LocalDateTime
 
 /**
  * fileName       : GetPhotoE2ETest
@@ -66,6 +69,46 @@ class GetPhotoE2ETest : PhotoImageE2ETestBase() {
                 .body("data.favorite", equalTo(false))
                 .body("data.contentType", equalTo("image/jpeg"))
                 .body("data.createdAt", notNullValue())
+        }
+
+        @Test
+        @DisplayName("사진 상세 조회 성공 - 촬영 일시가 있으면 capturedAt 을 반환한다")
+        fun givenPhotoWithCapturedAt_whenGetPhoto_thenReturnsCapturedAt() {
+            // given
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            val photo = photoImageRepository.save(
+                PhotoImage(
+                    userId = testUser.id!!,
+                    mediaId = media.id!!,
+                    capturedAt = LocalDateTime.of(2025, 12, 23, 7, 9, 0),
+                ),
+            )
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .`when`()
+                .get("/api/photos/${photo.id}")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.capturedAt", equalTo("2025-12-23T07:09:00"))
+        }
+
+        @Test
+        @DisplayName("사진 상세 조회 성공 - 촬영 일시가 없으면 capturedAt 은 null 이다")
+        fun givenPhotoWithoutCapturedAt_whenGetPhoto_thenReturnsNullCapturedAt() {
+            // given
+            val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+            val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .`when`()
+                .get("/api/photos/${photo.id}")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.capturedAt", nullValue())
         }
 
         @Test

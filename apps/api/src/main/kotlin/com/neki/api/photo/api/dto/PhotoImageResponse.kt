@@ -58,6 +58,12 @@ object PhotoImageResponse {
         val memo: String? = null,
         @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
         val createdAt: LocalDateTime,
+        @field:Schema(
+            description = "사진 찍은 날짜. PUT /api/photos/{photoId} 로 갱신할 때 이 값을 그대로 보내야 유지됩니다.",
+            example = "2025-12-23T07:09:00",
+            nullable = true,
+        )
+        val capturedAt: LocalDateTime? = null,
     )
 
     @Schema(name = "GetFavoriteSummaryResponse")
