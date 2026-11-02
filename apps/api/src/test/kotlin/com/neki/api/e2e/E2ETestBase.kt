@@ -6,6 +6,7 @@ import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jdbc.core.JdbcTemplate
 
@@ -45,6 +46,28 @@ abstract class E2ETestBase {
             idx,
             id,
         )
+    }
+
+    /**
+     * 모든 테스트 컨텍스트가 같은 postgis 컨테이너(TC_DAEMON)를 쓰므로, 매 테스트 전에 데이터를 전부 비운다.
+     * Flyway 초기 데이터(V3 브랜드, V5 앱 버전, V7/V19 약관 등)와 다른 테스트 클래스가 남긴 행이
+     * 실행 순서에 따라 unique 충돌이나 개수 검증 실패를 일으키지 않게 한다.
+     * 하위 클래스의 @BeforeEach 보다 먼저 실행된다.
+     */
+    @BeforeEach
+    protected fun truncateAllTables() {
+        val tables: List<String> = jdbcTemplate.queryForList(
+            """
+            SELECT quote_ident(tablename)
+            FROM pg_tables
+            WHERE schemaname = 'public'
+              AND tablename NOT IN ('flyway_schema_history', 'spatial_ref_sys')
+            """.trimIndent(),
+            String::class.java,
+        )
+        if (tables.isNotEmpty()) {
+            jdbcTemplate.execute("TRUNCATE TABLE ${tables.joinToString()} CASCADE")
+        }
     }
 
     @AfterEach
