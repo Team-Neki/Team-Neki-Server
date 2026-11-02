@@ -2,8 +2,6 @@ package com.neki.admin.map.infra.persist
 
 import com.neki.admin.map.infra.persist.jpa.BrandQueryRepository
 import com.neki.admin.map.infra.persist.jpa.JpaBrandRepository
-import com.neki.core.code.ResultCode
-import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.BrandQuery
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.repository.BrandRepository
@@ -24,8 +22,7 @@ class BrandRepositoryAdapter(
 
     override fun save(brand: Brand): Brand = jpaRepository.save(brand)
 
-    override fun findById(id: Long): Brand =
-        jpaRepository.findByIdOrNull(id) ?: throw BusinessException(ResultCode.NOT_FOUND)
+    override fun findById(id: Long): Brand? = jpaRepository.findByIdOrNull(id)
 
     override fun existsByName(name: String): Boolean = jpaRepository.existsByName(name)
 

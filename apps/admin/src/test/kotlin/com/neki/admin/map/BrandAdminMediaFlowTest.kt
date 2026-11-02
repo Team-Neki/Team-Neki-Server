@@ -160,6 +160,32 @@ class BrandAdminMediaFlowTest {
     }
 
     @Test
+    @DisplayName("관리자 업로드 표시가 없는 기존 로고를 그대로 보내도 다른 필드를 수정할 수 있다")
+    fun updateWithUnchangedLegacyMediaId() {
+        val legacy: Media = mediaRepository.save(
+            Media(
+                storageKey = "logo/legacy-${System.nanoTime()}.png",
+                ownerId = uploaderId,
+                mediaType = DomainMediaType.LOGO,
+                contentType = "image/png",
+            ),
+        )
+        val brand: Brand = brandRepository.save(
+            Brand.of("포토그레이", "PHOTOGRAY", legacy.id!!, supportAndroidQr = true, supportIosQr = true),
+        )
+
+        mockMvc.perform(
+            adminPatch("/admin/v1/brand/{brandId}", brand.id!!)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"name":"포토그레이","mediaId":${legacy.id},"exposeToMap":false}"""),
+        ).andExpect(status().isOk)
+
+        val updated: Brand = brandRepository.findById(brand.id!!).get()
+        updated.mediaId shouldBe legacy.id
+        updated.exposeToMap shouldBe false
+    }
+
+    @Test
     fun wrongMediaTypeDoesNotCreateBrand() {
         val media: Media = seedMedia(DomainMediaType.POSE)
 
@@ -261,8 +287,22 @@ class BrandAdminMediaFlowTest {
 
         mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.resultCode").value(ResultCode.CONFLICT_BRAND.code))
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.BRAND_IN_USE.code))
         brandRepository.findById(brand.id!!).get().deletedAt shouldBe null
+    }
+
+    @Test
+    @DisplayName("삭제된 수동 지점만 남은 브랜드는 삭제할 수 있다")
+    fun brandWithOnlyDeletedManualBoothCanBeDeleted() {
+        val brand = seedBrand()
+        jdbcTemplate.update(
+            "INSERT INTO TB_PHOTO_BOOTH_MANUAL (id, brand_id, deleted_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+            998L,
+            brand.id,
+        )
+
+        mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
+            .andExpect(status().isOk)
     }
 
     @Test
@@ -284,7 +324,7 @@ class BrandAdminMediaFlowTest {
 
         mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
             .andExpect(status().isBadRequest)
-            .andExpect(jsonPath("$.resultCode").value(ResultCode.CONFLICT_BRAND.code))
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.BRAND_IN_USE.code))
         brandRepository.findById(brand.id!!).get().deletedAt shouldBe null
     }
 
