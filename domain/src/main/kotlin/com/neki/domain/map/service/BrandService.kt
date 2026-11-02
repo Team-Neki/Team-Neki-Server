@@ -5,6 +5,7 @@ import com.neki.core.domain.vo.CountedPage
 import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.BrandCommand
 import com.neki.domain.map.dto.BrandQuery
+import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.repository.BrandRepository
 import org.springframework.stereotype.Component
@@ -56,6 +57,9 @@ class BrandService(private val brandRepository: BrandRepository) {
         )
         return brand
     }
+
+    fun getVisibleBrandIds(query: MapQuery.GetVisibleBrandIds): List<Long> =
+        brandRepository.findVisibleIds(query.brandIds)
 
     fun getBrand(id: Long): Brand = brandRepository.findById(id)
         ?: throw BusinessException(ResultCode.NOT_FOUND)

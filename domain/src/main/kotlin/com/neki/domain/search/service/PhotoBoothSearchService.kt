@@ -7,7 +7,6 @@ import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SearchCondition
 import com.neki.domain.search.models.qu.QueryIntent
 import com.neki.domain.search.repository.PhotoBoothSearchRepository
-import com.neki.domain.search.service.qu.SearchNormalizer
 import org.springframework.stereotype.Component
 
 /**
@@ -40,10 +39,7 @@ class PhotoBoothSearchService(private val photoBoothSearchRepository: PhotoBooth
         query: SearchQuery.SearchPhotoBoothsByKeyword,
         visibleBrandIds: List<Long>,
     ): PageWithTotalCount<PhotoBoothSearch> {
-        if (visibleBrandIds.isEmpty()) return query.pagination.slice(emptyList(), 0L)
-        if (SearchNormalizer.normalize(query.keyword).length < SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH) {
-            return query.pagination.slice(emptyList(), 0L)
-        }
+        if (query.isTooShort || visibleBrandIds.isEmpty()) return query.pagination.slice(emptyList(), 0L)
 
         val terms: List<List<String>> = CompletionKeyword.boothTerms(query.keyword)
         val fetched: List<PhotoBoothSearch> =
