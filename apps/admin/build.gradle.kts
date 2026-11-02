@@ -2,6 +2,8 @@ plugins {
     id("org.springframework.boot")
 }
 
+val springDocVersion = "2.6.0"
+
 dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
@@ -11,6 +13,7 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
