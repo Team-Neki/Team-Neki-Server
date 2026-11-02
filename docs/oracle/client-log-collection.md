@@ -16,7 +16,7 @@
 
 | id | 종류 | 판정 |
 |---|---|---|
-| O-A-1 | auto | 엔드포인트·어댑터 테스트(NDJSON 묶음·분할 포함)와 아키텍처 규칙 통과 : `./gradlew :apps:api:test --tests '*CollectClientLogsE2ETest' --tests '*FirehoseClientLogAdapterTest' --tests '*ArchitectureRulesTest' -q` 종료코드 0 |
+| O-A-1 | auto | 엔드포인트·필터·어댑터 테스트(NDJSON 묶음·분할, 본문 크기·동시 처리 상한, null 원소 400 포함)와 아키텍처 규칙 통과 : `./gradlew :apps:api:test --tests '*CollectClientLogsE2ETest' --tests '*ClientLogLimitFilterTest' --tests '*FirehoseClientLogAdapterTest' --tests '*ArchitectureRulesTest' -q` 종료코드 0 |
 | O-A-2 | auto | staging·prod 스트림 이름이 Platform ADR-0004 와 같음 : `grep -cE "delivery-stream: team-neki-log-raw-(staging\|production)-client-log$" modules/aws/src/main/resources/application-s3.yaml` = 2 |
 | O-A-3 | auto | 실제 어댑터는 staging·prod 에서만 뜸 : `grep -lF '@Profile("staging' modules/aws/src/main/kotlin/com/neki/config/aws/FirehoseConfig.kt domain/src/main/kotlin/com/neki/domain/support/infra/firehose/FirehoseClientLogAdapter.kt \| wc -l` = 2 |
 | O-A-4 | auto | fake 는 staging·prod 외 프로필에서 뜸 : `grep -cF '@Profile("!staging' domain/src/main/kotlin/com/neki/domain/support/infra/firehose/fake/FakeClientLogSender.kt` = 1 |

@@ -1,6 +1,7 @@
 package com.neki.api.e2e.support
 
 import com.neki.api.e2e.E2ETestBase
+import com.neki.api.support.api.filter.ClientLogLimitFilter
 import com.neki.core.code.ResultCode
 import com.neki.domain.support.infra.firehose.fake.FakeClientLogSender
 import com.neki.domain.support.models.Platform
@@ -19,6 +20,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.util.UUID
 
 /**
@@ -139,6 +144,24 @@ class CollectClientLogsE2ETest : E2ETestBase() {
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
 
+        assertTrue(fakeClientLogSender.sent.isEmpty())
+    }
+
+    @Test
+    @DisplayName("Content-Length 없이 상한(5MiB)을 넘는 본문은 역직렬화 전에 413 D-16 을 반환한다")
+    fun givenOversizedChunkedBody_whenCollect_thenPayloadTooLarge() {
+        // Content-Length 로 거절하면 Tomcat 이 남은 본문을 다 받지 않고 연결을 끊으므로, 끝까지 읽는 chunked 경로로 확인한다
+        val body = ByteArray(ClientLogLimitFilter.MAX_BODY_BYTES + 1) { 'x'.code.toByte() }
+        val request: HttpRequest = HttpRequest.newBuilder(URI.create("http://localhost:$port/api/logs"))
+            .header("Content-Type", ContentType.JSON.toString())
+            .POST(HttpRequest.BodyPublishers.ofInputStream { body.inputStream() })
+            .build()
+
+        val response: HttpResponse<String> = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build()
+            .send(request, HttpResponse.BodyHandlers.ofString())
+
+        assertEquals(HttpStatus.PAYLOAD_TOO_LARGE.value(), response.statusCode())
+        assertTrue(response.body().contains(ResultCode.LOG_PAYLOAD_TOO_LARGE.code))
         assertTrue(fakeClientLogSender.sent.isEmpty())
     }
 
