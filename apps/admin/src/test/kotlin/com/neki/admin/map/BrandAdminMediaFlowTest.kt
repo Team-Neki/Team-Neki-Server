@@ -112,8 +112,9 @@ class BrandAdminMediaFlowTest {
         return mediaRepository.findById(mediaId).orElseThrow()
     }
 
-    private fun seedBrand(): Brand =
-        brandRepository.save(Brand.of("포토그레이", "PHOTOGRAY", 1L, supportAndroidQr = true, supportIosQr = true))
+    private fun seedBrand(): Brand = brandRepository.save(
+        Brand.of("포토그레이", "PHOTOGRAY", SEED_MEDIA_ID, supportAndroidQr = true, supportIosQr = true),
+    )
 
     @Test
     @DisplayName("등록 시 mediaId와 exposeToMap이 함께 저장된다")
@@ -242,7 +243,7 @@ class BrandAdminMediaFlowTest {
         ).andExpect(status().isOk)
 
         val updated: Brand = brandRepository.findById(brand.id!!).get()
-        updated.mediaId shouldBe 1L
+        updated.mediaId shouldBe SEED_MEDIA_ID
         updated.name shouldBe "포토이즘"
     }
 
@@ -352,6 +353,11 @@ class BrandAdminMediaFlowTest {
         val row: Map<String, Any?> =
             jdbcTemplate.queryForMap("SELECT deleted_at, media_id FROM TB_BRAND WHERE id = ?", brand.id)
         row["deleted_at"].shouldNotBeNull()
-        row["media_id"] shouldBe 1L
+        row["media_id"] shouldBe SEED_MEDIA_ID
+    }
+
+    companion object {
+        // seedMedia 가 만드는 미디어 ID(1부터)와 겹치지 않아야 로고 교체로 판정된다
+        private const val SEED_MEDIA_ID = 0L
     }
 }
