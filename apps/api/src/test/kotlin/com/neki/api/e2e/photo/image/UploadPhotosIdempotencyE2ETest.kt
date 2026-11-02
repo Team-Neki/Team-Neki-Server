@@ -196,4 +196,35 @@ class UploadPhotosIdempotencyE2ETest : PhotoImageE2ETestBase() {
         assertThat(registeredMediaIds).hasSize(3)
         assertThat(registeredMediaIds).isEqualTo(mediaIds.toSet())
     }
+
+    @Test
+    @DisplayName("memo가 255자를 넘는 항목이 있으면 400 INVALID_PARAMETER를 반환하고 저장하지 않는다")
+    fun givenItemMemoOver255Chars_whenUpload_thenReturnsBadRequest() {
+        // given
+        val mediaIds = createMediaIds(1)
+        val uploadRequest = PhotoImageRequest.UploadPhoto(
+            folderId = null,
+            uploads = listOf(
+                PhotoImageRequest.UploadPhoto.Item(
+                    mediaId = mediaIds.first(),
+                    uploadMethod = UploadMethod.DIRECT_UPLOAD,
+                    memo = "a".repeat(256),
+                    capturedAt = null,
+                ),
+            ),
+        )
+
+        // when & then
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(uploadRequest)
+            .`when`()
+            .post("/api/photos")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+
+        assertThat(photoImageQueryRepository.getRegisteredMediaIds(mediaIds)).isEmpty()
+    }
 }

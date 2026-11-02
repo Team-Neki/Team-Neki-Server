@@ -42,6 +42,7 @@ object PhotoImageRequest {
             val uploadMethod: UploadMethod? = null,
 
             @field:Schema(description = "메모", example = "대학교 친구들이랑")
+            @field:Size(max = 255, message = "메모는 최대 255자까지 입력할 수 있습니다.")
             val memo: String?,
 
             @field:Schema(description = "사진 찍은 날짜", example = "2025-12-23T07:09:00")
@@ -58,6 +59,7 @@ object PhotoImageRequest {
     @Schema(name = "UpdatePhotoRequest")
     data class UpdatePhoto(
         @field:Schema(description = "메모", example = "수정된 메모")
+        @field:Size(max = 255, message = "메모는 최대 255자까지 입력할 수 있습니다.")
         val memo: String?,
 
         @field:Schema(description = "사진 찍은 날짜", example = "2025-12-23T07:09:00")
