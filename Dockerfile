@@ -1,7 +1,7 @@
 # Layer extraction stage
 FROM eclipse-temurin:21-jre-alpine AS builder
 
-# 빌드할 실행 모듈 (api | batch). 배포 워크플로가 docker build-args 로 넘긴다
+# 빌드할 실행 모듈 (api | batch | admin). 배포 워크플로가 docker build-args 로 넘긴다
 ARG APP_MODULE=api
 
 WORKDIR /app
