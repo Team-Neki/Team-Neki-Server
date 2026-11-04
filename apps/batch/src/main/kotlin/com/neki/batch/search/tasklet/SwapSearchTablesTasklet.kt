@@ -1,5 +1,6 @@
 package com.neki.batch.search.tasklet
 
+import com.neki.batch.search.job.SearchIndexJob
 import com.neki.domain.search.repository.PhotoBoothSearchRepository
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.StepContribution
@@ -22,7 +23,7 @@ class SwapSearchTablesTasklet(private val repository: PhotoBoothSearchRepository
 
     override fun execute(contribution: StepContribution, chunkContext: ChunkContext): RepeatStatus {
         repository.swap()
-        log.info("{} 완료 (_write -> _read)", SearchIndexStepConfig.SWAP_STEP_NAME)
+        log.info("{} 완료 (_write -> _read)", SearchIndexJob.SWAP_STEP_NAME)
         return RepeatStatus.FINISHED
     }
 }

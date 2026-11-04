@@ -1,20 +1,24 @@
 package com.neki.batch.search.job
 
-import com.neki.batch.search.tasklet.SearchIndexStepConfig
+import com.neki.batch.search.tasklet.BuildSearchCardsTasklet
+import com.neki.batch.search.tasklet.SwapSearchTablesTasklet
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.launch.support.RunIdIncrementer
 import org.springframework.batch.core.repository.JobRepository
+import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.transaction.PlatformTransactionManager
 
 /**
- * fileName       : SearchIndexJobConfig
+ * fileName       : SearchIndexJob
  * author         : koo
  * date           : 2026. 9. 25.
  * description    : 검색 카드 재생성 잡. build(_write 채움) -> swap(_read 와 맞바꿈) 두 step 이다.
+ *                  각 step 은 tasklet 하나이고 자기 트랜잭션 안에서 돈다.
  *
  * RunIdIncrementer: 같은 파라미터(businessDate)로 다시 기동해도 항상 새 JobInstance 로 처음부터 돈다.
  * 없으면 두 번째 기동이 JobInstanceAlreadyCompleteException 으로 죽는다.
@@ -24,22 +28,38 @@ import org.springframework.context.annotation.Configuration
  * 예외는 tasklet 밖으로 그대로 던져 step FAILED -> job FAILED -> 종료 코드 0 이 아님 (BACKEND-128 계약).
  * 실패 알림은 그 종료 코드를 받은 Prefect Automation 이 보낸다 (BACKEND-142).
  */
-@Configuration
-class SearchIndexJobConfig {
+@Configuration("searchIndexJobDefinition") // 기본 빈 이름이 Job 빈(searchIndexJob)과 겹쳐 따로 준다
+class SearchIndexJob(
+    private val jobRepository: JobRepository,
+    private val transactionManager: PlatformTransactionManager,
+) {
 
     @Bean(JOB_NAME)
     fun searchIndexJob(
-        jobRepository: JobRepository,
-        @Qualifier(SearchIndexStepConfig.BUILD_STEP_NAME) buildSearchCardsStep: Step,
-        @Qualifier(SearchIndexStepConfig.SWAP_STEP_NAME) swapSearchTablesStep: Step,
+        @Qualifier(BUILD_STEP_NAME) buildSearchCardsStep: Step,
+        @Qualifier(SWAP_STEP_NAME) swapSearchTablesStep: Step,
     ): Job = JobBuilder(JOB_NAME, jobRepository)
         .incrementer(RunIdIncrementer())
         .start(buildSearchCardsStep)
         .next(swapSearchTablesStep)
         .build()
 
+    @Bean(BUILD_STEP_NAME)
+    fun buildSearchCardsStep(buildSearchCardsTasklet: BuildSearchCardsTasklet): Step =
+        StepBuilder(BUILD_STEP_NAME, jobRepository)
+            .tasklet(buildSearchCardsTasklet, transactionManager)
+            .build()
+
+    @Bean(SWAP_STEP_NAME)
+    fun swapSearchTablesStep(swapSearchTablesTasklet: SwapSearchTablesTasklet): Step =
+        StepBuilder(SWAP_STEP_NAME, jobRepository)
+            .tasklet(swapSearchTablesTasklet, transactionManager)
+            .build()
+
     companion object {
         const val JOB_NAME = "searchIndexJob"
+        const val BUILD_STEP_NAME = "buildSearchCardsStep"
+        const val SWAP_STEP_NAME = "swapSearchTablesStep"
 
         /** Prefect 가 넘기는 잡 파라미터. 어느 수집 사이클의 카드인지 (businessDate=2026-09-25) */
         const val PARAM_BUSINESS_DATE = "businessDate"
