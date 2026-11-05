@@ -34,6 +34,7 @@ class ClientLogLimitFilterTest {
         }
         request.method = "POST"
         request.requestURI = "/api/logs"
+        request.servletPath = "/api/logs"
         request.setContent(body)
         return request
     }

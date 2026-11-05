@@ -150,9 +150,19 @@ class CollectClientLogsE2ETest : E2ETestBase() {
     @Test
     @DisplayName("Content-Length 없이 상한(5MiB)을 넘는 본문은 역직렬화 전에 413 D-16 을 반환한다")
     fun givenOversizedChunkedBody_whenCollect_thenPayloadTooLarge() {
+        assertOversizedChunkedBodyRejected("/api/logs")
+    }
+
+    @Test
+    @DisplayName("인코딩된 경로(/api/%6cogs)로 보내도 본문 크기 제한을 우회하지 못한다")
+    fun givenEncodedPath_whenOversizedBody_thenPayloadTooLarge() {
+        assertOversizedChunkedBodyRejected("/api/%6cogs")
+    }
+
+    private fun assertOversizedChunkedBodyRejected(path: String) {
         // Content-Length 로 거절하면 Tomcat 이 남은 본문을 다 받지 않고 연결을 끊으므로, 끝까지 읽는 chunked 경로로 확인한다
         val body = ByteArray(ClientLogLimitFilter.MAX_BODY_BYTES + 1) { 'x'.code.toByte() }
-        val request: HttpRequest = HttpRequest.newBuilder(URI.create("http://localhost:$port/api/logs"))
+        val request: HttpRequest = HttpRequest.newBuilder(URI.create("http://localhost:$port$path"))
             .header("Content-Type", ContentType.JSON.toString())
             .POST(HttpRequest.BodyPublishers.ofInputStream { body.inputStream() })
             .build()

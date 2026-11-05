@@ -44,8 +44,10 @@ class ClientLogLimitFilter(private val objectMapper: ObjectMapper) : OncePerRequ
 
     private val inFlight = Semaphore(MAX_IN_FLIGHT)
 
+    // requestURI 는 디코딩 전 원본이라 /api/%6cogs 처럼 인코딩하면 필터를 건너뛴 채 컨트롤러에 도달한다.
+    // MVC·Security 와 같은 기준으로 컨테이너가 디코딩·정규화한 servletPath 를 비교한다
     override fun shouldNotFilter(request: HttpServletRequest): Boolean =
-        request.method != HttpMethod.POST.name() || request.requestURI != "/api/logs"
+        request.method != HttpMethod.POST.name() || request.servletPath != "/api/logs"
 
     override fun doFilterInternal(
         request: HttpServletRequest,
