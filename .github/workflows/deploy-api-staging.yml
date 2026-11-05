@@ -147,7 +147,13 @@ jobs:
           Triggered by: ${{ github.repository }}@${{ github.sha }}
           Author: ${{ github.actor }}"
 
-          git push
+          # concurrency 는 같은 워크플로끼리만 직렬화한다. batch 등 다른 CI 도 같은 GitOps 레포에 push 하므로
+          # 그사이 들어온 커밋 위로 rebase 해서 push 를 재시도한다 (deploy-batch.yml 과 동일)
+          for i in 1 2 3; do
+            git pull --rebase && git push && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
 
       - name: Discord notification - Deployment success
         if: success()
