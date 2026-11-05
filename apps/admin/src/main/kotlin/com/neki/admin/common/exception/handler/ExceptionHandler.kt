@@ -1,14 +1,17 @@
 package com.neki.admin.common.exception.handler
 
+import com.neki.core.api.dto.BaseResponse
 import com.neki.core.code.ResultCode
 import com.neki.core.exception.BusinessException
 import com.neki.core.exception.dto.ExceptionMsg
 import org.apache.catalina.connector.ClientAbortException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataAccessException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.core.AuthenticationException
 import org.springframework.validation.FieldError
 import org.springframework.web.HttpMediaTypeNotSupportedException
 import org.springframework.web.HttpRequestMethodNotSupportedException
@@ -31,6 +34,20 @@ import org.springframework.web.servlet.resource.NoResourceFoundException
 @RestControllerAdvice
 class ExceptionHandler {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
+
+    @ExceptionHandler(AuthenticationException::class)
+    fun authenticationExceptionHandler(ex: AuthenticationException): ResponseEntity<BaseResponse<Any>> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            BaseResponse(resultCode = ResultCode.SECURITY_ERROR.code, message = "로그인이 필요합니다."),
+        )
+
+    @ExceptionHandler(DataAccessException::class)
+    fun databaseExceptionHandler(ex: DataAccessException): ResponseEntity<BaseResponse<Any>> {
+        log.error("[DATABASE_ERROR] admin database operation failed", ex)
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
+            BaseResponse(resultCode = ResultCode.ERROR.code, message = ResultCode.ERROR.message),
+        )
+    }
 
     @ExceptionHandler(BusinessException::class)
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {

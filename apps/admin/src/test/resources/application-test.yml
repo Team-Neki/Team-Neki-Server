@@ -1,7 +1,68 @@
 spring:
-  config:
-    import:
-      - classpath:application-h2.yaml
+  datasource:
+    url: jdbc:h2:mem:admin-auth-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:admin-session-schema.sql
+  session:
+    timeout: 30m
+    jdbc:
+      initialize-schema: never
+      table-name: ADMIN_SESSION
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: admin-test-client
+            client-secret: admin-test-secret
+            scope: openid,email,profile
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+          alternate:
+            provider: alternate
+            client-id: admin-test-client
+            client-secret: admin-test-secret
+            authorization-grant-type: authorization_code
+            scope: email,profile
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            user-name-attribute: sub
+          alternate:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            user-name-attribute: sub
+server:
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        name: ADMINSESSION
+        http-only: true
+        secure: false
+        same-site: lax
+
+jasypt:
+  encryptor:
+    password: admin-test-key
+
 aws:
   s3:
     access-key: test
