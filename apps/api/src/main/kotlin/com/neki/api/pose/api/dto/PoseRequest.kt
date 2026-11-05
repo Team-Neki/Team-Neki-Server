@@ -2,7 +2,9 @@ package com.neki.api.pose.api.dto
 
 import com.neki.domain.pose.models.HeadCount
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
+import org.hibernate.validator.constraints.CodePointLength
 
 /**
  * fileName       : PoseRequest
@@ -12,7 +14,7 @@ import jakarta.validation.constraints.NotNull
  */
 object PoseRequest {
     @Schema(name = "UploadPoseRequest")
-    data class UploadPose(val uploads: List<Item>) {
+    data class UploadPose(@field:Valid val uploads: List<Item>) {
         @Schema(name = "UploadPoseItem")
         data class Item(
             @field:NotNull(message = "mediaId는 필수 입력값입니다.")
@@ -21,6 +23,7 @@ object PoseRequest {
             @field:Schema(description = "인원 수", example = "ONE")
             val headCount: HeadCount,
 
+            @field:CodePointLength(max = 255, message = "메모는 최대 255자까지 입력할 수 있습니다.")
             val memo: String?,
         )
     }
