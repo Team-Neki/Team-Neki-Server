@@ -64,8 +64,8 @@ abstract class MapE2ETestBase : E2ETestBase() {
         FavoriteMap(userId = userId, locationId = locationId),
     )
 
-    protected fun createBrand(name: String, code: String): Brand = brandRepository.save(
-        Brand(name = name, code = code),
+    protected fun createBrand(name: String, code: String, exposeToMap: Boolean = true): Brand = brandRepository.save(
+        Brand(name = name, code = code, exposeToMap = exposeToMap),
     )
 
     protected fun createPhotoBoothLocation(

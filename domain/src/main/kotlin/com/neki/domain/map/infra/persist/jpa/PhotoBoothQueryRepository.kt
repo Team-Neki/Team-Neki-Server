@@ -32,7 +32,9 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
     fun existsByKey(key: PhotoBoothKey): Boolean = queryFactory
         .selectOne()
         .from(enrichedPhotoBooth)
-        .join(brand).on(brand.code.eq(enrichedPhotoBooth.key.platform), brand.deletedAt.isNull)
+        .join(
+            brand,
+        ).on(brand.code.eq(enrichedPhotoBooth.key.platform), brand.deletedAt.isNull, brand.exposeToMap.isTrue)
         .where(enrichedPhotoBooth.key.eq(key), enrichedPhotoBooth.location.isNotNull)
         .fetchFirst() != null
 
@@ -42,6 +44,7 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
         return queryFactory
             .select(enrichedPhotoBooth.key)
             .from(enrichedPhotoBooth)
+            .join(brand).on(brand.code.eq(enrichedPhotoBooth.key.platform), brand.exposeToMap.isTrue)
             .where(anyKey(keys))
             .fetch()
             .toSet()
@@ -101,7 +104,7 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
                     ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::geography
                 ) AS integer) AS distance_meters
             FROM tb_photo_booth_enriched e
-            JOIN TB_BRAND b ON b.code = e.platform AND b.deleted_at IS NULL
+            JOIN TB_BRAND b ON b.code = e.platform AND b.deleted_at IS NULL AND b.expose_to_map = true
             WHERE e.location IS NOT NULL
               AND e.location && ST_Expand(ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :radiusInDegrees)
               AND ST_DWithin(
@@ -154,7 +157,9 @@ class PhotoBoothQueryRepository(private val queryFactory: JPAQueryFactory, priva
             enrichedPhotoBooth.location,
         )
         .from(enrichedPhotoBooth)
-        .join(brand).on(brand.code.eq(enrichedPhotoBooth.key.platform), brand.deletedAt.isNull)
+        .join(
+            brand,
+        ).on(brand.code.eq(enrichedPhotoBooth.key.platform), brand.deletedAt.isNull, brand.exposeToMap.isTrue)
         .where(enrichedPhotoBooth.location.isNotNull)
 
     private fun toPhotoBoothView(row: Tuple): PhotoBoothView = PhotoBoothView(

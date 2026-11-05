@@ -12,6 +12,9 @@ import org.locationtech.jts.geom.Coordinate
 object MapQuery {
     data class GetBrand(val userId: Long)
 
+    /** brandIds 가 null 이면 모든 노출 브랜드, 목록을 주면 그중 노출 브랜드만 */
+    data class GetVisibleBrandIds(val brandIds: List<Long>?)
+
     data class GetPolygonLocation(val userId: Long, val coordinates: List<Coordinate>, val brandIds: List<Long>?)
 
     data class GetPointLocation(
