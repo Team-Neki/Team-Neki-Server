@@ -6,6 +6,13 @@ on:
       - main
   workflow_dispatch:  # 수동 실행 가능
 
+# main 에 연달아 머지하면 배포 run 이 동시에 돌며 GitOps 이미지 태그를 서로 덮어쓰거나 push 가 거절되므로 직렬화한다.
+# 실행 중인 배포는 끝까지 진행하고 다음 run 은 대기한다. 대기 run 은 group 당 하나만 남아 더 새 커밋의 run 으로 바뀐다
+# (main 의 새 커밋은 이전 커밋을 포함하므로 최신 이미지만 배포되면 된다).
+concurrency:
+  group: deploy-api-prod
+  cancel-in-progress: false
+
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/neki-prod
   GITOPS_REPO: Team-Neki/Team-Neki-GitOps
