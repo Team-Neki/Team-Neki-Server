@@ -14,7 +14,7 @@ object MediaResponse {
     data class UploadTicket(
         @field:Schema(description = "요청 Method", example = "PUT")
         val method: String,
-        @field:Schema(description = "만료일자", example = "2025-12-23T07:09:00")
+        @field:Schema(description = "만료일자", example = "2025-12-23T16:09:00")
         val expiresIn: Instant,
         @field:Schema(description = "목록")
         val items: List<Item>,
@@ -37,7 +37,7 @@ object MediaResponse {
     data class QrDumpUploadTicket(
         @field:Schema(description = "요청 Method", example = "PUT")
         val method: String,
-        @field:Schema(description = "만료일자", example = "2026-10-02T07:35:00Z")
+        @field:Schema(description = "만료일자", example = "2026-10-02T16:35:00")
         val expiresIn: Instant,
         @field:Schema(
             description = "Presigned URL",
