@@ -103,12 +103,12 @@ class GetMediasUseCaseTest {
     @Test
     @DisplayName("Non-cacheable 타입 - S3 직접 조회 (cache 미호출)")
     fun `Non-cacheable 타입 - S3 직접 조회 (cache 미호출)`() {
-        // Given: PHOTO_BOOTH는 cacheTtl=null이므로 isCacheable=false
+        // Given: ATTACHMENT는 cacheTtl=null이므로 isCacheable=false
         val ownerId = 1L
         val mediaId = 1L
-        val storageKey = "photo-booth/test.jpg"
+        val storageKey = "attachments/test.jpg"
         val media =
-            aMedia(id = mediaId, ownerId = ownerId, mediaType = MediaType.PHOTO_BOOTH, storageKey = storageKey)
+            aMedia(id = mediaId, ownerId = ownerId, mediaType = MediaType.ATTACHMENT, storageKey = storageKey)
 
         every { mediaRepository.getActiveMedias(ownerId, listOf(mediaId)) } returns listOf(media)
         every { mediaStorage.fetchBinaryByKey(storageKey) } returns imageData

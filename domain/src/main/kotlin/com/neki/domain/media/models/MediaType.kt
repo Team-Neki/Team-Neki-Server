@@ -17,8 +17,9 @@ enum class MediaType(val prefix: String, val cacheTtl: Duration?) {
 
     /**
      * 인생네컷
+     * - 다른 이미지 캐시와 같은 24시간으로 시작한다. media_binary_cache_total 의 hit율과 Redis 메모리를 보고 조정한다
      */
-    PHOTO_BOOTH("photo-booth", null),
+    PHOTO_BOOTH("photo-booth", Duration.ofHours(24)),
 
     /**
      * 확장성을 고려한 첨부 이미지

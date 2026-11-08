@@ -39,8 +39,8 @@ class GetImageByKeyUseCaseTest {
     @Test
     @DisplayName("캐싱 비대상 타입 - S3 직접 조회 (lock/cache 미호출)")
     fun `캐싱 비대상 타입 - S3 직접 조회 (lock_cache 미호출)`() {
-        // Given: photo-booth는 cacheTtl=null 이므로 isCacheable=false
-        val objectKey = "photo-booth/image.jpg"
+        // Given: attachments는 cacheTtl=null 이므로 isCacheable=false
+        val objectKey = "attachments/image.jpg"
 
         every { mediaStorage.fetchBinaryByKey(objectKey) } returns imageData
 

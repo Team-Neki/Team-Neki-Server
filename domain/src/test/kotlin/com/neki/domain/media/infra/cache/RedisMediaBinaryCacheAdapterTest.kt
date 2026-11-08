@@ -168,8 +168,8 @@ class RedisMediaBinaryCacheAdapterTest :
         }
 
         test("캐싱 불가 타입의 objectKey는 TTL 갱신하지 않음") {
-            // Given: PHOTO_BOOTH는 캐싱 대상이 아님
-            val objectKey = "photo-booth/image.jpg"
+            // Given: ATTACHMENT는 캐싱 대상이 아님
+            val objectKey = "attachments/image.jpg"
             val cacheKey = MediaRedisCacheKey.binaryKey(objectKey)
             val cachedData = byteArrayOf(1, 2, 3)
 
