@@ -235,6 +235,14 @@ class AdminAuthE2ETest {
     }
 
     @Test
+    @DisplayName("버전 prefix 가 있던 이전 경로는 ADMIN 세션으로도 404 다")
+    fun givenAdminSession_whenRequestingVersionedPath_thenNotFound() {
+        val login = login(createUser(RoleType.ADMIN.role))
+
+        mvc.perform(get("/admin/v1/auth/me").cookie(login.cookie)).andExpect(status().isNotFound)
+    }
+
+    @Test
     @DisplayName("로그아웃은 POST만 받고 이후 기존 세션을 재사용할 수 없다")
     fun givenPendingSession_whenLoggingOut_thenOnlyPostDeletesSession() {
         val login = login(createUser())

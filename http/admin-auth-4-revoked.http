@@ -1,0 +1,50 @@
+# admin 세션 인증 staging 검증 4단계: DB 에서 ADMIN 을 회수한 뒤, 같은 세션으로 로그아웃까지 (docs/oracle/admin-auth.md)
+
+### O-D-14 ADMIN 회수는 같은 세션의 다음 요청부터 반영된다
+# @no-cookie-jar
+GET {{adminHost}}/admin/auth/me
+Cookie: ADMINSESSION={{adminSession}}
+
+> {%
+    client.test("O-D-14 회수 즉시 반영", () => {
+        client.assert(response.status === 200, "status=" + response.status);
+        client.assert(response.body.data.admin === false, "admin=" + response.body.data.admin + ". O-D-13 의 UPDATE 확인");
+    });
+%}
+
+### O-D-15 회수 뒤 관리 API 는 403
+# @no-cookie-jar
+POST {{adminHost}}/admin/media/upload
+Cookie: ADMINSESSION={{adminSession}}
+Content-Type: application/json
+
+{"items":[{"mediaType":"POSE","contentType":"image/png"}]}
+
+> {%
+    client.test("O-D-15 회수 후 업로드 403", () => {
+        client.assert(response.status === 403, "status=" + response.status);
+    });
+%}
+
+### O-D-16 POST 로그아웃은 CSRF 헤더 없이 200
+# @no-cookie-jar
+POST {{adminHost}}/admin/auth/logout
+Cookie: ADMINSESSION={{adminSession}}
+
+> {%
+    client.test("O-D-16 POST 로그아웃", () => {
+        client.assert(response.status === 200, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-0", "resultCode=" + response.body.resultCode);
+    });
+%}
+
+### O-D-17 로그아웃한 세션은 재사용할 수 없다
+# @no-cookie-jar
+GET {{adminHost}}/admin/auth/me
+Cookie: ADMINSESSION={{adminSession}}
+
+> {%
+    client.test("O-D-17 로그아웃 세션 401", () => {
+        client.assert(response.status === 401, "status=" + response.status);
+    });
+%}
