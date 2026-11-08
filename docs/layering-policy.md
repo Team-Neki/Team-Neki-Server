@@ -8,7 +8,7 @@
 core/                    공유 커널. 모든 모듈이 의존할 수 있음
 domain/                  도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
 apps/api/                api + application + 교차 도메인 호출 어댑터. 실행 모듈
-apps/admin/              api + application. 관리 인증의 기술 구현은 domain/user/infra/security/session 을 사용
+apps/admin/              api + application. 관리 인증의 기술 구현은 auth/infra/security 에 둠
 apps/batch/              Spring Batch 잡. one-shot 실행 모듈 (Prefect 가 k8s Job 으로 띄움). domain 을 재사용하며 스캔 범위는 앱 클래스에 명시
 modules/                 외부 의존성 연결 설정 전용
 ```
@@ -39,7 +39,7 @@ apps/api/src/main/kotlin/com/neki/api/<domain>/
 
 `infra/client`(교차 도메인 호출)만 apps/api 에 남습니다. domain 모듈이 apps/api 를 의존하면 순환 의존이 생기기 때문입니다. 자기 도메인 인터페이스(repository/external)만 구현하는 기술 어댑터(persist/cache/storage/security)는 인터페이스 옆에 두는 것이 자연스러워 domain 모듈로 옮겼습니다. 그 대가로 domain 모듈이 `modules:*`(postgres, redis, aws, discord, firebase)와 spring-security/oauth2-client 같은 기술 의존성을 갖게 되었습니다 — 도메인이 자기 애그리거트의 영속성·캐시·외부 저장소를 구현하는 데 필요한 만큼만 추가합니다.
 
-admin의 Google OIDC 로그인·인가·보안 응답은 `domain/user/infra/security/session`에 둡니다. 이 구현은 같은 도메인의 `AdminAccountService`를 직접 호출합니다. 사용자 영속성 구현체 `UserRepositoryAdapter`는 `domain/user/infra/persist`에 둡니다.
+admin의 Google OIDC 로그인·인가·보안 응답은 `apps/admin`의 `auth/infra/security`에 둡니다. 도메인 인터페이스를 구현하는 어댑터가 아니라 admin 앱 하나만 쓰는 Spring Security 구성이므로, domain에 두면 `com.neki` 전체를 스캔하는 api에도 빈이 올라갑니다. 이 구현은 `AdminAccountService`를 직접 호출합니다. 사용자 영속성 구현체 `UserRepositoryAdapter`는 `domain/user/infra/persist`에 둡니다.
 
 ## 타입 소유권
 

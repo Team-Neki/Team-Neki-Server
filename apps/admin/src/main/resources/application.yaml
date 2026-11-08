@@ -35,10 +35,6 @@ spring:
 springdoc:
   override-with-generic-response: false
 
-admin:
-  auth:
-    enabled: true
-
 server:
   port: 8081
   servlet:

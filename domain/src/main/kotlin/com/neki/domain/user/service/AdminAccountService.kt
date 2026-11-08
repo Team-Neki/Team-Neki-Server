@@ -6,12 +6,10 @@ import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
 import com.neki.domain.user.repository.UserRepository
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
 class AdminAccountService(private val userRepository: UserRepository) {
     // 저장 실패 후 새 조회가 가능하도록 각 repository 호출의 트랜잭션을 사용한다.
     fun findOrCreate(command: UserCommand.RegisterAdminAccount): Long {

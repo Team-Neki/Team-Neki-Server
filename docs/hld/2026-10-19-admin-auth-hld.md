@@ -234,8 +234,8 @@ OAuth 브라우저 리다이렉트 자체와 다른 origin의 API 호출에 대�
 
 | 영역 | 변경 범위 |
 |---|---|
-| `apps/admin` | 전용 보안 체인, OAuth 로그인 연결, 인증 결과·세션·접근 제어, PostgreSQL 프로파일 |
-| `domain/user` | 기존 User·ADMIN 재사용, 이메일 기준 관리 계정과 현재 사용자 권한 조회. Google OIDC 보안 구현은 infra에 배치 |
+| `apps/admin` | 전용 보안 체인, OAuth 로그인 연결, 인증 결과·세션·접근 제어(`auth/infra/security`), PostgreSQL 프로파일 |
+| `domain/user` | 기존 User·ADMIN 재사용, 이메일 기준 관리 계정과 현재 사용자 권한 조회 |
 | `modules/postgres` | V41 세션 테이블, V42 관리자 SSO 계정 전환, V43 관리자 업로드 미디어 표시, V44 이메일 기준 식별 |
 | Team-Neki-Admin | 로그인·대기·오류 UI, 로그인·콜백·쿠키 프록시 |
 | Team-Neki-GitOps | 인증 구현 후 PostgreSQL·Google 자격증명·외부 URL 설정. API Service 내부 배치 유지 |

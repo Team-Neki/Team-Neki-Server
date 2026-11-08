@@ -1,12 +1,7 @@
-package com.neki.domain.user.infra.security.session
+package com.neki.admin.auth.infra.security
 
-import com.neki.domain.user.infra.persist.UserRepositoryAdapter
-import com.neki.domain.user.service.AdminAccountService
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -15,9 +10,6 @@ import org.springframework.security.web.savedrequest.NullRequestCache
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 
 @Configuration
-@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
-@ComponentScan(basePackageClasses = [SessionOidcUserService::class])
-@Import(UserRepositoryAdapter::class, AdminAccountService::class)
 class SessionSecurityConfig {
     @Bean
     fun sessionSecurityFilterChain(

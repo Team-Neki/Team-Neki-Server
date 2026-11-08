@@ -1,7 +1,7 @@
 package com.neki.admin.auth
 
+import com.neki.admin.auth.infra.security.SessionPrincipal
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
-import com.neki.domain.user.infra.security.session.SessionPrincipal
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
