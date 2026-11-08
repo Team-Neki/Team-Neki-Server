@@ -1,4 +1,4 @@
-package com.neki.domain.user.infra.security.admin
+package com.neki.domain.user.infra.security.session
 
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.service.AdminAccountAccess
@@ -11,14 +11,14 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
-class AdminSocialIdentityResolver(
+class SocialIdentityResolver(
     private val accounts: AdminAccountAccess,
-    private val providers: List<AdminIdentityProvider>,
+    private val providers: List<SocialIdentityProvider>,
 ) {
     fun resolve(registrationId: String, user: OAuth2User): Pair<Long, String> {
-        val provider: AdminIdentityProvider = providers.singleOrNull { it.registrationId == registrationId }
+        val provider: SocialIdentityProvider = providers.singleOrNull { it.registrationId == registrationId }
             ?: throw OAuth2AuthenticationException(OAuth2Error("unsupported_provider"))
-        val profile: AdminSocialProfile = provider.extract(user)
+        val profile: SocialProfile = provider.extract(user)
         val identityKey = "$registrationId:${profile.subject}"
         if (registrationId.isBlank() ||
             profile.subject.isBlank() ||

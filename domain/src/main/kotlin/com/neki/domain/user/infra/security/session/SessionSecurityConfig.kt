@@ -1,4 +1,4 @@
-package com.neki.domain.user.infra.security.admin
+package com.neki.domain.user.infra.security.session
 
 import com.neki.domain.user.infra.persist.UserRepositoryAdapter
 import com.neki.domain.user.service.AdminAccountService
@@ -15,16 +15,16 @@ import org.springframework.security.web.savedrequest.NullRequestCache
 
 @Configuration
 @ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
-@ComponentScan(basePackageClasses = [AdminOidcUserService::class])
+@ComponentScan(basePackageClasses = [SessionOidcUserService::class])
 @Import(UserRepositoryAdapter::class, AdminAccountService::class)
-class AdminSecurityConfig {
+class SessionSecurityConfig {
     @Bean
-    fun adminSecurityFilterChain(
+    fun sessionSecurityFilterChain(
         http: HttpSecurity,
-        oidcUsers: AdminOidcUserService,
-        oauth2Users: AdminOAuth2UserService,
-        authorization: AdminAuthorizationManager,
-        responses: AdminSecurityResponses,
+        oidcUsers: SessionOidcUserService,
+        oauth2Users: SessionOAuth2UserService,
+        authorization: SessionAuthorizationManager,
+        responses: SessionSecurityResponses,
     ): SecurityFilterChain = http
         .authorizeHttpRequests {
             it.requestMatchers("/oauth2/authorization/*", "/login/oauth2/code/*").permitAll()

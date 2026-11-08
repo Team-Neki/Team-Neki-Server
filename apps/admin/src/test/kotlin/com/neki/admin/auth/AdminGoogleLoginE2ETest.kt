@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.application.AdminAccountFacade
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
-import com.neki.domain.user.infra.security.admin.AdminIdentityProvider
-import com.neki.domain.user.infra.security.admin.AdminSocialProfile
+import com.neki.domain.user.infra.security.session.SocialIdentityProvider
+import com.neki.domain.user.infra.security.session.SocialProfile
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
@@ -353,10 +353,10 @@ class AdminGoogleLoginE2ETest {
 }
 
 @TestComponent
-class AlternateAdminIdentityProvider : AdminIdentityProvider {
+class AlternateAdminIdentityProvider : SocialIdentityProvider {
     override val registrationId: String = "alternate"
 
-    override fun extract(user: OAuth2User): AdminSocialProfile = AdminSocialProfile(
+    override fun extract(user: OAuth2User): SocialProfile = SocialProfile(
         subject = user.attributes.getValue("sub") as String,
         email = user.attributes.getValue("email") as String,
         name = user.attributes["name"] as? String,

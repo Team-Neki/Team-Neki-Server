@@ -1,4 +1,4 @@
-package com.neki.domain.user.infra.security.admin
+package com.neki.domain.user.infra.security.session
 
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.service.AdminAccountAccess
@@ -14,14 +14,14 @@ import java.util.function.Supplier
 
 @Component
 @ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
-class AdminAuthorizationManager(private val accounts: AdminAccountAccess) :
+class SessionAuthorizationManager(private val accounts: AdminAccountAccess) :
     AuthorizationManager<RequestAuthorizationContext> {
     override fun check(
         authentication: Supplier<Authentication>,
         context: RequestAuthorizationContext,
     ): AuthorizationDecision {
         val auth: Authentication = authentication.get()
-        val principal: AdminAuthenticatedPrincipal = auth.principal as? AdminAuthenticatedPrincipal
+        val principal: SessionPrincipal = auth.principal as? SessionPrincipal
             ?: return AuthorizationDecision(false)
         if (!auth.isAuthenticated) return AuthorizationDecision(false)
         return try {

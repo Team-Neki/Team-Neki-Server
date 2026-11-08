@@ -1,7 +1,7 @@
 package com.neki.admin.auth
 
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
-import com.neki.domain.user.infra.security.admin.AdminPrincipal
+import com.neki.domain.user.infra.security.session.OidcSessionPrincipal
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
@@ -45,7 +45,7 @@ object AdminTestSession {
             mapOf("sub" to user.oid!!.removePrefix("google:"), "email" to user.email!!, "email_verified" to true),
         )
         val delegate = DefaultOidcUser(listOf(OidcUserAuthority(idToken)), idToken)
-        val principal = AdminPrincipal(user.id!!, user.oid!!, delegate)
+        val principal = OidcSessionPrincipal(user.id!!, user.oid!!, delegate)
         val authentication = OAuth2AuthenticationToken(principal, principal.authorities, "google")
 
         @Suppress("UNCHECKED_CAST")

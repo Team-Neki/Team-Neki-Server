@@ -1,4 +1,4 @@
-package com.neki.domain.user.infra.security.admin
+package com.neki.domain.user.infra.security.session
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.core.api.dto.BaseResponse
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
-class AdminSecurityResponses(private val mapper: ObjectMapper) :
+class SessionSecurityResponses(private val mapper: ObjectMapper) :
     AuthenticationEntryPoint,
     AccessDeniedHandler,
     AuthenticationFailureHandler,
