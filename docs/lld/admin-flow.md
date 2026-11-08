@@ -15,7 +15,6 @@
 - `modules:postgres`의 `application-postgres.yaml`: API와 동일한 PostgreSQL 연결·JPA·Flyway 설정 로드
 - `modules:jasypt`: API와 동일한 `JASYPT_PASSWORD`로 staging/prod의 암호화된 연결 정보 복호화
 - `ExceptionHandler`: `apps:api`와 같은 `ExceptionMsg` 응답 형식으로 예외 처리
-- `AdminMediaVerifier`: LOGO/POSE media의 존재·타입·상태를 확인하고 S3 객체가 있으면 UPLOADED로 전환
 - `local`/`staging`/`prod` 프로파일: API와 같은 DB·스키마의 기존 테이블 사용, 8081 포트
 - `test` 프로파일: admin 테스트 설정의 H2로 인증·세션 컨텍스트 검증
 

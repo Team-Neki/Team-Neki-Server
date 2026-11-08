@@ -20,10 +20,11 @@ class AdminMediaController(private val mediaUploadFacade: AdminMediaUploadFacade
         @AuthenticationPrincipal(expression = "userId") uploaderId: Long,
         @Valid @RequestBody request: AdminMediaDto.UploadRequest,
     ): BaseResponse<AdminMediaDto.UploadResponse> {
-        val command = MediaCommand.GenerateAdminUploadTicket(
+        val command = MediaCommand.GenerateUploadTicket(
             ownerId = uploaderId,
             items = request.items.map { item ->
-                MediaCommand.GenerateAdminUploadTicket.Item(
+                MediaCommand.GenerateUploadTicket.Item(
+                    filename = null,
                     contentType = item.contentType!!,
                     mediaType = item.mediaType!!,
                     width = item.width,
@@ -31,6 +32,7 @@ class AdminMediaController(private val mediaUploadFacade: AdminMediaUploadFacade
                     size = item.size,
                 )
             },
+            adminManaged = true,
         )
         val tickets: MediaUploadTickets = mediaUploadFacade.issueTickets(command)
         val response = AdminMediaDto.UploadResponse(

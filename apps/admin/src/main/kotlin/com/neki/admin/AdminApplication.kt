@@ -4,6 +4,7 @@ import com.neki.config.aws.S3Properties
 import com.neki.domain.media.infra.persist.MediaRepositoryAdapter
 import com.neki.domain.media.infra.storage.fake.FakeMediaStorageConfig
 import com.neki.domain.media.infra.storage.s3.S3MediaStorageAdapterConfig
+import com.neki.domain.media.service.MediaService
 import com.neki.domain.user.infra.security.session.SessionSecurityConfig
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -40,6 +41,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
     S3MediaStorageAdapterConfig::class,
     FakeMediaStorageConfig::class,
     MediaRepositoryAdapter::class,
+    MediaService::class,
     SessionSecurityConfig::class,
 )
 class AdminApplication {

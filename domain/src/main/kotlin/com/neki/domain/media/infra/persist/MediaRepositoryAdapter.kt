@@ -33,9 +33,6 @@ class MediaRepositoryAdapter(private val jpaRepository: JpaMediaRepository) : Me
             listOf(MediaStatus.INITIATED, MediaStatus.UPLOADED),
         )
 
-    override fun getMediaForUploadConfirmation(ids: List<Long>): List<Media> =
-        jpaRepository.findAllByIdInAndStatusIn(ids, listOf(MediaStatus.INITIATED, MediaStatus.UPLOADED))
-
     override fun save(media: Media): Media = jpaRepository.save(media)
 
     override fun saveAll(medias: List<Media>): List<Media> = jpaRepository.saveAll(medias)
