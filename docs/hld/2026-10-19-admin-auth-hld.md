@@ -187,11 +187,11 @@ Spring의 인증 상태와 OAuth 진행 중 세션을 같은 JDBC 저장소에 �
 
 | 메서드와 경로 | 용도 | 접근 조건 |
 |---|---|---|
-| `GET /oauth2/authorization/google` | Google 로그인 시작 | 익명 허용, 브라우저 이동으로 호출 |
+| `GET /api/oauth2/authorization/google` | Google 로그인 시작 | 익명 허용, 브라우저 이동으로 호출 |
 | `GET /api/login/oauth2/code/google` | Google 콜백 | 별도 로그인은 요구하지 않으며 OAuth 요청 상관관계 검증 필수 |
-| `GET /admin/auth/me` | 본인·현재 ADMIN 권한·세션 상태 조회 | Google 인증 세션의 본인. 대기·권한 회수 상태 포함 |
-| `POST /admin/auth/logout` | 세션 무효화와 쿠키 삭제 | 유효한 세션. GET은 로그아웃하지 않음 |
-| 그 외 `/admin/**` | Brand·Pose 등 관리 API | 유효한 Google 로그인 세션과 현재 DB의 ADMIN 권한 |
+| `GET /api/auth/me` | 본인·현재 ADMIN 권한·세션 상태 조회 | Google 인증 세션의 본인. 대기·권한 회수 상태 포함 |
+| `POST /api/auth/logout` | 세션 무효화와 쿠키 삭제 | 유효한 세션. GET은 로그아웃하지 않음 |
+| 그 외 `/api/**` | Brand·Pose 등 관리 API | 유효한 Google 로그인 세션과 현재 DB의 ADMIN 권한 |
 
 인증 관련 예외 경로는 관리 API의 포괄 규칙보다 먼저 매칭합니다. 나머지 경로는 기본 거부하며, 관리 API의 미인증 요청은 `401`, 인증됐지만 권한이 없는 요청은 `403`으로 응답합니다. API 호출을 Google 로그인 HTML로 자동 리다이렉트하지 않습니다.
 
@@ -297,4 +297,4 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 
 2026-10-24 `feat/BACKEND-83-admin-auth`에서 서버 직접 콜백, 기존 사용자 등록, 매 요청 ADMIN 조회, JDBC 세션, POST 로그아웃을 구현합니다. 이후 Next 서버 간 호출 구조에 맞춰 CSRF 토큰을 제거했습니다. 운영 적용 전 설계인 항목은 여전히 draft로 관리합니다. 실행·수동 권한 부여·배포 순서는 [admin 인증 runbook](../runbook/admin-auth.md)을 따릅니다.
 
-Next의 프록시와 로그인 UI는 아직 구현 범위에 포함하지 않습니다. OAuth 성공은 고정 상대 경로 `/admin/auth/me`로 이동하므로 프록시가 내부 Service host를 브라우저에 노출하지 않고 응답을 전달할 수 있습니다. 실제 Google 자격증명을 사용하는 로그인과 운영 ArgoCD rollout은 환경 준비 후 확인합니다.
+Next의 프록시와 로그인 UI는 아직 구현 범위에 포함하지 않습니다. OAuth 성공은 고정 상대 경로 `/api/auth/me`로 이동하므로 프록시가 내부 Service host를 브라우저에 노출하지 않고 응답을 전달할 수 있습니다. 실제 Google 자격증명을 사용하는 로그인과 운영 ArgoCD rollout은 환경 준비 후 확인합니다.

@@ -84,11 +84,11 @@ class AdminAuthE2ETest {
         val login = login(uploader)
         val request = """{"items":[{"mediaType":"POSE","contentType":"image/png"}]}"""
 
-        mvc.perform(post("/admin/media/upload").contentType("application/json").content(request))
+        mvc.perform(post("/api/media/upload").contentType("application/json").content(request))
             .andExpect(status().isUnauthorized)
 
         val response = mvc.perform(
-            post("/admin/media/upload").cookie(login.cookie).contentType("application/json").content(request),
+            post("/api/media/upload").cookie(login.cookie).contentType("application/json").content(request),
         ).andExpect(status().isOk).andReturn().response
 
         val item = objectMapper.readTree(response.contentAsString)["data"]["items"][0]
@@ -105,12 +105,12 @@ class AdminAuthE2ETest {
         val pending = login(createUser())
         val request = """{"items":[{"mediaType":"PHOTO_BOOTH","contentType":"image/png"}]}"""
         mvc.perform(
-            post("/admin/media/upload").cookie(pending.cookie).contentType("application/json").content(request),
+            post("/api/media/upload").cookie(pending.cookie).contentType("application/json").content(request),
         ).andExpect(status().isForbidden)
 
         val admin = login(createUser(RoleType.ADMIN.role))
         mvc.perform(
-            post("/admin/media/upload").cookie(admin.cookie).contentType("application/json").content(request),
+            post("/api/media/upload").cookie(admin.cookie).contentType("application/json").content(request),
         ).andExpect(status().isBadRequest)
         assertThat(media.count()).isZero()
     }
@@ -148,9 +148,9 @@ class AdminAuthE2ETest {
     @Test
     @DisplayName("익명 API 요청은 로그인 화면 이동 대신 401을 반환한다")
     fun givenAnonymous_whenRequestingMeOrAdmin_thenUnauthorized() {
-        mvc.perform(get("/admin/auth/me")).andExpect(status().isUnauthorized)
+        mvc.perform(get("/api/auth/me")).andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.resultCode").value("D-999"))
-        mvc.perform(get("/admin/test")).andExpect(status().isUnauthorized)
+        mvc.perform(get("/api/test")).andExpect(status().isUnauthorized)
     }
 
     @Test
@@ -163,7 +163,7 @@ class AdminAuthE2ETest {
         assertThat(me["userId"].asLong()).isEqualTo(user.id)
         assertThat(me["email"].asText()).isEqualTo(user.email)
         assertThat(me["admin"].asBoolean()).isFalse()
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/api/test").cookie(login.cookie)).andExpect(status().isForbidden)
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM ADMIN_SESSION_ATTRIBUTES", Int::class.java))
             .isGreaterThan(0)
         assertThat(sessions.findById(login.id)!!.maxInactiveInterval).isEqualTo(Duration.ofMinutes(30))
@@ -174,14 +174,14 @@ class AdminAuthE2ETest {
     fun givenPendingSession_whenAdminGranted_thenSameSessionImmediatelyAllowed() {
         val user: User = createUser()
         val login = login(user)
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/api/test").cookie(login.cookie)).andExpect(status().isForbidden)
 
         user.roles = "${RoleType.USER.role},${RoleType.ADMIN.role}"
         users.saveAndFlush(user)
 
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isOk)
+        mvc.perform(get("/api/test").cookie(login.cookie)).andExpect(status().isOk)
         assertThat(me(login.cookie)["admin"].asBoolean()).isTrue()
-        mvc.perform(post("/admin/test").cookie(login.cookie)).andExpect(status().isOk)
+        mvc.perform(post("/api/test").cookie(login.cookie)).andExpect(status().isOk)
     }
 
     @Test
@@ -189,12 +189,12 @@ class AdminAuthE2ETest {
     fun givenAdminSession_whenAdminRevoked_thenNextRequestForbidden() {
         val user: User = createUser(RoleType.ADMIN.role)
         val login = login(user)
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isOk)
+        mvc.perform(get("/api/test").cookie(login.cookie)).andExpect(status().isOk)
 
         user.roles = RoleType.USER.role
         users.saveAndFlush(user)
 
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/api/test").cookie(login.cookie)).andExpect(status().isForbidden)
         assertThat(me(login.cookie)["admin"].asBoolean()).isFalse()
     }
 
@@ -202,7 +202,7 @@ class AdminAuthE2ETest {
     @DisplayName("ADMIN과 이름이 비슷한 다른 권한은 관리자 권한으로 인정하지 않는다")
     fun givenSimilarRole_whenRequestingAdmin_thenForbidden() {
         val login = login(createUser("ROLE_ADMINISTRATOR"))
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/api/test").cookie(login.cookie)).andExpect(status().isForbidden)
     }
 
     @Test
@@ -212,7 +212,7 @@ class AdminAuthE2ETest {
         val login = login(user)
         users.deleteById(user.id!!)
 
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/api/test").cookie(login.cookie)).andExpect(status().isForbidden)
     }
 
     @Test
@@ -220,7 +220,7 @@ class AdminAuthE2ETest {
     fun givenAdminSession_whenWritingWithoutCsrf_thenWriteAllowed() {
         val login = login(createUser(RoleType.ADMIN.role))
 
-        mvc.perform(post("/admin/test").cookie(login.cookie)).andExpect(status().isOk)
+        mvc.perform(post("/api/test").cookie(login.cookie)).andExpect(status().isOk)
         assertThat(routes.writes.get()).isEqualTo(1)
     }
 
@@ -231,24 +231,24 @@ class AdminAuthE2ETest {
     }
 
     @Test
-    @DisplayName("버전 prefix 가 있던 이전 경로는 ADMIN 세션으로도 404 다")
-    fun givenAdminSession_whenRequestingVersionedPath_thenNotFound() {
+    @DisplayName("/api 로 옮기기 전의 /api 경로는 ADMIN 세션으로도 열리지 않는다")
+    fun givenAdminSession_whenRequestingLegacyAdminPath_thenForbidden() {
         val login = login(createUser(RoleType.ADMIN.role))
 
-        mvc.perform(get("/admin/v1/auth/me").cookie(login.cookie)).andExpect(status().isNotFound)
+        mvc.perform(get("/admin/auth/me").cookie(login.cookie)).andExpect(status().isForbidden)
     }
 
     @Test
     @DisplayName("로그아웃은 POST만 받고 이후 기존 세션을 재사용할 수 없다")
     fun givenPendingSession_whenLoggingOut_thenOnlyPostDeletesSession() {
         val login = login(createUser())
-        mvc.perform(get("/admin/auth/logout").cookie(login.cookie))
+        mvc.perform(get("/api/auth/logout").cookie(login.cookie))
         assertThat(sessions.findById(login.id)).isNotNull()
 
-        mvc.perform(post("/admin/auth/logout").cookie(login.cookie)).andExpect(status().isOk)
+        mvc.perform(post("/api/auth/logout").cookie(login.cookie)).andExpect(status().isOk)
 
         assertThat(sessions.findById(login.id)).isNull()
-        mvc.perform(get("/admin/auth/me").cookie(login.cookie)).andExpect(status().isUnauthorized)
+        mvc.perform(get("/api/auth/me").cookie(login.cookie)).andExpect(status().isUnauthorized)
     }
 
     @Test
@@ -259,13 +259,13 @@ class AdminAuthE2ETest {
         session.lastAccessedTime = Instant.now().minus(Duration.ofMinutes(31))
         sessions.save(session)
 
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isUnauthorized)
+        mvc.perform(get("/api/test").cookie(login.cookie)).andExpect(status().isUnauthorized)
     }
 
     @Test
     @DisplayName("Google 로그인 시작은 인증 요청을 JDBC 세션에 저장하고 Google로 이동한다")
     fun givenAnonymous_whenStartingGoogleLogin_thenStateAndSessionPersisted() {
-        val response = mvc.perform(get("/oauth2/authorization/google"))
+        val response = mvc.perform(get("/api/oauth2/authorization/google"))
             .andExpect(status().is3xxRedirection).andReturn().response
 
         assertThat(response.redirectedUrl).startsWith("https://accounts.google.com/")
@@ -287,7 +287,7 @@ class AdminAuthE2ETest {
     private fun login(user: User): AdminTestSession.Login = AdminTestSession.login(jdbcSessions, user)
 
     private fun me(cookie: Cookie): JsonNode {
-        val response = mvc.perform(get("/admin/auth/me").cookie(cookie))
+        val response = mvc.perform(get("/api/auth/me").cookie(cookie))
             .andExpect(status().isOk).andReturn().response
         val body: JsonNode = objectMapper.readTree(response.contentAsString)
         assertThat(body["resultCode"].asText()).isEqualTo("D-0")
@@ -297,7 +297,7 @@ class AdminAuthE2ETest {
 
 @TestComponent
 @RestController
-@RequestMapping("/admin/test")
+@RequestMapping("/api/test")
 class AdminAuthTestController {
     val writes = AtomicInteger()
 

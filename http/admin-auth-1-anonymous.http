@@ -6,7 +6,7 @@
 ### O-D-1 로그인하지 않은 me 는 401 D-999 이고 로그인 화면으로 보내지 않는다
 # @no-cookie-jar
 # @no-redirect
-GET {{adminHost}}/admin/auth/me
+GET {{adminHost}}/api/auth/me
 
 > {%
     client.test("O-D-1 익명 me 401", () => {
@@ -18,7 +18,7 @@ GET {{adminHost}}/admin/auth/me
 ### O-D-2 Google 로그인 시작은 state·nonce 와 staging 콜백 주소를 담아 Google 로 보낸다
 # @no-cookie-jar
 # @no-redirect
-GET {{adminHost}}/oauth2/authorization/google
+GET {{adminHost}}/api/oauth2/authorization/google
 
 > {%
     client.test("O-D-2 Google 로그인 시작", () => {
@@ -36,7 +36,7 @@ GET {{adminHost}}/oauth2/authorization/google
 
 ### O-D-3 로그인하지 않은 업로드 티켓 요청은 401
 # @no-cookie-jar
-POST {{adminHost}}/admin/media/upload
+POST {{adminHost}}/api/media/upload
 Content-Type: application/json
 
 {"items":[{"mediaType":"POSE","contentType":"image/png"}]}

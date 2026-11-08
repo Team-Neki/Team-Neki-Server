@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/admin/auth")
+@RequestMapping("/api/auth")
 class AdminAuthController(private val accountFacade: AdminAccountFacade) {
     @Operation(summary = "현재 로그인 사용자와 ADMIN 권한 조회")
     @GetMapping("/me")
