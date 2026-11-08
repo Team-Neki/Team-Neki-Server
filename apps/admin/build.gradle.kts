@@ -22,6 +22,7 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
     implementation("io.micrometer:micrometer-core")
 
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
     testRuntimeOnly("com.h2database:h2")
     testRuntimeOnly("org.testcontainers:postgresql")
 }

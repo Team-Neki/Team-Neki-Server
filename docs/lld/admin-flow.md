@@ -40,7 +40,7 @@ Request -> Controller -> Mapper(toCommand/toQuery) -> Facade -> 도메인 Servic
 
 | 항목 | apps:api | apps:admin |
 | --- | --- | --- |
-| application 계층 | `*UseCase` (기능 단위 클래스) | `*Facade` (도메인 단위 클래스) |
+| application 계층 | `*UseCase` (기능 단위 클래스, `@UseCase`) | `*Facade` (도메인 단위 클래스, `@Service`) |
 | DTO | `Request`/`Response`/`Converter` 분리 | `XxxAdminDto` object 하위 중첩 + Mapper 확장 함수 |
 | 인증 | JWT (`@AuthenticationPrincipal`) | 소셜 OAuth2 로그인·JDBC 세션, 요청마다 현재 DB ADMIN 권한 확인 |
 | media 검증 | `MediaClient.verifyMediasUploaded` 후 보상 롤백 | 공유 트랜잭션에서 S3 존재 확인·상태 전환 |

@@ -219,7 +219,7 @@ admin 인증처럼 단일 도메인 객체를 한 번만 `Result`로 옮기는 �
 - 도메인 격리 : api·application·엔티티·domain infra 계층이 다른 도메인을 의존하지 않음
 - 계층 의존 : application이 api·infra를 의존하지 않음, domain(models/dto/service/repository/client/external)이 자기 도메인 infra를 의존하지 않음
 - DTO 배치 : Request·Response는 api, Command·Query는 domain dto, Result는 application
-- 어노테이션 배치 : `@UseCase`는 application, `@RestController`는 api.controller, `@Repository`는 infra
+- 어노테이션 배치 : `@UseCase`는 application, `@RestController`는 api.controller, `@Repository`는 infra. 단, admin의 application은 `@UseCase` 대신 `@Service`를 쓰며 `AdminArchitectureRulesTest`가 검사함
 
 DTO 배치 규칙은 이름 접미사만 보고 판단하므로 접미사가 우연히 겹치는 공유 커널 값 객체까지 걸립니다. 따라서 `com.neki.common.domain..`은 검사 대상에서 제외합니다.
 
