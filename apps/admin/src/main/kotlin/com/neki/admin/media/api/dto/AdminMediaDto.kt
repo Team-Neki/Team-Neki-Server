@@ -1,4 +1,4 @@
-package com.neki.admin.common.media
+package com.neki.admin.media.api.dto
 
 import com.neki.domain.media.models.MediaType
 import jakarta.validation.Valid

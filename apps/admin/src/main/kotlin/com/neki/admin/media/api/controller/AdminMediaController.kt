@@ -1,5 +1,7 @@
-package com.neki.admin.common.media
+package com.neki.admin.media.api.controller
 
+import com.neki.admin.media.api.dto.AdminMediaDto
+import com.neki.admin.media.application.AdminMediaUploadFacade
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.media.dto.MediaCommand
 import com.neki.domain.media.models.MediaUploadTickets

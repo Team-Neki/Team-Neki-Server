@@ -3,7 +3,7 @@ package com.neki.admin.auth
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.application.AdminAccountFacade
-import com.neki.admin.common.media.JpaAdminMediaRepository
+import com.neki.admin.media.infra.persist.jpa.JpaAdminMediaRepository
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.media.models.MediaType
 import com.neki.domain.user.dto.UserCommand

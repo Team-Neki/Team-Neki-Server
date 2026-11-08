@@ -1,4 +1,4 @@
-package com.neki.admin.common.media
+package com.neki.admin.media.infra.persist.jpa
 
 import com.neki.domain.media.models.Media
 import org.springframework.data.jpa.repository.JpaRepository

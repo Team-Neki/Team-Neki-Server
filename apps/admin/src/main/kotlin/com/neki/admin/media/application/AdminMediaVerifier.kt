@@ -1,5 +1,6 @@
-package com.neki.admin.common.media
+package com.neki.admin.media.application
 
+import com.neki.admin.media.infra.persist.jpa.JpaAdminMediaRepository
 import com.neki.core.code.ResultCode
 import com.neki.core.exception.BusinessException
 import com.neki.domain.media.external.MediaStorage
