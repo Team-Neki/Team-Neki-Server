@@ -17,14 +17,10 @@ import org.springframework.transaction.annotation.Transactional
 class AdminMediaUploadFacade(private val mediaRepository: MediaRepository, private val mediaStorage: MediaStorage) {
     @Transactional
     fun issueTickets(command: MediaCommand.GenerateAdminUploadTicket): MediaUploadTickets {
-        if (command.items.isEmpty()) throw BusinessException(ResultCode.INVALID_PARAMETER)
-
         val tickets: List<MediaUploadTicket> = command.items.map { item ->
             val type = item.mediaType
             val contentType = item.contentType
-            if (type !in setOf(MediaType.LOGO, MediaType.POSE) ||
-                contentType !in setOf("image/jpeg", "image/png", "image/webp")
-            ) {
+            if (type !in ALLOWED_MEDIA_TYPES || contentType !in ALLOWED_CONTENT_TYPES) {
                 throw BusinessException(ResultCode.INVALID_PARAMETER)
             }
 
@@ -45,5 +41,10 @@ class AdminMediaUploadFacade(private val mediaRepository: MediaRepository, priva
         }
 
         return MediaUploadTickets(tickets)
+    }
+
+    companion object {
+        private val ALLOWED_MEDIA_TYPES: Set<MediaType> = setOf(MediaType.LOGO, MediaType.POSE)
+        private val ALLOWED_CONTENT_TYPES: Set<String> = setOf("image/jpeg", "image/png", "image/webp")
     }
 }
