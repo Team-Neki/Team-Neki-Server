@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/admin/media")
-class AdminMediaController(private val uploads: AdminMediaUploadFacade) {
+class AdminMediaController(private val mediaUploadFacade: AdminMediaUploadFacade) {
     @PostMapping("/upload")
     fun upload(
         @AuthenticationPrincipal(expression = "userId") uploaderId: Long,
@@ -32,7 +32,7 @@ class AdminMediaController(private val uploads: AdminMediaUploadFacade) {
                 )
             },
         )
-        val tickets: MediaUploadTickets = uploads.issueTickets(command)
+        val tickets: MediaUploadTickets = mediaUploadFacade.issueTickets(command)
         val response = AdminMediaDto.UploadResponse(
             method = tickets.firstTicket().method,
             expiresAt = tickets.firstTicket().expiresAt,

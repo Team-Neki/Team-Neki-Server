@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/admin/auth")
-class AdminAuthController(private val accounts: AdminAccountFacade) {
+class AdminAuthController(private val accountFacade: AdminAccountFacade) {
     @Operation(summary = "현재 로그인 사용자와 ADMIN 권한 조회")
     @GetMapping("/me")
     fun me(
         @AuthenticationPrincipal(expression = "userId") userId: Long,
         @AuthenticationPrincipal(expression = "identityKey") identityKey: String,
     ): BaseResponse<AdminAuthResponse> {
-        val user: AdminAccountResult = accounts.findActive(UserCommand.AdminAccountAccess(userId, identityKey))
+        val user: AdminAccountResult = accountFacade.findActive(UserCommand.AdminAccountAccess(userId, identityKey))
             ?: throw BadCredentialsException("사용할 수 없는 계정입니다.")
         return BaseResponse(
             data = AdminAuthConverter.from(user),
