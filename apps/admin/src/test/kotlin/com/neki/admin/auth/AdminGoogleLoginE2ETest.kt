@@ -2,13 +2,13 @@ package com.neki.admin.auth
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.neki.admin.auth.application.AdminAccountFacade
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
 import com.neki.domain.user.repository.UserRepository
+import com.neki.domain.user.service.AdminAccountService
 import com.nimbusds.jose.JOSEObjectType
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
@@ -68,7 +68,7 @@ class AdminGoogleLoginE2ETest {
     private lateinit var objectMapper: ObjectMapper
 
     @SpyBean
-    private lateinit var accounts: AdminAccountFacade
+    private lateinit var accounts: AdminAccountService
 
     @BeforeEach
     fun setUp() {

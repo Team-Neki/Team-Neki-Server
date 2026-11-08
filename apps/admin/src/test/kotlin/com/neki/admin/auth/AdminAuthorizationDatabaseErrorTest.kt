@@ -1,9 +1,9 @@
 package com.neki.admin.auth
 
-import com.neki.admin.auth.application.AdminAccountFacade
-import com.neki.domain.user.dto.UserCommand
+import com.neki.domain.user.dto.UserQuery
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
 import com.neki.domain.user.models.RoleType
+import com.neki.domain.user.service.AdminAccountService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doThrow
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,14 +30,14 @@ class AdminAuthorizationDatabaseErrorTest {
 
     @Autowired private lateinit var sessions: JdbcIndexedSessionRepository
 
-    @SpyBean private lateinit var accounts: AdminAccountFacade
+    @SpyBean private lateinit var accounts: AdminAccountService
 
     @Test
     fun databaseFailureDuringAuthorizationReturns503() {
         val user = AdminTestSession.createUser(users, RoleType.ADMIN.role)
         val login = AdminTestSession.login(sessions, user)
         doThrow(DataRetrievalFailureException("database unavailable"))
-            .`when`(accounts).isAdmin(UserCommand.AdminAccountAccess(user.id!!))
+            .`when`(accounts).isAdmin(UserQuery.GetActiveAdminAccount(user.id!!))
 
         mvc.perform(get("/api/test").cookie(login.cookie))
             .andExpect(status().isServiceUnavailable)

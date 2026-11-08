@@ -1,8 +1,8 @@
 package com.neki.admin
 
-import com.neki.admin.auth.application.AdminAccountFacade
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
+import com.neki.domain.user.service.AdminAccountService
 import org.assertj.core.api.Assertions.assertThat
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.DisplayName
@@ -58,7 +58,7 @@ class AdminProductionSchemaTest {
     }
 
     @Autowired
-    private lateinit var accountFacade: AdminAccountFacade
+    private lateinit var accounts: AdminAccountService
 
     @Autowired
     private lateinit var users: JpaUserRepository
@@ -76,7 +76,7 @@ class AdminProductionSchemaTest {
             val futures = (1..8).map {
                 executor.submit<Long> {
                     start.await()
-                    accountFacade.findOrCreate(UserCommand.RegisterAdminAccount(email, "동시 로그인"))
+                    accounts.findOrCreate(UserCommand.RegisterAdminAccount(email, "동시 로그인"))
                 }
             }
             start.countDown()

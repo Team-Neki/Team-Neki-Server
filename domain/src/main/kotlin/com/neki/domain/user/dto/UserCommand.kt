@@ -9,8 +9,6 @@ package com.neki.domain.user.dto
 object UserCommand {
     data class RegisterAdminAccount(val email: String, val name: String?)
 
-    data class AdminAccountAccess(val userId: Long)
-
     data class UpdateUserInfo(val userId: Long, val name: String)
 
     data class UpdateUserProfileImage(val userId: Long, val mediaId: Long?)
