@@ -156,7 +156,7 @@ class AdminGoogleLoginE2ETest {
         val initialCookie = start.getCookie("ADMINSESSION")!!
 
         mvc.perform(
-            get("/login/oauth2/code/google").cookie(initialCookie)
+            get("/api/login/oauth2/code/google").cookie(initialCookie)
                 .param("code", "accepted-code").param("state", parameters.getValue("state")),
         ).andExpect(status().isServiceUnavailable)
             .andExpect(jsonPath("$.resultCode").value("D-99"))
@@ -170,7 +170,7 @@ class AdminGoogleLoginE2ETest {
         provider.nonce = parameters["nonce"].orEmpty()
         val initialCookie: Cookie = start.getCookie("ADMINSESSION")!!
         val callback = mvc.perform(
-            get("/login/oauth2/code/google").cookie(initialCookie)
+            get("/api/login/oauth2/code/google").cookie(initialCookie)
                 .param("code", "accepted-code").param("state", parameters.getValue("state")),
         )
         if (!expectSuccess) {

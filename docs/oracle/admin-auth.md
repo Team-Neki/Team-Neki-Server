@@ -25,12 +25,12 @@
 
 ## O-D. staging 배포 후 검증
 
-admin 은 외부 Ingress 가 없으므로 노드의 port-forward 를 SSH 터널로 로컬 8081 에 엽니다. staging Secret 의 `ADMIN_OAUTH_REDIRECT_URI` 가 `http://localhost:8081/login/oauth2/code/google` 이라 같은 주소로 브라우저 로그인까지 이어집니다.
+admin 은 외부 Ingress 가 없으므로 노드의 port-forward 를 SSH 터널로 로컬 8081 에 엽니다. staging Secret 의 `ADMIN_OAUTH_REDIRECT_URI` 가 `http://localhost:8081/api/login/oauth2/code/google` 이라 같은 주소로 브라우저 로그인까지 이어집니다.
 
 ### 전제
 
 - GitOps #44(`admin-api-stg` Application)가 머지되고, `overlays/admin-api-stg/secret.yaml` 이 `staging` namespace 에 적용됨
-- Google OAuth 클라이언트에 `http://localhost:8081/login/oauth2/code/google` 이 등록됨
+- Google OAuth 클라이언트에 `http://localhost:8081/api/login/oauth2/code/google` 이 등록됨
 - `ijhttp` 설치 : `brew install ijhttp`
 
 ### 준비

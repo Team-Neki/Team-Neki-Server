@@ -5,14 +5,14 @@
 ## 로컬 실행
 
 1. API가 사용하는 PostgreSQL을 준비하고 API의 기존 Flyway 배포 경로로 V44까지 적용합니다. V42는 기존 Google 관리 계정을 `ADMIN_SSO`로 옮깁니다. V43은 관리자 업로드 미디어 표시 컬럼을 추가합니다. V44는 계정 식별을 이메일로 바꿔 `oid`를 비우고 `ADMIN_SSO` 이메일 고유 인덱스를 만든 뒤 이전 형식의 admin 세션을 삭제합니다. `apps/admin`은 Flyway validate만 수행하며 미적용 마이그레이션이 있으면 시작하지 않습니다.
-2. Google Console에 Web application 클라이언트를 만들고 redirect URI `http://localhost:8081/login/oauth2/code/google`을 등록합니다.
+2. Google Console에 Web application 클라이언트를 만들고 redirect URI `http://localhost:8081/api/login/oauth2/code/google`을 등록합니다.
 3. 다음 환경변수를 제공하고 admin을 실행합니다. 로컬 DataSource 기본값은 `modules/postgres` 설정을 따릅니다. 다른 개발 DB를 쓸 때는 Spring DataSource 환경변수 세 개를 모두 지정합니다.
 
    ```sh
    export JASYPT_PASSWORD='기존 API 환경의 Jasypt 키'
    export GOOGLE_CLIENT_ID='실제 Google Web client ID'
    export GOOGLE_CLIENT_SECRET='실제 Google client secret'
-   export ADMIN_OAUTH_REDIRECT_URI='http://localhost:8081/login/oauth2/code/google'
+   export ADMIN_OAUTH_REDIRECT_URI='http://localhost:8081/api/login/oauth2/code/google'
    ./gradlew :apps:admin:bootRun
    ```
 
@@ -34,6 +34,8 @@
 관리자 이미지는 세션으로 `POST /admin/media/upload`에 업로드 티켓을 요청합니다. 항목은 `mediaType`(`LOGO` 또는 `POSE`), `contentType`(`image/jpeg`, `image/png`, `image/webp`)과 선택적 크기 정보로 구성합니다. 반환된 URL에 해당 Content-Type으로 PUT한 뒤 Brand/Pose 등록·수정에 `mediaId`를 전달합니다. `TB_MEDIA.owner_id`는 티켓을 발급한 관리자의 사용자 ID이며, 관리자 경로에서 만든 미디어는 공동 관리 대상으로 표시합니다. 관리 권한이 있는 다른 사용자도 해당 미디어를 Brand/Pose에 연결할 수 있습니다. 일반 사용자 업로드 미디어는 관리자 콘텐츠에 연결할 수 없습니다.
 
 Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location` 응답 헤더, 클라이언트가 전송한 Cookie 요청 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
+
+redirect URI는 Spring의 `ADMIN_OAUTH_REDIRECT_URI` 설정값이 정본입니다. Spring은 이 값을 Google 인증 요청과 code 교환에 그대로 쓰고, 요청 헤더로 다시 계산하지 않습니다. 따라서 Next가 redirect URI를 만들거나 Spring이 Next 경로를 내려줄 필요는 없습니다. 운영에서는 `https://<어드민 웹 공개 도메인>/api/login/oauth2/code/google`로 설정하고 Google Console에 같은 값을 등록합니다. Next는 `/api/login/oauth2/code/*`를 prefix를 떼지 않고 Spring의 같은 경로로 중계합니다. 로그인 시작도 같은 origin을 거쳐야 OAuth state를 담은 `ADMINSESSION` 쿠키가 콜백까지 이어집니다.
 
 ## 수동 권한 부여
 

@@ -30,7 +30,7 @@ class SessionSecurityConfig {
         // SameSite=Lax 세션 쿠키가 막으므로 CSRF 토큰을 쓰지 않는다. 대신 상태 변경은 GET으로 받지 않는다.
         .csrf { it.disable() }
         .authorizeHttpRequests {
-            it.requestMatchers("/oauth2/authorization/*", "/login/oauth2/code/*").permitAll()
+            it.requestMatchers("/oauth2/authorization/*", CALLBACK_PATH).permitAll()
             // prod 는 springdoc 을 끄므로 이 경로는 404 다. local·staging 에서만 문서가 열린다.
             it.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
             it.requestMatchers(HttpMethod.GET, "/admin/auth/me").authenticated()
@@ -39,6 +39,8 @@ class SessionSecurityConfig {
             it.anyRequest().denyAll()
         }
         .oauth2Login {
+            // Next 가 /api 아래 경로를 Spring 으로 그대로 중계하므로 콜백도 /api 아래에서 받는다.
+            it.redirectionEndpoint { endpoint -> endpoint.baseUri(CALLBACK_PATH) }
             it.userInfoEndpoint { endpoint -> endpoint.oidcUserService(oidcUsers) }
             // 내부 Service host가 브라우저로 노출되지 않도록 동일 origin의 상대 경로를 전달한다.
             it.successHandler { _, response, _ ->
@@ -64,4 +66,8 @@ class SessionSecurityConfig {
             it.logoutSuccessHandler(responses)
         }
         .build()
+
+    companion object {
+        private const val CALLBACK_PATH = "/api/login/oauth2/code/*"
+    }
 }

@@ -278,7 +278,7 @@ class AdminAuthE2ETest {
     @DisplayName("저장된 로그인 요청과 일치하지 않는 Google 콜백은 인증에 실패한다")
     fun givenUnknownState_whenReceivingGoogleCallback_thenUnauthorized() {
         mvc.perform(
-            get("/login/oauth2/code/google").param("code", "unused-code").param("state", "unknown-state"),
+            get("/api/login/oauth2/code/google").param("code", "unused-code").param("state", "unknown-state"),
         ).andExpect(status().isUnauthorized)
     }
 

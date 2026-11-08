@@ -188,7 +188,7 @@ Spring의 인증 상태와 OAuth 진행 중 세션을 같은 JDBC 저장소에 �
 | 메서드와 경로 | 용도 | 접근 조건 |
 |---|---|---|
 | `GET /oauth2/authorization/google` | Google 로그인 시작 | 익명 허용, 브라우저 이동으로 호출 |
-| `GET /login/oauth2/code/google` | Google 콜백 | 별도 로그인은 요구하지 않으며 OAuth 요청 상관관계 검증 필수 |
+| `GET /api/login/oauth2/code/google` | Google 콜백 | 별도 로그인은 요구하지 않으며 OAuth 요청 상관관계 검증 필수 |
 | `GET /admin/auth/me` | 본인·현재 ADMIN 권한·세션 상태 조회 | Google 인증 세션의 본인. 대기·권한 회수 상태 포함 |
 | `POST /admin/auth/logout` | 세션 무효화와 쿠키 삭제 | 유효한 세션. GET은 로그아웃하지 않음 |
 | 그 외 `/admin/**` | Brand·Pose 등 관리 API | 유효한 Google 로그인 세션과 현재 DB의 ADMIN 권한 |

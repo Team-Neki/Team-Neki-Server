@@ -27,7 +27,7 @@ GET {{adminHost}}/oauth2/authorization/google
         client.assert(location.startsWith("https://accounts.google.com/"), "Location=" + location);
         client.assert(location.includes("state=") && location.includes("nonce="), "state/nonce 없음: " + location);
         client.assert(
-            location.includes("redirect_uri=" + encodeURIComponent(request.environment.get("adminHost") + "/login/oauth2/code/google")),
+            location.includes("redirect_uri=" + encodeURIComponent(request.environment.get("adminHost") + "/api/login/oauth2/code/google")),
             "redirect_uri 가 터널 주소와 다름. staging Secret 의 ADMIN_OAUTH_REDIRECT_URI 확인: " + location,
         );
         client.assert((response.headers.valueOf("Set-Cookie") || "").includes("ADMINSESSION="), "ADMINSESSION 쿠키 없음");
