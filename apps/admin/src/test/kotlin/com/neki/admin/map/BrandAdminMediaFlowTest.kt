@@ -97,7 +97,7 @@ class BrandAdminMediaFlowTest {
 
     private fun issueMediaAsUploader(): Media {
         val response = mockMvc.perform(
-            post("/admin/media/upload").cookie(uploaderCookie)
+            post("/api/media/upload").cookie(uploaderCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"items":[{"mediaType":"LOGO","contentType":"image/png"}]}"""),
         ).andExpect(status().isOk).andReturn().response
@@ -114,7 +114,7 @@ class BrandAdminMediaFlowTest {
     fun addBrandStoresMediaId() {
         val media: Media = issueMediaAsUploader()
         mockMvc.perform(
-            adminPost("/admin/brand")
+            adminPost("/api/brand")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":${media.id},
@@ -128,7 +128,7 @@ class BrandAdminMediaFlowTest {
         mediaRepository.findById(media.id!!).get().ownerId shouldBe uploaderId
         mediaRepository.findById(media.id!!).get().status shouldBe MediaStatus.UPLOADED
 
-        mockMvc.perform(get("/admin/brand").cookie(adminCookie))
+        mockMvc.perform(get("/api/brand").cookie(adminCookie))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.brandInfos[0].id").value(saved.id))
             .andExpect(jsonPath("$.data.brandInfos[0].code").value("PHOTOGRAY"))
@@ -142,7 +142,7 @@ class BrandAdminMediaFlowTest {
         val media: Media = seedMedia()
 
         mockMvc.perform(
-            adminPatch("/admin/brand/{brandId}", brand.id!!)
+            adminPatch("/api/brand/{brandId}", brand.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"mediaId":${media.id}}"""),
         ).andExpect(status().isOk)
@@ -169,7 +169,7 @@ class BrandAdminMediaFlowTest {
         )
 
         mockMvc.perform(
-            adminPatch("/admin/brand/{brandId}", brand.id!!)
+            adminPatch("/api/brand/{brandId}", brand.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"name":"포토그레이","mediaId":${legacy.id},"exposeToMap":false}"""),
         ).andExpect(status().isOk)
@@ -184,7 +184,7 @@ class BrandAdminMediaFlowTest {
         val media: Media = seedMedia(DomainMediaType.POSE)
 
         mockMvc.perform(
-            adminPost("/admin/brand")
+            adminPost("/api/brand")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":${media.id},
@@ -211,7 +211,7 @@ class BrandAdminMediaFlowTest {
         )
 
         mockMvc.perform(
-            adminPost("/admin/brand")
+            adminPost("/api/brand")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":${ordinary.id},
@@ -230,7 +230,7 @@ class BrandAdminMediaFlowTest {
         val brand: Brand = seedBrand()
 
         mockMvc.perform(
-            adminPatch("/admin/brand/{brandId}", brand.id!!)
+            adminPatch("/api/brand/{brandId}", brand.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"name":"포토이즘"}"""),
         ).andExpect(status().isOk)
@@ -246,7 +246,7 @@ class BrandAdminMediaFlowTest {
         val brand: Brand = seedBrand()
 
         mockMvc.perform(
-            adminPatch("/admin/brand/{brandId}", brand.id!!)
+            adminPatch("/api/brand/{brandId}", brand.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"),
         )
@@ -258,17 +258,17 @@ class BrandAdminMediaFlowTest {
     fun blankBrandFieldsAndCodeChangeReturn400() {
         val brand = seedBrand()
         mockMvc.perform(
-            adminPost("/admin/brand").contentType(MediaType.APPLICATION_JSON)
+            adminPost("/api/brand").contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"name":"  ","code":" ","mediaId":1,"supportAndroidQr":true,"supportIosQr":true,"exposeToMap":true}""",
                 ),
         ).andExpect(status().isBadRequest)
         mockMvc.perform(
-            adminPatch("/admin/brand/{brandId}", brand.id!!).contentType(MediaType.APPLICATION_JSON)
+            adminPatch("/api/brand/{brandId}", brand.id!!).contentType(MediaType.APPLICATION_JSON)
                 .content("""{"name":"  "}"""),
         ).andExpect(status().isBadRequest)
         mockMvc.perform(
-            adminPatch("/admin/brand/{brandId}", brand.id!!).contentType(MediaType.APPLICATION_JSON)
+            adminPatch("/api/brand/{brandId}", brand.id!!).contentType(MediaType.APPLICATION_JSON)
                 .content("""{"code":"NEW_CODE"}"""),
         ).andExpect(status().isBadRequest)
         brandRepository.findById(brand.id!!).get().code shouldBe "PHOTOGRAY"
@@ -279,7 +279,7 @@ class BrandAdminMediaFlowTest {
         val brand = seedBrand()
         jdbcTemplate.update("INSERT INTO TB_PHOTO_BOOTH_MANUAL (id, brand_id) VALUES (?, ?)", 999L, brand.id)
 
-        mockMvc.perform(adminDelete("/admin/brand/{brandId}", brand.id!!))
+        mockMvc.perform(adminDelete("/api/brand/{brandId}", brand.id!!))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.BRAND_IN_USE.code))
         brandRepository.findById(brand.id!!).get().deletedAt shouldBe null
@@ -295,7 +295,7 @@ class BrandAdminMediaFlowTest {
             brand.id,
         )
 
-        mockMvc.perform(adminDelete("/admin/brand/{brandId}", brand.id!!))
+        mockMvc.perform(adminDelete("/api/brand/{brandId}", brand.id!!))
             .andExpect(status().isOk)
     }
 
@@ -316,7 +316,7 @@ class BrandAdminMediaFlowTest {
             brand.code,
         )
 
-        mockMvc.perform(adminDelete("/admin/brand/{brandId}", brand.id!!))
+        mockMvc.perform(adminDelete("/api/brand/{brandId}", brand.id!!))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.BRAND_IN_USE.code))
         brandRepository.findById(brand.id!!).get().deletedAt shouldBe null
@@ -326,7 +326,7 @@ class BrandAdminMediaFlowTest {
     @DisplayName("존재하지 않는 브랜드를 수정하면 400 NOT_FOUND")
     fun updateMissingBrandReturnsNotFound() {
         mockMvc.perform(
-            adminPatch("/admin/brand/{brandId}", 99999L)
+            adminPatch("/api/brand/{brandId}", 99999L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"mediaId":2}"""),
         )
@@ -339,7 +339,7 @@ class BrandAdminMediaFlowTest {
     fun deleteBrandIsSoftDelete() {
         val brand: Brand = seedBrand()
 
-        mockMvc.perform(adminDelete("/admin/brand/{brandId}", brand.id!!))
+        mockMvc.perform(adminDelete("/api/brand/{brandId}", brand.id!!))
             .andExpect(status().isOk)
 
         // soft delete된 행은 @SQLRestriction 때문에 JPA로는 보이지 않으므로 native SQL로 확인한다
