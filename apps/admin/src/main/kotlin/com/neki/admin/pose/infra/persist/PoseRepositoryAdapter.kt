@@ -53,8 +53,6 @@ class PoseRepositoryAdapter(
 
     override fun findPoseByOffset(offset: Long, headCount: HeadCount, excludeIds: List<Long>): Pose? = unsupported()
 
-    override fun incrementViewCount(poseId: Long) = unsupported()
-
     private fun unsupported(): Nothing =
         throw UnsupportedOperationException("apps:api 전용 기능이다. apps:admin 에서는 호출 경로가 없다.")
 }

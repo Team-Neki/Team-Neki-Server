@@ -69,7 +69,6 @@ object PoseAdminDto {
                 val headCount: HeadCount,
                 val memo: String?,
                 val updatedAt: LocalDateTime,
-                val viewCount: Long,
             )
 
             companion object {
@@ -84,7 +83,6 @@ object PoseAdminDto {
                             it.headCount,
                             it.memo,
                             it.updatedAt!!,
-                            it.viewCount,
                         )
                     },
                 )

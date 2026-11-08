@@ -37,9 +37,9 @@ class AdminAuthorizationDatabaseErrorTest {
         val user = AdminTestSession.createUser(users, RoleType.ADMIN.role)
         val login = AdminTestSession.login(sessions, user)
         doThrow(DataRetrievalFailureException("database unavailable"))
-            .`when`(accounts).isAdmin(UserCommand.AdminAccountAccess(user.id!!, user.oid!!))
+            .`when`(accounts).isAdmin(UserCommand.AdminAccountAccess(user.id!!))
 
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie))
+        mvc.perform(get("/admin/test").cookie(login.cookie))
             .andExpect(status().isServiceUnavailable)
             .andExpect(jsonPath("$.resultCode").value("D-99"))
     }

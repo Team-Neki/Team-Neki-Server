@@ -1,6 +1,6 @@
 package com.neki.admin.pose.application
 
-import com.neki.admin.common.media.AdminMediaVerifier
+import com.neki.admin.media.application.AdminMediaVerifier
 import com.neki.admin.pose.api.PoseAdminDto
 import com.neki.core.domain.vo.CountedPage
 import com.neki.domain.media.models.MediaType

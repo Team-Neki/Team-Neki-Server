@@ -2,9 +2,9 @@ package com.neki.admin.pose
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.AdminTestSession
-import com.neki.admin.common.media.JpaAdminMediaRepository
 import com.neki.admin.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.core.code.ResultCode
+import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.pose.models.HeadCount
@@ -49,7 +49,7 @@ class PoseAdminMediaFlowTest {
     lateinit var poseRepository: JpaPoseRepository
 
     @Autowired
-    lateinit var mediaRepository: JpaAdminMediaRepository
+    lateinit var mediaRepository: JpaMediaRepository
 
     @Autowired
     lateinit var userRepository: JpaUserRepository
@@ -58,9 +58,7 @@ class PoseAdminMediaFlowTest {
     lateinit var sessions: JdbcIndexedSessionRepository
 
     private lateinit var adminCookie: Cookie
-    private lateinit var csrf: String
     private lateinit var uploaderCookie: Cookie
-    private lateinit var uploaderCsrf: String
     private var uploaderId: Long = 0
 
     @BeforeEach
@@ -70,10 +68,8 @@ class PoseAdminMediaFlowTest {
         val uploader = AdminTestSession.createUser(userRepository, RoleType.ADMIN.role)
         uploaderId = uploader.id!!
         uploaderCookie = AdminTestSession.login(sessions, uploader).cookie
-        uploaderCsrf = AdminTestSession.csrf(mockMvc, uploaderCookie)
         val actingAdmin = AdminTestSession.createUser(userRepository, RoleType.ADMIN.role)
         adminCookie = AdminTestSession.login(sessions, actingAdmin).cookie
-        csrf = AdminTestSession.csrf(mockMvc, adminCookie)
     }
 
     private fun seedMedia(type: DomainMediaType = DomainMediaType.POSE): Media = mediaRepository.save(
@@ -86,15 +82,13 @@ class PoseAdminMediaFlowTest {
         ),
     )
 
-    private fun adminPost(path: String) = post(path).cookie(adminCookie).header("X-CSRF-TOKEN", csrf)
+    private fun adminPost(path: String) = post(path).cookie(adminCookie)
 
-    private fun adminPatch(path: String, vararg uriVariables: Any) =
-        patch(path, *uriVariables).cookie(adminCookie).header("X-CSRF-TOKEN", csrf)
+    private fun adminPatch(path: String, vararg uriVariables: Any) = patch(path, *uriVariables).cookie(adminCookie)
 
     private fun issueMediaAsUploader(): Media {
         val response = mockMvc.perform(
-            post("/admin/v1/media/upload").cookie(uploaderCookie)
-                .header("X-CSRF-TOKEN", uploaderCsrf)
+            post("/admin/media/upload").cookie(uploaderCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"items":[{"mediaType":"POSE","contentType":"image/png"}]}"""),
         ).andExpect(status().isOk).andReturn().response
@@ -110,7 +104,7 @@ class PoseAdminMediaFlowTest {
         val first: Media = issueMediaAsUploader()
         val second: Media = seedMedia()
         mockMvc.perform(
-            adminPost("/admin/v1/pose")
+            adminPost("/admin/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"uploads":[
@@ -132,7 +126,7 @@ class PoseAdminMediaFlowTest {
     @DisplayName("중복 mediaId가 섞이면 400이고 아무것도 저장되지 않는다")
     fun duplicateMediaIdsStoreNothing() {
         mockMvc.perform(
-            adminPost("/admin/v1/pose")
+            adminPost("/admin/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"uploads":[
@@ -150,7 +144,7 @@ class PoseAdminMediaFlowTest {
     @Test
     fun missingMediaIdInUploadReturnsInvalidParameter() {
         mockMvc.perform(
-            adminPost("/admin/v1/pose")
+            adminPost("/admin/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"uploads":[{"mediaId":null,"headCount":"ONE","memo":null}]}"""),
         )
@@ -163,12 +157,12 @@ class PoseAdminMediaFlowTest {
     @Test
     fun emptyUploadsAndOversizedMemoReturn400() {
         mockMvc.perform(
-            adminPost("/admin/v1/pose").contentType(MediaType.APPLICATION_JSON).content("""{"uploads":[]}"""),
+            adminPost("/admin/pose").contentType(MediaType.APPLICATION_JSON).content("""{"uploads":[]}"""),
         ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
 
         mockMvc.perform(
-            adminPost("/admin/v1/pose").contentType(MediaType.APPLICATION_JSON)
+            adminPost("/admin/pose").contentType(MediaType.APPLICATION_JSON)
                 .content("""{"uploads":[{"mediaId":1,"headCount":"ONE","memo":"${"a".repeat(256)}"}]}"""),
         ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
@@ -183,7 +177,7 @@ class PoseAdminMediaFlowTest {
         val media: Media = seedMedia()
 
         mockMvc.perform(
-            adminPatch("/admin/v1/pose/{poseId}", pose.id!!)
+            adminPatch("/admin/pose/{poseId}", pose.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"mediaId":${media.id}}"""),
         ).andExpect(status().isOk)
@@ -195,7 +189,7 @@ class PoseAdminMediaFlowTest {
     @Test
     fun missingMediaDoesNotCreatePose() {
         mockMvc.perform(
-            adminPost("/admin/v1/pose")
+            adminPost("/admin/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"uploads":[{"mediaId":99999,"headCount":"ONE","memo":null}]}"""),
         )
@@ -219,7 +213,7 @@ class PoseAdminMediaFlowTest {
         )
 
         mockMvc.perform(
-            adminPost("/admin/v1/pose")
+            adminPost("/admin/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"uploads":[{"mediaId":${ordinary.id},"headCount":"ONE"}]}"""),
         )
@@ -235,7 +229,7 @@ class PoseAdminMediaFlowTest {
         val pose: Pose = seedPose()
 
         mockMvc.perform(
-            adminPatch("/admin/v1/pose/{poseId}", pose.id!!)
+            adminPatch("/admin/pose/{poseId}", pose.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"),
         )
@@ -249,7 +243,7 @@ class PoseAdminMediaFlowTest {
     @DisplayName("존재하지 않는 포즈를 교체하면 400 NOT_FOUND")
     fun updateMissingPoseReturnsNotFound() {
         mockMvc.perform(
-            adminPatch("/admin/v1/pose/{poseId}", 99999L)
+            adminPatch("/admin/pose/{poseId}", 99999L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"mediaId":20}"""),
         )

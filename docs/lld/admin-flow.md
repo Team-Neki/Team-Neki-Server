@@ -40,9 +40,9 @@ Request -> Controller -> Mapper(toCommand/toQuery) -> Facade -> 도메인 Servic
 
 | 항목 | apps:api | apps:admin |
 | --- | --- | --- |
-| application 계층 | `*UseCase` (기능 단위 클래스) | `*Facade` (도메인 단위 클래스) |
+| application 계층 | `*UseCase` (기능 단위 클래스, `@UseCase`) | `*Facade` (도메인 단위 클래스, `@Service`) |
 | DTO | `Request`/`Response`/`Converter` 분리 | `XxxAdminDto` object 하위 중첩 + Mapper 확장 함수 |
-| 인증 | JWT (`@AuthenticationPrincipal`) | 소셜 OAuth2 로그인·JDBC 세션, 요청마다 현재 DB ADMIN 권한 확인 |
+| 인증 | JWT (`@AuthenticationPrincipal`) | Google OIDC 로그인·JDBC 세션, 요청마다 현재 DB ADMIN 권한 확인 |
 | media 검증 | `MediaClient.verifyMediasUploaded` 후 보상 롤백 | 공유 트랜잭션에서 S3 존재 확인·상태 전환 |
 
 admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade 하나에 조회·등록·수정·삭제를 위임합니다. 기능이 늘어나면 Facade가 비대해질 수 있습니다.
@@ -53,4 +53,4 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 
 ## 현재 제한
 
-Spring Security가 `/admin/v1/**` 요청을 인증·인가하고 변경 요청에 CSRF를 검사합니다. 임시 `AdminWriteGuard`는 제거했습니다. 관리자 업로드 티켓은 업로더의 ID를 `TB_MEDIA.owner_id`에 기록하고 공동 관리 대상으로 표시합니다. Brand/Pose는 이 표시가 있는 미디어만 연결하며, 현재 ADMIN 권한이 있는 다른 관리자도 등록·수정할 수 있습니다.
+Spring Security가 `/admin/**` 요청을 인증·인가합니다. CSRF 토큰은 쓰지 않고 `SameSite=Lax` 세션 쿠키로 다른 사이트의 변경 요청을 막습니다. 임시 `AdminWriteGuard`는 제거했습니다. 관리자 업로드 티켓은 업로더의 ID를 `TB_MEDIA.owner_id`에 기록하고 공동 관리 대상으로 표시합니다. Brand/Pose는 이 표시가 있는 미디어만 연결하며, 현재 ADMIN 권한이 있는 다른 관리자도 등록·수정할 수 있습니다.

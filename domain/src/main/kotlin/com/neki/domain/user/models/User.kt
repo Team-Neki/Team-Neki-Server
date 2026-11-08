@@ -44,7 +44,7 @@ class User(
     constructor(
         email: String?,
         name: String?,
-        oid: String,
+        oid: String?,
         roles: String,
         providerType: ProviderType,
         profileImageId: Long?,
