@@ -33,7 +33,7 @@ GitOps 커밋 성공은 ArgoCD sync/rollout 성공을 보장하지 않는다. Gi
 rollout 확인 절차로 클러스터 상태를 확인한다.
 긴급 롤백은 GitOps의 `chore(admin-api): update image to ...` 커밋을 revert한다. 이전 이미지
 태그는 GHCR에 남아 있어(태그를 덮어쓰지 않음) 재빌드와 승인 없이 돌아간다. `ref`에 이전 커밋 SHA를
-입력해 같은 워크플로를 다시 실행하는 재빌드는 그다음에 한다.
+입력해 같은 워크플로를 다시 실행하는 재빌드는 그다음에 한다. 재빌드도 main에 포함된 SHA만 가능하고, GitOps의 이미지 줄 검사를 통과해야 한다.
 
 ## 현재 앱의 제한
 
