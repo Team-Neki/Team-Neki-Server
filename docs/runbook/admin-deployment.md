@@ -17,7 +17,7 @@ branches 제한이 있어야 막힌다.
 
 ## 최초 실행
 
-1. 실행 모듈 #356과 세션 인증 #361을 머지하고 API를 먼저 배포해 공유 DB의 V41·V42·V43
+1. 실행 모듈 #356과 세션 인증 #361을 머지하고 API를 먼저 배포해 공유 DB의 V41~V44
    마이그레이션을 적용한다. GitOps의 `admin-api` Application/overlay PR을 main에 머지한다.
    `prod` namespace에는 기존 API와 동일한 `neki-secrets/jasypt-password` 및 Google OAuth
    설정을 담은 `neki-admin-api-secret`이 있어야 한다.

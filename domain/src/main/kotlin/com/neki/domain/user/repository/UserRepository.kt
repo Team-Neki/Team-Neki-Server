@@ -14,6 +14,8 @@ interface UserRepository {
 
     fun findByOid(oid: String, provider: ProviderType): User?
 
+    fun findByEmail(email: String, provider: ProviderType): User?
+
     fun findById(id: Long): User?
 
     fun countByOidIsNotNull(): Long

@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class AdminAccountFacade(private val accounts: AdminAccountService) : AdminAccountAccess {
     // 저장 실패 후 새 조회가 가능하도록 각 repository 호출의 트랜잭션을 사용한다.
     override fun findOrCreate(command: UserCommand.RegisterAdminAccount): Long {
-        val query = UserQuery.GetAdminAccount(command.identityKey)
+        val query = UserQuery.GetAdminAccount(command.email)
         accounts.findAdminAccount(query)?.let { return it.id!! }
         return try {
             accounts.registerAdminAccount(command).id!!
@@ -26,9 +26,7 @@ class AdminAccountFacade(private val accounts: AdminAccountService) : AdminAccou
 
     @Transactional(readOnly = true)
     fun findActive(command: UserCommand.AdminAccountAccess): AdminAccountResult? {
-        val user: User = accounts.findActiveAdminAccount(
-            UserQuery.GetActiveAdminAccount(command.userId, command.identityKey),
-        )
+        val user: User = accounts.findActiveAdminAccount(UserQuery.GetActiveAdminAccount(command.userId))
             ?: return null
         return AdminAccountResult(
             userId = user.id!!,

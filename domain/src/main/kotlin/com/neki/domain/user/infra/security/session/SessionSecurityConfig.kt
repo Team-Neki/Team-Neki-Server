@@ -23,7 +23,6 @@ class SessionSecurityConfig {
     fun sessionSecurityFilterChain(
         http: HttpSecurity,
         oidcUsers: SessionOidcUserService,
-        oauth2Users: SessionOAuth2UserService,
         authorization: SessionAuthorizationManager,
         responses: SessionSecurityResponses,
     ): SecurityFilterChain = http
@@ -38,10 +37,7 @@ class SessionSecurityConfig {
             it.anyRequest().denyAll()
         }
         .oauth2Login {
-            it.userInfoEndpoint { endpoint ->
-                endpoint.oidcUserService(oidcUsers)
-                endpoint.userService(oauth2Users)
-            }
+            it.userInfoEndpoint { endpoint -> endpoint.oidcUserService(oidcUsers) }
             // 내부 Service host가 브라우저로 노출되지 않도록 동일 origin의 상대 경로를 전달한다.
             it.successHandler { _, response, _ ->
                 response.status = 302

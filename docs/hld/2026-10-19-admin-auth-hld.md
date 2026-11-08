@@ -86,7 +86,7 @@ flowchart LR
 | 브라우저 | 로그인 화면 이동, 세션 쿠키 전송, 변경 요청 |
 | Next 서버 | 허용된 admin 경로 중계, 요청 쿠키 전달, 응답 쿠키·리다이렉트 전달 |
 | Spring Security | OAuth 요청 상관관계와 OIDC 응답 검증, 인증 상태 저장, 세션·접근 제어 |
-| admin 애플리케이션 | 제공자 공통 식별 키로 사용자 연결, ADMIN 보유 여부 조회, 관리자 로그인 결과 결정 |
+| admin 애플리케이션 | Google 확인 이메일로 사용자 연결, ADMIN 보유 여부 조회, 관리자 로그인 결과 결정 |
 | 도메인과 JPA | 기존 사용자·권한 저장 및 도메인 규칙 |
 | PostgreSQL 세션 저장소 | OAuth 진행 중 상태와 로그인 세션의 저장·조회·만료 |
 | 운영자 | 사용자 신원 확인 후 DB 쿼리로 ADMIN 부여 또는 회수 |
@@ -124,7 +124,7 @@ sequenceDiagram
     end
 ```
 
-OIDC 제공자별 구현이 등록 ID와 `sub`로 충돌하지 않는 계정 키를 만들고, domain은 이 키만 사용합니다. 현재 Google 키는 `google:<sub>`이며 이메일은 표시·수동 신원 확인용입니다. 이메일이 같다는 이유로 기존 카카오·애플 계정과 자동 연결하지 않습니다. ID 토큰의 서명·issuer·audience·만료와 로그인 요청의 state·nonce 검증은 Spring Security의 OIDC 흐름에 맡깁니다. [Google OIDC 기준](https://developers.google.com/identity/openid-connect/openid-connect), [Spring OAuth2 Login](https://docs.spring.io/spring-security/reference/6.5/servlet/oauth2/login/advanced.html)
+관리자 로그인은 Google만 사용하므로 Google이 확인한(`email_verified`) 이메일로 `ADMIN_SSO` 계정을 식별합니다. 제공자 식별 키를 따로 두지 않아 구조가 단순한 장점이 있지만, 이메일이 바뀌면 새 계정으로 등록되고 Workspace에서 회수한 주소를 다른 사람에게 재할당하면 기존 권한을 이어받는 트레이드 오프가 있습니다. 따라서 퇴사자 계정의 ADMIN은 주소 재할당 전에 회수해야 합니다. `ADMIN_SSO`로 범위를 한정하므로 이메일이 같은 카카오·애플 계정과는 연결하지 않습니다. ID 토큰의 서명·issuer·audience·만료와 로그인 요청의 state·nonce 검증은 Spring Security의 OIDC 흐름에 맡깁니다. [Google OIDC 기준](https://developers.google.com/identity/openid-connect/openid-connect), [Spring OAuth2 Login](https://docs.spring.io/spring-security/reference/6.5/servlet/oauth2/login/advanced.html)
 
 최초 로그인은 기존 `User` 모델로 사용자를 생성하며 `ROLE_ADMIN`을 자동 부여하지 않습니다. 동일 Google 계정의 반복·동시 로그인은 기존 사용자를 재사용합니다. 로그인 시 운영자가 부여하거나 회수한 권한을 덮어쓰지 않습니다.
 
@@ -159,12 +159,12 @@ OIDC 제공자별 구현이 등록 ID와 `sub`로 충돌하지 않는 계정 키
 
 | 데이터 | 개념 모델 | 저장 방식 |
 |---|---|---|
-| 사용자 | 기존 `TB_USERS`. 내부 ID, `providerType=ADMIN_SSO`, `oid=제공자별 식별 키`, 이메일, 권한 | 기존 JPA |
+| 사용자 | 기존 `TB_USERS`. 내부 ID, `providerType=ADMIN_SSO`, 이메일(식별 기준), 권한. `oid`는 비움 | 기존 JPA |
 | 세션 | admin 전용 세션 및 속성 테이블 | Spring Session JDBC |
 
 승인 여부는 기존 `roles`에 `ROLE_ADMIN`이 있는지로 판단합니다. 승인 상태와 권한을 이중으로 관리하지 않습니다. 최초 Google 로그인만으로 ADMIN이 부여되지 않으며, 기존 ADMIN을 보유한 Google 사용자는 별도 승인 행 없이 로그인할 수 있습니다.
 
-관리자 SSO 식별 키의 중복은 DB 제약으로 막습니다. V42는 기존 Google 관리 계정을 `ADMIN_SSO`와 `google:<sub>`로 전환하고 공통 고유 인덱스를 적용합니다. 직렬화된 principal 형식이 바뀌므로 이전 admin 세션을 무효화하고 재로그인합니다. Google 프로필 이름을 현재 길이 제한이 있는 `User.name`에 그대로 복사하지 않고 기존 사용자 필드의 제약에 맞춰 매핑합니다.
+관리 계정 이메일의 중복은 DB 제약으로 막습니다. V42는 기존 Google 관리 계정을 `ADMIN_SSO`로 전환하고, V44는 `oid`를 비운 뒤 `ADMIN_SSO` 이메일 partial unique index를 적용합니다. 직렬화된 principal 형식이 바뀌므로 이전 admin 세션을 무효화하고 재로그인합니다. Google 프로필 이름을 현재 길이 제한이 있는 `User.name`에 그대로 복사하지 않고 기존 사용자 필드의 제약에 맞춰 매핑합니다.
 
 모바일 앱의 가입 유스케이스를 그대로 호출해 앱 가입 알림이나 통계를 변경하지 않습니다. `TB_USERS`를 공유하므로 `ADMIN_SSO` 사용자를 모바일 가입자 집계에서 제외합니다. 계정 모델은 기존 구조를 유지하고 필요한 집계·이벤트 범위를 조정합니다.
 
@@ -235,8 +235,8 @@ OAuth 브라우저 리다이렉트 자체와 다른 origin의 API 호출에 대�
 | 영역 | 변경 범위 |
 |---|---|
 | `apps/admin` | 전용 보안 체인, OAuth 로그인 연결, 인증 결과·세션·접근 제어, PostgreSQL 프로파일 |
-| `domain/user` | 기존 User·ADMIN 재사용, 제공자 공통 계정 키와 현재 사용자 권한 조회. OIDC/OAuth2 보안 및 제공자별 신원 추출 구현은 infra에 배치 |
-| `modules/postgres` | V41 세션 테이블, V42 관리자 SSO 계정 전환과 식별 키 고유 인덱스, V43 관리자 업로드 미디어 표시 |
+| `domain/user` | 기존 User·ADMIN 재사용, 이메일 기준 관리 계정과 현재 사용자 권한 조회. Google OIDC 보안 구현은 infra에 배치 |
+| `modules/postgres` | V41 세션 테이블, V42 관리자 SSO 계정 전환, V43 관리자 업로드 미디어 표시, V44 이메일 기준 식별 |
 | Team-Neki-Admin | 로그인·대기·오류 UI, 로그인·콜백·쿠키 프록시 |
 | Team-Neki-GitOps | 인증 구현 후 PostgreSQL·Google 자격증명·외부 URL 설정. API Service 내부 배치 유지 |
 | 기존 모바일 API | JWT 발급·검증 유지. Google admin 로그인을 모바일 로그인 제공자로 자동 확장하지 않음 |
@@ -261,7 +261,7 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 
 ## 12 구현 순서와 완료 조건
 
-1. 기존 User·ADMIN 구조를 확인하고 관리자 SSO 식별 키 제약, Spring Session JDBC 테이블, 공동 관리 미디어 표시의 PostgreSQL V41·V42·V43 마이그레이션을 준비합니다.
+1. 기존 User·ADMIN 구조를 확인하고 관리 계정 이메일 제약, Spring Session JDBC 테이블, 공동 관리 미디어 표시의 PostgreSQL V41~V44 마이그레이션을 준비합니다.
 2. Spring 직접 콜백으로 Google 로그인과 ADMIN 미보유 사용자의 대기 안내를 구현합니다.
 3. DB 쿼리 권한 부여·회수 절차와 매 관리 요청의 현재 ADMIN 인가를 연결합니다.
 4. 세션 쿠키·유휴 만료 30분·POST 로그아웃 및 서버 재시작 후 세션 복원을 검증합니다.
@@ -271,7 +271,7 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 완료 판단은 다음 사용자 흐름으로 확인합니다.
 
 - 처음 Google 로그인한 사용자는 ADMIN이 없는 대기 상태이며 Brand·Pose 조회와 변경이 모두 차단됩니다.
-- 반복 로그인해도 사용자는 중복 생성되지 않으며, 이메일이 같은 다른 제공자 계정과 자동 연결되지 않습니다.
+- 반복 로그인해도 사용자는 중복 생성되지 않으며, 이메일이 같은 모바일 계정과 자동 연결되지 않습니다.
 - Google 로그인 세션이 유효하면 DB에서 ADMIN을 부여한 뒤 재로그인 없이 다음 관리 요청부터 접근할 수 있습니다.
 - 로그인한 관리자의 권한을 DB에서 회수하면 다음 관리 요청부터 차단됩니다.
 - 유효한 세션과 현재 ADMIN 권한이 있는 변경 요청만 처리되고, GET 요청으로는 로그아웃되지 않습니다.

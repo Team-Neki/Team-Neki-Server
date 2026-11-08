@@ -26,7 +26,7 @@ class SessionAuthorizationManager(private val accounts: AdminAccountAccess) :
         if (!auth.isAuthenticated) return AuthorizationDecision(false)
         return try {
             AuthorizationDecision(
-                accounts.isAdmin(UserCommand.AdminAccountAccess(principal.userId, principal.identityKey)),
+                accounts.isAdmin(UserCommand.AdminAccountAccess(principal.userId)),
             )
         } catch (exception: DataAccessException) {
             throw AuthenticationServiceException("Admin authorization database unavailable", exception)

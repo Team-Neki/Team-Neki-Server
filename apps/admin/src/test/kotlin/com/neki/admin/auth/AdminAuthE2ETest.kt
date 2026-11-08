@@ -216,17 +216,6 @@ class AdminAuthE2ETest {
     }
 
     @Test
-    @DisplayName("세션 사용자와 Google subject 연결이 달라지면 기존 쿠키로 접근할 수 없다")
-    fun givenChangedGoogleIdentity_whenRequestingAdmin_thenForbidden() {
-        val user: User = createUser(RoleType.ADMIN.role)
-        val login = login(user)
-        user.oid = "different-subject"
-        users.saveAndFlush(user)
-
-        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
-    }
-
-    @Test
     @DisplayName("DB에서 사용자가 삭제되면 세션이 남아 있어도 관리 API는 거부한다")
     fun givenDeletedUser_whenRequestingAdmin_thenForbidden() {
         val user: User = createUser(RoleType.ADMIN.role)
@@ -290,11 +279,11 @@ class AdminAuthE2ETest {
     }
 
     @Test
-    @DisplayName("PostgreSQL에서 동시에 최초 로그인해도 Google 계정은 하나만 생성된다")
+    @DisplayName("PostgreSQL에서 동시에 최초 로그인해도 같은 이메일의 관리 계정은 하나만 생성된다")
     fun givenConcurrentFirstLogins_whenCreatingSameGoogleSubject_thenOneAccount() {
         val database: String = jdbc.dataSource!!.connection.use { it.metaData.databaseProductName }
-        assumeTrue(database == "PostgreSQL", "실제 Google partial unique 제약은 PostgreSQL에서 검증한다")
-        val subject: String = UUID.randomUUID().toString()
+        assumeTrue(database == "PostgreSQL", "실제 이메일 partial unique 제약은 PostgreSQL에서 검증한다")
+        val email = "concurrent-${UUID.randomUUID()}@example.com"
         val start = CountDownLatch(1)
         val executor = Executors.newFixedThreadPool(8)
         try {
@@ -302,7 +291,7 @@ class AdminAuthE2ETest {
                 executor.submit<Long> {
                     start.await()
                     accounts.findOrCreate(
-                        UserCommand.RegisterAdminAccount("google:$subject", "concurrent@example.com", "동시 로그인"),
+                        UserCommand.RegisterAdminAccount(email, "동시 로그인"),
                     )
                 }
             }

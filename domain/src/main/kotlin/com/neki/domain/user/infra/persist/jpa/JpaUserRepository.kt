@@ -16,5 +16,7 @@ interface JpaUserRepository : JpaRepository<User, Long> {
 
     fun findByOidAndProviderType(oid: String, providerType: ProviderType): User?
 
+    fun findByEmailAndProviderType(email: String, providerType: ProviderType): User?
+
     fun countByOidIsNotNullAndProviderTypeNot(providerType: ProviderType): Long
 }
