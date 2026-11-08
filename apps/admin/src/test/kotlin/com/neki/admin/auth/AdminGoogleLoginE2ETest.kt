@@ -149,14 +149,14 @@ class AdminGoogleLoginE2ETest {
                 ),
             )
 
-        val start = mvc.perform(get("/oauth2/authorization/google"))
+        val start = mvc.perform(get("/api/oauth2/authorization/google"))
             .andExpect(status().is3xxRedirection).andReturn().response
         val parameters = decodeQuery(URI(start.redirectedUrl!!).rawQuery)
         provider.nonce = parameters["nonce"].orEmpty()
         val initialCookie = start.getCookie("ADMINSESSION")!!
 
         mvc.perform(
-            get("/login/oauth2/code/google").cookie(initialCookie)
+            get("/api/login/oauth2/code/google").cookie(initialCookie)
                 .param("code", "accepted-code").param("state", parameters.getValue("state")),
         ).andExpect(status().isServiceUnavailable)
             .andExpect(jsonPath("$.resultCode").value("D-99"))
@@ -164,13 +164,13 @@ class AdminGoogleLoginE2ETest {
     }
 
     private fun completeLogin(expectSuccess: Boolean = true): Cookie {
-        val start = mvc.perform(get("/oauth2/authorization/google"))
+        val start = mvc.perform(get("/api/oauth2/authorization/google"))
             .andExpect(status().is3xxRedirection).andReturn().response
         val parameters: Map<String, String> = decodeQuery(URI(start.redirectedUrl!!).rawQuery)
         provider.nonce = parameters["nonce"].orEmpty()
         val initialCookie: Cookie = start.getCookie("ADMINSESSION")!!
         val callback = mvc.perform(
-            get("/login/oauth2/code/google").cookie(initialCookie)
+            get("/api/login/oauth2/code/google").cookie(initialCookie)
                 .param("code", "accepted-code").param("state", parameters.getValue("state")),
         )
         if (!expectSuccess) {
@@ -178,14 +178,14 @@ class AdminGoogleLoginE2ETest {
             return initialCookie
         }
         val response = callback.andExpect(status().is3xxRedirection).andReturn().response
-        assertThat(response.redirectedUrl).endsWith("/admin/auth/me")
+        assertThat(response.redirectedUrl).endsWith("/api/auth/me")
         val authenticatedCookie: Cookie = response.getCookie("ADMINSESSION")!!
         assertThat(authenticatedCookie.value).isNotEqualTo(initialCookie.value)
         return authenticatedCookie
     }
 
     private fun me(cookie: Cookie): JsonNode {
-        val response = mvc.perform(get("/admin/auth/me").cookie(cookie))
+        val response = mvc.perform(get("/api/auth/me").cookie(cookie))
             .andExpect(status().isOk).andReturn().response
         return objectMapper.readTree(response.contentAsString)["data"]
     }
