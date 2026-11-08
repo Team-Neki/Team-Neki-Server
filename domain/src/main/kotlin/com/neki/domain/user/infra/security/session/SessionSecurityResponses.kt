@@ -53,6 +53,9 @@ class SessionSecurityResponses(private val mapper: ObjectMapper) :
             log.error("[DATABASE_ERROR] admin social login failed", exception)
             write(response, 503, ResultCode.ERROR, ResultCode.ERROR.message)
         } else {
+            // 원인 추적용으로 예외 종류와 OAuth2 error code 만 남긴다. 메시지·code·토큰은 남기지 않는다.
+            val errorCode: String? = (exception as? OAuth2AuthenticationException)?.error?.errorCode
+            log.warn("[AdminLogin] social login failed: type={}, error={}", exception.javaClass.simpleName, errorCode)
             write(response, 401, ResultCode.SECURITY_ERROR, "소셜 로그인에 실패했습니다.")
         }
     }

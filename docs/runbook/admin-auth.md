@@ -97,25 +97,8 @@ DDL은 API가 소유하며 admin은 테이블을 생성·변경하지 않습니�
 
 ## 테스트
 
-기본 `./gradlew :apps:admin:test`는 H2 JDBC 세션과 로컬 OIDC 서버를 사용합니다. 실제 Google 자격증명이나 외부 Google 호출이 필요하지 않습니다. PostgreSQL partial unique index에 의존하는 동시 가입 테스트 한 개는 기본 실행에서 제외됩니다.
+기본 `./gradlew :apps:admin:test`는 H2 JDBC 세션과 로컬 OIDC 서버를 사용합니다. 실제 Google 자격증명이나 외부 Google 호출이 필요하지 않습니다.
 
-실제 PostgreSQL 검증은 비어 있는 **테스트 전용 DB**에 사용자 V1·이름 길이 V14·신규 V41·V42·V44를 먼저 적용한 뒤 실행합니다. 공간 엔티티를 포함한 전체 운영 스키마의 업그레이드 검증과는 구분합니다. 다음 변수는 준비한 테스트 DB와 role에 맞게 지정합니다.
-
-```sh
-export ADMIN_TEST_DATABASE_URL='postgresql://127.0.0.1:55483/admin_auth_test'
-export SPRING_DATASOURCE_USERNAME='admin'
-export SPRING_DATASOURCE_PASSWORD=''
-psql "$ADMIN_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f modules/postgres/src/main/resources/db/migration/V1__create_users_table.sql
-psql "$ADMIN_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f modules/postgres/src/main/resources/db/migration/V14__alter_users_name_length_to_10.sql
-psql "$ADMIN_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f modules/postgres/src/main/resources/db/migration/V41__create_admin_sessions_and_google_identity.sql
-psql "$ADMIN_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f modules/postgres/src/main/resources/db/migration/V42__generalize_admin_social_identity.sql
-psql "$ADMIN_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f modules/postgres/src/main/resources/db/migration/V44__identify_admin_account_by_email.sql
-SPRING_DATASOURCE_URL="jdbc:$ADMIN_TEST_DATABASE_URL" \
-SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver \
-SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect \
-SPRING_JPA_HIBERNATE_DDL_AUTO=none \
-SPRING_SQL_INIT_MODE=never \
-./gradlew :apps:admin:test --rerun --no-daemon
-```
+PostgreSQL 검증은 `AdminProductionSchemaTest`가 맡습니다. Testcontainers로 새 PostGIS DB를 띄워 V1~V44 전체 마이그레이션을 적용한 뒤, prod 프로필의 Flyway validate·Hibernate validate 기동과 V44 이메일 partial unique 제약에 의존하는 동시 최초 가입을 확인합니다. 따라서 Docker가 필요하며 CI에서는 기본 실행에 포함됩니다. 별도 DB를 수동으로 준비할 필요는 없습니다.
 
 검증 범위는 동일 세션 권한 부여·회수, 정확한 ADMIN 매칭, 계정 삭제, POST 전용 로그아웃, 30분 만료, 같은 이메일 동시 최초 가입, 모바일 계정과의 분리, 실제 code 교환·RSA 서명·nonce 검증, 사용자 집계 분리입니다.
