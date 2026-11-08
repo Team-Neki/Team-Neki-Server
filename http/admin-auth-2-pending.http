@@ -1,0 +1,33 @@
+# admin 세션 인증 staging 검증 2단계: 최초 로그인 직후, ADMIN 부여 전 (docs/oracle/admin-auth.md)
+#
+# adminSession 은 사람이 브라우저로 Google 로그인한 뒤 복사한 ADMINSESSION 쿠키 값이다.
+# http/http-client.private.env.json 에 둔다 (gitignore 대상).
+#   { "staging": { "adminSession": "<ADMINSESSION 쿠키 값>" } }
+
+### O-D-5 최초 로그인 사용자는 본인을 조회하지만 ADMIN 이 없고, CSRF 토큰 헤더를 주지 않는다
+# @no-cookie-jar
+GET {{adminHost}}/admin/auth/me
+Cookie: ADMINSESSION={{adminSession}}
+
+> {%
+    client.test("O-D-5 대기 사용자 me", () => {
+        client.assert(response.status === 200, "status=" + response.status + ". adminSession 이 만료됐으면 다시 로그인");
+        client.assert(response.body.data.admin === false, "admin=" + response.body.data.admin + ". 이미 ADMIN 인 계정이면 회수 후 진행");
+        client.assert(response.headers.valueOf("X-CSRF-TOKEN") === null, "X-CSRF-TOKEN 헤더가 남아 있음");
+    });
+    client.log("DB 대조용 userId = " + response.body.data.userId + ", email = " + response.body.data.email);
+%}
+
+### O-D-6 ADMIN 이 없으면 관리 API(업로드 티켓)는 403
+# @no-cookie-jar
+POST {{adminHost}}/admin/media/upload
+Cookie: ADMINSESSION={{adminSession}}
+Content-Type: application/json
+
+{"items":[{"mediaType":"POSE","contentType":"image/png"}]}
+
+> {%
+    client.test("O-D-6 대기 사용자 업로드 403", () => {
+        client.assert(response.status === 403, "status=" + response.status);
+    });
+%}
