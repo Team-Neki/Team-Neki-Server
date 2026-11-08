@@ -235,6 +235,12 @@ class AdminAuthE2ETest {
     }
 
     @Test
+    @DisplayName("springdoc 이 켜진 프로필에서는 로그인 없이 API 문서를 볼 수 있다")
+    fun givenAnonymous_whenRequestingApiDocs_thenOk() {
+        mvc.perform(get("/v3/api-docs")).andExpect(status().isOk)
+    }
+
+    @Test
     @DisplayName("버전 prefix 가 있던 이전 경로는 ADMIN 세션으로도 404 다")
     fun givenAdminSession_whenRequestingVersionedPath_thenNotFound() {
         val login = login(createUser(RoleType.ADMIN.role))
