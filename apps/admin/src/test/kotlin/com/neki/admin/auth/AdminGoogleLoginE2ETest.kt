@@ -197,14 +197,14 @@ class AdminGoogleLoginE2ETest {
             return initialCookie
         }
         val response = callback.andExpect(status().is3xxRedirection).andReturn().response
-        assertThat(response.redirectedUrl).endsWith("/admin/v1/auth/me")
+        assertThat(response.redirectedUrl).endsWith("/admin/auth/me")
         val authenticatedCookie: Cookie = response.getCookie("ADMINSESSION")!!
         assertThat(authenticatedCookie.value).isNotEqualTo(initialCookie.value)
         return authenticatedCookie
     }
 
     private fun me(cookie: Cookie): JsonNode {
-        val response = mvc.perform(get("/admin/v1/auth/me").cookie(cookie))
+        val response = mvc.perform(get("/admin/auth/me").cookie(cookie))
             .andExpect(status().isOk).andReturn().response
         return objectMapper.readTree(response.contentAsString)["data"]
     }

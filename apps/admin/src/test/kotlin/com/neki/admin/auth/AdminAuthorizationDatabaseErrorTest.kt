@@ -39,7 +39,7 @@ class AdminAuthorizationDatabaseErrorTest {
         doThrow(DataRetrievalFailureException("database unavailable"))
             .`when`(accounts).isAdmin(UserCommand.AdminAccountAccess(user.id!!, user.oid!!))
 
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie))
+        mvc.perform(get("/admin/test").cookie(login.cookie))
             .andExpect(status().isServiceUnavailable)
             .andExpect(jsonPath("$.resultCode").value("D-99"))
     }

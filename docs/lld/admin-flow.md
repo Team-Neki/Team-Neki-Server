@@ -53,4 +53,4 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 
 ## 현재 제한
 
-Spring Security가 `/admin/v1/**` 요청을 인증·인가합니다. CSRF 토큰은 쓰지 않고 `SameSite=Lax` 세션 쿠키로 다른 사이트의 변경 요청을 막습니다. 임시 `AdminWriteGuard`는 제거했습니다. 관리자 업로드 티켓은 업로더의 ID를 `TB_MEDIA.owner_id`에 기록하고 공동 관리 대상으로 표시합니다. Brand/Pose는 이 표시가 있는 미디어만 연결하며, 현재 ADMIN 권한이 있는 다른 관리자도 등록·수정할 수 있습니다.
+Spring Security가 `/admin/**` 요청을 인증·인가합니다. CSRF 토큰은 쓰지 않고 `SameSite=Lax` 세션 쿠키로 다른 사이트의 변경 요청을 막습니다. 임시 `AdminWriteGuard`는 제거했습니다. 관리자 업로드 티켓은 업로더의 ID를 `TB_MEDIA.owner_id`에 기록하고 공동 관리 대상으로 표시합니다. Brand/Pose는 이 표시가 있는 미디어만 연결하며, 현재 ADMIN 권한이 있는 다른 관리자도 등록·수정할 수 있습니다.

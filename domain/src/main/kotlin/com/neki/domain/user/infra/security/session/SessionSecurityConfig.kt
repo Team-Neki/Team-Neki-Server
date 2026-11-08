@@ -32,9 +32,9 @@ class SessionSecurityConfig {
         .csrf { it.disable() }
         .authorizeHttpRequests {
             it.requestMatchers("/oauth2/authorization/*", "/login/oauth2/code/*").permitAll()
-            it.requestMatchers(HttpMethod.GET, "/admin/v1/auth/me").authenticated()
-            it.requestMatchers(HttpMethod.POST, "/admin/v1/auth/logout").authenticated()
-            it.requestMatchers("/admin/v1/**").access(authorization)
+            it.requestMatchers(HttpMethod.GET, "/admin/auth/me").authenticated()
+            it.requestMatchers(HttpMethod.POST, "/admin/auth/logout").authenticated()
+            it.requestMatchers("/admin/**").access(authorization)
             it.anyRequest().denyAll()
         }
         .oauth2Login {
@@ -45,7 +45,7 @@ class SessionSecurityConfig {
             // 내부 Service host가 브라우저로 노출되지 않도록 동일 origin의 상대 경로를 전달한다.
             it.successHandler { _, response, _ ->
                 response.status = 302
-                response.setHeader("Location", "/admin/v1/auth/me")
+                response.setHeader("Location", "/admin/auth/me")
             }
             it.failureHandler(responses)
         }
@@ -58,7 +58,7 @@ class SessionSecurityConfig {
         .logout {
             // CSRF를 끄면 logoutUrl은 GET도 받으므로 POST만 허용한다.
             it.logoutRequestMatcher(
-                PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/admin/v1/auth/logout"),
+                PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/admin/auth/logout"),
             )
             it.invalidateHttpSession(true)
             it.clearAuthentication(true)

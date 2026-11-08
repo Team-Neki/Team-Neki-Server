@@ -16,22 +16,22 @@
    ./gradlew :apps:admin:bootRun
    ```
 
-4. 브라우저에서 `http://localhost:8081/oauth2/authorization/google`로 이동합니다. 인증 성공 후 `/admin/v1/auth/me` 본문에서 사용자·현재 권한을 확인합니다. 최초 Google 사용자는 ADMIN이 없습니다. 이메일이 같아도 다른 제공자의 계정과 합치지 않습니다.
+4. 브라우저에서 `http://localhost:8081/oauth2/authorization/google`로 이동합니다. 인증 성공 후 `/admin/auth/me` 본문에서 사용자·현재 권한을 확인합니다. 최초 Google 사용자는 ADMIN이 없습니다. 이메일이 같아도 다른 제공자의 계정과 합치지 않습니다.
 
 운영에서는 `prod` 프로파일, HTTPS와 Secret의 실제 DataSource/OAuth 값을 사용합니다. 로컬 이외 프로파일은 Secure 쿠키를 사용합니다. 토큰·세션 쿠키를 로그나 URL에 넣지 않습니다.
 
 ## 프론트 연결 계약
 
-`GET /admin/v1/auth/me`의 `data`는 다음 필드를 반환합니다.
+`GET /admin/auth/me`의 `data`는 다음 필드를 반환합니다.
 
 | 필드 | 의미 |
 |---|---|
 | `userId`, `email`, `name` | 현재 소셜 로그인에 연결된 기존 사용자 정보 |
 | `admin` | 현재 DB에 ADMIN 권한이 있는지 |
 
-변경 요청은 세션 쿠키만으로 인증하며 CSRF 토큰은 사용하지 않습니다. 다른 사이트의 변경 요청은 `SameSite=Lax` 세션 쿠키가 막습니다. 세션이 만료되면 다시 로그인합니다. `POST /admin/v1/auth/logout`은 세션을 무효화하고 HTTP 200 `BaseResponse`를 반환하며, GET 요청으로는 로그아웃하지 않습니다.
+변경 요청은 세션 쿠키만으로 인증하며 CSRF 토큰은 사용하지 않습니다. 다른 사이트의 변경 요청은 `SameSite=Lax` 세션 쿠키가 막습니다. 세션이 만료되면 다시 로그인합니다. `POST /admin/auth/logout`은 세션을 무효화하고 HTTP 200 `BaseResponse`를 반환하며, GET 요청으로는 로그아웃하지 않습니다.
 
-관리자 이미지는 세션으로 `POST /admin/v1/media/upload`에 업로드 티켓을 요청합니다. 항목은 `mediaType`(`LOGO` 또는 `POSE`), `contentType`(`image/jpeg`, `image/png`, `image/webp`)과 선택적 크기 정보로 구성합니다. 반환된 URL에 해당 Content-Type으로 PUT한 뒤 Brand/Pose 등록·수정에 `mediaId`를 전달합니다. `TB_MEDIA.owner_id`는 티켓을 발급한 관리자의 사용자 ID이며, 관리자 경로에서 만든 미디어는 공동 관리 대상으로 표시합니다. 관리 권한이 있는 다른 사용자도 해당 미디어를 Brand/Pose에 연결할 수 있습니다. 일반 사용자 업로드 미디어는 관리자 콘텐츠에 연결할 수 없습니다.
+관리자 이미지는 세션으로 `POST /admin/media/upload`에 업로드 티켓을 요청합니다. 항목은 `mediaType`(`LOGO` 또는 `POSE`), `contentType`(`image/jpeg`, `image/png`, `image/webp`)과 선택적 크기 정보로 구성합니다. 반환된 URL에 해당 Content-Type으로 PUT한 뒤 Brand/Pose 등록·수정에 `mediaId`를 전달합니다. `TB_MEDIA.owner_id`는 티켓을 발급한 관리자의 사용자 ID이며, 관리자 경로에서 만든 미디어는 공동 관리 대상으로 표시합니다. 관리 권한이 있는 다른 사용자도 해당 미디어를 Brand/Pose에 연결할 수 있습니다. 일반 사용자 업로드 미디어는 관리자 콘텐츠에 연결할 수 없습니다.
 
 Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location` 응답 헤더, 클라이언트가 전송한 Cookie 요청 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
 
