@@ -31,6 +31,8 @@ class SessionSecurityConfig {
         .csrf { it.disable() }
         .authorizeHttpRequests {
             it.requestMatchers("/oauth2/authorization/*", "/login/oauth2/code/*").permitAll()
+            // prod 는 springdoc 을 끄므로 이 경로는 404 다. local·staging 에서만 문서가 열린다.
+            it.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
             it.requestMatchers(HttpMethod.GET, "/admin/auth/me").authenticated()
             it.requestMatchers(HttpMethod.POST, "/admin/auth/logout").authenticated()
             it.requestMatchers("/admin/**").access(authorization)

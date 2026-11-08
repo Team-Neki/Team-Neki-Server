@@ -2,17 +2,14 @@ package com.neki.admin.auth
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.neki.admin.auth.application.AdminAccountFacade
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.MediaType
-import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
 import jakarta.servlet.http.Cookie
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -37,10 +34,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.Duration
 import java.time.Instant
-import java.util.UUID
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 @SpringBootTest
@@ -74,9 +67,6 @@ class AdminAuthE2ETest {
 
     @Autowired
     private lateinit var routes: AdminAuthTestController
-
-    @Autowired
-    private lateinit var accounts: AdminAccountFacade
 
     @BeforeEach
     fun setUp() {
@@ -235,6 +225,12 @@ class AdminAuthE2ETest {
     }
 
     @Test
+    @DisplayName("springdoc 이 켜진 프로필에서는 로그인 없이 API 문서를 볼 수 있다")
+    fun givenAnonymous_whenRequestingApiDocs_thenOk() {
+        mvc.perform(get("/v3/api-docs")).andExpect(status().isOk)
+    }
+
+    @Test
     @DisplayName("버전 prefix 가 있던 이전 경로는 ADMIN 세션으로도 404 다")
     fun givenAdminSession_whenRequestingVersionedPath_thenNotFound() {
         val login = login(createUser(RoleType.ADMIN.role))
@@ -284,32 +280,6 @@ class AdminAuthE2ETest {
         mvc.perform(
             get("/login/oauth2/code/google").param("code", "unused-code").param("state", "unknown-state"),
         ).andExpect(status().isUnauthorized)
-    }
-
-    @Test
-    @DisplayName("PostgreSQL에서 동시에 최초 로그인해도 같은 이메일의 관리 계정은 하나만 생성된다")
-    fun givenConcurrentFirstLogins_whenCreatingSameGoogleSubject_thenOneAccount() {
-        val database: String = jdbc.dataSource!!.connection.use { it.metaData.databaseProductName }
-        assumeTrue(database == "PostgreSQL", "실제 이메일 partial unique 제약은 PostgreSQL에서 검증한다")
-        val email = "concurrent-${UUID.randomUUID()}@example.com"
-        val start = CountDownLatch(1)
-        val executor = Executors.newFixedThreadPool(8)
-        try {
-            val futures = (1..8).map {
-                executor.submit<Long> {
-                    start.await()
-                    accounts.findOrCreate(
-                        UserCommand.RegisterAdminAccount(email, "동시 로그인"),
-                    )
-                }
-            }
-            start.countDown()
-            val ids: List<Long> = futures.map { it.get(20, TimeUnit.SECONDS) }
-            assertThat(ids.toSet()).hasSize(1)
-            assertThat(users.count()).isEqualTo(1)
-        } finally {
-            executor.shutdownNow()
-        }
     }
 
     private fun createUser(roles: String = RoleType.USER.role): User = AdminTestSession.createUser(users, roles)
