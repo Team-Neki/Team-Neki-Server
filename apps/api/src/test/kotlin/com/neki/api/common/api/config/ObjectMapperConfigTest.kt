@@ -18,7 +18,7 @@ class ObjectMapperConfigTest {
     inner class InstantSerializationTest {
 
         @Test
-        @DisplayName("Instant를 yyyy-MM-dd'T'HH:mm:ss 포맷으로 직렬화한다")
+        @DisplayName("Instant를 KST 기준 yyyy-MM-dd'T'HH:mm:ss 포맷으로 직렬화한다")
         fun givenInstant_whenSerialize_thenFormatsWithoutMillisAndZ() {
             // Given
             val instant = Instant.parse("2025-12-23T07:09:00.123456Z")
@@ -28,7 +28,7 @@ class ObjectMapperConfigTest {
             val json = objectMapper.writeValueAsString(dto)
 
             // Then
-            assertThat(json).isEqualTo("""{"timestamp":"2025-12-23T07:09:00"}""")
+            assertThat(json).isEqualTo("""{"timestamp":"2025-12-23T16:09:00"}""")
         }
 
         @Test
@@ -44,7 +44,7 @@ class ObjectMapperConfigTest {
             // Then
             assertThat(json).doesNotContain(".999")
             assertThat(json).doesNotContain("Z")
-            assertThat(json).isEqualTo("""{"timestamp":"2026-01-24T15:30:45"}""")
+            assertThat(json).isEqualTo("""{"timestamp":"2026-01-25T00:30:45"}""")
         }
     }
 
@@ -87,10 +87,10 @@ class ObjectMapperConfigTest {
     inner class FormatConsistencyTest {
 
         @Test
-        @DisplayName("Instant와 LocalDateTime이 동일한 포맷으로 직렬화된다")
+        @DisplayName("같은 KST 시각의 Instant와 LocalDateTime이 동일한 문자열로 직렬화된다")
         fun givenInstantAndLocalDateTime_whenSerialize_thenSameFormat() {
             // Given
-            val instant = Instant.parse("2025-12-23T07:09:00Z")
+            val instant = Instant.parse("2025-12-22T22:09:00Z")
             val localDateTime = LocalDateTime.of(2025, 12, 23, 7, 9, 0)
             val dto = CombinedDto(instant, localDateTime)
 

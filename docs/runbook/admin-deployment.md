@@ -9,8 +9,10 @@ GitOps의 `overlays/admin-api/deployment.yaml` 이미지 줄이 정확히 하나
 `ADMIN_GITOPS_PAT`를 제공하지 않는다. `GITHUB_TOKEN`에는 이미지 push를 위한
 `packages: write`, `ADMIN_GITOPS_PAT`에는 Team-Neki-GitOps main push 권한이 필요하다.
 `ADMIN_GITOPS_PAT`는 `admin-production` 보호 환경의 secret으로만 등록하고 필수 승인자를
-설정한다. 해당 환경 secret이 없으면 배포는 실패한다. 선택한 ref는 main에 포함된
-커밋이어야 하며 이전 main SHA로 롤백할 수 있다.
+설정한다. 같은 환경의 Deployment branches는 `main`만 허용하도록 제한한다. 해당 환경 secret이
+없으면 배포는 실패한다. 선택한 ref는 main에 포함된 커밋이어야 한다. `workflow_dispatch`는 실행한
+브랜치의 workflow 파일을 쓰므로, 브랜치에서 이 검사를 지운 workflow로 실행하는 것은 Deployment
+branches 제한이 있어야 막힌다.
 동시 실행은 직렬화하며 대기 run은 GitHub 정책에 따라 새 요청으로 대체될 수 있다.
 
 ## 최초 실행
@@ -29,7 +31,9 @@ GitOps의 `overlays/admin-api/deployment.yaml` 이미지 줄이 정확히 하나
 
 GitOps 커밋 성공은 ArgoCD sync/rollout 성공을 보장하지 않는다. GitOps README의
 rollout 확인 절차로 클러스터 상태를 확인한다.
-롤백은 `ref`에 이전 커밋 SHA를 입력해 같은 워크플로를 다시 실행한다.
+긴급 롤백은 GitOps의 `chore(admin-api): update image to ...` 커밋을 revert한다. 이전 이미지
+태그는 GHCR에 남아 있어(태그를 덮어쓰지 않음) 재빌드와 승인 없이 돌아간다. `ref`에 이전 커밋 SHA를
+입력해 같은 워크플로를 다시 실행하는 재빌드는 그다음에 한다.
 
 ## 현재 앱의 제한
 
