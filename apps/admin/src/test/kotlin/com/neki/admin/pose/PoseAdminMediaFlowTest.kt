@@ -88,7 +88,7 @@ class PoseAdminMediaFlowTest {
 
     private fun issueMediaAsUploader(): Media {
         val response = mockMvc.perform(
-            post("/admin/media/upload").cookie(uploaderCookie)
+            post("/api/media/upload").cookie(uploaderCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"items":[{"mediaType":"POSE","contentType":"image/png"}]}"""),
         ).andExpect(status().isOk).andReturn().response
@@ -104,7 +104,7 @@ class PoseAdminMediaFlowTest {
         val first: Media = issueMediaAsUploader()
         val second: Media = seedMedia()
         mockMvc.perform(
-            adminPost("/admin/pose")
+            adminPost("/api/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"uploads":[
@@ -126,7 +126,7 @@ class PoseAdminMediaFlowTest {
     @DisplayName("중복 mediaId가 섞이면 400이고 아무것도 저장되지 않는다")
     fun duplicateMediaIdsStoreNothing() {
         mockMvc.perform(
-            adminPost("/admin/pose")
+            adminPost("/api/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"uploads":[
@@ -144,7 +144,7 @@ class PoseAdminMediaFlowTest {
     @Test
     fun missingMediaIdInUploadReturnsInvalidParameter() {
         mockMvc.perform(
-            adminPost("/admin/pose")
+            adminPost("/api/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"uploads":[{"mediaId":null,"headCount":"ONE","memo":null}]}"""),
         )
@@ -157,12 +157,12 @@ class PoseAdminMediaFlowTest {
     @Test
     fun emptyUploadsAndOversizedMemoReturn400() {
         mockMvc.perform(
-            adminPost("/admin/pose").contentType(MediaType.APPLICATION_JSON).content("""{"uploads":[]}"""),
+            adminPost("/api/pose").contentType(MediaType.APPLICATION_JSON).content("""{"uploads":[]}"""),
         ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
 
         mockMvc.perform(
-            adminPost("/admin/pose").contentType(MediaType.APPLICATION_JSON)
+            adminPost("/api/pose").contentType(MediaType.APPLICATION_JSON)
                 .content("""{"uploads":[{"mediaId":1,"headCount":"ONE","memo":"${"a".repeat(256)}"}]}"""),
         ).andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
@@ -177,7 +177,7 @@ class PoseAdminMediaFlowTest {
         val media: Media = seedMedia()
 
         mockMvc.perform(
-            adminPatch("/admin/pose/{poseId}", pose.id!!)
+            adminPatch("/api/pose/{poseId}", pose.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"mediaId":${media.id}}"""),
         ).andExpect(status().isOk)
@@ -189,7 +189,7 @@ class PoseAdminMediaFlowTest {
     @Test
     fun missingMediaDoesNotCreatePose() {
         mockMvc.perform(
-            adminPost("/admin/pose")
+            adminPost("/api/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"uploads":[{"mediaId":99999,"headCount":"ONE","memo":null}]}"""),
         )
@@ -213,7 +213,7 @@ class PoseAdminMediaFlowTest {
         )
 
         mockMvc.perform(
-            adminPost("/admin/pose")
+            adminPost("/api/pose")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"uploads":[{"mediaId":${ordinary.id},"headCount":"ONE"}]}"""),
         )
@@ -229,7 +229,7 @@ class PoseAdminMediaFlowTest {
         val pose: Pose = seedPose()
 
         mockMvc.perform(
-            adminPatch("/admin/pose/{poseId}", pose.id!!)
+            adminPatch("/api/pose/{poseId}", pose.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"),
         )
@@ -243,7 +243,7 @@ class PoseAdminMediaFlowTest {
     @DisplayName("존재하지 않는 포즈를 교체하면 400 NOT_FOUND")
     fun updateMissingPoseReturnsNotFound() {
         mockMvc.perform(
-            adminPatch("/admin/pose/{poseId}", 99999L)
+            adminPatch("/api/pose/{poseId}", 99999L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"mediaId":20}"""),
         )

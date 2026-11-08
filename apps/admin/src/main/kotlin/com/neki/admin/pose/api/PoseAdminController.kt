@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController
  * description    :
  */
 @RestController
-@RequestMapping("/admin/pose")
+@RequestMapping("/api/pose")
 class PoseAdminController(private val poseAdminFacade: PoseAdminFacade) {
 
     @GetMapping

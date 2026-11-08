@@ -8,9 +8,9 @@
 
 | Method | Path | 동작 |
 | --- | --- | --- |
-| GET | `/admin/pose` | 목록 조회 (headCount 필터) |
-| POST | `/admin/pose` | 일괄 등록 |
-| PATCH | `/admin/pose/{poseId}` | 이미지 교체 |
+| GET | `/api/pose` | 목록 조회 (headCount 필터) |
+| POST | `/api/pose` | 일괄 등록 |
+| PATCH | `/api/pose/{poseId}` | 이미지 교체 |
 
 목록 조회는 `CountedPage`를 사용하며 전체 건수와 전체 페이지 수를 반환합니다. 사용자 컨텍스트(스크랩, 정렬)가 필요한 API 전용 조회는 admin 어댑터에서 지원하지 않습니다.
 
@@ -18,7 +18,7 @@
 
 ## 이미지 변경
 
-`PATCH /admin/pose/{poseId}`의 body는 `{ "mediaId": n }`이며 mediaId는 필수입니다. `PoseService.updatePoseMedia`가 포즈를 조회하고 `Pose.changeMedia`로 교체합니다. dirty checking과 `@DynamicUpdate`로 media_id 변경을 저장합니다.
+`PATCH /api/pose/{poseId}`의 body는 `{ "mediaId": n }`이며 mediaId는 필수입니다. `PoseService.updatePoseMedia`가 포즈를 조회하고 `Pose.changeMedia`로 교체합니다. dirty checking과 `@DynamicUpdate`로 media_id 변경을 저장합니다.
 
 이미지 바이너리는 admin 서버를 거치지 않습니다. 관리자 세션으로 admin의 업로드 티켓을 발급받아 S3에 직접 올린 뒤, 권한이 있는 관리자가 mediaId를 포즈에 연결합니다.
 
@@ -29,11 +29,11 @@ sequenceDiagram
     participant ADM as apps:admin
     participant DB as DB
 
-    A->>ADM: POST /admin/media/upload (세션, POSE)
+    A->>ADM: POST /api/media/upload (세션, POSE)
     ADM->>DB: Media 생성 (ownerId=업로더, adminManaged=true)
     ADM-->>A: mediaId + presigned URL
     A->>S3: PUT presigned URL (이미지 바이너리)
-    A->>ADM: PATCH /admin/pose/{poseId} (다른 ADMIN도 가능)
+    A->>ADM: PATCH /api/pose/{poseId} (다른 ADMIN도 가능)
     ADM->>DB: 관리자 미디어·POSE 타입·상태 확인
     ADM->>S3: INITIATED면 객체 존재 확인 (HEAD)
     ADM->>DB: Media를 UPLOADED로 전환
