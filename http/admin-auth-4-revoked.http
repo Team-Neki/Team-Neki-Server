@@ -2,7 +2,7 @@
 
 ### O-D-14 ADMIN 회수는 같은 세션의 다음 요청부터 반영된다
 # @no-cookie-jar
-GET {{adminHost}}/admin/auth/me
+GET {{adminHost}}/api/auth/me
 Cookie: ADMINSESSION={{adminSession}}
 
 > {%
@@ -14,7 +14,7 @@ Cookie: ADMINSESSION={{adminSession}}
 
 ### O-D-15 회수 뒤 관리 API 는 403
 # @no-cookie-jar
-POST {{adminHost}}/admin/media/upload
+POST {{adminHost}}/api/media/upload
 Cookie: ADMINSESSION={{adminSession}}
 Content-Type: application/json
 
@@ -28,7 +28,7 @@ Content-Type: application/json
 
 ### O-D-16 POST 로그아웃은 CSRF 헤더 없이 200
 # @no-cookie-jar
-POST {{adminHost}}/admin/auth/logout
+POST {{adminHost}}/api/auth/logout
 Cookie: ADMINSESSION={{adminSession}}
 
 > {%
@@ -40,7 +40,7 @@ Cookie: ADMINSESSION={{adminSession}}
 
 ### O-D-17 로그아웃한 세션은 재사용할 수 없다
 # @no-cookie-jar
-GET {{adminHost}}/admin/auth/me
+GET {{adminHost}}/api/auth/me
 Cookie: ADMINSESSION={{adminSession}}
 
 > {%

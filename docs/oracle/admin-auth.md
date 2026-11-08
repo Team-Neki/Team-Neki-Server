@@ -17,20 +17,20 @@
 | id | 종류 | 판정 |
 |---|---|---|
 | O-A-1 | auto | 세션 인증·Google 로그인·DB 장애·아키텍처 규칙 테스트 통과 : `./gradlew :apps:admin:test --tests '*AdminAuthE2ETest' --tests '*AdminGoogleLoginE2ETest' --tests '*AdminAuthorizationDatabaseErrorTest' --tests '*AdminArchitectureRulesTest' -q` 종료코드 0 |
-| O-A-2 | auto | admin 경로에 버전 prefix 없음 : `grep -rn '/admin/v1' apps/admin/src/main domain/src/main \| wc -l` = 0 |
-| O-A-3 | auto | admin 보안 체인에서 CSRF 를 끄고 로그아웃은 POST 만 받음 : `grep -c 'csrf { it.disable() }' domain/src/main/kotlin/com/neki/domain/user/infra/security/session/SessionSecurityConfig.kt` = 1, `grep -c 'matcher(HttpMethod.POST, "/admin/auth/logout")' domain/src/main/kotlin/com/neki/domain/user/infra/security/session/SessionSecurityConfig.kt` = 1 |
+| O-A-2 | auto | admin 앱 경로가 모두 `/api` 아래에 있음 (이전 `/admin` 매핑 없음) : `grep -rnE '"/admin(/\|")' apps/admin/src/main domain/src/main/kotlin/com/neki/domain/user/infra/security/session \| wc -l` = 0 |
+| O-A-3 | auto | admin 보안 체인에서 CSRF 를 끄고 로그아웃은 POST 만 받음 : `grep -c 'csrf { it.disable() }' domain/src/main/kotlin/com/neki/domain/user/infra/security/session/SessionSecurityConfig.kt` = 1, `grep -c 'matcher(HttpMethod.POST, "/api/auth/logout")' domain/src/main/kotlin/com/neki/domain/user/infra/security/session/SessionSecurityConfig.kt` = 1 |
 | O-A-4 | auto | identity key 개념이 남지 않음 : `grep -rn 'identityKey' apps/admin/src domain/src/main \| wc -l` = 0 |
 | O-A-5 | auto | Flyway 버전 중복 없음 : `ls modules/postgres/src/main/resources/db/migration \| sed -E 's/__.*//' \| sort \| uniq -d \| wc -l` = 0 |
 | O-A-6 | auto | admin 이 Spring Data 리포지터리를 직접 두지 않음 : `test ! -e apps/admin/src/main/kotlin/com/neki/admin/media/infra` 종료코드 0 (application 계층의 우회는 O-A-1 의 ArchUnit 규칙이 막음) |
 
 ## O-D. staging 배포 후 검증
 
-admin 은 외부 Ingress 가 없으므로 노드의 port-forward 를 SSH 터널로 로컬 8081 에 엽니다. staging Secret 의 `ADMIN_OAUTH_REDIRECT_URI` 가 `http://localhost:8081/login/oauth2/code/google` 이라 같은 주소로 브라우저 로그인까지 이어집니다.
+admin 은 외부 Ingress 가 없으므로 노드의 port-forward 를 SSH 터널로 로컬 8081 에 엽니다. staging Secret 의 `ADMIN_OAUTH_REDIRECT_URI` 가 `http://localhost:8081/api/login/oauth2/code/google` 이라 같은 주소로 브라우저 로그인까지 이어집니다.
 
 ### 전제
 
 - GitOps #44(`admin-api-stg` Application)가 머지되고, `overlays/admin-api-stg/secret.yaml` 이 `staging` namespace 에 적용됨
-- Google OAuth 클라이언트에 `http://localhost:8081/login/oauth2/code/google` 이 등록됨
+- Google OAuth 클라이언트에 `http://localhost:8081/api/login/oauth2/code/google` 이 등록됨
 - `ijhttp` 설치 : `brew install ijhttp`
 
 ### 준비
@@ -71,7 +71,7 @@ admin 은 외부 Ingress 가 없으므로 노드의 port-forward 를 SSH 터널�
 
 | id | 종류 | 판정 | 명령/절차 |
 |---|---|---|---|
-| O-D-4 | manual (사람) | Google 로그인 후 세션 쿠키 확보 | 브라우저에서 `http://localhost:8081/oauth2/authorization/google` 로 로그인. `/admin/auth/me` JSON 이 보이면 개발자 도구 Application → Cookies 의 `ADMINSESSION` 값을 `http/http-client.private.env.json` 의 `staging.adminSession` 에 넣음. 이미 ADMIN 인 계정이면 O-D-13 의 회수 SQL 을 먼저 실행 |
+| O-D-4 | manual (사람) | Google 로그인 후 세션 쿠키 확보 | 브라우저에서 `http://localhost:8081/api/oauth2/authorization/google` 로 로그인. `/api/auth/me` JSON 이 보이면 개발자 도구 Application → Cookies 의 `ADMINSESSION` 값을 `http/http-client.private.env.json` 의 `staging.adminSession` 에 넣음. 이미 ADMIN 인 계정이면 O-D-13 의 회수 SQL 을 먼저 실행 |
 | O-D-5 | manual | 최초 로그인 사용자는 `admin=false`, 응답에 `X-CSRF-TOKEN` 헤더 없음 | O-D-5 통과. 출력의 userId·email 기록 |
 | O-D-6 | manual | ADMIN 없는 관리 요청은 403 | O-D-6 통과 |
 | O-D-7 | manual | 계정이 이메일 기준 `ADMIN_SSO` 로 저장되고 `oid` 는 비어 있음. 이후 ADMIN 부여 | `\set uid <userId>` 뒤 `SELECT provider_type, oid, email, role FROM tb_users WHERE id = :uid;` = `ADMIN_SSO`, NULL, O-D-5 의 email, `ROLE_USER`. 확인 후 `docs/runbook/admin-auth.md` 의 "수동 권한 부여" SQL 로 ADMIN 부여 (`UPDATE 1`) |
@@ -84,7 +84,7 @@ admin 은 외부 Ingress 가 없으므로 노드의 port-forward 를 SSH 터널�
 | O-D-9 | manual | CSRF 헤더 없이 업로드 티켓 발급 | O-D-9 통과. 출력의 mediaId 기록 |
 | O-D-10 | manual | GET 로그아웃은 200 이 아님 | O-D-10 통과 |
 | O-D-11 | manual | GET 로그아웃 시도 후에도 세션 유지 | O-D-11 통과 |
-| O-D-12 | manual | 이전 `/admin/v1/auth/me` 는 404 | O-D-12 통과 |
+| O-D-12 | manual | 이전 `/admin/auth/me` 는 ADMIN 세션으로도 403 | O-D-12 통과 |
 | O-D-13 | manual | 업로드 미디어는 업로더 소유·공동 관리 표시. 이후 ADMIN 회수 | `\set mid <mediaId>` 뒤 `SELECT owner_id, admin_managed, media_type, status FROM tb_media WHERE id = :mid;` = O-D-5 userId, `t`, `POSE`, `INITIATED`. 확인 후 `UPDATE tb_users SET role = 'ROLE_USER', updated_at = CURRENT_TIMESTAMP WHERE id = :uid AND provider_type = 'ADMIN_SSO' RETURNING id, role;` (`UPDATE 1`) |
 
 ### 4단계 : ADMIN 회수와 로그아웃 (`http/admin-auth-4-revoked.http`)

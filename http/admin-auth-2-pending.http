@@ -6,7 +6,7 @@
 
 ### O-D-5 최초 로그인 사용자는 본인을 조회하지만 ADMIN 이 없고, CSRF 토큰 헤더를 주지 않는다
 # @no-cookie-jar
-GET {{adminHost}}/admin/auth/me
+GET {{adminHost}}/api/auth/me
 Cookie: ADMINSESSION={{adminSession}}
 
 > {%
@@ -20,7 +20,7 @@ Cookie: ADMINSESSION={{adminSession}}
 
 ### O-D-6 ADMIN 이 없으면 관리 API(업로드 티켓)는 403
 # @no-cookie-jar
-POST {{adminHost}}/admin/media/upload
+POST {{adminHost}}/api/media/upload
 Cookie: ADMINSESSION={{adminSession}}
 Content-Type: application/json
 

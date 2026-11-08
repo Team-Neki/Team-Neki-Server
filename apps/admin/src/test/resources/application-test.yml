@@ -28,7 +28,7 @@ spring:
             client-id: admin-test-client
             client-secret: admin-test-secret
             scope: openid,email,profile
-            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            redirect-uri: '{baseUrl}/api/login/oauth2/code/{registrationId}'
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
