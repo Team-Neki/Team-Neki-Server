@@ -3,8 +3,8 @@ package com.neki.admin.auth
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.application.AdminAccountFacade
-import com.neki.admin.common.media.JpaAdminMediaRepository
 import com.neki.core.api.dto.BaseResponse
+import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.MediaType
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
@@ -57,7 +57,7 @@ class AdminAuthE2ETest {
     private lateinit var users: JpaUserRepository
 
     @Autowired
-    private lateinit var media: JpaAdminMediaRepository
+    private lateinit var media: JpaMediaRepository
 
     @Autowired
     private lateinit var jdbcSessions: JdbcIndexedSessionRepository
@@ -94,17 +94,11 @@ class AdminAuthE2ETest {
         val login = login(uploader)
         val request = """{"items":[{"mediaType":"POSE","contentType":"image/png"}]}"""
 
-        mvc.perform(post("/admin/v1/media/upload").contentType("application/json").content(request))
-            .andExpect(status().isForbidden)
-        mvc.perform(
-            post("/admin/v1/media/upload").cookie(login.cookie).contentType("application/json").content(request),
-        )
-            .andExpect(status().isForbidden)
+        mvc.perform(post("/admin/media/upload").contentType("application/json").content(request))
+            .andExpect(status().isUnauthorized)
 
         val response = mvc.perform(
-            post("/admin/v1/media/upload").cookie(login.cookie)
-                .header("X-CSRF-TOKEN", csrf(login.cookie))
-                .contentType("application/json").content(request),
+            post("/admin/media/upload").cookie(login.cookie).contentType("application/json").content(request),
         ).andExpect(status().isOk).andReturn().response
 
         val item = objectMapper.readTree(response.contentAsString)["data"]["items"][0]
@@ -121,16 +115,12 @@ class AdminAuthE2ETest {
         val pending = login(createUser())
         val request = """{"items":[{"mediaType":"PHOTO_BOOTH","contentType":"image/png"}]}"""
         mvc.perform(
-            post("/admin/v1/media/upload").cookie(pending.cookie)
-                .header("X-CSRF-TOKEN", csrf(pending.cookie))
-                .contentType("application/json").content(request),
+            post("/admin/media/upload").cookie(pending.cookie).contentType("application/json").content(request),
         ).andExpect(status().isForbidden)
 
         val admin = login(createUser(RoleType.ADMIN.role))
         mvc.perform(
-            post("/admin/v1/media/upload").cookie(admin.cookie)
-                .header("X-CSRF-TOKEN", csrf(admin.cookie))
-                .contentType("application/json").content(request),
+            post("/admin/media/upload").cookie(admin.cookie).contentType("application/json").content(request),
         ).andExpect(status().isBadRequest)
         assertThat(media.count()).isZero()
     }
@@ -168,14 +158,14 @@ class AdminAuthE2ETest {
     @Test
     @DisplayName("익명 API 요청은 로그인 화면 이동 대신 401을 반환한다")
     fun givenAnonymous_whenRequestingMeOrAdmin_thenUnauthorized() {
-        mvc.perform(get("/admin/v1/auth/me")).andExpect(status().isUnauthorized)
+        mvc.perform(get("/admin/auth/me")).andExpect(status().isUnauthorized)
             .andExpect(jsonPath("$.resultCode").value("D-999"))
-        mvc.perform(get("/admin/v1/test")).andExpect(status().isUnauthorized)
+        mvc.perform(get("/admin/test")).andExpect(status().isUnauthorized)
     }
 
     @Test
-    @DisplayName("대기 사용자는 JDBC에 저장된 세션으로 본인과 CSRF를 조회하지만 관리 API는 거부된다")
-    fun givenPendingUser_whenRequestingMe_thenIdentityAndCsrfWithoutAdminAccess() {
+    @DisplayName("대기 사용자는 JDBC에 저장된 세션으로 본인을 조회하지만 관리 API는 거부된다")
+    fun givenPendingUser_whenRequestingMe_thenIdentityWithoutAdminAccess() {
         val user: User = createUser()
         val login = login(user)
         val me: JsonNode = me(login.cookie)
@@ -183,9 +173,7 @@ class AdminAuthE2ETest {
         assertThat(me["userId"].asLong()).isEqualTo(user.id)
         assertThat(me["email"].asText()).isEqualTo(user.email)
         assertThat(me["admin"].asBoolean()).isFalse()
-        assertThat(me.has("csrfToken")).isFalse()
-        assertThat(csrf(login.cookie)).isNotBlank()
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM ADMIN_SESSION_ATTRIBUTES", Int::class.java))
             .isGreaterThan(0)
         assertThat(sessions.findById(login.id)!!.maxInactiveInterval).isEqualTo(Duration.ofMinutes(30))
@@ -196,18 +184,14 @@ class AdminAuthE2ETest {
     fun givenPendingSession_whenAdminGranted_thenSameSessionImmediatelyAllowed() {
         val user: User = createUser()
         val login = login(user)
-        val csrf: String = csrf(login.cookie)
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
 
         user.roles = "${RoleType.USER.role},${RoleType.ADMIN.role}"
         users.saveAndFlush(user)
 
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isOk)
+        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isOk)
         assertThat(me(login.cookie)["admin"].asBoolean()).isTrue()
-        mvc.perform(
-            post("/admin/v1/test").cookie(login.cookie)
-                .header("X-CSRF-TOKEN", csrf),
-        ).andExpect(status().isOk)
+        mvc.perform(post("/admin/test").cookie(login.cookie)).andExpect(status().isOk)
     }
 
     @Test
@@ -215,12 +199,12 @@ class AdminAuthE2ETest {
     fun givenAdminSession_whenAdminRevoked_thenNextRequestForbidden() {
         val user: User = createUser(RoleType.ADMIN.role)
         val login = login(user)
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isOk)
+        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isOk)
 
         user.roles = RoleType.USER.role
         users.saveAndFlush(user)
 
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
         assertThat(me(login.cookie)["admin"].asBoolean()).isFalse()
     }
 
@@ -228,18 +212,7 @@ class AdminAuthE2ETest {
     @DisplayName("ADMIN과 이름이 비슷한 다른 권한은 관리자 권한으로 인정하지 않는다")
     fun givenSimilarRole_whenRequestingAdmin_thenForbidden() {
         val login = login(createUser("ROLE_ADMINISTRATOR"))
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
-    }
-
-    @Test
-    @DisplayName("세션 사용자와 Google subject 연결이 달라지면 기존 쿠키로 접근할 수 없다")
-    fun givenChangedGoogleIdentity_whenRequestingAdmin_thenForbidden() {
-        val user: User = createUser(RoleType.ADMIN.role)
-        val login = login(user)
-        user.oid = "different-subject"
-        users.saveAndFlush(user)
-
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
     }
 
     @Test
@@ -249,49 +222,29 @@ class AdminAuthE2ETest {
         val login = login(user)
         users.deleteById(user.id!!)
 
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
+        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isForbidden)
     }
 
     @Test
-    @DisplayName("ADMIN이어도 CSRF 토큰이 없거나 틀린 변경 요청은 실행되지 않는다")
-    fun givenAdminSession_whenCsrfMissingOrInvalid_thenWriteNotExecuted() {
+    @DisplayName("ADMIN 세션은 CSRF 토큰 없이 변경 요청을 수행한다")
+    fun givenAdminSession_whenWritingWithoutCsrf_thenWriteAllowed() {
         val login = login(createUser(RoleType.ADMIN.role))
 
-        mvc.perform(post("/admin/v1/test").cookie(login.cookie)).andExpect(status().isForbidden)
-        mvc.perform(
-            post("/admin/v1/test").cookie(login.cookie)
-                .header("X-CSRF-TOKEN", "invalid-token"),
-        ).andExpect(status().isForbidden)
-        assertThat(routes.writes.get()).isZero()
+        mvc.perform(post("/admin/test").cookie(login.cookie)).andExpect(status().isOk)
+        assertThat(routes.writes.get()).isEqualTo(1)
     }
 
     @Test
-    @DisplayName("me에서 받은 CSRF 토큰으로 변경 요청을 수행하고 새로 조회한 토큰도 사용할 수 있다")
-    fun givenAdminSession_whenUsingCsrfFromMe_thenWriteAllowed() {
-        val login = login(createUser(RoleType.ADMIN.role))
-        repeat(2) {
-            val csrf: String = csrf(login.cookie)
-            mvc.perform(
-                post("/admin/v1/test").cookie(login.cookie)
-                    .header("X-CSRF-TOKEN", csrf),
-            ).andExpect(status().isOk)
-        }
-        assertThat(routes.writes.get()).isEqualTo(2)
-    }
-
-    @Test
-    @DisplayName("대기 사용자도 CSRF로 로그아웃할 수 있고 이후 기존 세션을 재사용할 수 없다")
-    fun givenPendingSession_whenLoggingOutWithCsrf_thenSessionDeleted() {
+    @DisplayName("로그아웃은 POST만 받고 이후 기존 세션을 재사용할 수 없다")
+    fun givenPendingSession_whenLoggingOut_thenOnlyPostDeletesSession() {
         val login = login(createUser())
-        val csrf: String = csrf(login.cookie)
-        mvc.perform(post("/admin/v1/auth/logout").cookie(login.cookie)).andExpect(status().isForbidden)
-        mvc.perform(
-            post("/admin/v1/auth/logout").cookie(login.cookie)
-                .header("X-CSRF-TOKEN", csrf),
-        ).andExpect(status().isOk)
+        mvc.perform(get("/admin/auth/logout").cookie(login.cookie))
+        assertThat(sessions.findById(login.id)).isNotNull()
+
+        mvc.perform(post("/admin/auth/logout").cookie(login.cookie)).andExpect(status().isOk)
 
         assertThat(sessions.findById(login.id)).isNull()
-        mvc.perform(get("/admin/v1/auth/me").cookie(login.cookie)).andExpect(status().isUnauthorized)
+        mvc.perform(get("/admin/auth/me").cookie(login.cookie)).andExpect(status().isUnauthorized)
     }
 
     @Test
@@ -302,7 +255,7 @@ class AdminAuthE2ETest {
         session.lastAccessedTime = Instant.now().minus(Duration.ofMinutes(31))
         sessions.save(session)
 
-        mvc.perform(get("/admin/v1/test").cookie(login.cookie)).andExpect(status().isUnauthorized)
+        mvc.perform(get("/admin/test").cookie(login.cookie)).andExpect(status().isUnauthorized)
     }
 
     @Test
@@ -326,11 +279,11 @@ class AdminAuthE2ETest {
     }
 
     @Test
-    @DisplayName("PostgreSQL에서 동시에 최초 로그인해도 Google 계정은 하나만 생성된다")
+    @DisplayName("PostgreSQL에서 동시에 최초 로그인해도 같은 이메일의 관리 계정은 하나만 생성된다")
     fun givenConcurrentFirstLogins_whenCreatingSameGoogleSubject_thenOneAccount() {
         val database: String = jdbc.dataSource!!.connection.use { it.metaData.databaseProductName }
-        assumeTrue(database == "PostgreSQL", "실제 Google partial unique 제약은 PostgreSQL에서 검증한다")
-        val subject: String = UUID.randomUUID().toString()
+        assumeTrue(database == "PostgreSQL", "실제 이메일 partial unique 제약은 PostgreSQL에서 검증한다")
+        val email = "concurrent-${UUID.randomUUID()}@example.com"
         val start = CountDownLatch(1)
         val executor = Executors.newFixedThreadPool(8)
         try {
@@ -338,7 +291,7 @@ class AdminAuthE2ETest {
                 executor.submit<Long> {
                     start.await()
                     accounts.findOrCreate(
-                        UserCommand.RegisterAdminAccount("google:$subject", "concurrent@example.com", "동시 로그인"),
+                        UserCommand.RegisterAdminAccount(email, "동시 로그인"),
                     )
                 }
             }
@@ -356,20 +309,17 @@ class AdminAuthE2ETest {
     private fun login(user: User): AdminTestSession.Login = AdminTestSession.login(jdbcSessions, user)
 
     private fun me(cookie: Cookie): JsonNode {
-        val response = mvc.perform(get("/admin/v1/auth/me").cookie(cookie))
+        val response = mvc.perform(get("/admin/auth/me").cookie(cookie))
             .andExpect(status().isOk).andReturn().response
-        assertThat(response.getHeader("X-CSRF-TOKEN")).isNotBlank()
         val body: JsonNode = objectMapper.readTree(response.contentAsString)
         assertThat(body["resultCode"].asText()).isEqualTo("D-0")
         return body["data"]
     }
-
-    private fun csrf(cookie: Cookie): String = AdminTestSession.csrf(mvc, cookie)
 }
 
 @TestComponent
 @RestController
-@RequestMapping("/admin/v1/test")
+@RequestMapping("/admin/test")
 class AdminAuthTestController {
     val writes = AtomicInteger()
 

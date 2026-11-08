@@ -8,7 +8,7 @@
 core/                    공유 커널. 모든 모듈이 의존할 수 있음
 domain/                  도메인 모델·인터페이스와 자기 도메인 기술 구현 어댑터. core + modules(자기 도메인이 쓰는 것만) 의존
 apps/api/                api + application + 교차 도메인 호출 어댑터. 실행 모듈
-apps/admin/              api + application. 관리 인증의 기술 구현은 domain/user/infra/security/admin 을 사용
+apps/admin/              api + application. 관리 인증의 기술 구현은 domain/user/infra/security/session 을 사용
 apps/batch/              Spring Batch 잡. one-shot 실행 모듈 (Prefect 가 k8s Job 으로 띄움). domain 을 재사용하며 스캔 범위는 앱 클래스에 명시
 modules/                 외부 의존성 연결 설정 전용
 ```
@@ -39,7 +39,7 @@ apps/api/src/main/kotlin/com/neki/api/<domain>/
 
 `infra/client`(교차 도메인 호출)만 apps/api 에 남습니다. domain 모듈이 apps/api 를 의존하면 순환 의존이 생기기 때문입니다. 자기 도메인 인터페이스(repository/external)만 구현하는 기술 어댑터(persist/cache/storage/security)는 인터페이스 옆에 두는 것이 자연스러워 domain 모듈로 옮겼습니다. 그 대가로 domain 모듈이 `modules:*`(postgres, redis, aws, discord, firebase)와 spring-security/oauth2-client 같은 기술 의존성을 갖게 되었습니다 — 도메인이 자기 애그리거트의 영속성·캐시·외부 저장소를 구현하는 데 필요한 만큼만 추가합니다.
 
-admin의 OIDC/OAuth2 로그인·인가·보안 응답은 `domain/user/infra/security/admin`에 둡니다. 이 구현은 domain의 `UserCommand`만 `AdminAccountAccess` 인터페이스로 전달하고, admin application facade가 인터페이스를 구현해 모듈 의존 방향을 유지합니다. 제공자별 신원 검증은 같은 infra 패키지의 `AdminIdentityProvider` 구현체가 맡습니다. 사용자 영속성 구현체 `UserRepositoryAdapter`는 `domain/user/infra/persist`에 둡니다.
+admin의 Google OIDC 로그인·인가·보안 응답은 `domain/user/infra/security/session`에 둡니다. 이 구현은 domain의 `UserCommand`만 `AdminAccountAccess` 인터페이스로 전달하고, admin application facade가 인터페이스를 구현해 모듈 의존 방향을 유지합니다. 사용자 영속성 구현체 `UserRepositoryAdapter`는 `domain/user/infra/persist`에 둡니다.
 
 ## 타입 소유권
 
@@ -74,7 +74,7 @@ admin의 OIDC/OAuth2 로그인·인가·보안 응답은 `domain/user/infra/secu
 
 ### 도메인 서비스 규칙
 
-- 자기 도메인의 인터페이스만 의존함. repository 외에 cache·storage·generator 등 자기 도메인 인터페이스는 의존해도 됨. e.g. `PoseService`가 `PoseViewCache`, `RandomGenerator`를 의존
+- 자기 도메인의 인터페이스만 의존함. repository 외에 cache·storage·generator 등 자기 도메인 인터페이스는 의존해도 됨. e.g. `RandomPoseService`가 `RandomGenerator`를 의존
 - 다른 도메인 호출 클라이언트(`*Client`)와 다른 도메인 서비스는 의존하지 않음. 교차 도메인 호출은 유스케이스가 함
 - 파라미터로 `Command`/`Query`를 그대로 받음. 스칼라로 분해해서 넘기지 않음
 - 여러 command가 같은 모양을 공유하면 인터페이스로 묶음. e.g. `FolderCommand.PhotosToTargetFolders`
@@ -219,7 +219,7 @@ admin 인증처럼 단일 도메인 객체를 한 번만 `Result`로 옮기는 �
 - 도메인 격리 : api·application·엔티티·domain infra 계층이 다른 도메인을 의존하지 않음
 - 계층 의존 : application이 api·infra를 의존하지 않음, domain(models/dto/service/repository/client/external)이 자기 도메인 infra를 의존하지 않음
 - DTO 배치 : Request·Response는 api, Command·Query는 domain dto, Result는 application
-- 어노테이션 배치 : `@UseCase`는 application, `@RestController`는 api.controller, `@Repository`는 infra
+- 어노테이션 배치 : `@UseCase`는 application, `@RestController`는 api.controller, `@Repository`는 infra. 단, admin의 application은 `@UseCase` 대신 `@Service`를 쓰며 `AdminArchitectureRulesTest`가 검사함
 
 DTO 배치 규칙은 이름 접미사만 보고 판단하므로 접미사가 우연히 겹치는 공유 커널 값 객체까지 걸립니다. 따라서 `com.neki.common.domain..`은 검사 대상에서 제외합니다.
 

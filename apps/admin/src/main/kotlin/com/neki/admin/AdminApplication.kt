@@ -1,9 +1,10 @@
 package com.neki.admin
 
 import com.neki.config.aws.S3Properties
+import com.neki.domain.media.infra.persist.MediaRepositoryAdapter
 import com.neki.domain.media.infra.storage.fake.FakeMediaStorageConfig
 import com.neki.domain.media.infra.storage.s3.S3MediaStorageAdapterConfig
-import com.neki.domain.user.infra.security.admin.AdminSecurityConfig
+import com.neki.domain.user.infra.security.session.SessionSecurityConfig
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -27,11 +28,20 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
         "com.neki.config.aws",
     ],
 )
-// admin 기능 리포지터리와 기존 사용자 JPA 리포지터리만 등록한다.
+// admin 기능 리포지터리와 admin 이 쓰는 도메인의 JPA 리포지터리만 등록한다.
 @EntityScan("com.neki.domain", "com.neki.core")
-@EnableJpaRepositories("com.neki.admin", "com.neki.domain.user.infra.persist.jpa")
+@EnableJpaRepositories(
+    "com.neki.admin",
+    "com.neki.domain.user.infra.persist.jpa",
+    "com.neki.domain.media.infra.persist.jpa",
+)
 @EnableConfigurationProperties(S3Properties::class)
-@Import(S3MediaStorageAdapterConfig::class, FakeMediaStorageConfig::class, AdminSecurityConfig::class)
+@Import(
+    S3MediaStorageAdapterConfig::class,
+    FakeMediaStorageConfig::class,
+    MediaRepositoryAdapter::class,
+    SessionSecurityConfig::class,
+)
 class AdminApplication {
     @Bean
     fun meterRegistry(): MeterRegistry = SimpleMeterRegistry()

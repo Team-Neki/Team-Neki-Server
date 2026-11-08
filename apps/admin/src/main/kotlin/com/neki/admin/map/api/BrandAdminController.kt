@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController
  * description    :
  */
 @RestController
-@RequestMapping("/admin/v1/brand")
+@RequestMapping("/admin/brand")
 class BrandAdminController(private val brandAdminFacade: BrandAdminFacade) {
 
     @GetMapping

@@ -1,5 +1,6 @@
 package com.neki.api.e2e.photo.image
 
+import com.neki.api.photo.api.dto.PhotoImageRequest
 import com.neki.core.code.ResultCode
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.photo.models.PhotoImage
@@ -140,5 +141,48 @@ class PutPhotoE2ETest : PhotoImageE2ETestBase() {
         val updatedPhoto = photoImageRepository.findById(photo.id!!).orElseThrow()
         assertThat(updatedPhoto.memo).isEqualTo("")
         assertThat(updatedPhoto.capturedAt).isNull()
+    }
+
+    @Test
+    @DisplayName("memo가 255자를 넘으면 400 INVALID_PARAMETER를 반환하고 기존 memo를 유지한다")
+    fun givenMemoOver255Chars_whenPutPhoto_thenReturnsBadRequest() {
+        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val photo = photoImageRepository.save(
+            PhotoImage(userId = testUser.id!!, mediaId = media.id!!, memo = "old memo"),
+        )
+
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(PhotoImageRequest.UpdatePhoto(memo = "a".repeat(256), capturedAt = null))
+            .`when`()
+            .put("/api/photos/${photo.id}")
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+
+        val unchangedPhoto = photoImageRepository.findById(photo.id!!).orElseThrow()
+        assertThat(unchangedPhoto.memo).isEqualTo("old memo")
+    }
+
+    @Test
+    @DisplayName("memo가 정확히 255자면 정상 저장된다")
+    fun givenMemoOf255Chars_whenPutPhoto_thenUpdatesMemo() {
+        val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+        val photo = createPhotoImage(userId = testUser.id!!, mediaId = media.id!!)
+        val memo = "a".repeat(255)
+
+        RestAssured.given()
+            .contentType(ContentType.JSON)
+            .header("Authorization", "Bearer $accessToken")
+            .body(PhotoImageRequest.UpdatePhoto(memo = memo, capturedAt = null))
+            .`when`()
+            .put("/api/photos/${photo.id}")
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
+
+        val updatedPhoto = photoImageRepository.findById(photo.id!!).orElseThrow()
+        assertThat(updatedPhoto.memo).isEqualTo(memo)
     }
 }

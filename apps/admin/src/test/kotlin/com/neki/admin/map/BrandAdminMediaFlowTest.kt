@@ -2,10 +2,10 @@ package com.neki.admin.map
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.AdminTestSession
-import com.neki.admin.common.media.JpaAdminMediaRepository
 import com.neki.admin.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.core.code.ResultCode
 import com.neki.domain.map.models.Brand
+import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
@@ -51,7 +51,7 @@ class BrandAdminMediaFlowTest {
     lateinit var brandRepository: JpaBrandRepository
 
     @Autowired
-    lateinit var mediaRepository: JpaAdminMediaRepository
+    lateinit var mediaRepository: JpaMediaRepository
 
     @Autowired
     lateinit var userRepository: JpaUserRepository
@@ -63,9 +63,7 @@ class BrandAdminMediaFlowTest {
     lateinit var jdbcTemplate: JdbcTemplate
 
     private lateinit var adminCookie: Cookie
-    private lateinit var csrf: String
     private lateinit var uploaderCookie: Cookie
-    private lateinit var uploaderCsrf: String
     private var uploaderId: Long = 0
 
     @BeforeEach
@@ -77,10 +75,8 @@ class BrandAdminMediaFlowTest {
         val uploader = AdminTestSession.createUser(userRepository, RoleType.ADMIN.role)
         uploaderId = uploader.id!!
         uploaderCookie = AdminTestSession.login(sessions, uploader).cookie
-        uploaderCsrf = AdminTestSession.csrf(mockMvc, uploaderCookie)
         val actingAdmin = AdminTestSession.createUser(userRepository, RoleType.ADMIN.role)
         adminCookie = AdminTestSession.login(sessions, actingAdmin).cookie
-        csrf = AdminTestSession.csrf(mockMvc, adminCookie)
     }
 
     private fun seedMedia(type: DomainMediaType = DomainMediaType.LOGO): Media = mediaRepository.save(
@@ -93,18 +89,15 @@ class BrandAdminMediaFlowTest {
         ),
     )
 
-    private fun adminPost(path: String) = post(path).cookie(adminCookie).header("X-CSRF-TOKEN", csrf)
+    private fun adminPost(path: String) = post(path).cookie(adminCookie)
 
-    private fun adminPatch(path: String, vararg uriVariables: Any) =
-        patch(path, *uriVariables).cookie(adminCookie).header("X-CSRF-TOKEN", csrf)
+    private fun adminPatch(path: String, vararg uriVariables: Any) = patch(path, *uriVariables).cookie(adminCookie)
 
-    private fun adminDelete(path: String, vararg uriVariables: Any) =
-        delete(path, *uriVariables).cookie(adminCookie).header("X-CSRF-TOKEN", csrf)
+    private fun adminDelete(path: String, vararg uriVariables: Any) = delete(path, *uriVariables).cookie(adminCookie)
 
     private fun issueMediaAsUploader(): Media {
         val response = mockMvc.perform(
-            post("/admin/v1/media/upload").cookie(uploaderCookie)
-                .header("X-CSRF-TOKEN", uploaderCsrf)
+            post("/admin/media/upload").cookie(uploaderCookie)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"items":[{"mediaType":"LOGO","contentType":"image/png"}]}"""),
         ).andExpect(status().isOk).andReturn().response
@@ -121,7 +114,7 @@ class BrandAdminMediaFlowTest {
     fun addBrandStoresMediaId() {
         val media: Media = issueMediaAsUploader()
         mockMvc.perform(
-            adminPost("/admin/v1/brand")
+            adminPost("/admin/brand")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":${media.id},
@@ -135,7 +128,7 @@ class BrandAdminMediaFlowTest {
         mediaRepository.findById(media.id!!).get().ownerId shouldBe uploaderId
         mediaRepository.findById(media.id!!).get().status shouldBe MediaStatus.UPLOADED
 
-        mockMvc.perform(get("/admin/v1/brand").cookie(adminCookie))
+        mockMvc.perform(get("/admin/brand").cookie(adminCookie))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.data.brandInfos[0].id").value(saved.id))
             .andExpect(jsonPath("$.data.brandInfos[0].code").value("PHOTOGRAY"))
@@ -149,7 +142,7 @@ class BrandAdminMediaFlowTest {
         val media: Media = seedMedia()
 
         mockMvc.perform(
-            adminPatch("/admin/v1/brand/{brandId}", brand.id!!)
+            adminPatch("/admin/brand/{brandId}", brand.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"mediaId":${media.id}}"""),
         ).andExpect(status().isOk)
@@ -176,7 +169,7 @@ class BrandAdminMediaFlowTest {
         )
 
         mockMvc.perform(
-            adminPatch("/admin/v1/brand/{brandId}", brand.id!!)
+            adminPatch("/admin/brand/{brandId}", brand.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"name":"포토그레이","mediaId":${legacy.id},"exposeToMap":false}"""),
         ).andExpect(status().isOk)
@@ -191,7 +184,7 @@ class BrandAdminMediaFlowTest {
         val media: Media = seedMedia(DomainMediaType.POSE)
 
         mockMvc.perform(
-            adminPost("/admin/v1/brand")
+            adminPost("/admin/brand")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":${media.id},
@@ -218,7 +211,7 @@ class BrandAdminMediaFlowTest {
         )
 
         mockMvc.perform(
-            adminPost("/admin/v1/brand")
+            adminPost("/admin/brand")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"name":"포토그레이","code":"PHOTOGRAY","mediaId":${ordinary.id},
@@ -237,7 +230,7 @@ class BrandAdminMediaFlowTest {
         val brand: Brand = seedBrand()
 
         mockMvc.perform(
-            adminPatch("/admin/v1/brand/{brandId}", brand.id!!)
+            adminPatch("/admin/brand/{brandId}", brand.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"name":"포토이즘"}"""),
         ).andExpect(status().isOk)
@@ -253,7 +246,7 @@ class BrandAdminMediaFlowTest {
         val brand: Brand = seedBrand()
 
         mockMvc.perform(
-            adminPatch("/admin/v1/brand/{brandId}", brand.id!!)
+            adminPatch("/admin/brand/{brandId}", brand.id!!)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"),
         )
@@ -265,17 +258,17 @@ class BrandAdminMediaFlowTest {
     fun blankBrandFieldsAndCodeChangeReturn400() {
         val brand = seedBrand()
         mockMvc.perform(
-            adminPost("/admin/v1/brand").contentType(MediaType.APPLICATION_JSON)
+            adminPost("/admin/brand").contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """{"name":"  ","code":" ","mediaId":1,"supportAndroidQr":true,"supportIosQr":true,"exposeToMap":true}""",
                 ),
         ).andExpect(status().isBadRequest)
         mockMvc.perform(
-            adminPatch("/admin/v1/brand/{brandId}", brand.id!!).contentType(MediaType.APPLICATION_JSON)
+            adminPatch("/admin/brand/{brandId}", brand.id!!).contentType(MediaType.APPLICATION_JSON)
                 .content("""{"name":"  "}"""),
         ).andExpect(status().isBadRequest)
         mockMvc.perform(
-            adminPatch("/admin/v1/brand/{brandId}", brand.id!!).contentType(MediaType.APPLICATION_JSON)
+            adminPatch("/admin/brand/{brandId}", brand.id!!).contentType(MediaType.APPLICATION_JSON)
                 .content("""{"code":"NEW_CODE"}"""),
         ).andExpect(status().isBadRequest)
         brandRepository.findById(brand.id!!).get().code shouldBe "PHOTOGRAY"
@@ -286,7 +279,7 @@ class BrandAdminMediaFlowTest {
         val brand = seedBrand()
         jdbcTemplate.update("INSERT INTO TB_PHOTO_BOOTH_MANUAL (id, brand_id) VALUES (?, ?)", 999L, brand.id)
 
-        mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
+        mockMvc.perform(adminDelete("/admin/brand/{brandId}", brand.id!!))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.BRAND_IN_USE.code))
         brandRepository.findById(brand.id!!).get().deletedAt shouldBe null
@@ -302,7 +295,7 @@ class BrandAdminMediaFlowTest {
             brand.id,
         )
 
-        mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
+        mockMvc.perform(adminDelete("/admin/brand/{brandId}", brand.id!!))
             .andExpect(status().isOk)
     }
 
@@ -323,7 +316,7 @@ class BrandAdminMediaFlowTest {
             brand.code,
         )
 
-        mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
+        mockMvc.perform(adminDelete("/admin/brand/{brandId}", brand.id!!))
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.BRAND_IN_USE.code))
         brandRepository.findById(brand.id!!).get().deletedAt shouldBe null
@@ -333,7 +326,7 @@ class BrandAdminMediaFlowTest {
     @DisplayName("존재하지 않는 브랜드를 수정하면 400 NOT_FOUND")
     fun updateMissingBrandReturnsNotFound() {
         mockMvc.perform(
-            adminPatch("/admin/v1/brand/{brandId}", 99999L)
+            adminPatch("/admin/brand/{brandId}", 99999L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""{"mediaId":2}"""),
         )
@@ -346,7 +339,7 @@ class BrandAdminMediaFlowTest {
     fun deleteBrandIsSoftDelete() {
         val brand: Brand = seedBrand()
 
-        mockMvc.perform(adminDelete("/admin/v1/brand/{brandId}", brand.id!!))
+        mockMvc.perform(adminDelete("/admin/brand/{brandId}", brand.id!!))
             .andExpect(status().isOk)
 
         // soft delete된 행은 @SQLRestriction 때문에 JPA로는 보이지 않으므로 native SQL로 확인한다

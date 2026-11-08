@@ -52,8 +52,4 @@ class PoseRepositoryAdapter(
 
     override fun findPoseByOffset(offset: Long, headCount: HeadCount, excludeIds: List<Long>): Pose? =
         queryRepository.findPoseByOffset(offset, headCount, excludeIds)
-
-    override fun incrementViewCount(poseId: Long) {
-        queryRepository.incrementViewCount(poseId)
-    }
 }

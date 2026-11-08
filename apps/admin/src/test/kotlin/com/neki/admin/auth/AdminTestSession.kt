@@ -1,7 +1,7 @@
 package com.neki.admin.auth
 
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
-import com.neki.domain.user.infra.security.admin.AdminPrincipal
+import com.neki.domain.user.infra.security.session.SessionPrincipal
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
@@ -15,9 +15,6 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.session.Session
 import org.springframework.session.SessionRepository
 import org.springframework.session.jdbc.JdbcIndexedSessionRepository
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
 import java.util.Base64
 import java.util.UUID
@@ -29,7 +26,7 @@ object AdminTestSession {
         User(
             email = "admin-${UUID.randomUUID()}@example.com",
             name = "관리자",
-            oid = "google:${UUID.randomUUID()}",
+            oid = null,
             roles = roles,
             providerType = ProviderType.ADMIN_SSO,
             profileImageId = null,
@@ -42,10 +39,10 @@ object AdminTestSession {
             "test-id-token",
             now,
             now.plusSeconds(3600),
-            mapOf("sub" to user.oid!!.removePrefix("google:"), "email" to user.email!!, "email_verified" to true),
+            mapOf("sub" to UUID.randomUUID().toString(), "email" to user.email!!, "email_verified" to true),
         )
         val delegate = DefaultOidcUser(listOf(OidcUserAuthority(idToken)), idToken)
-        val principal = AdminPrincipal(user.id!!, user.oid!!, delegate)
+        val principal = SessionPrincipal(user.id!!, delegate)
         val authentication = OAuth2AuthenticationToken(principal, principal.authorities, "google")
 
         @Suppress("UNCHECKED_CAST")
@@ -59,7 +56,4 @@ object AdminTestSession {
         val encoded = Base64.getEncoder().encodeToString(session.id.toByteArray(Charsets.UTF_8))
         return Login(session.id, Cookie("ADMINSESSION", encoded))
     }
-
-    fun csrf(mvc: MockMvc, cookie: Cookie): String = mvc.perform(get("/admin/v1/auth/me").cookie(cookie))
-        .andExpect(status().isOk).andReturn().response.getHeader("X-CSRF-TOKEN")!!
 }

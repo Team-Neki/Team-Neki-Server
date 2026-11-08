@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /**
@@ -27,6 +27,9 @@ class ObjectMapperConfig {
     companion object {
         private val DATE_TIME_FORMATTER: DateTimeFormatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+
+        // LocalDateTime 응답(KST 벽시계)과 같은 기준으로 맞춘다
+        private val KOREA_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
     }
 
     @Bean
@@ -44,7 +47,7 @@ class ObjectMapperConfig {
 
     private class InstantCustomSerializer : JsonSerializer<Instant>() {
         override fun serialize(value: Instant, gen: JsonGenerator, serializers: SerializerProvider) {
-            gen.writeString(DATE_TIME_FORMATTER.format(value.atZone(ZoneOffset.UTC)))
+            gen.writeString(DATE_TIME_FORMATTER.format(value.atZone(KOREA_ZONE)))
         }
     }
 }

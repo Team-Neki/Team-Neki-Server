@@ -1,7 +1,7 @@
 package com.neki.admin.map.application
 
-import com.neki.admin.common.media.AdminMediaVerifier
 import com.neki.admin.map.api.BrandAdminDto
+import com.neki.admin.media.application.AdminMediaVerifier
 import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.CountedPage
 import com.neki.core.exception.BusinessException

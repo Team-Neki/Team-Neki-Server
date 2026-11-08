@@ -8,17 +8,17 @@
 
 | Method | Path | 동작 |
 | --- | --- | --- |
-| GET | `/admin/v1/brand` | 목록 조회 (supportsQr, exposeToMap 필터) |
-| GET | `/admin/v1/brand/search` | keyword 검색 |
-| POST | `/admin/v1/brand` | 등록 |
-| PATCH | `/admin/v1/brand/{brandId}` | 부분 수정 |
-| DELETE | `/admin/v1/brand/{brandId}` | soft delete |
+| GET | `/admin/brand` | 목록 조회 (supportsQr, exposeToMap 필터) |
+| GET | `/admin/brand/search` | keyword 검색 |
+| POST | `/admin/brand` | 등록 |
+| PATCH | `/admin/brand/{brandId}` | 부분 수정 |
+| DELETE | `/admin/brand/{brandId}` | soft delete |
 
 목록 조회는 `CountedPage`를 사용하며 전체 건수와 전체 페이지 수를 반환합니다. 삭제 필터는 `Brand`의 `@SQLRestriction`에 맡깁니다. 소프트 삭제 테스트는 JPA 조회 대신 native SQL로 행 존재와 media 연결을 확인합니다.
 
 ## 부분 수정과 이미지 변경
 
-`PATCH /admin/v1/brand/{brandId}`는 null 필드를 "변경하지 않음"으로 해석합니다.
+`PATCH /admin/brand/{brandId}`는 null 필드를 "변경하지 않음"으로 해석합니다.
 
 - 넘긴 필드만 변경: name, code, mediaId, supportAndroidQr, supportIosQr, exposeToMap
 - 전부 null이면 `BrandCommand.UpdateBrand.hasNoChanges`가 `INVALID_PARAMETER`로 판정
@@ -33,11 +33,11 @@ sequenceDiagram
     participant ADM as apps:admin
     participant DB as DB
 
-    A->>ADM: POST /admin/v1/media/upload (세션·CSRF, LOGO)
+    A->>ADM: POST /admin/media/upload (세션, LOGO)
     ADM->>DB: Media 생성 (ownerId=업로더, adminManaged=true)
     ADM-->>A: mediaId + presigned URL
     A->>S3: PUT presigned URL (이미지 바이너리)
-    A->>ADM: PATCH /admin/v1/brand/{brandId} (다른 ADMIN도 가능)
+    A->>ADM: PATCH /admin/brand/{brandId} (다른 ADMIN도 가능)
     ADM->>DB: 관리자 미디어·LOGO 타입·상태 확인
     ADM->>S3: INITIATED면 객체 존재 확인 (HEAD)
     ADM->>DB: Media를 UPLOADED로 전환

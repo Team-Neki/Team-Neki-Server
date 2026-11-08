@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 @ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
 class AdminAccountService(private val userRepository: UserRepository) {
     fun findAdminAccount(query: UserQuery.GetAdminAccount): User? =
-        userRepository.findByOid(query.identityKey, ProviderType.ADMIN_SSO)
+        userRepository.findByEmail(query.email, ProviderType.ADMIN_SSO)
 
     fun registerAdminAccount(command: UserCommand.RegisterAdminAccount): User {
         val points: IntArray = (command.name?.takeIf { it.isNotBlank() } ?: "소셜 사용자")
@@ -22,7 +22,7 @@ class AdminAccountService(private val userRepository: UserRepository) {
             User(
                 email = command.email,
                 name = String(points, 0, points.size),
-                oid = command.identityKey,
+                oid = null,
                 roles = RoleType.USER.role,
                 providerType = ProviderType.ADMIN_SSO,
                 profileImageId = null,
@@ -31,5 +31,5 @@ class AdminAccountService(private val userRepository: UserRepository) {
     }
 
     fun findActiveAdminAccount(query: UserQuery.GetActiveAdminAccount): User? = userRepository.findById(query.userId)
-        ?.takeIf { it.providerType == ProviderType.ADMIN_SSO && it.oid == query.identityKey }
+        ?.takeIf { it.providerType == ProviderType.ADMIN_SSO }
 }
