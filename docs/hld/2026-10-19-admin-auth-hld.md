@@ -35,13 +35,12 @@ related:
 | 권한 부여 반영 | 유효한 Google 로그인 세션이 있으면 재로그인 없이 다음 관리 요청부터 ADMIN 권한 적용 |
 | 권한 회수 반영 | 관리 요청마다 DB의 현재 사용자 권한을 확인하고 ADMIN 회수 후 다음 요청부터 차단 |
 | 승인 절차 개선 | 승인 UI·자동화·별도 승인 이력 모델은 후속 개선으로 진행 |
-| 요청 보호 | 세션 쿠키와 함께 CSRF 보호 적용 |
+| 요청 보호 | `SameSite=Lax` 세션 쿠키와 POST 전용 변경 요청. CSRF 토큰은 사용하지 않음 |
 
 ### 초안에서 제안하는 선택
 
 | 항목 | 기본안 | 결정 상태 |
 |---|---|---|
-| CSRF 토큰 전달 | `/auth/me`의 `X-CSRF-TOKEN` 응답 헤더로 전달하고 클라이언트 메모리에 보관 | 구현 |
 | 세션 쿠키 | 어드민 전용 쿠키와 운영 보안 속성 적용 | 이름은 구현 시 지정 |
 | Next 연결 계약 | 로그인 시작과 콜백을 함께 프록시하고 쿠키·리다이렉트를 중계 | 외부 경로·헤더 처리 합의 필요 |
 
@@ -84,9 +83,9 @@ flowchart LR
 
 | 구성요소 | 책임 |
 |---|---|
-| 브라우저 | 로그인 화면 이동, 세션 쿠키 전송, CSRF 토큰을 포함한 변경 요청 |
-| Next 서버 | 허용된 admin 경로 중계, 요청 쿠키·CSRF 헤더 전달, 응답 쿠키·CSRF 헤더·리다이렉트 전달 |
-| Spring Security | OAuth 요청 상관관계와 OIDC 응답 검증, 인증 상태 저장, 세션·CSRF·접근 제어 |
+| 브라우저 | 로그인 화면 이동, 세션 쿠키 전송, 변경 요청 |
+| Next 서버 | 허용된 admin 경로 중계, 요청 쿠키 전달, 응답 쿠키·리다이렉트 전달 |
+| Spring Security | OAuth 요청 상관관계와 OIDC 응답 검증, 인증 상태 저장, 세션·접근 제어 |
 | admin 애플리케이션 | 제공자 공통 식별 키로 사용자 연결, ADMIN 보유 여부 조회, 관리자 로그인 결과 결정 |
 | 도메인과 JPA | 기존 사용자·권한 저장 및 도메인 규칙 |
 | PostgreSQL 세션 저장소 | OAuth 진행 중 상태와 로그인 세션의 저장·조회·만료 |
@@ -190,15 +189,15 @@ Spring의 인증 상태와 OAuth 진행 중 세션을 같은 JDBC 저장소에 �
 |---|---|---|
 | `GET /oauth2/authorization/google` | Google 로그인 시작 | 익명 허용, 브라우저 이동으로 호출 |
 | `GET /login/oauth2/code/google` | Google 콜백 | 별도 로그인은 요구하지 않으며 OAuth 요청 상관관계 검증 필수 |
-| `GET /admin/v1/auth/me` | 본인·현재 ADMIN 권한·세션 상태와 CSRF 토큰 조회 | Google 인증 세션의 본인. 대기·권한 회수 상태 포함 |
-| `POST /admin/v1/auth/logout` | 세션 무효화와 쿠키 삭제 | 유효한 세션과 CSRF 토큰 |
+| `GET /admin/v1/auth/me` | 본인·현재 ADMIN 권한·세션 상태 조회 | Google 인증 세션의 본인. 대기·권한 회수 상태 포함 |
+| `POST /admin/v1/auth/logout` | 세션 무효화와 쿠키 삭제 | 유효한 세션. GET은 로그아웃하지 않음 |
 | 그 외 `/admin/v1/**` | Brand·Pose 등 관리 API | 유효한 Google 로그인 세션과 현재 DB의 ADMIN 권한 |
 
 인증 관련 예외 경로는 관리 API의 포괄 규칙보다 먼저 매칭합니다. 나머지 경로는 기본 거부하며, 관리 API의 미인증 요청은 `401`, 인증됐지만 권한이 없는 요청은 `403`으로 응답합니다. API 호출을 Google 로그인 HTML로 자동 리다이렉트하지 않습니다.
 
 승인·권한 부여용 공개 HTTP API는 초기 범위에 포함하지 않습니다. 수동 DB 변경만으로 최초 ADMIN을 만들 수 있어 별도 기본 비밀번호나 관리자 시드 계정이 필요하지 않습니다.
 
-## 8 쿠키와 CSRF 정책
+## 8 쿠키와 요청 보호 정책
 
 세션 쿠키는 어드민 전용 이름을 사용합니다. 운영 기본안은 `HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`이며 `Domain`을 지정하지 않는 host 전용 쿠키입니다. 로컬 HTTP 개발의 `Secure` 예외는 개발 설정에 한정합니다.
 
@@ -206,9 +205,9 @@ Spring의 인증 상태와 OAuth 진행 중 세션을 같은 JDBC 저장소에 �
 
 OAuth 시작 시 만들어진 세션이 콜백까지 이어져야 하며, 인증 완료 시 세션 고정 공격 방지 기능을 유지합니다. 로그아웃은 서버 세션을 무효화하고 같은 이름·범위의 쿠키를 삭제합니다. [Spring 세션 관리](https://docs.spring.io/spring-security/reference/6.5/servlet/authentication/session-management.html)
 
-변경 요청과 로그아웃은 CSRF 토큰을 검증합니다. Spring이 세션에 연결된 토큰을 생성·저장하고 `/auth/me`의 `X-CSRF-TOKEN` 응답 헤더로 클라이언트에 전달합니다. 클라이언트는 토큰을 런타임 메모리에 보관하고 POST·PATCH·DELETE 요청과 로그아웃의 같은 이름의 요청 헤더에 넣습니다. Next는 me의 응답 헤더와 브라우저가 보낸 요청 헤더를 그대로 중계하며, 요청마다 토큰을 대신 발급받아 붙이는 방식으로 구현하지 않습니다.
+admin API는 CSRF 토큰을 사용하지 않습니다. 브라우저는 Next 서버만 호출하고 Spring은 Next의 서버 간 요청으로만 호출되므로, 다른 사이트에서 시작한 변경 요청을 막는 일은 세션 쿠키의 `SameSite=Lax`가 맡습니다. `Lax` 쿠키는 다른 사이트의 POST·PATCH·DELETE와 fetch에 실리지 않고 최상위 GET 이동에만 실립니다. 따라서 상태를 바꾸는 요청은 GET으로 받지 않으며, 로그아웃도 POST만 처리합니다. OAuth 콜백은 Google에서 돌아오는 최상위 GET 이동이라 `Lax` 쿠키가 실리고 state 검증도 그대로 유지됩니다.
 
-토큰을 영구 저장하거나 매 요청 새로 발급받을 필요는 없습니다. 페이지 새로고침으로 메모리 값이 사라지면 `/auth/me`에서 다시 받습니다. 로그인으로 이전 토큰이 초기화되면 새 토큰을 받고, 로그아웃·세션 만료 시 클라이언트의 보관 값을 버립니다. 로그아웃 이후 다음 로그인은 OAuth 흐름으로 시작하며, 인증 완료 후 `/auth/me`에서 새 토큰을 받습니다. OAuth의 state 검증과 관리 API의 CSRF 검증을 각각 유지합니다. [Spring CSRF](https://docs.spring.io/spring-security/reference/6.5/servlet/exploits/csrf.html)
+토큰 발급·중계 계약이 사라져 Next와 클라이언트 구현이 단순해지는 장점이 있지만, 보호가 쿠키 속성에 의존하는 트레이드 오프가 있습니다. 같은 site(e.g. 같은 등록 도메인의 다른 서브도메인)에서 온 요청은 `SameSite`로 막히지 않으므로, 신뢰하지 않는 서브도메인을 같은 등록 도메인에 두지 않아야 합니다.
 
 ## 9 Spring 직접 콜백에서 Next 프록시로 전환
 
@@ -222,8 +221,8 @@ Google redirect URI를 외부 Next 콜백 주소로 바꾸고, 로그인 시작�
 
 | 방향 | 필요한 중계 계약 |
 |---|---|
-| 브라우저 → Next → Spring | 어드민 세션 쿠키, CSRF 헤더, 허용된 쿼리와 본문 전달 |
-| Spring → Next → 브라우저 | 상태 코드, 모든 `Set-Cookie`, `Location`, me의 `X-CSRF-TOKEN` 응답 헤더 보존. 로그인 응답을 Next 서버가 자동으로 따라가지 않음 |
+| 브라우저 → Next → Spring | 어드민 세션 쿠키, 허용된 쿼리와 본문 전달 |
+| Spring → Next → 브라우저 | 상태 코드, 모든 `Set-Cookie`, `Location` 응답 헤더 보존. 로그인 응답을 Next 서버가 자동으로 따라가지 않음 |
 | Google → 외부 콜백 | Google 등록 URI, 인증 시작 요청과 code 교환의 `redirect_uri`를 같은 외부 주소로 유지 |
 | 외부 주소 해석 | 환경별 외부 URL을 명시하거나 신뢰된 프록시의 forwarded 헤더만 사용. 임의 입력으로 콜백 주소를 만들지 않음 |
 
@@ -235,10 +234,10 @@ OAuth 브라우저 리다이렉트 자체와 다른 origin의 API 호출에 대�
 
 | 영역 | 변경 범위 |
 |---|---|
-| `apps/admin` | 전용 보안 체인, OAuth 로그인 연결, 인증 결과·세션·CSRF·접근 제어, PostgreSQL 프로파일 |
+| `apps/admin` | 전용 보안 체인, OAuth 로그인 연결, 인증 결과·세션·접근 제어, PostgreSQL 프로파일 |
 | `domain/user` | 기존 User·ADMIN 재사용, 제공자 공통 계정 키와 현재 사용자 권한 조회. OIDC/OAuth2 보안 및 제공자별 신원 추출 구현은 infra에 배치 |
 | `modules/postgres` | V41 세션 테이블, V42 관리자 SSO 계정 전환과 식별 키 고유 인덱스, V43 관리자 업로드 미디어 표시 |
-| Team-Neki-Admin | 로그인·대기·오류 UI, 로그인·콜백·쿠키·CSRF 프록시 |
+| Team-Neki-Admin | 로그인·대기·오류 UI, 로그인·콜백·쿠키 프록시 |
 | Team-Neki-GitOps | 인증 구현 후 PostgreSQL·Google 자격증명·외부 URL 설정. API Service 내부 배치 유지 |
 | 기존 모바일 API | JWT 발급·검증 유지. Google admin 로그인을 모바일 로그인 제공자로 자동 확장하지 않음 |
 
@@ -255,7 +254,6 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 | 반복·동시 로그인 | 외부 계정 키의 중복 방지. 기존 사용자와 권한 재사용 |
 | 세션 만료·없는 쿠키 | 관리 API `401`, 다시 로그인 |
 | ADMIN 미보유·권한 회수 | 관리 API `403`, 관리 권한이 없음을 안내 |
-| CSRF 누락·불일치 | 변경 요청 `403`, 토큰 재조회 후 사용자 재시도 |
 | PostgreSQL 장애 | 관리 요청 `503` 등 서비스 오류. 인증 실패나 승인 대기로 오인시키지 않으며 접근 허용으로 대체하지 않음 |
 | 선택적 Discord 알림 실패 | 저장된 사용자·권한 유지. 로그인 흐름과 분리 |
 
@@ -266,7 +264,7 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 1. 기존 User·ADMIN 구조를 확인하고 관리자 SSO 식별 키 제약, Spring Session JDBC 테이블, 공동 관리 미디어 표시의 PostgreSQL V41·V42·V43 마이그레이션을 준비합니다.
 2. Spring 직접 콜백으로 Google 로그인과 ADMIN 미보유 사용자의 대기 안내를 구현합니다.
 3. DB 쿼리 권한 부여·회수 절차와 매 관리 요청의 현재 ADMIN 인가를 연결합니다.
-4. 세션 쿠키·유휴 만료 30분·로그아웃·CSRF 및 서버 재시작 후 세션 복원을 검증합니다.
+4. 세션 쿠키·유휴 만료 30분·POST 로그아웃 및 서버 재시작 후 세션 복원을 검증합니다.
 5. Next 경로·헤더 계약을 확정하고 동일 흐름을 Next 프록시 경유로 검증합니다.
 6. 인증과 PostgreSQL 설정에 맞게 배포 구성을 조정한 뒤 실제 운영 배포를 진행합니다.
 
@@ -276,8 +274,7 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 - 반복 로그인해도 사용자는 중복 생성되지 않으며, 이메일이 같은 다른 제공자 계정과 자동 연결되지 않습니다.
 - Google 로그인 세션이 유효하면 DB에서 ADMIN을 부여한 뒤 재로그인 없이 다음 관리 요청부터 접근할 수 있습니다.
 - 로그인한 관리자의 권한을 DB에서 회수하면 다음 관리 요청부터 차단됩니다.
-- CSRF 없는 변경 요청은 거부되고 유효한 세션·권한·CSRF가 있는 요청만 처리됩니다.
-- 페이지 새로고침 후 `/auth/me`에서 CSRF 토큰을 다시 받아 변경 요청과 로그아웃을 수행할 수 있습니다.
+- 유효한 세션과 현재 ADMIN 권한이 있는 변경 요청만 처리되고, GET 요청으로는 로그아웃되지 않습니다.
 - 마지막 세션 접근 후 30분 동안 요청이 없으면 만료되고, 그 전에 세션을 사용하는 요청이 있으면 유휴 시간이 갱신됩니다.
 - 로그아웃·만료 세션은 재사용할 수 없고 서버 재시작은 PostgreSQL의 유효 세션을 보존합니다.
 - Next 경유 로그인과 일반 API에서 쿠키·콜백·리다이렉트가 이어지고 사용자 간 캐시가 공유되지 않습니다.
@@ -289,7 +286,7 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 | 항목 | 제안과 확인 사항 |
 |---|---|
 | Next 경로 | 실제 외부 origin·로그인 시작·콜백·성공 및 실패 이동 경로 합의 |
-| 프록시 계약 | 모든 Set-Cookie 중계, CSRF 헤더, 리다이렉트 수동 처리, 신뢰할 forwarded 헤더 범위 확정 |
+| 프록시 계약 | 모든 Set-Cookie 중계, 리다이렉트 수동 처리, 신뢰할 forwarded 헤더 범위 확정 |
 | OAuth 운영 설정 | Google OAuth 개발·운영 클라이언트와 등록 redirect URI 확정 |
 
 ## 14 후속 승인 절차 개선
@@ -298,6 +295,6 @@ Google client secret과 DB 비밀번호는 배포 Secret에서 주입합니다. 
 
 ## 15 구현 결과와 검증 범위
 
-2026-10-24 `feat/BACKEND-83-admin-auth`에서 서버 직접 콜백, 기존 사용자 등록, 매 요청 ADMIN 조회, JDBC 세션, me의 CSRF 응답 헤더, 로그아웃을 구현합니다. 운영 적용 전 설계인 항목은 여전히 draft로 관리합니다. 실행·수동 권한 부여·배포 순서는 [admin 인증 runbook](../runbook/admin-auth.md)을 따릅니다.
+2026-10-24 `feat/BACKEND-83-admin-auth`에서 서버 직접 콜백, 기존 사용자 등록, 매 요청 ADMIN 조회, JDBC 세션, POST 로그아웃을 구현합니다. 이후 Next 서버 간 호출 구조에 맞춰 CSRF 토큰을 제거했습니다. 운영 적용 전 설계인 항목은 여전히 draft로 관리합니다. 실행·수동 권한 부여·배포 순서는 [admin 인증 runbook](../runbook/admin-auth.md)을 따릅니다.
 
 Next의 프록시와 로그인 UI는 아직 구현 범위에 포함하지 않습니다. OAuth 성공은 고정 상대 경로 `/admin/v1/auth/me`로 이동하므로 프록시가 내부 Service host를 브라우저에 노출하지 않고 응답을 전달할 수 있습니다. 실제 Google 자격증명을 사용하는 로그인과 운영 ArgoCD rollout은 환경 준비 후 확인합니다.

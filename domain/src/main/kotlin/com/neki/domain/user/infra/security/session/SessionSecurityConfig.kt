@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.savedrequest.NullRequestCache
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 
 @Configuration
 @ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
@@ -26,6 +27,9 @@ class SessionSecurityConfig {
         authorization: SessionAuthorizationManager,
         responses: SessionSecurityResponses,
     ): SecurityFilterChain = http
+        // 브라우저는 Next 서버만 호출하고 Next가 서버 간 요청으로 중계한다. 다른 사이트의 변경 요청은
+        // SameSite=Lax 세션 쿠키가 막으므로 CSRF 토큰을 쓰지 않는다. 대신 상태 변경은 GET으로 받지 않는다.
+        .csrf { it.disable() }
         .authorizeHttpRequests {
             it.requestMatchers("/oauth2/authorization/*", "/login/oauth2/code/*").permitAll()
             it.requestMatchers(HttpMethod.GET, "/admin/v1/auth/me").authenticated()
@@ -52,7 +56,10 @@ class SessionSecurityConfig {
             it.accessDeniedHandler(responses)
         }
         .logout {
-            it.logoutUrl("/admin/v1/auth/logout")
+            // CSRF를 끄면 logoutUrl은 GET도 받으므로 POST만 허용한다.
+            it.logoutRequestMatcher(
+                PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/admin/v1/auth/logout"),
+            )
             it.invalidateHttpSession(true)
             it.clearAuthentication(true)
             it.deleteCookies("ADMINSESSION")

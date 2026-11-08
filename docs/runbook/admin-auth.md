@@ -16,7 +16,7 @@
    ./gradlew :apps:admin:bootRun
    ```
 
-4. 브라우저에서 `http://localhost:8081/oauth2/authorization/google`로 이동합니다. 인증 성공 후 `/admin/v1/auth/me` 본문에서 사용자·현재 권한을, `X-CSRF-TOKEN` 응답 헤더에서 CSRF 토큰을 확인합니다. 최초 Google 사용자는 ADMIN이 없습니다. 이메일이 같아도 다른 제공자의 계정과 합치지 않습니다.
+4. 브라우저에서 `http://localhost:8081/oauth2/authorization/google`로 이동합니다. 인증 성공 후 `/admin/v1/auth/me` 본문에서 사용자·현재 권한을 확인합니다. 최초 Google 사용자는 ADMIN이 없습니다. 이메일이 같아도 다른 제공자의 계정과 합치지 않습니다.
 
 운영에서는 `prod` 프로파일, HTTPS와 Secret의 실제 DataSource/OAuth 값을 사용합니다. 로컬 이외 프로파일은 Secure 쿠키를 사용합니다. 토큰·세션 쿠키를 로그나 URL에 넣지 않습니다.
 
@@ -29,11 +29,11 @@
 | `userId`, `email`, `name` | 현재 소셜 로그인에 연결된 기존 사용자 정보 |
 | `admin` | 현재 DB에 ADMIN 권한이 있는지 |
 
-`GET /admin/v1/auth/me`는 `X-CSRF-TOKEN` 응답 헤더에 토큰을 담습니다. 변경 요청은 세션 쿠키와 같은 이름의 `X-CSRF-TOKEN` 요청 헤더를 함께 전송합니다. 토큰은 클라이언트 메모리에 보관하고 새로고침 시 me에서 다시 받습니다. 세션이 만료되면 다시 로그인합니다. `POST /admin/v1/auth/logout`은 CSRF 검증 후 세션을 무효화하고 HTTP 200 `BaseResponse`를 반환합니다.
+변경 요청은 세션 쿠키만으로 인증하며 CSRF 토큰은 사용하지 않습니다. 다른 사이트의 변경 요청은 `SameSite=Lax` 세션 쿠키가 막습니다. 세션이 만료되면 다시 로그인합니다. `POST /admin/v1/auth/logout`은 세션을 무효화하고 HTTP 200 `BaseResponse`를 반환하며, GET 요청으로는 로그아웃하지 않습니다.
 
-관리자 이미지는 세션과 CSRF 헤더로 `POST /admin/v1/media/upload`에 업로드 티켓을 요청합니다. 항목은 `mediaType`(`LOGO` 또는 `POSE`), `contentType`(`image/jpeg`, `image/png`, `image/webp`)과 선택적 크기 정보로 구성합니다. 반환된 URL에 해당 Content-Type으로 PUT한 뒤 Brand/Pose 등록·수정에 `mediaId`를 전달합니다. `TB_MEDIA.owner_id`는 티켓을 발급한 관리자의 사용자 ID이며, 관리자 경로에서 만든 미디어는 공동 관리 대상으로 표시합니다. 관리 권한이 있는 다른 사용자도 해당 미디어를 Brand/Pose에 연결할 수 있습니다. 일반 사용자 업로드 미디어는 관리자 콘텐츠에 연결할 수 없습니다.
+관리자 이미지는 세션으로 `POST /admin/v1/media/upload`에 업로드 티켓을 요청합니다. 항목은 `mediaType`(`LOGO` 또는 `POSE`), `contentType`(`image/jpeg`, `image/png`, `image/webp`)과 선택적 크기 정보로 구성합니다. 반환된 URL에 해당 Content-Type으로 PUT한 뒤 Brand/Pose 등록·수정에 `mediaId`를 전달합니다. `TB_MEDIA.owner_id`는 티켓을 발급한 관리자의 사용자 ID이며, 관리자 경로에서 만든 미디어는 공동 관리 대상으로 표시합니다. 관리 권한이 있는 다른 사용자도 해당 미디어를 Brand/Pose에 연결할 수 있습니다. 일반 사용자 업로드 미디어는 관리자 콘텐츠에 연결할 수 없습니다.
 
-Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location`, me의 `X-CSRF-TOKEN` 응답 헤더, 클라이언트가 전송한 Cookie·CSRF 요청 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. Next가 임의 요청에 CSRF 토큰을 대신 발급해 붙이지 않습니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
+Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location` 응답 헤더, 클라이언트가 전송한 Cookie 요청 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
 
 ## 소셜 제공자 추가
 
@@ -95,7 +95,7 @@ COMMIT;
 2. workflow #357을 통해 인증 변경이 포함된 admin 이미지를 GHCR에 게시합니다.
 3. GitOps #43의 `overlays/admin-api/secret.example.yaml`을 기준으로 실제 Secret을 별도로 적용합니다. Google client ID/secret과 외부 redirect URI가 필요합니다. DB는 API와 같은 공통 설정을 쓰고 기존 `neki-secrets`의 Jasypt 키로 복호화합니다. 실제 Secret은 커밋하지 않습니다.
 4. GHCR 패키지 접근과 GitOps 이미지 태그를 확인한 뒤 `admin-api` Application을 등록합니다. `replicas: 1`, RollingUpdate, 내부 ClusterIP Service를 사용합니다.
-5. 미인증 me 401, Google 로그인, DB ADMIN 부여 후 같은 쿠키로 접근, 회수 후 403, CSRF와 로그아웃을 확인합니다. Next UI 연결 전에는 Spring 직접 콜백 개발을 검증하고, 운영 브라우저 접근은 외부 HTTPS 경로 연결 후 확인합니다.
+5. 미인증 me 401, Google 로그인, DB ADMIN 부여 후 같은 쿠키로 접근, 회수 후 403, POST 로그아웃을 확인합니다. Next UI 연결 전에는 Spring 직접 콜백 개발을 검증하고, 운영 브라우저 접근은 외부 HTTPS 경로 연결 후 확인합니다.
 
 DDL은 API가 소유하며 admin은 테이블을 생성·변경하지 않습니다. 세션을 메모리 저장소로 대체하지 않습니다. 데이터베이스 마이그레이션을 유지한 채 인증 이전의 H2 이미지로 되돌리는 것은 운영 롤백 절차로 사용하지 않습니다.
 
@@ -121,4 +121,4 @@ SPRING_SQL_INIT_MODE=never \
 ./gradlew :apps:admin:test --rerun --no-daemon
 ```
 
-검증 범위는 동일 세션 권한 부여·회수, 정확한 ADMIN 매칭, 계정 삭제·신원 변경, CSRF와 로그아웃, 30분 만료, 동시 최초 가입, 제공자별 동일 subject 분리, 실제 code 교환·RSA 서명·nonce 검증, 사용자 집계 분리입니다.
+검증 범위는 동일 세션 권한 부여·회수, 정확한 ADMIN 매칭, 계정 삭제·신원 변경, POST 전용 로그아웃, 30분 만료, 동시 최초 가입, 제공자별 동일 subject 분리, 실제 code 교환·RSA 서명·nonce 검증, 사용자 집계 분리입니다.

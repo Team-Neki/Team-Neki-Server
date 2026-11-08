@@ -15,9 +15,6 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.session.Session
 import org.springframework.session.SessionRepository
 import org.springframework.session.jdbc.JdbcIndexedSessionRepository
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
 import java.util.Base64
 import java.util.UUID
@@ -59,7 +56,4 @@ object AdminTestSession {
         val encoded = Base64.getEncoder().encodeToString(session.id.toByteArray(Charsets.UTF_8))
         return Login(session.id, Cookie("ADMINSESSION", encoded))
     }
-
-    fun csrf(mvc: MockMvc, cookie: Cookie): String = mvc.perform(get("/admin/v1/auth/me").cookie(cookie))
-        .andExpect(status().isOk).andReturn().response.getHeader("X-CSRF-TOKEN")!!
 }

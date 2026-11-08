@@ -39,5 +39,5 @@ GitOps는 `prod` namespace에 `replicas: 1` / `RollingUpdate`, 내부 ClusterIP 
 수행하며 테이블 생성·변경은 API가 담당한다. H2는 테스트에서만 사용한다.
 
 `AdminApplication`은 OAuth2 로그인과 PostgreSQL JDBC 세션으로 관리 요청을 인증하고,
-요청마다 현재 DB의 ADMIN 권한을 확인한다. 변경 요청에는 CSRF 토큰이 필요하다. 외부 Ingress는
+요청마다 현재 DB의 ADMIN 권한을 확인한다. CSRF 토큰은 쓰지 않으며 다른 사이트의 변경 요청은 `SameSite=Lax` 세션 쿠키가 막는다. 외부 Ingress는
 아직 없으며 어드민 웹의 프록시 연결과 실제 Google 로그인은 별도 검증이 필요하다.
