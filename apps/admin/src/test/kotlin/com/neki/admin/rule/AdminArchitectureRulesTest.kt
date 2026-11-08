@@ -8,6 +8,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.springframework.data.repository.Repository
 import org.springframework.stereotype.Service
 
 // api 앱은 application 계층에 @UseCase 를 쓰지만 admin 은 @Service 를 쓴다.
@@ -31,6 +32,15 @@ class AdminArchitectureRulesTest {
     @DisplayName("admin 에서는 @UseCase 를 사용하지 않는다")
     fun adminShouldNotUseUseCaseAnnotation() {
         noClasses().should().beAnnotatedWith(UseCase::class.java)
+            .check(importedClasses)
+    }
+
+    @Test
+    @DisplayName("application 계층은 infra 와 Spring Data 리포지터리를 직접 쓰지 않고 도메인 인터페이스를 쓴다")
+    fun applicationShouldNotBypassDomainInterfaces() {
+        noClasses().that().resideInAPackage("com.neki.admin.*.application..")
+            .should().dependOnClassesThat().resideInAPackage("..infra..")
+            .orShould().dependOnClassesThat().areAssignableTo(Repository::class.java)
             .check(importedClasses)
     }
 }

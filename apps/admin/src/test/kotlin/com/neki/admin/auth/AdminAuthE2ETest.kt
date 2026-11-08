@@ -3,8 +3,8 @@ package com.neki.admin.auth
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.application.AdminAccountFacade
-import com.neki.admin.media.infra.persist.jpa.JpaAdminMediaRepository
 import com.neki.core.api.dto.BaseResponse
+import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.MediaType
 import com.neki.domain.user.dto.UserCommand
 import com.neki.domain.user.infra.persist.jpa.JpaUserRepository
@@ -57,7 +57,7 @@ class AdminAuthE2ETest {
     private lateinit var users: JpaUserRepository
 
     @Autowired
-    private lateinit var media: JpaAdminMediaRepository
+    private lateinit var media: JpaMediaRepository
 
     @Autowired
     private lateinit var jdbcSessions: JdbcIndexedSessionRepository
