@@ -74,4 +74,9 @@ object MediaResult {
         Map<Long, UploadConfirmStatus> by statuses
 
     data class DeleteMedias(val mediaIds: List<Long>)
+
+    /**
+     * 서버가 직접 올린 media
+     */
+    data class StoredMedia(val mediaId: Long, val storageKey: String)
 }

@@ -29,6 +29,7 @@ class FakeMediaStorageAdapter : MediaStorage {
     private val storage = ConcurrentHashMap<String, ByteArray>()
     private val fetchCount = ConcurrentHashMap<String, Int>()
     private var onFetchCallback: (() -> Unit)? = null
+    private var putFailurePredicate: ((String) -> Boolean)? = null
 
     override fun deleteByKey(key: String) {
         storage.remove(key)
@@ -56,6 +57,13 @@ class FakeMediaStorageAdapter : MediaStorage {
             contentType = contentType,
         )
 
+    override fun put(key: String, contentType: String, content: ByteArray) {
+        if (putFailurePredicate?.invoke(key) == true) {
+            throw IllegalStateException("fake storage put failure: $key")
+        }
+        storage[key] = content
+    }
+
     // 테스트용 메서드
     fun putTestData(key: String, data: ByteArray) {
         storage[key] = data
@@ -65,7 +73,19 @@ class FakeMediaStorageAdapter : MediaStorage {
         storage.clear()
         fetchCount.clear()
         onFetchCallback = null
+        putFailurePredicate = null
     }
+
+    /**
+     * 조건에 맞는 key 의 put 을 실패시킨다. [clearTestData] 가 초기화한다.
+     */
+    fun failPutWhen(predicate: (String) -> Boolean) {
+        putFailurePredicate = predicate
+    }
+
+    fun hasKey(key: String): Boolean = storage.containsKey(key)
+
+    fun keys(): Set<String> = storage.keys.toSet()
 
     fun getFetchCount(key: String): Int = fetchCount[key] ?: 0
 

@@ -8,6 +8,8 @@ import com.neki.domain.pose.client.MediaClient
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.MediaAvailability
+import com.neki.domain.pose.models.Pose
+import com.neki.domain.pose.models.PoseRelation
 import com.neki.domain.pose.repository.PoseRepository
 import com.neki.domain.pose.service.PoseService
 import io.kotest.assertions.throwables.shouldThrow
@@ -16,6 +18,7 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -171,5 +174,57 @@ class UploadPosesUseCaseTest {
         // Then
         verify(exactly = 1) { poseRepository.saveAll(emptyList()) }
         verify(exactly = 0) { mediaClient.rollbackMediasUploaded(any(), any()) }
+    }
+
+    @Test
+    @DisplayName("relation + TWO - relation 이 포즈에 저장된다")
+    fun `relation + TWO - relation 이 포즈에 저장된다`() {
+        // Given
+        val uploads = listOf(
+            PoseCommand.UploadPoses.Item(
+                mediaId = 101L,
+                headCount = HeadCount.TWO,
+                memo = null,
+                relation = PoseRelation.COUPLE,
+            ),
+        )
+        val command = makeCommand(uploads = uploads)
+        val saved = slot<List<Pose>>()
+
+        every {
+            mediaClient.verifyMediasUploaded(ownerId = 1L, mediaIds = listOf(101L))
+        } returns mapOf(101L to MediaAvailability.AVAILABLE)
+        every { poseRepository.saveAll(capture(saved)) } answers { firstArg() }
+
+        // When
+        useCase.execute(command)
+
+        // Then
+        saved.captured.single().relation shouldBe PoseRelation.COUPLE
+        saved.captured.single().sourceKey shouldBe null
+    }
+
+    @Test
+    @DisplayName("relation + ONE - 요청 전체가 INVALID_PARAMETER, 저장하지 않는다")
+    fun `relation + ONE - 요청 전체가 INVALID_PARAMETER, 저장하지 않는다`() {
+        // Given: 정상 행과 관계가 붙은 1인 행이 섞여 있다
+        val uploads = listOf(
+            makeUploadItem(101L),
+            PoseCommand.UploadPoses.Item(
+                mediaId = 102L,
+                headCount = HeadCount.ONE,
+                memo = null,
+                relation = PoseRelation.FRIEND,
+            ),
+        )
+        val command = makeCommand(uploads = uploads)
+
+        // When / Then
+        val ex = shouldThrow<BusinessException> {
+            useCase.execute(command)
+        }
+        ex.resultCode shouldBe ResultCode.INVALID_PARAMETER
+        verify(exactly = 0) { mediaClient.verifyMediasUploaded(any(), any()) }
+        verify(exactly = 0) { poseRepository.saveAll(any()) }
     }
 }

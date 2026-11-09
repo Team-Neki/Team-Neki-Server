@@ -32,6 +32,7 @@ class RandomPoseUseCase(
             width = mediaInfo.width,
             height = mediaInfo.height,
             createdAt = pose.createdAt!!,
+            relation = pose.relation,
         )
     }
 }

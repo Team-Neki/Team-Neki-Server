@@ -34,7 +34,7 @@ class PoseScrapService(
             offset = query.pagination.offset,
             limit = query.pagination.limit,
             headCount = query.headCount,
-            sortOrder = query.pagination.sortOrder,
+            relation = query.relation,
         ),
     )
 

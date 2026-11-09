@@ -1,6 +1,7 @@
 package com.neki.api.pose.api.dto
 
 import com.neki.domain.pose.models.HeadCount
+import com.neki.domain.pose.models.PoseRelation
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
@@ -25,6 +26,13 @@ object PoseRequest {
 
             @field:CodePointLength(max = 255, message = "메모는 최대 255자까지 입력할 수 있습니다.")
             val memo: String?,
+
+            @field:Schema(
+                description = "2인 포즈 관계 (FRIEND 친구, COUPLE 커플, SSUM 썸). 선택값이며 headCount 가 TWO 일 때만 보낼 수 있다",
+                example = "FRIEND",
+                nullable = true,
+            )
+            val relation: PoseRelation? = null,
         )
     }
 

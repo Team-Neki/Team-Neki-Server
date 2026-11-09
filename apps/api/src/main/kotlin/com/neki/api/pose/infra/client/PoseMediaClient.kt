@@ -1,15 +1,25 @@
 package com.neki.api.pose.infra.client
 
 import com.neki.api.media.application.ConfirmMediaUploadedUseCase
+import com.neki.api.media.application.DiscardMediaUseCase
 import com.neki.api.media.application.GetMediaMetadataListUseCase
 import com.neki.api.media.application.GetMediaMetadataUseCase
+import com.neki.api.media.application.StoreMediaDirectlyUseCase
 import com.neki.api.media.application.dto.MediaResult
+import com.neki.core.code.ResultCode
+import com.neki.core.exception.BusinessException
 import com.neki.domain.media.dto.MediaCommand
 import com.neki.domain.media.dto.MediaQuery
+import com.neki.domain.media.models.MediaType
 import com.neki.domain.media.models.UploadConfirmStatus
 import com.neki.domain.pose.client.MediaClient
+import com.neki.domain.pose.models.BulkFailReason
 import com.neki.domain.pose.models.MediaAvailability
 import com.neki.domain.pose.models.MediaMetadata
+import com.neki.domain.pose.models.PoseImageFile
+import com.neki.domain.pose.models.PoseImageStoreOutcome
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 /**
@@ -24,7 +34,10 @@ class PoseMediaClient(
     private val confirmMediaUploadedUseCase: ConfirmMediaUploadedUseCase,
     private val getMediaMetadataUseCase: GetMediaMetadataUseCase,
     private val getMediaMetadataListUseCase: GetMediaMetadataListUseCase,
+    private val storeMediaDirectlyUseCase: StoreMediaDirectlyUseCase,
+    private val discardMediaUseCase: DiscardMediaUseCase,
 ) : MediaClient {
+    private val log: Logger = LoggerFactory.getLogger(javaClass)
 
     override fun getMediaMetadata(mediaId: Long): MediaMetadata {
         val result: MediaResult.GetMediaMetadata = getMediaMetadataUseCase.execute(
@@ -68,6 +81,28 @@ class PoseMediaClient(
                 mediaIds = mediaIds,
             ),
         )
+    }
+
+    override fun storePoseImage(ownerId: Long, image: PoseImageFile): PoseImageStoreOutcome = try {
+        val result: MediaResult.StoredMedia = storeMediaDirectlyUseCase.execute(
+            MediaCommand.StoreMedia(ownerId = ownerId, mediaType = MediaType.POSE, content = image.readBytes()),
+        )
+        PoseImageStoreOutcome.Stored(result.mediaId)
+    } catch (e: BusinessException) {
+        if (e.resultCode == ResultCode.UPLOAD_FAILED) {
+            log.warn("[POSE_BULK_UPLOAD] unsupported image file={}", image.fileName)
+            PoseImageStoreOutcome.Failed(BulkFailReason.UNSUPPORTED_IMAGE)
+        } else {
+            log.error("[POSE_BULK_UPLOAD] store failed file={}", image.fileName, e)
+            PoseImageStoreOutcome.Failed(BulkFailReason.STORAGE_FAILED)
+        }
+    } catch (e: Exception) {
+        log.error("[POSE_BULK_UPLOAD] store failed file={}", image.fileName, e)
+        PoseImageStoreOutcome.Failed(BulkFailReason.STORAGE_FAILED)
+    }
+
+    override fun discardPoseImage(ownerId: Long, mediaId: Long) {
+        discardMediaUseCase.execute(MediaCommand.DiscardMedia(ownerId = ownerId, mediaId = mediaId))
     }
 
     private fun MediaResult.Metadata.toMetadata(): MediaMetadata = MediaMetadata(

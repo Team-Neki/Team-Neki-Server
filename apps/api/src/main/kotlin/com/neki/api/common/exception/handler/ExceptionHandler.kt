@@ -22,6 +22,9 @@ import org.springframework.web.context.request.WebRequest
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
+import org.springframework.web.multipart.MultipartException
+import org.springframework.web.multipart.support.MissingServletRequestPartException
 import org.springframework.web.servlet.NoHandlerFoundException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 import java.util.function.Consumer
@@ -36,6 +39,12 @@ import java.util.function.Consumer
 class ExceptionHandler {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
+    companion object {
+        // Tomcat 내부 패키지(org.apache.tomcat.util.http.fileupload.impl)라 이름으로 판정한다
+        private const val FILE_COUNT_LIMIT_EXCEPTION = "FileCountLimitExceededException"
+        private const val MAX_CAUSE_DEPTH = 10
+    }
+
     @ExceptionHandler(BusinessException::class)
     fun businessExceptionHandler(ex: BusinessException): ResponseEntity<ExceptionMsg> {
         log.warn("[BUSINESS_ERROR] code={} | message={}", ex.resultCode.code, ex.resultCode.message)
@@ -44,6 +53,8 @@ class ExceptionHandler {
             ResultCode.INVALID_TOKEN_ERROR -> HttpStatus.FORBIDDEN
             ResultCode.LOG_SEND_FAILED -> HttpStatus.SERVICE_UNAVAILABLE
             ResultCode.LOG_PAYLOAD_TOO_LARGE -> HttpStatus.PAYLOAD_TOO_LARGE
+            ResultCode.UPLOAD_PAYLOAD_TOO_LARGE -> HttpStatus.PAYLOAD_TOO_LARGE
+            ResultCode.UPLOAD_TOO_MANY_PARTS -> HttpStatus.PAYLOAD_TOO_LARGE
             else -> HttpStatus.BAD_REQUEST
         }
 
@@ -100,6 +111,52 @@ class ExceptionHandler {
             status,
         )
     }
+
+    /**
+     * multipart 한도 초과. 파일·요청 용량은 D-17, part 수는 D-18 이다.
+     * Tomcat 은 part 수 초과(FileCountLimitExceededException)를 IllegalStateException 으로 감싸고,
+     * Spring 은 메시지에 size/length 가 없으면 MaxUploadSizeExceededException 대신 일반 MultipartException 으로 감싼다.
+     * 그래서 두 경우 모두 원인 체인을 본다. 그 밖의 multipart 파싱 오류는 400 D-01 이다.
+     */
+    @ExceptionHandler(MultipartException::class)
+    fun handleMultipartException(ex: MultipartException): ResponseEntity<ExceptionMsg> {
+        val resultCode: ResultCode? = when {
+            hasTooManyPartsCause(ex) -> ResultCode.UPLOAD_TOO_MANY_PARTS
+            ex is MaxUploadSizeExceededException -> ResultCode.UPLOAD_PAYLOAD_TOO_LARGE
+            else -> null
+        }
+
+        if (resultCode == null) {
+            log.warn("[MULTIPART_ERROR] {}", ex.message)
+            return ResponseEntity(
+                ExceptionMsg(
+                    resultCode = ResultCode.INVALID_PARAMETER.code,
+                    message = ResultCode.INVALID_PARAMETER.message,
+                ),
+                HttpStatus.BAD_REQUEST,
+            )
+        }
+
+        log.warn("[UPLOAD_LIMIT] code={} | {}", resultCode.code, ex.message)
+        return ResponseEntity(
+            ExceptionMsg(resultCode = resultCode.code, message = resultCode.message),
+            HttpStatus.PAYLOAD_TOO_LARGE,
+        )
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException::class)
+    fun handleMissingServletRequestPart(ex: MissingServletRequestPartException): ResponseEntity<ExceptionMsg> =
+        ResponseEntity(
+            ExceptionMsg(
+                resultCode = ResultCode.INVALID_PARAMETER.code,
+                message = ResultCode.INVALID_PARAMETER.message,
+            ),
+            HttpStatus.BAD_REQUEST,
+        )
+
+    private fun hasTooManyPartsCause(ex: Throwable): Boolean = generateSequence(ex) { it.cause }
+        .take(MAX_CAUSE_DEPTH)
+        .any { it.javaClass.simpleName == FILE_COUNT_LIMIT_EXCEPTION }
 
     @ExceptionHandler(Exception::class)
     fun exceptionHandler(ex: Exception): ResponseEntity<ExceptionMsg> {

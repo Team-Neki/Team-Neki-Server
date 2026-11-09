@@ -38,4 +38,13 @@ class Pose(
 
     @Column(name = "memo", nullable = true)
     var memo: String? = null,
+
+    // 2인 포즈에만 붙는다 (DB CHECK ck_pose_relation_two_only). 기존 포즈는 null
+    @Column(name = "relation", nullable = true, length = 30)
+    @Enumerated(EnumType.STRING)
+    val relation: PoseRelation? = null,
+
+    // PM 원본 키 (pose.csv media_key). 일괄 업로드 멱등 판단용이며 DB UNIQUE 다. 수동 업로드는 null
+    @Column(name = "source_key", nullable = true, length = 100)
+    val sourceKey: String? = null,
 ) : BaseTimeEntity()
