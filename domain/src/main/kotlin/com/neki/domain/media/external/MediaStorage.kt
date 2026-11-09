@@ -16,9 +16,4 @@ interface MediaStorage {
     fun exists(key: String): Boolean
 
     fun generateUploadTicket(key: String, contentType: String): MediaStorageUploadTicket
-
-    /**
-     * 서버가 받은 바이트를 그대로 올린다. presigned URL 을 거치지 않는 관리자 일괄 업로드용이다.
-     */
-    fun put(key: String, contentType: String, content: ByteArray)
 }

@@ -14,19 +14,6 @@ spring:
       - classpath:application-jasypt.yaml
       - classpath:application-firebase.yaml
 
-  # 포즈 일괄 업로드(POST /api/poses/admin/upload multipart) 한도. PM 실측 기준 (BACKEND-276)
-  servlet:
-    multipart:
-      # 본문은 @RequestPart 를 쓰는 핸들러(bulkUploadPoses)가 인자를 풀 때만 파싱한다.
-      # 다른 경로(익명 permitAll 포함)로 온 multipart 요청은 DispatcherServlet 이 미리 파싱하지 않는다
-      resolve-lazily: true
-      max-file-size: 10MB # 최대 이미지 2.64MB 의 약 4배
-      max-request-size: 128MB # friend 51장(100.88MiB + CSV) 단일 요청 허용, friend+ssum(159MiB) 은 거부 (413 D-17)
-server:
-  tomcat:
-    # 기본 50 이면 friend 51장 + CSV 2 = 53 part 가 거부된다. 128MB / 최소 이미지 1.6MB 는 약 80 + CSV 2 에 여유 (초과 시 413 D-18)
-    max-part-count: 100
-
 logging:
   level:
     org.flywaydb: info

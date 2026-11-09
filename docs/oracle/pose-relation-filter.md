@@ -1,7 +1,14 @@
-# 오라클 : 포즈 관계 필터 · 최신순 고정 · PM 일괄 업로드 (BACKEND-276)
+# 오라클 : 포즈 관계 필터 · 최신순 고정 · sourceKey 기반 관리자 등록 (BACKEND-276)
 
-이 문서는 BACKEND-276 작업(위키 8-1)의 완료 판정 기준을 다룹니다. auto 는 명령이 판정하고, manual 은 사람이 로컬/배포 환경에서 확인합니다.
-명령은 저장소 루트에서 그대로 실행합니다. 업로드 절차는 `docs/runbook/pose-bulk-upload.md` 를 따릅니다.
+이 문서는 BACKEND-276 작업(위키 8-1)의 완료 판정 기준을 다룹니다.
+- 판정 방식: auto 는 명령이 판정하고, manual 은 사람이 로컬이나 배포 환경에서 확인합니다.
+- 명령은 저장소 루트에서 그대로 실행합니다.
+- 범위(v3)
+  - V46 (relation, source_key)
+  - `GET /api/poses` 의 relation 필터와 최신순 고정
+  - JSON `POST /api/poses/admin/upload` 의 relation, sourceKey(409 D-18)
+  - PM 데이터 적재 스크립트 `scripts/pose/upload_poses.py`
+- multipart 일괄 업로드(v2)는 제거했습니다. 적재 절차는 `docs/runbook/pose-bulk-upload.md` 에 있습니다.
 
 ## 공통 (O-0)
 
@@ -10,82 +17,75 @@
 | O-0-1 | auto | 포맷 검사 통과 | `./gradlew spotlessCheck -q` 종료코드 0 |
 | O-0-2 | auto | 테스트 전부 통과 | `./gradlew test -q` 종료코드 0 |
 | O-0-3 | auto | api bootJar 빌드 성공 | `./gradlew :apps:api:bootJar -q` 종료코드 0 |
-| O-0-4 | auto | 코드 산출물에 이모지 없음 | `git diff origin/main...HEAD -- '*.kt' '*.kts' '*.yaml' '*.sql' \| grep -cP "^\+.*[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]"` = 0 |
+| O-0-4 | auto | 코드 산출물에 이모지 없음 | `git diff origin/main...HEAD -- '*.kt' '*.kts' '*.yaml' '*.sql' '*.py' \| grep -cP "^\+.*[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]"` = 0 |
+| O-0-5 | auto | 적재 스크립트 문법 | `python3 -m py_compile scripts/pose/upload_poses.py` 종료코드 0 |
 
 ## O-A. 코드와 설정
 
 | id | 종류 | 판정 |
 |---|---|---|
-| O-A-1 | auto | 포즈·미디어 직접 업로드·아키텍처 테스트 통과 : `./gradlew :apps:api:test --tests '*Pose*' --tests '*StoreMediaDirectly*' --tests '*ArchitectureRulesTest' -q` 종료코드 0 |
-| O-A-2 | auto | 도메인 순수 로직 테스트 통과 : `./gradlew :domain:test --tests '*ImageHeaderParser*' --tests '*PoseRelation*' --tests '*PoseServiceBulkPlan*' -q` 종료코드 0 |
+| O-A-1 | auto | 포즈 테스트와 아키텍처 규칙 통과 : `./gradlew :apps:api:test --tests '*Pose*' --tests '*ArchitectureRulesTest' -q` 종료코드 0 |
+| O-A-2 | auto | 관계 enum 테스트 통과 : `./gradlew :domain:test --tests '*PoseRelation*' -q` 종료코드 0 |
 | O-A-3 | auto | 마이그레이션 V46 하나 : `ls modules/postgres/src/main/resources/db/migration \| grep -c '^V46__'` = 1 |
-| O-A-4 | auto | 결과 코드 D-17, D-18 이 각각 하나 : `grep -Ec '"D-1[78]"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 2 |
-| O-A-5 | auto | part 한도 설정 : `grep -c 'max-part-count: 100' apps/api/src/main/resources/application.yaml` = 1 |
-| O-A-6 | auto | 413 D-17/D-18 판정 (Tomcat 이 part 수 초과를 감싸는 방식 포함) : `BulkUploadPosesLimitE2ETest` 통과 |
-| O-A-7 | auto | multipart 는 핸들러가 인자를 풀 때만 파싱 : `grep -c 'resolve-lazily: true' apps/api/src/main/resources/application.yaml` = 1. 이 설정 아래에서 `BulkUploadPosesLimitE2ETest`(413 D-17/D-18)와 `BulkUploadPosesE2ETest` 통과 |
-| O-A-8 | auto | 이미지 하나로 포즈가 두 건 생기지 않음 (공유 파일은 IMAGE_SHARED_BY_ROWS) : `PoseServiceBulkPlanTest`, `BulkUploadPosesE2ETest.sharedImageIsRejected` 통과 |
-| O-A-9 | 범위 | 같은 source_key 동시 등록 경합(저장 실패 → 재조회 → ALREADY_REGISTERED) 재판정은 **유닛으로만 검증했다** (`BulkUploadPosesUseCaseTest` 의 경합·재조회 실패·discard 실패 케이스). 실제 동시 요청 E2E 나 로컬 재현은 하지 않았다 |
+| O-A-4 | auto | 결과 코드 D-18 하나 : `grep -c '"D-18"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 1 |
+| O-A-5 | auto | multipart(v2) 잔재 없음 : `rg -n "B[u]lkUpload\|P[o]seCsvParser\|I[m]ageHeader\|I[m]ageMetadata\|M[e]diaDirectUpload\|S[t]oreMedia\|D[i]scardMedia\|s[t]orePoseImage\|d[i]scardPoseImage\|f[a]ilPutWhen\|P[o]seImageFile\|P[o]seImageStoreOutcome\|I[M]AGE_SHARED_BY_ROWS\|U[P]LOAD_PAYLOAD_TOO_LARGE\|U[P]LOAD_TOO_MANY_PARTS\|m[a]x-part-count\|r[e]solve-lazily\|p[n]gHeaderBytes\|U[P]LOAD_SUMMARY" apps domain core modules docs scripts` 결과 0줄 (각 토큰의 두 번째 글자를 `[x]` 로 감싸 이 문서 자신은 일치하지 않게 했다. 정규식 의미는 같다) |
+| O-A-6 | auto | 되돌린 파일이 main 과 같음 : 아래 8개 파일 각각 `git diff --quiet origin/main -- <file>` 종료코드 0 |
+| O-A-7 | 범위 | 같은 sourceKey 를 동시에 등록할 때의 저장 경합 판정(저장 실패 → 롤백 → 재조회 → 409)은 **유닛으로만 검증했다** (`UploadPosesUseCaseTest` 의 경합, 재조회 결과 없음, 재조회 실패 케이스). 동시 요청 E2E 나 로컬 재현은 하지 않았다 |
 
-## O-L. 로컬 실데이터 검증 (manual)
+O-A-6 대상 파일
+- `apps/api/src/main/kotlin/com/neki/api/media/application/dto/MediaResult.kt`
+- `apps/api/src/main/kotlin/com/neki/api/pose/infra/client/PoseMediaClient.kt`
+- `domain/src/main/kotlin/com/neki/domain/pose/client/MediaClient.kt`
+- `domain/src/main/kotlin/com/neki/domain/media/dto/MediaCommand.kt`
+- `domain/src/main/kotlin/com/neki/domain/media/external/MediaStorage.kt`
+- `domain/src/main/kotlin/com/neki/domain/media/infra/storage/s3/S3MediaStorageAdapter.kt`
+- `domain/src/main/kotlin/com/neki/domain/media/infra/storage/fake/FakeMediaStorageConfig.kt`
+- `apps/api/src/main/resources/application.yaml`
 
-전제: `docker compose up -d db db-init localstack redis`, `docker exec localstack awslocal s3 mb s3://yapp-local`,
-`./gradlew :apps:api:bootRun` (local 프로필, JASYPT_PASSWORD 필요). PM 데이터는 `~/Downloads` 의 `pose.csv`, `media.csv`,
-`neki_pose_all`(friend 51), `neki_pose_all 2`(ssum 29 + solo 1).
+## O-L. 로컬 검증 (manual)
+
+전제
+- 인프라: `docker compose up -d db db-init localstack redis`, localstack 버킷 `yapp-local`
+- 서버: `./gradlew :apps:api:bootRun` (local 프로필, JASYPT_PASSWORD 필요)
+- PM 데이터: `~/Downloads` 의 `pose.csv`, `media.csv`, `neki_pose_all`(friend 51), `neki_pose_all 2`(ssum 29 + solo 1)
 
 | id | 판정 |
 |---|---|
-| O-L-1 | `flyway_schema_history` 최신 version = 46. `\d tb_pose` 에 relation, source_key, ck_pose_relation_value, ck_pose_relation_two_only, uk_pose_source_key |
-| O-L-2 | friend 001~029 (29장, 31 part) 업로드 : 200, created 29, skipped 124, failed 0, unmatched 0 |
-| O-L-3 | friend 030~051 (22장) : created 22, ALREADY_REGISTERED 29, unmatched 0 |
-| O-L-4 | friend 51장 단일 요청 (100.88MiB, 53 part) : 200, created 0, skipped 153 (ALREADY_REGISTERED 51 + IMAGE_NOT_PROVIDED 102), unmatched 0. FRIEND 51 그대로 |
-| O-L-5 | ssum + solo 30장 : created 30, ALREADY_REGISTERED 51, IMAGE_NOT_PROVIDED 72. relation 별 FRIEND 51, SSUM 29, NULL 1 |
-| O-L-6 | friend + ssum/solo 81장 (159MiB, 83 part) : 413 D-17 또는 연결 끊김. 데이터 변화 없음 |
-| O-L-7 | 1KB 더미 101장 (CSV 2 포함 103 part) : 413 D-18. 데이터 변화 없음 |
-| O-L-8 | 목록 : TWO+FRIEND size=100 → 51건, TWO+SSUM → 20건 hasNext=true, page=1 → 9건 false, TWO+COUPLE → 빈 목록, ONE+FRIEND → 빈 목록, ONE → 1건 relation=null, sortOrder=ASC 결과 = 생략 결과(내림차순), TWO+SSUM 첫 항목 = ssum_029, imageUrl → `200 image/png` |
-| O-L-9 | localstack `pose/` 객체 81개, tb_media POSE·UPLOADED 81건, width/height 1024/1536 |
-| O-L-10 | ROLE_USER 토큰으로 업로드 → 403 |
-| O-L-11 | Swagger 에 JSON/multipart operation 노출 방식 기록 |
+| O-L-0 | flyway 최신 version 46, 스키마 변화 없음 |
+| O-L-1 | 이전 multipart 데이터만 삭제한다. 대상은 `source_key IS NOT NULL` 포즈 81건, 그 POSE media, S3 객체다. DB 를 먼저 처리하고(`DELETE … RETURNING storage_key`, 81건 검사), 반환된 키만 S3 에서 지운다. 결과는 tb_pose 0, POSE media 0, S3 `pose/` 0 이고 다른 테이블은 그대로다 |
+| O-L-3 | dry-run : rows 153, local_invalid 0, no_image 72, pending 81, 배치 9개 |
+| O-L-4 | 적재 : registered 81, conflict 0, failed 0, api_calls ticket 9 / put 81 / admin_upload 9. FRIEND 51 / SSUM 29 / NULL 1, source_key 81 개 모두 다름, POSE media UPLOADED 81 (1024x1536), S3 81 |
+| O-L-5 | 원장 재실행 : already_in_ledger 81, api_calls 0, DB·S3 변화 없음 |
+| O-L-6a | 원장 없이 `--only 'friend_00[12]_*'` : conflict 2. 보고된 고아 mediaId 2개가 INITIATED 다. tb_pose 81 이고 기존 poseId 는 그대로다 |
+| O-L-6b | ssum_029 1건을 지운 뒤 원장 없이 `--only 'ssum_02[89]_*'` : ssum_028 CONFLICT, ssum_029 REGISTERED, tb_pose 81 |
+| O-L-6c | curl : 같은 sourceKey 2개는 400 D-01, `"a b"` 는 400 D-01, ONE+relation 은 400 D-01, USER 토큰은 403, 이미 등록된 키는 409 D-18. 모두 DB 변화가 없다 |
+| O-L-6d | 고아 정리 : `status='INITIATED' AND media_type='POSE' AND NOT EXISTS(tb_pose 참조)` 조건으로 DB 를 먼저 지우고, 반환된 storage_key 만 S3 에서 지운다. 결과는 고아 0, POSE media 81, S3 81 |
+| O-L-7 | 목록 결과 : TWO+FRIEND size=100 → 51건, TWO+SSUM → 20건(hasNext=true), page=1 → 9건(false), TWO+COUPLE → 빈 목록, ONE+FRIEND → 빈 목록, ONE → 1건(relation=null), sortOrder=ASC 결과 = 생략 결과(내림차순), SSUM 첫 항목 = 다시 등록한 ssum_029, imageUrl → `200 image/png` |
 
 ## O-D. 배포 전/후 (manual)
 
 | id | 판정 |
 |---|---|
 | O-D-1 | **이 브랜치를 단독으로 staging 에 배포하지 않는다.** `deploy-api-staging.yml` 은 임의 ref 를 dispatch 할 수 있지만, BACKEND-83 계열(V41~V45)이 main 에 머지되기 전에는 이 브랜치로 실행하지 않는다. staging 에 V41~V43 만 있는 상태에서 V46 이 먼저 적용되면 이후 V44, V45 가 `out-of-order: false` 로 거부된다 |
-| O-D-2 | 머지 직전 BACKEND-83 계열(V41~V45)이 main 에 머지되어 있음 (`ls modules/postgres/src/main/resources/db/migration \| grep -E '^V4[1-5]__'` 5줄) |
-| O-D-3 | 배포 전 staging `select version, description, checksum from flyway_schema_history order by installed_rank;` 에 V41~V45 가 있고 V46 은 없음 |
-| O-D-4 | 클라이언트 담당에게 `sortOrder` 무시(최신순 고정)와 응답 `relation` 추가를 공유함 |
-| O-D-5 | 배포 후 PM 이 runbook 대로 staging 에 업로드해 O-L-2~5 와 같은 summary 를 받음 |
+| O-D-2 | 머지 직전 BACKEND-83 계열(V41~V45)이 main 에 머지되어 있다 (`ls modules/postgres/src/main/resources/db/migration \| grep -E '^V4[1-5]__'` 5줄). 리베이스 후 ResultCode 의 D-18 이 다른 코드와 겹치지 않는다 (BACKEND-83 은 D-17 `BRAND_IN_USE` 를 쓴다) |
+| O-D-3 | 배포 전 staging `select version, description, checksum from flyway_schema_history order by installed_rank;` 에 V41~V45 가 있고 V46 은 없다 |
+| O-D-4 | 클라이언트 담당에게 `sortOrder` 무시(최신순 고정)와 응답 `relation` 추가를 공유했다 |
+| O-D-5 | 배포 후 staging 에서 스크립트로 소량(`--only`)을 적재해 registered 를 확인하고, 같은 원장으로 재실행해 already_in_ledger 를 확인한다 |
 
 ## 검증 기록
 
-### 2026-11-09 로컬 (브랜치 `feat/BACKEND-276-pose-relation-filter`, 기준 origin/main `699cf7af`, 미커밋 작업본)
+### 2026-11-09 v3 로컬 (브랜치 `feat/BACKEND-276-pose-relation-filter`, 3a10383d 위 미커밋 작업본)
 
 | id | 결과 | 근거 |
 |---|---|---|
-| O-0-1 | 통과 | `spotlessCheck` 종료코드 0 |
-| O-0-2 | 통과 | `./gradlew test` 종료코드 0. domain 114, apps/batch 18, apps/api 768, apps/admin 5, 실패 0 |
-| O-0-3 | 통과 | `:apps:api:bootJar` 종료코드 0 |
-| O-A-1, O-A-2, O-A-6 | 통과 | api 대상 153건, domain 대상 21건 실패 0. D-18 은 MultipartException → IllegalStateException → FileCountLimitExceededException 체인으로 판정됨 |
-| O-L-1 | 통과 | flyway 46, 컬럼 2개, CHECK 2개, UNIQUE 1개 확인 |
-| O-L-2 | 통과 | 200, 61.07MB 전송, created 29, skipped 124 (IMAGE_NOT_PROVIDED), failed 0, unmatched 0 |
-| O-L-3 | 통과 | created 22, ALREADY_REGISTERED 29, IMAGE_NOT_PROVIDED 102, unmatched 0 |
-| O-L-4 | 통과 | 200, 105.80MB 전송, created 0, ALREADY_REGISTERED 51 + IMAGE_NOT_PROVIDED 102, unmatched 0. FRIEND 51 |
-| O-L-5 | 통과 | created 30, ALREADY_REGISTERED 51, IMAGE_NOT_PROVIDED 72. FRIEND 51, SSUM 29, NULL 1 |
-| O-L-6 | 통과 | poseCsv + 이미지 81 = 82 part, 413 `D-17` JSON 수신 (약 1.98MB 전송 후 응답, 0.01초). 연결 끊김 없음. 데이터 변화 없음 |
-| O-L-7 | 통과 | 1KB 더미 101 + CSV 2 = 103 part, 413 `D-18`. 데이터 변화 없음 |
-| O-L-8 | 통과 | FRIEND 51 (전부 FRIEND), SSUM 20/true → 9/false, COUPLE 0, ONE+FRIEND 0, ONE 1건 relation=null, relation=LOVER 400, ASC = 생략 결과(81건 내림차순), SSUM 첫 항목 ssum_029_M1-4_F1-1, imageUrl 200 image/png |
-| O-L-9 | 통과 | localstack `pose/` 81개, tb_media POSE·UPLOADED 81건 1024x1536, friend_001 size 2209565 = 원본 파일 크기 |
-| O-L-10 | 통과 | ROLE_USER 토큰: multipart 403 `D-995`, JSON 403 |
-| O-L-11 | 기록 | `/v3/api-docs` 에서 두 핸들러가 operation 하나로 합쳐짐 (content: application/json, multipart/form-data). 두 핸들러가 같은 summary/description 상수를 쓰므로 합쳐진 operation 에 multipart 안내와 curl 예시가 노출됨. images 는 `array<binary>` 라 Swagger UI 에서 파일을 여러 개 추가할 수 있는 형태 (UI 직접 조작은 하지 않음) |
-
-### 2026-11-09 구현 리뷰 MINOR 반영 후 재검증
-
-| id | 결과 | 근거 |
-|---|---|---|
-| O-0-1 | 통과 | `./gradlew spotlessApply spotlessCheck` 종료코드 0 |
-| O-0-2, O-0-3 | 통과 | `./gradlew :domain:test --rerun :apps:api:test --rerun :apps:batch:test --rerun :apps:admin:test --rerun :apps:api:bootJar` 종료코드 0. domain 118, apps/api 769, apps/batch 18, apps/admin 5, 실패 0 |
-| O-A-7 | 통과 | `resolve-lazily: true` 적용 후 Limit E2E 4건, Bulk E2E 12건 통과. 로컬에서 20MB multipart 를 익명 허용 경로 `POST /api/auth/refresh` 로 보내면 413 이 아니라 415 (본문을 파싱하지 않음) |
-| O-A-8 | 통과 | PoseServiceBulkPlanTest 12건 (공유 파일 4건 추가), Bulk E2E 공유 파일 케이스 |
-| O-L-7 | 통과 | 103 part → 413 `D-18`. tb_pose, tb_media, S3 객체 수와 최대 id 변화 없음 (81/81/81) |
-| O-L-4 | 통과 | friend 51장 단일 재전송 → 200, created 0, ALREADY_REGISTERED 81 + IMAGE_NOT_PROVIDED 72 (ssum/solo 등록 이후라 81). 데이터 변화 없음 |
-| O-L-6 | 통과 | 82 part 159MiB → 413 `D-17` JSON (약 1.5MB 전송 후). 데이터 변화 없음 |
+| O-L-0 | 통과 | `Schema "public" is up to date`, version 46 |
+| O-L-1 | 통과 | 사전 검사 81/81. DB 에서 반환된 키 81개를 받은 뒤 S3 를 지웠다. 결과 0/0, S3 0. tb_users 3 은 그대로 |
+| O-L-3 | 통과 | rows 153, local_invalid 0, no_image 72, pending 81, 배치 [10×8, 1] |
+| O-L-4 | 통과 | registered 81, api_calls 9/81/9, FRIEND 51 / NULL 1 / SSUM 29, 81\|81 고유, UPLOADED 81 1024/1536, S3 81 |
+| O-L-5 | 통과 | already_in_ledger 81, api_calls 0/0/0 |
+| O-L-6a | 통과 | conflict 2 (mediaId 163, 164 INITIATED). friend_001/002 poseId 82/83 은 그대로, tb_pose 81. admin_upload 3회(배치 1 + 개별 2). 서버 WARN `[POSE_SOURCE_KEY_CONFLICT] keys=[...]` |
+| O-L-6b | 통과 | tb_pose 80 → ssum_028 CONFLICT(165), ssum_029 REGISTERED(media 166 UPLOADED) → 81 |
+| O-L-6c | 통과 | 400 D-01 ×3, 403 D-995, 409 D-18. 고아 media 상태와 tb_pose 수 변화 없음 |
+| O-L-6d | 통과 | 확인 쿼리로 163/164/165 INITIATED 확인, 가드 조건 DELETE 가 3건을 반환, S3 3건 삭제. 고아 0, POSE media 81, S3 81 |
+| O-L-7 | 통과 | 51, 20/true, 9/false, 0, 0, 1(null), ASC 와 생략 결과가 같음(81건 내림차순), SSUM 첫 항목 ssum_029_M1-4_F1-1, 200 image/png |
+| (추가) | 통과 | 연결 거부 서버로 실행하면 `aborted: 통신 예외 …`, 종료코드 2, 원장 저장, 재시도 없음. 토큰이 비면 종료코드 1 |

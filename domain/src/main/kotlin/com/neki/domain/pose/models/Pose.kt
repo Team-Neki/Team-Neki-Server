@@ -44,7 +44,9 @@ class Pose(
     @Enumerated(EnumType.STRING)
     val relation: PoseRelation? = null,
 
-    // PM 원본 키 (pose.csv media_key). 일괄 업로드 멱등 판단용이며 DB UNIQUE 다. 수동 업로드는 null
+    // 원본 키 (PM pose.csv 의 media_key). 관리자 등록(JSON /admin/upload)에서 선택으로 받으며 DB UNIQUE 라
+    // 같은 키를 다시 등록하면 409 D-18 이다. 보내지 않은 포즈는 null.
+    // V46 의 컬럼 COMMENT 는 v2 기준 문구지만 checksum 때문에 마이그레이션은 고치지 않는다
     @Column(name = "source_key", nullable = true, length = 100)
     val sourceKey: String? = null,
 ) : BaseTimeEntity()

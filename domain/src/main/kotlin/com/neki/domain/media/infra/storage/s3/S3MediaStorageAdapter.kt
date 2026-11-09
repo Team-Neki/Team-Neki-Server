@@ -8,7 +8,6 @@ import com.neki.domain.media.models.MediaType
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Timer
 import software.amazon.awssdk.core.ResponseBytes
-import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
@@ -116,17 +115,6 @@ class S3MediaStorageAdapter(
             expiresAt = Instant.now().plus(props.presignedUrlExpiration),
             contentType = contentType,
         )
-    }
-
-    override fun put(key: String, contentType: String, content: ByteArray) {
-        val putObjectRequest: PutObjectRequest = PutObjectRequest.builder()
-            .bucket(props.bucket)
-            .key(key)
-            .contentType(contentType)
-            .contentLength(content.size.toLong())
-            .build()
-
-        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(content))
     }
 
     companion object {

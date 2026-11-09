@@ -29,6 +29,9 @@ class UploadPosesUseCase(
 
         val poses: List<Pose> = poseService.createPoses(command)
 
+        // verify 보다 먼저 검사한다. 충돌이면 media 상태를 바꾸지 않고 끝나므로 같은 mediaId 로 다시 보낼 수 있다
+        transactionRunner.readOnly { poseService.validateSourceKeysNotRegistered(command) }
+
         val mediaIds: List<Long> = command.uploads.map { it.mediaId }
         verifyUploadedOrRollback(userId, mediaIds)
 
@@ -36,9 +39,23 @@ class UploadPosesUseCase(
             transactionRunner.run { poseService.saveAll(poses) }
         } catch (e: Exception) {
             mediaClient.rollbackMediasUploaded(userId, mediaIds)
+            if (isSourceKeyConflict(command)) {
+                throw BusinessException(ResultCode.CONFLICT_POSE_SOURCE_KEY)
+            }
             throw e
         }
     }
+
+    /**
+     * 저장 실패가 동시 등록(같은 sourceKey 의 UNIQUE 경합) 때문인지 다시 조회해 판정한다.
+     * 예외 타입이나 제약 이름에 묶이지 않기 위해서다. 재조회까지 실패하면 경합이 아닌 것으로 보고 원래 예외를 던진다.
+     */
+    private fun isSourceKeyConflict(command: PoseCommand.UploadPoses): Boolean = runCatching {
+        val existing: Set<String> = transactionRunner.readOnly {
+            poseService.findExistingSourceKeys(command.uploads.mapNotNull { it.sourceKey })
+        }
+        existing.isNotEmpty()
+    }.getOrDefault(false)
 
     /**
      * media가 하나라도 스토리지에 없으면 포즈를 만들지 않고, 이미 올라간 media는 되돌린다.

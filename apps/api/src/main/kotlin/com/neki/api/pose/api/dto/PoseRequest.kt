@@ -2,9 +2,11 @@ package com.neki.api.pose.api.dto
 
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSourceKey
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
 import org.hibernate.validator.constraints.CodePointLength
 
 /**
@@ -33,6 +35,14 @@ object PoseRequest {
                 nullable = true,
             )
             val relation: PoseRelation? = null,
+
+            @field:Schema(
+                description = "원본 키(PM media_key). 선택. 영문·숫자·._- 1~100자, 대소문자 구분. 이미 등록된 키면 409 D-18",
+                example = "friend_001_F1-4_F2-4",
+                nullable = true,
+            )
+            @field:Pattern(regexp = PoseSourceKey.REGEX, message = "sourceKey 형식이 올바르지 않습니다.")
+            val sourceKey: String? = null,
         )
     }
 
