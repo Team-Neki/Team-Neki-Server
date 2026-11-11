@@ -6,7 +6,6 @@ import com.neki.core.properties.AppProperties
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
-import com.neki.domain.pose.models.PoseRelation
 import org.springframework.stereotype.Component
 
 /**
@@ -34,18 +33,22 @@ object PoseConverter {
         /**
          * 정렬은 최신순 고정이라 sortOrder 는 받지 않는다 (Pagination 기본값).
          */
-        fun toGetPosesQuery(
-            userId: Long,
-            page: Int,
-            size: Int,
-            headCount: HeadCount?,
-            relation: PoseRelation?,
-        ): PoseQuery.GetPoses = PoseQuery.GetPoses(
+        fun toGetPosesQuery(userId: Long, request: PoseRequest.GetPoses): PoseQuery.GetPoses = PoseQuery.GetPoses(
             userId = userId,
-            headCount = headCount,
-            pagination = Pagination(page = page, size = size),
-            relation = relation,
+            headCount = request.filterGroup.headCountFilter?.headCount,
+            pagination = Pagination(page = request.page, size = request.size),
+            relation = request.filterGroup.relationFilter?.relation,
         )
+
+        /**
+         * deprecated GET /api/poses 용. 관계 필터는 POST /api/poses/search 의 filterGroup 으로만 받는다.
+         */
+        fun toGetPosesQuery(userId: Long, page: Int, size: Int, headCount: HeadCount?): PoseQuery.GetPoses =
+            PoseQuery.GetPoses(
+                userId = userId,
+                headCount = headCount,
+                pagination = Pagination(page = page, size = size),
+            )
 
         fun toGetPoseQuery(userId: Long, poseId: Long): PoseQuery.GetPose =
             PoseQuery.GetPose(userId = userId, poseId = poseId)

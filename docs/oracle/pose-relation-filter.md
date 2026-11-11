@@ -4,8 +4,8 @@
 - 판정 방식: auto 는 명령이 판정하고, manual 은 사람이 로컬이나 배포 환경에서 확인합니다.
 - 명령은 저장소 루트에서 그대로 실행합니다.
 - 범위(v3)
-  - V46 (relation, source_key)
-  - `GET /api/poses` 의 relation 필터와 최신순 고정
+  - V41 (relation, source_key)
+  - `POST /api/poses/search` 의 filterGroup(headCountFilter, relationFilter) 과 최신순 고정. 기존 `GET /api/poses` 는 deprecated 로 남기고 relation 필터는 받지 않는다
   - JSON `POST /api/poses/admin/upload` 의 relation, sourceKey(409 D-18)
   - PM 데이터 적재 스크립트 `scripts/pose/upload_poses.py`
 - multipart 일괄 업로드(v2)는 제거했습니다. 적재 절차는 `docs/runbook/pose-bulk-upload.md` 에 있습니다.
@@ -26,7 +26,7 @@
 |---|---|---|
 | O-A-1 | auto | 포즈 테스트와 아키텍처 규칙 통과 : `./gradlew :apps:api:test --tests '*Pose*' --tests '*ArchitectureRulesTest' -q` 종료코드 0 |
 | O-A-2 | auto | 관계 enum 테스트 통과 : `./gradlew :domain:test --tests '*PoseRelation*' -q` 종료코드 0 |
-| O-A-3 | auto | 마이그레이션 V46 하나 : `ls modules/postgres/src/main/resources/db/migration \| grep -c '^V46__'` = 1 |
+| O-A-3 | auto | 마이그레이션 V41 하나 : `ls modules/postgres/src/main/resources/db/migration \| grep -c '^V41__'` = 1 |
 | O-A-4 | auto | 결과 코드 D-18 하나 : `grep -c '"D-18"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 1 |
 | O-A-5 | auto | multipart(v2) 잔재 없음 : `rg -n "B[u]lkUpload\|P[o]seCsvParser\|I[m]ageHeader\|I[m]ageMetadata\|M[e]diaDirectUpload\|S[t]oreMedia\|D[i]scardMedia\|s[t]orePoseImage\|d[i]scardPoseImage\|f[a]ilPutWhen\|P[o]seImageFile\|P[o]seImageStoreOutcome\|I[M]AGE_SHARED_BY_ROWS\|U[P]LOAD_PAYLOAD_TOO_LARGE\|U[P]LOAD_TOO_MANY_PARTS\|m[a]x-part-count\|r[e]solve-lazily\|p[n]gHeaderBytes\|U[P]LOAD_SUMMARY" apps domain core modules docs scripts` 결과 0줄 (각 토큰의 두 번째 글자를 `[x]` 로 감싸 이 문서 자신은 일치하지 않게 했다. 정규식 의미는 같다) |
 | O-A-6 | auto | 되돌린 파일이 main 과 같음 : 아래 8개 파일 각각 `git diff --quiet origin/main -- <file>` 종료코드 0 |
@@ -60,15 +60,15 @@ O-A-6 대상 파일
 | O-L-6b | ssum_029 1건을 지운 뒤 원장 없이 `--only 'ssum_02[89]_*'` : ssum_028 CONFLICT, ssum_029 REGISTERED, tb_pose 81 |
 | O-L-6c | curl : 같은 sourceKey 2개는 400 D-01, `"a b"` 는 400 D-01, ONE+relation 은 400 D-01, USER 토큰은 403, 이미 등록된 키는 409 D-18. 모두 DB 변화가 없다 |
 | O-L-6d | 고아 정리 : `status='INITIATED' AND media_type='POSE' AND NOT EXISTS(tb_pose 참조)` 조건으로 DB 를 먼저 지우고, 반환된 storage_key 만 S3 에서 지운다. 결과는 고아 0, POSE media 81, S3 81 |
-| O-L-7 | 목록 결과 : TWO+FRIEND size=100 → 51건, TWO+SSUM → 20건(hasNext=true), page=1 → 9건(false), TWO+COUPLE → 빈 목록, ONE+FRIEND → 빈 목록, ONE → 1건(relation=null), sortOrder=ASC 결과 = 생략 결과(내림차순), SSUM 첫 항목 = 다시 등록한 ssum_029, imageUrl → `200 image/png` |
+| O-L-7 | 목록 결과(`POST /api/poses/search`, filterGroup) : TWO+FRIEND size=100 → 51건, TWO+SSUM → 20건(hasNext=true), page=1 → 9건(false), TWO+COUPLE → 빈 목록, ONE+FRIEND → 빈 목록, ONE → 1건(relation=null), deprecated GET 의 sortOrder=ASC 결과 = 생략 결과(내림차순), SSUM 첫 항목 = 다시 등록한 ssum_029, imageUrl → `200 image/png` |
 
 ## O-D. 배포 전/후 (manual)
 
 | id | 판정 |
 |---|---|
-| O-D-1 | **이 브랜치를 단독으로 staging 에 배포하지 않는다.** `deploy-api-staging.yml` 은 임의 ref 를 dispatch 할 수 있지만, BACKEND-83 계열(V41~V45)이 main 에 머지되기 전에는 이 브랜치로 실행하지 않는다. staging 에 V41~V43 만 있는 상태에서 V46 이 먼저 적용되면 이후 V44, V45 가 `out-of-order: false` 로 거부된다 |
-| O-D-2 | 머지 직전 BACKEND-83 계열(V41~V45)이 main 에 머지되어 있다 (`ls modules/postgres/src/main/resources/db/migration \| grep -E '^V4[1-5]__'` 5줄). 리베이스 후 ResultCode 의 D-18 이 다른 코드와 겹치지 않는다 (BACKEND-83 은 D-17 `BRAND_IN_USE` 를 쓴다) |
-| O-D-3 | 배포 전 staging `select version, description, checksum from flyway_schema_history order by installed_rank;` 에 V41~V45 가 있고 V46 은 없다 |
+| O-D-1 | 이 브랜치가 BACKEND-83 계열보다 **먼저** main 에 머지된다. 그래서 마이그레이션은 main 바로 다음 버전인 V41 이다. BACKEND-83 계열은 이 브랜치 머지 후 리베이스해 V42 이후로 번호를 옮긴다 |
+| O-D-2 | 머지 직전 main 의 마지막 마이그레이션이 V40 이다 (`git ls-tree --name-only origin/main modules/postgres/src/main/resources/db/migration/ \| grep -c '/V4[1-9]__'` = 0). ResultCode 의 D-18 이 main 의 다른 코드와 겹치지 않는다 |
+| O-D-3 | 배포 전 staging `select version, description, checksum from flyway_schema_history order by installed_rank;` 에 V41 이상이 없다. 다른 브랜치(BACKEND-83 등)를 dispatch 해 V41 이상이 이미 적용되어 있으면 이 브랜치의 V41 과 충돌하므로 먼저 정리한다 |
 | O-D-4 | 클라이언트 담당에게 `sortOrder` 무시(최신순 고정)와 응답 `relation` 추가를 공유했다 |
 | O-D-5 | 배포 후 staging 에서 스크립트로 소량(`--only`)을 적재해 registered 를 확인하고, 같은 원장으로 재실행해 already_in_ledger 를 확인한다 |
 

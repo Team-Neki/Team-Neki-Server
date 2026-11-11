@@ -1,11 +1,13 @@
 package com.neki.api.e2e.pose
 
+import com.neki.api.pose.api.dto.PoseRequest
 import com.neki.core.code.ResultCode
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.PoseRelation
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured
+import io.restassured.http.ContentType
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
@@ -359,7 +361,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
     }
 
     @Nested
-    @DisplayName("관계(relation) 필터 테스트")
+    @DisplayName("POST /api/poses/search filterGroup 테스트")
     inner class RelationFilterTests {
 
         private fun seed(): Map<String, Long> {
@@ -382,18 +384,25 @@ class GetPosesE2ETest : PoseE2ETestBase() {
             }
         }
 
+        private fun search(body: Any) = RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .contentType(ContentType.JSON)
+            .body(body)
+            .`when`()
+            .post("/api/poses/search")
+            .then()
+
+        private fun filterGroup(headCount: HeadCount? = null, relation: PoseRelation? = null) = PoseRequest.FilterGroup(
+            headCountFilter = headCount?.let { PoseRequest.FilterGroup.HeadCountFilter(it) },
+            relationFilter = relation?.let { PoseRequest.FilterGroup.RelationFilter(it) },
+        )
+
         @Test
-        @DisplayName("headCount=TWO&relation=COUPLE - COUPLE 만 나온다")
+        @DisplayName("headCount=TWO, relation=COUPLE - COUPLE 만 나온다")
         fun twoCouple() {
             val ids = seed()
 
-            RestAssured.given()
-                .header("Authorization", "Bearer $accessToken")
-                .queryParam("headCount", "TWO")
-                .queryParam("relation", "COUPLE")
-                .`when`()
-                .get("/api/poses")
-                .then()
+            search(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.TWO, PoseRelation.COUPLE)))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(1))
                 .body("data.items[0].poseId", equalTo(ids.getValue("TWO_COUPLE").toInt()))
@@ -405,29 +414,18 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         fun twoAll() {
             seed()
 
-            RestAssured.given()
-                .header("Authorization", "Bearer $accessToken")
-                .queryParam("headCount", "TWO")
-                .`when`()
-                .get("/api/poses")
-                .then()
+            search(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.TWO)))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(4))
                 .body("data.items.relation", containsInAnyOrder("FRIEND", "COUPLE", "SSUM", null))
         }
 
         @Test
-        @DisplayName("headCount=ONE&relation=FRIEND - 빈 목록, hasNext=false (400 아님)")
+        @DisplayName("headCount=ONE, relation=FRIEND - 빈 목록, hasNext=false (400 아님)")
         fun oneFriendEmpty() {
             seed()
 
-            RestAssured.given()
-                .header("Authorization", "Bearer $accessToken")
-                .queryParam("headCount", "ONE")
-                .queryParam("relation", "FRIEND")
-                .`when`()
-                .get("/api/poses")
-                .then()
+            search(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.ONE, PoseRelation.FRIEND)))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
                 .body("data.hasNext", equalTo(false))
@@ -438,28 +436,84 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         fun relationOnly() {
             seed()
 
-            RestAssured.given()
-                .header("Authorization", "Bearer $accessToken")
-                .queryParam("relation", "FRIEND")
-                .`when`()
-                .get("/api/poses")
-                .then()
+            search(PoseRequest.GetPoses(filterGroup = filterGroup(relation = PoseRelation.FRIEND)))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(1))
                 .body("data.items[0].relation", equalTo("FRIEND"))
         }
 
         @Test
+        @DisplayName("빈 filterGroup {} - 전체 조회, page·size 기본값")
+        fun emptyFilterGroup() {
+            seed()
+
+            search("""{"filterGroup": {}}""")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", hasSize<Int>(5))
+                .body("data.hasNext", equalTo(false))
+        }
+
+        @Test
+        @DisplayName("page·size 로 페이징한다")
+        fun paging() {
+            seed()
+
+            search(PoseRequest.GetPoses(page = 1, size = 2, filterGroup = filterGroup()))
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", hasSize<Int>(2))
+                .body("data.hasNext", equalTo(true))
+        }
+
+        @Test
+        @DisplayName("filterGroup 이 없으면 400 D-01")
+        fun missingFilterGroup() {
+            search("""{"page": 0, "size": 20}""")
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
         @DisplayName("relation 값이 잘못되면 400 D-01")
         fun invalidRelation() {
+            search("""{"filterGroup": {"relationFilter": {"relation": "LOVER"}}}""")
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("size 가 범위를 벗어나면 400 D-01")
+        fun invalidSize() {
+            search(PoseRequest.GetPoses(size = 101, filterGroup = filterGroup()))
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("인증 없이 요청하면 403")
+        fun noAuth() {
+            RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body("""{"filterGroup": {}}""")
+                .`when`()
+                .post("/api/poses/search")
+                .then()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+        }
+
+        @Test
+        @DisplayName("deprecated GET /api/poses 는 relation 파라미터를 무시한다")
+        fun deprecatedGetIgnoresRelation() {
+            seed()
+
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("relation", "LOVER")
+                .queryParam("headCount", "TWO")
+                .queryParam("relation", "FRIEND")
                 .`when`()
                 .get("/api/poses")
                 .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", hasSize<Int>(4))
         }
 
         @Test

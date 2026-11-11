@@ -14,7 +14,6 @@ import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
-import com.neki.domain.pose.models.PoseRelation
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -76,23 +75,44 @@ class PoseController(
         summary = "포즈 목록 API",
         description = """
             포즈 목록을 조회합니다. Offset 기반 페이징을 지원합니다.
+            필터는 filterGroup 으로 보내며, 필터를 안 걸려면 {} 를 보냅니다. filterGroup 이 없으면 400 D-01 입니다.
 
-            headCount:
-            * 없이 보내면 전체 조회
+            filterGroup.headCountFilter.headCount (없으면 전체):
             * ONE("1인")
             * TWO("2인")
             * THREE("3인")
             * FOUR("4인")
             * FIVE_OR_MORE("5인 이상")
 
-            relation (선택, 2인 탭의 관계 필터):
-            * 없이 보내면 전체 (관계 없는 기존 포즈 포함)
+            filterGroup.relationFilter.relation (2인 탭의 관계 필터, 없으면 관계 없는 포즈 포함 전체):
             * FRIEND("친구")
             * COUPLE("커플")
             * SSUM("썸")
             관계는 2인 포즈에만 있으므로 TWO 가 아닌 headCount 와 함께 보내면 빈 목록입니다.
 
-            정렬: 최신순(등록일 내림차순, 같으면 포즈 ID 내림차순) 고정입니다. sortOrder 는 무시합니다(deprecated).
+            정렬: 최신순(등록일 내림차순, 같으면 포즈 ID 내림차순) 고정입니다.
+        """,
+    )
+    @PostMapping("/search")
+    fun searchPoses(
+        @AuthenticationPrincipal(expression = "id") userId: Long,
+        @Valid @RequestBody request: PoseRequest.GetPoses,
+    ): BaseResponse<PoseResponse.GetPoses> {
+        val query: PoseQuery.GetPoses = requestConverter.toGetPosesQuery(userId, request)
+
+        val result: PoseResult.GetPoses = getPosesUseCase.execute(query)
+
+        val response: PoseResponse.GetPoses = responseConverter.toGetPosesResponse(result)
+
+        return BaseResponse(data = response)
+    }
+
+    @Operation(
+        summary = "포즈 목록 API (deprecated)",
+        deprecated = true,
+        description = """
+            POST /api/poses/search 를 사용하세요. 기존 앱 호환을 위해 남겨 둔 API 입니다.
+            관계 필터는 지원하지 않습니다. 정렬은 최신순 고정이며 sortOrder 는 무시합니다.
         """,
     )
     @GetMapping
@@ -101,7 +121,6 @@ class PoseController(
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(required = false) headCount: HeadCount?,
-        @RequestParam(required = false) relation: PoseRelation?,
         @Parameter(deprecated = true, description = "무시합니다. 정렬은 최신순 고정")
         @RequestParam(required = false)
         @Suppress("UNUSED_PARAMETER")
@@ -112,7 +131,6 @@ class PoseController(
             page = page,
             size = size,
             headCount = headCount,
-            relation = relation,
         )
 
         val result: PoseResult.GetPoses = getPosesUseCase.execute(query)
