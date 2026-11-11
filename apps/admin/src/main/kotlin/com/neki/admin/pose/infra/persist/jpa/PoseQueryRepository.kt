@@ -20,7 +20,8 @@ class PoseQueryRepository(private val queryFactory: JPAQueryFactory) {
         .selectFrom(pose)
         .where(*conditions(query))
         // 어드민 목록은 최신순 고정이라 Pagination.sortOrder 는 쓰지 않는다
-        .orderBy(pose.createdAt.desc())
+        // 일괄 등록으로 createdAt 이 같은 행이 페이지 사이에서 중복·누락되지 않도록 id 로 한 번 더 정렬한다
+        .orderBy(pose.createdAt.desc(), pose.id.desc())
         .offset(query.pagination.offset.toLong())
         // 전체 건수를 따로 세므로 hasNext 판단용 초과 조회(Pagination.limit)가 필요 없다
         .limit(query.pagination.size.toLong())

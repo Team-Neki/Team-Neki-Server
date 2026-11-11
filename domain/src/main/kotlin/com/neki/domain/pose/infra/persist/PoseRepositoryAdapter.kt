@@ -1,8 +1,6 @@
 package com.neki.domain.pose.infra.persist
 
-import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.SortOrder
-import com.neki.core.exception.BusinessException
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.domain.pose.infra.persist.jpa.PosesQueryRepository
@@ -30,8 +28,9 @@ class PoseRepositoryAdapter(
 
     override fun saveAll(poses: List<Pose>): List<Pose> = jpaRepository.saveAll(poses)
 
-    override fun findById(poseId: Long): Pose =
-        jpaRepository.findByIdOrNull(poseId) ?: throw BusinessException(ResultCode.NOT_FOUND)
+    override fun findById(poseId: Long): Pose? = jpaRepository.findByIdOrNull(poseId)
+
+    override fun existsByMediaIdIn(mediaIds: List<Long>): Boolean = jpaRepository.existsByMediaIdIn(mediaIds)
 
     override fun listPosesWithScrap(
         userId: Long,

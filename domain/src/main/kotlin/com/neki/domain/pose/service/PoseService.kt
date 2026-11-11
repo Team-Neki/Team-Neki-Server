@@ -47,9 +47,19 @@ class PoseService(private val poseRepository: PoseRepository) {
     fun saveAll(poses: List<Pose>): List<Pose> = poseRepository.saveAll(poses)
 
     fun updatePoseMedia(command: PoseCommand.UpdatePoseMedia): Pose {
-        val pose: Pose = poseRepository.findById(command.poseId)
+        val pose: Pose = poseRepository.findById(command.poseId) ?: throw BusinessException(ResultCode.NOT_FOUND)
+        if (pose.mediaId != command.mediaId) validateMediaNotInUse(listOf(command.mediaId))
         pose.changeMedia(command.mediaId)
         return pose
+    }
+
+    /**
+     * 하나의 media 는 한 포즈에만 연결한다. 여러 포즈가 공유하면 한 포즈의 media 를 정리할 때 다른 포즈의 이미지도 사라진다.
+     */
+    fun validateMediaNotInUse(mediaIds: List<Long>) {
+        if (poseRepository.existsByMediaIdIn(mediaIds)) {
+            throw BusinessException(ResultCode.INVALID_PARAMETER)
+        }
     }
 
     private fun validateNoDuplicateMediaIds(uploads: List<PoseCommand.UploadPoses.Item>) {

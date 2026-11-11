@@ -2,9 +2,7 @@ package com.neki.admin.pose.infra.persist
 
 import com.neki.admin.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.admin.pose.infra.persist.jpa.PoseQueryRepository
-import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.SortOrder
-import com.neki.core.exception.BusinessException
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
@@ -17,7 +15,7 @@ import org.springframework.stereotype.Repository
  * fileName       : PoseRepositoryAdapter
  * author         : koo
  * date           : 2026. 8. 10.
- * description    : 어드민은 목록 조회·등록만 쓴다. 나머지는 사용자 컨텍스트가 필요한 api 전용 기능이다
+ * description    : 어드민은 목록 조회·등록·이미지 교체만 쓴다. 나머지는 사용자 컨텍스트가 필요한 api 전용 기능이다
  */
 @Repository
 class PoseRepositoryAdapter(
@@ -33,8 +31,9 @@ class PoseRepositoryAdapter(
 
     override fun saveAll(poses: List<Pose>): List<Pose> = jpaRepository.saveAll(poses)
 
-    override fun findById(poseId: Long): Pose =
-        jpaRepository.findByIdOrNull(poseId) ?: throw BusinessException(ResultCode.NOT_FOUND)
+    override fun findById(poseId: Long): Pose? = jpaRepository.findByIdOrNull(poseId)
+
+    override fun existsByMediaIdIn(mediaIds: List<Long>): Boolean = jpaRepository.existsByMediaIdIn(mediaIds)
 
     override fun listPosesWithScrap(
         userId: Long,

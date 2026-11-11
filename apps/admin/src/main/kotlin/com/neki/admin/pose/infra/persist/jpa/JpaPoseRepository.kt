@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository
  * date           : 2026. 8. 16.
  * description    : Pose JPA Repository
  */
-interface JpaPoseRepository : JpaRepository<Pose, Long>
+interface JpaPoseRepository : JpaRepository<Pose, Long> {
+    fun existsByMediaIdIn(mediaIds: Collection<Long>): Boolean
+}
