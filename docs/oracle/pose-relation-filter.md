@@ -4,7 +4,7 @@
 - 판정 방식: auto 는 명령이 판정하고, manual 은 사람이 로컬이나 배포 환경에서 확인합니다.
 - 명령은 저장소 루트에서 그대로 실행합니다.
 - 범위(v3)
-  - V41 (relation, source_key)
+  - V46 (relation, source_key 추가, 쓰지 않는 view_count 삭제)
   - `POST /api/poses/search` 의 filterGroup(headCountFilter, relationFilter) 과 최신순 고정. 기존 `GET /api/poses` 는 deprecated 로 남기고 relation 필터는 받지 않는다
   - JSON `POST /api/poses/admin/upload` 의 relation, sourceKey(409 D-18)
   - PM 데이터 적재 스크립트 `scripts/pose/upload_poses.py`
@@ -26,7 +26,7 @@
 |---|---|---|
 | O-A-1 | auto | 포즈 테스트와 아키텍처 규칙 통과 : `./gradlew :apps:api:test --tests '*Pose*' --tests '*ArchitectureRulesTest' -q` 종료코드 0 |
 | O-A-2 | auto | 관계 enum 테스트 통과 : `./gradlew :domain:test --tests '*PoseRelation*' -q` 종료코드 0 |
-| O-A-3 | auto | 마이그레이션 V41 하나 : `ls modules/postgres/src/main/resources/db/migration \| grep -c '^V41__'` = 1 |
+| O-A-3 | auto | 마이그레이션 V46 하나 : `ls modules/postgres/src/main/resources/db/migration \| grep -c '^V46__'` = 1 |
 | O-A-4 | auto | 결과 코드 D-18 하나 : `grep -c '"D-18"' core/src/main/kotlin/com/neki/core/code/ResultCode.kt` = 1 |
 | O-A-5 | auto | multipart(v2) 잔재 없음 : `rg -n "B[u]lkUpload\|P[o]seCsvParser\|I[m]ageHeader\|I[m]ageMetadata\|M[e]diaDirectUpload\|S[t]oreMedia\|D[i]scardMedia\|s[t]orePoseImage\|d[i]scardPoseImage\|f[a]ilPutWhen\|P[o]seImageFile\|P[o]seImageStoreOutcome\|I[M]AGE_SHARED_BY_ROWS\|U[P]LOAD_PAYLOAD_TOO_LARGE\|U[P]LOAD_TOO_MANY_PARTS\|m[a]x-part-count\|r[e]solve-lazily\|p[n]gHeaderBytes\|U[P]LOAD_SUMMARY" apps domain core modules docs scripts` 결과 0줄 (각 토큰의 두 번째 글자를 `[x]` 로 감싸 이 문서 자신은 일치하지 않게 했다. 정규식 의미는 같다) |
 | O-A-6 | auto | 되돌린 파일이 main 과 같음 : 아래 8개 파일 각각 `git diff --quiet origin/main -- <file>` 종료코드 0 |
@@ -66,9 +66,9 @@ O-A-6 대상 파일
 
 | id | 판정 |
 |---|---|
-| O-D-1 | 이 브랜치가 BACKEND-83 계열보다 **먼저** main 에 머지된다. 그래서 마이그레이션은 main 바로 다음 버전인 V41 이다. BACKEND-83 계열은 이 브랜치 머지 후 리베이스해 V42 이후로 번호를 옮긴다 |
-| O-D-2 | 머지 직전 main 의 마지막 마이그레이션이 V40 이다 (`git ls-tree --name-only origin/main modules/postgres/src/main/resources/db/migration/ \| grep -c '/V4[1-9]__'` = 0). ResultCode 의 D-18 이 main 의 다른 코드와 겹치지 않는다 |
-| O-D-3 | 배포 전 staging `select version, description, checksum from flyway_schema_history order by installed_rank;` 에 V41 이상이 없다. 다른 브랜치(BACKEND-83 등)를 dispatch 해 V41 이상이 이미 적용되어 있으면 이 브랜치의 V41 과 충돌하므로 먼저 정리한다 |
+| O-D-1 | admin 계열(V41~V45)이 이 브랜치보다 **먼저** main 에 머지된다. 그래서 마이그레이션은 V46 이다. V45 가 main 에 들어오기 전에는 이 브랜치를 머지하지 않는다 |
+| O-D-2 | 머지 직전 main 의 마지막 마이그레이션이 V45 다 (`git ls-tree --name-only origin/main modules/postgres/src/main/resources/db/migration/ \| xargs -n1 basename \| sort -V \| tail -1` 이 `V45__` 로 시작). ResultCode 의 D-18 이 main 의 다른 코드와 겹치지 않는다 |
+| O-D-3 | 배포 전 staging `select version, description, checksum from flyway_schema_history order by installed_rank;` 에 main 의 V41~V45 가 있고 V46 은 없다. 이 브랜치의 이전 버전(V41 로 번호를 매겼던 때)이 적용된 기록이 있으면 먼저 정리한다 |
 | O-D-4 | 클라이언트 담당에게 `sortOrder` 무시(최신순 고정)와 응답 `relation` 추가를 공유했다 |
 | O-D-5 | 배포 후 staging 에서 스크립트로 소량(`--only`)을 적재해 registered 를 확인하고, 같은 원장으로 재실행해 already_in_ledger 를 확인한다 |
 

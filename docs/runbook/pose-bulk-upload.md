@@ -203,9 +203,10 @@ wc -l < orphan_keys.txt
 
 ## 서버 담당 메모
 
-- 이 브랜치는 BACKEND-83 계열보다 먼저 main 에 머지됩니다. 그래서 마이그레이션은 main 바로 다음 버전인 V41 입니다.
-  - BACKEND-83 계열은 이 브랜치 머지 후 리베이스해 V42 이후로 번호를 옮깁니다.
-  - staging/prod 는 `out-of-order: false` 입니다. 다른 브랜치를 dispatch 해 staging 에 V41 이상이 이미 적용되어 있으면 이 브랜치의 V41 과 충돌하므로 배포 전에 `flyway_schema_history` 를 확인합니다.
-- 로컬 DB 에 다른 브랜치의 V41 이상이 적용되어 있으면 validate 에 실패합니다. 로컬 DB 를 다시 만듭니다.
-- V41 의 `source_key` 컬럼 COMMENT 는 v2(일괄 업로드) 기준 문구입니다. 적용된 DB 의 checksum 이 깨지므로 SQL 은 고치지 않습니다. 실제 의미는 `Pose.kt` 주석을 따릅니다.
+- 마이그레이션은 V46 입니다. admin 계열(V41~V45)이 main 에 먼저 머지된다는 전제입니다.
+  - staging/prod 는 `out-of-order: false` 라 V46 이 먼저 적용되면 나중에 오는 V45 가 거부됩니다. V45 가 main 에 들어오기 전에는 이 브랜치를 staging 에 dispatch 하지 않습니다.
+  - 배포 전에 staging `flyway_schema_history` 를 확인합니다. 이 브랜치의 이전 버전(V41 로 번호를 매겼던 때)이 적용된 기록이 있으면 먼저 정리합니다.
+- 로컬 DB 에 이 브랜치의 이전 V41 이 적용되어 있으면 validate 에 실패합니다. 로컬 DB 를 다시 만듭니다.
+- V46 은 쓰지 않는 `view_count` 컬럼(V13)도 지웁니다.
+- V46 의 `source_key` 컬럼 COMMENT 는 v2(일괄 업로드) 기준 문구입니다. 적용된 DB 의 checksum 이 깨지므로 SQL 은 고치지 않습니다. 실제 의미는 `Pose.kt` 주석을 따릅니다.
 - 한 요청 안에서는 CSV 순서대로 INSERT 하므로 CSV 마지막 행이 앱 목록 맨 위에 옵니다.
