@@ -1,10 +1,11 @@
 package com.neki.admin.media.api.controller
 
+import com.neki.admin.media.api.dto.AdminMediaConverter
 import com.neki.admin.media.api.dto.AdminMediaDto
 import com.neki.admin.media.application.AdminMediaUploadFacade
+import com.neki.admin.media.application.dto.AdminMediaResult
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.media.dto.MediaCommand
-import com.neki.domain.media.models.MediaUploadTickets
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
@@ -20,28 +21,8 @@ class AdminMediaController(private val mediaUploadFacade: AdminMediaUploadFacade
         @AuthenticationPrincipal(expression = "userId") uploaderId: Long,
         @Valid @RequestBody request: AdminMediaDto.UploadRequest,
     ): BaseResponse<AdminMediaDto.UploadResponse> {
-        val command = MediaCommand.GenerateUploadTicket(
-            ownerId = uploaderId,
-            items = request.items.map { item ->
-                MediaCommand.GenerateUploadTicket.Item(
-                    filename = null,
-                    contentType = item.contentType!!,
-                    mediaType = item.mediaType!!,
-                    width = item.width,
-                    height = item.height,
-                    size = item.size,
-                )
-            },
-            adminManaged = true,
-        )
-        val tickets: MediaUploadTickets = mediaUploadFacade.issueTickets(command)
-        val response = AdminMediaDto.UploadResponse(
-            method = tickets.firstTicket().method,
-            expiresAt = tickets.firstTicket().expiresAt,
-            items = tickets.tickets.map { (media, ticket) ->
-                AdminMediaDto.UploadResponse.Item(media.id!!, ticket.url, ticket.contentType)
-            },
-        )
-        return BaseResponse(data = response)
+        val command: MediaCommand.GenerateUploadTicket = AdminMediaConverter.toCommand(uploaderId, request)
+        val result: AdminMediaResult.UploadTicket = mediaUploadFacade.issueTickets(command)
+        return BaseResponse(data = AdminMediaConverter.toResponse(result))
     }
 }

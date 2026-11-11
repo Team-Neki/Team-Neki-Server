@@ -1,5 +1,6 @@
 package com.neki.admin.media.application
 
+import com.neki.admin.media.application.dto.AdminMediaResult
 import com.neki.core.code.ResultCode
 import com.neki.core.exception.BusinessException
 import com.neki.domain.media.dto.MediaCommand
@@ -12,11 +13,18 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AdminMediaUploadFacade(private val mediaService: MediaService) {
     @Transactional
-    fun issueTickets(command: MediaCommand.GenerateUploadTicket): MediaUploadTickets {
+    fun issueTickets(command: MediaCommand.GenerateUploadTicket): AdminMediaResult.UploadTicket {
         if (command.items.any { it.mediaType !in ALLOWED_MEDIA_TYPES || it.contentType !in ALLOWED_CONTENT_TYPES }) {
             throw BusinessException(ResultCode.INVALID_PARAMETER)
         }
-        return mediaService.issueUploadTickets(command)
+        val tickets: MediaUploadTickets = mediaService.issueUploadTickets(command)
+        return AdminMediaResult.UploadTicket(
+            method = tickets.firstTicket().method,
+            expiresAt = tickets.firstTicket().expiresAt,
+            items = tickets.tickets.map { (media, ticket) ->
+                AdminMediaResult.UploadTicket.Item(media.id!!, ticket.url, ticket.contentType)
+            },
+        )
     }
 
     companion object {
