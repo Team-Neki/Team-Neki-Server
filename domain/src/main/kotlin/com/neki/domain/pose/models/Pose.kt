@@ -46,7 +46,7 @@ class Pose(
 
     // 원본 키 (PM pose.csv 의 media_key). 관리자 등록(JSON /admin/upload)에서 선택으로 받으며 DB UNIQUE 라
     // 같은 키를 다시 등록하면 409 D-18 이다. 보내지 않은 포즈는 null.
-    // V46 의 컬럼 COMMENT 는 v2 기준 문구지만 checksum 때문에 마이그레이션은 고치지 않는다
+    // V41 의 컬럼 COMMENT 는 v2 기준 문구지만 checksum 때문에 마이그레이션은 고치지 않는다
     @Column(name = "source_key", nullable = true, length = 100)
     val sourceKey: String? = null,
 ) : BaseTimeEntity()
