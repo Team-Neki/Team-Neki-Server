@@ -10,17 +10,30 @@ dependencies {
     implementation(project(":modules:postgres"))
     implementation(project(":modules:jasypt"))
     implementation(project(":modules:aws"))
+    implementation(project(":modules:google"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion")
 
-    // admin 은 공유 DB 의 마이그레이션을 검증만 한다.
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+    implementation("org.springframework.session:spring-session-jdbc")
     implementation("org.flywaydb:flyway-core")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
     implementation("io.micrometer:micrometer-core")
 
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
     testRuntimeOnly("com.h2database:h2")
+    testRuntimeOnly("org.testcontainers:postgresql")
 }
 
 tasks.jar { enabled = false }
 tasks.bootJar { layered { enabled = true } }
+
+tasks.named<Test>("test") {
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}

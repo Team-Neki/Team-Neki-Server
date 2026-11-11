@@ -7,5 +7,9 @@ package com.neki.domain.user.dto
  * description    : User domain query
  */
 object UserQuery {
+    data class GetAdminAccount(val email: String)
+
+    data class GetActiveAdminAccount(val userId: Long)
+
     data class GetUser(val userId: Long)
 }

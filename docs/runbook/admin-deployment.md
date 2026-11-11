@@ -17,7 +17,7 @@ branches 제한이 있어야 막힌다.
 
 ## 최초 실행
 
-1. 실행 모듈 #356과 세션 인증 #361을 머지하고 API를 먼저 배포해 공유 DB의 V41·V42·V43
+1. 실행 모듈 #356과 세션 인증 #361을 머지하고 API를 먼저 배포해 공유 DB의 V41~V44
    마이그레이션을 적용한다. GitOps의 `admin-api` Application/overlay PR을 main에 머지한다.
    `prod` namespace에는 기존 API와 동일한 `neki-secrets/jasypt-password` 및 Google OAuth
    설정을 담은 `neki-admin-api-secret`이 있어야 한다.
@@ -33,7 +33,7 @@ GitOps 커밋 성공은 ArgoCD sync/rollout 성공을 보장하지 않는다. Gi
 rollout 확인 절차로 클러스터 상태를 확인한다.
 긴급 롤백은 GitOps의 `chore(admin-api): update image to ...` 커밋을 revert한다. 이전 이미지
 태그는 GHCR에 남아 있어(태그를 덮어쓰지 않음) 재빌드와 승인 없이 돌아간다. `ref`에 이전 커밋 SHA를
-입력해 같은 워크플로를 다시 실행하는 재빌드는 그다음에 한다.
+입력해 같은 워크플로를 다시 실행하는 재빌드는 그다음에 한다. 재빌드도 main에 포함된 SHA만 가능하고, GitOps의 이미지 줄 검사를 통과해야 한다.
 
 ## 현재 앱의 제한
 
@@ -42,9 +42,6 @@ GitOps는 `prod` namespace에 `replicas: 1` / `RollingUpdate`, 내부 ClusterIP 
 동일한 PostgreSQL DB·스키마의 기존 테이블에 연결한다. admin은 Flyway 검증만
 수행하며 테이블 생성·변경은 API가 담당한다. H2는 테스트에서만 사용한다.
 
-아래는 세션 인증 #361 머지 이후 기준이다. #361 전 main의 admin에는 인증 설정이 없으므로 그 상태로
-배포하지 않는다.
-
 `AdminApplication`은 OAuth2 로그인과 PostgreSQL JDBC 세션으로 관리 요청을 인증하고,
-요청마다 현재 DB의 ADMIN 권한을 확인한다. 변경 요청에는 CSRF 토큰이 필요하다. 외부 Ingress는
+요청마다 현재 DB의 ADMIN 권한을 확인한다. CSRF 토큰은 쓰지 않으며 다른 사이트의 변경 요청은 `SameSite=Lax` 세션 쿠키가 막는다. 외부 Ingress는
 아직 없으며 어드민 웹의 프록시 연결과 실제 Google 로그인은 별도 검증이 필요하다.
