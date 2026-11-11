@@ -20,5 +20,7 @@ interface JpaMediaRepository : JpaRepository<Media, Long> {
 
     fun findAllByIdInAndStatus(ids: List<Long>, status: MediaStatus): List<Media>
 
+    fun findAllByIdInAndStatusIn(ids: List<Long>, statuses: List<MediaStatus>): List<Media>
+
     fun findAllByOwnerIdAndIdInAndStatus(ownerId: Long, ids: List<Long>, status: MediaStatus): List<Media>
 }
