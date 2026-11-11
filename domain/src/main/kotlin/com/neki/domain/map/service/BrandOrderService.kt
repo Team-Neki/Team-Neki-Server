@@ -24,7 +24,7 @@ class BrandOrderService(
 ) {
 
     fun getOrderedBrand(query: MapQuery.GetBrand): List<Brand> {
-        val brands: List<Brand> = brandRepository.findAll()
+        val brands: List<Brand> = brandRepository.findAll().filter(Brand::exposeToMap)
 
         val sortOrderMap: Map<Long, Int> = userBrandOrderRepository.findSortOrderMapByUserId(query.userId)
 
@@ -34,6 +34,7 @@ class BrandOrderService(
     fun updateBrandOrder(command: MapCommand.UpdateBrandOrder) {
         val brandIds: List<Long> = command.brandIds
 
+        // 숨김은 되돌릴 수 있는 상태라 거부하지 않는다. 조회가 숨김 브랜드를 거르므로 저장된 순서는 다시 노출될 때 쓰인다
         val existingBrandIds: Set<Long> = brandRepository.findAll().mapNotNull(Brand::id).toSet()
         if (!existingBrandIds.containsAll(brandIds)) {
             throw BusinessException(ResultCode.NOT_FOUND)
