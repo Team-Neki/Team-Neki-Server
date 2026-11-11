@@ -7,7 +7,6 @@ import com.neki.domain.search.models.PhotoBoothSearch
 import com.neki.domain.search.models.SearchCondition
 import com.neki.domain.search.models.qu.QueryIntent
 import com.neki.domain.search.repository.PhotoBoothSearchRepository
-import com.neki.domain.search.service.qu.SearchNormalizer
 import org.springframework.stereotype.Component
 
 /**
@@ -36,15 +35,22 @@ class PhotoBoothSearchService(private val photoBoothSearchRepository: PhotoBooth
      * 부스 자동완성. 정규화하면 1자 이하인 검색어(`강`, `강_`)는 걸리는 것이 너무 많아 조회하지 않고 빈 결과를 준다.
      * 낱말 규칙은 지역·역 탭과 같은 검색어를 받기 위한 것이다 (CompletionKeyword.boothTerms).
      */
-    fun searchByKeyword(query: SearchQuery.SearchPhotoBoothsByKeyword): PageWithTotalCount<PhotoBoothSearch> {
-        if (SearchNormalizer.normalize(query.keyword).length < SearchQuery.MIN_COMPLETION_KEYWORD_LENGTH) {
-            return query.pagination.slice(emptyList(), 0L)
-        }
+    fun searchByKeyword(
+        query: SearchQuery.SearchPhotoBoothsByKeyword,
+        visibleBrandIds: List<Long>,
+    ): PageWithTotalCount<PhotoBoothSearch> {
+        if (query.isTooShort || visibleBrandIds.isEmpty()) return query.pagination.slice(emptyList(), 0L)
 
         val terms: List<List<String>> = CompletionKeyword.boothTerms(query.keyword)
         val fetched: List<PhotoBoothSearch> =
-            photoBoothSearchRepository.findByKeyword(query.keyword, terms, query.userLocation, query.pagination)
-        val totalCount: Long = photoBoothSearchRepository.countByKeyword(query.keyword, terms)
+            photoBoothSearchRepository.findByKeyword(
+                query.keyword,
+                terms,
+                query.userLocation,
+                query.pagination,
+                visibleBrandIds,
+            )
+        val totalCount: Long = photoBoothSearchRepository.countByKeyword(query.keyword, terms, visibleBrandIds)
 
         return query.pagination.slice(fetched, totalCount)
     }

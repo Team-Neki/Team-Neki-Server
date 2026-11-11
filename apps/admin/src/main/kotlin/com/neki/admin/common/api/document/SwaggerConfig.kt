@@ -6,7 +6,8 @@ import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-// 어드민 인증 도입 전이라 security scheme 은 두지 않는다
+// 같은 origin 에서 로그인하면 브라우저가 ADMINSESSION 쿠키를 Swagger UI 요청에 자동으로 붙인다.
+// CSRF 토큰도 쓰지 않으므로 security scheme 은 두지 않는다.
 @Configuration
 class SwaggerConfig {
     @Bean

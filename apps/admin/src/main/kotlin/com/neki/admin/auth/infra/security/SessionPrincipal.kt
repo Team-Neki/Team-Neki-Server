@@ -1,4 +1,4 @@
-package com.neki.domain.user.infra.security.session
+package com.neki.admin.auth.infra.security
 
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import java.io.Serializable

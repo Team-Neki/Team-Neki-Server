@@ -2,6 +2,7 @@ package com.neki.domain.search.dto
 
 import com.neki.core.domain.vo.Pagination
 import com.neki.domain.search.models.UserLocation
+import com.neki.domain.search.service.qu.SearchNormalizer
 
 /**
  * fileName       : SearchQuery
@@ -34,7 +35,11 @@ object SearchQuery {
         val keyword: String,
         val pagination: Pagination,
         val userLocation: UserLocation?,
-    )
+    ) {
+        /** 정규화한 검색어가 [MIN_COMPLETION_KEYWORD_LENGTH] 보다 짧으면 조회하지 않는다 */
+        val isTooShort: Boolean
+            get() = SearchNormalizer.normalize(keyword).length < MIN_COMPLETION_KEYWORD_LENGTH
+    }
 
     /**
      * 부스 목록과 필터가 같이 쓰는 범위. keyword 는 자동완성 keyword 이거나 자치구·역 + 브랜드 검색어이며 QU 가 이해한다.

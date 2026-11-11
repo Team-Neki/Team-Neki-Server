@@ -5,6 +5,7 @@ import com.neki.core.domain.vo.CountedPage
 import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.BrandCommand
 import com.neki.domain.map.dto.BrandQuery
+import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.repository.BrandRepository
 import org.springframework.stereotype.Component
@@ -38,19 +39,30 @@ class BrandService(private val brandRepository: BrandRepository) {
         val brand: Brand = brandRepository.findById(command.brandId)
             ?: throw BusinessException(ResultCode.NOT_FOUND)
 
+        // code는 수집 원천 키와 즐겨찾기의 일부라 브랜드 수정으로 변경할 수 없다.
+        if (command.code != null && command.code != brand.code) {
+            throw BusinessException(ResultCode.INVALID_PARAMETER)
+        }
+
         val newName: String? = command.name.takeIf { it != brand.name }
-        val newCode: String? = command.code.takeIf { it != brand.code }
-        validateNoDuplicate(newName, newCode)
+        validateNoDuplicate(newName, null)
 
         brand.updateInfo(
             command.name,
             command.code,
+            command.mediaId,
             command.supportAndroidQr,
             command.supportIosQr,
             command.exposeToMap,
         )
         return brand
     }
+
+    fun getVisibleBrandIds(query: MapQuery.GetVisibleBrandIds): List<Long> =
+        brandRepository.findVisibleIds(query.brandIds)
+
+    fun getBrand(id: Long): Brand = brandRepository.findById(id)
+        ?: throw BusinessException(ResultCode.NOT_FOUND)
 
     fun deleteBrand(command: BrandCommand.DeleteBrand) {
         val brand: Brand = brandRepository.findById(command.brandId)
@@ -67,6 +79,7 @@ class BrandService(private val brandRepository: BrandRepository) {
             command.mediaId,
             command.supportAndroidQr,
             command.supportIosQr,
+            command.exposeToMap,
         )
         brandRepository.save(brand)
     }

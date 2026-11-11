@@ -27,6 +27,12 @@ class BrandRepositoryAdapter(private val jpaRepository: JpaBrandRepository) : Br
 
     override fun findAll(): List<Brand> = jpaRepository.findAllByOrderByIdAsc()
 
+    override fun findVisibleIds(ids: List<Long>?): List<Long> = when {
+        ids == null -> jpaRepository.findVisibleIds()
+        ids.isEmpty() -> emptyList()
+        else -> jpaRepository.findVisibleIdsByIdIn(ids)
+    }
+
     // 어드민 목록 조회 전용이라 apps:api 에서는 호출 경로가 없다. 필요해지면 QueryDSL 로 구현한다.
     override fun findAll(query: BrandQuery.GetBrands): List<Brand> =
         throw UnsupportedOperationException("어드민 전용 조회다. apps:admin 의 어댑터를 쓴다.")

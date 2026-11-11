@@ -17,8 +17,8 @@
 | id | 종류 | 판정 |
 |---|---|---|
 | O-A-1 | auto | 세션 인증·Google 로그인·DB 장애·아키텍처 규칙 테스트 통과 : `./gradlew :apps:admin:test --tests '*AdminAuthE2ETest' --tests '*AdminGoogleLoginE2ETest' --tests '*AdminAuthorizationDatabaseErrorTest' --tests '*AdminArchitectureRulesTest' -q` 종료코드 0 |
-| O-A-2 | auto | admin 앱 경로가 모두 `/api` 아래에 있음 (이전 `/admin` 매핑 없음) : `grep -rnE '"/admin(/\|")' apps/admin/src/main domain/src/main/kotlin/com/neki/domain/user/infra/security/session \| wc -l` = 0 |
-| O-A-3 | auto | admin 보안 체인에서 CSRF 를 끄고 로그아웃은 POST 만 받음 : `grep -c 'csrf { it.disable() }' domain/src/main/kotlin/com/neki/domain/user/infra/security/session/SessionSecurityConfig.kt` = 1, `grep -c 'matcher(HttpMethod.POST, "/api/auth/logout")' domain/src/main/kotlin/com/neki/domain/user/infra/security/session/SessionSecurityConfig.kt` = 1 |
+| O-A-2 | auto | admin 앱 경로가 모두 `/api` 아래에 있음 (이전 `/admin` 매핑 없음) : `grep -rnE '"/admin(/\|")' apps/admin/src/main \| wc -l` = 0 |
+| O-A-3 | auto | admin 보안 체인에서 CSRF 를 끄고 로그아웃은 POST 만 받음 : `grep -c 'csrf { it.disable() }' apps/admin/src/main/kotlin/com/neki/admin/auth/infra/security/SessionSecurityConfig.kt` = 1, `grep -c 'matcher(HttpMethod.POST, "/api/auth/logout")' apps/admin/src/main/kotlin/com/neki/admin/auth/infra/security/SessionSecurityConfig.kt` = 1 |
 | O-A-4 | auto | identity key 개념이 남지 않음 : `grep -rn 'identityKey' apps/admin/src domain/src/main \| wc -l` = 0 |
 | O-A-5 | auto | Flyway 버전 중복 없음 : `ls modules/postgres/src/main/resources/db/migration \| sed -E 's/__.*//' \| sort \| uniq -d \| wc -l` = 0 |
 | O-A-6 | auto | admin 이 Spring Data 리포지터리를 직접 두지 않음 : `test ! -e apps/admin/src/main/kotlin/com/neki/admin/media/infra` 종료코드 0 (application 계층의 우회는 O-A-1 의 ArchUnit 규칙이 막음) |

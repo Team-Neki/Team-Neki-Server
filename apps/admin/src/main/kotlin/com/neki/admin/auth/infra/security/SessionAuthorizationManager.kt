@@ -1,8 +1,7 @@
-package com.neki.domain.user.infra.security.session
+package com.neki.admin.auth.infra.security
 
-import com.neki.domain.user.dto.UserCommand
-import com.neki.domain.user.service.AdminAccountAccess
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import com.neki.domain.user.dto.UserQuery
+import com.neki.domain.user.service.AdminAccountService
 import org.springframework.dao.DataAccessException
 import org.springframework.security.authentication.AuthenticationServiceException
 import org.springframework.security.authorization.AuthorizationDecision
@@ -13,8 +12,7 @@ import org.springframework.stereotype.Component
 import java.util.function.Supplier
 
 @Component
-@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
-class SessionAuthorizationManager(private val accounts: AdminAccountAccess) :
+class SessionAuthorizationManager(private val accounts: AdminAccountService) :
     AuthorizationManager<RequestAuthorizationContext> {
     override fun check(
         authentication: Supplier<Authentication>,
@@ -26,7 +24,7 @@ class SessionAuthorizationManager(private val accounts: AdminAccountAccess) :
         if (!auth.isAuthenticated) return AuthorizationDecision(false)
         return try {
             AuthorizationDecision(
-                accounts.isAdmin(UserCommand.AdminAccountAccess(principal.userId)),
+                accounts.isAdmin(UserQuery.GetActiveAdminAccount(principal.userId)),
             )
         } catch (exception: DataAccessException) {
             throw AuthenticationServiceException("Admin authorization database unavailable", exception)

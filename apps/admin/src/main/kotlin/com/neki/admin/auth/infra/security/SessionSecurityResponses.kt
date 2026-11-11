@@ -1,4 +1,4 @@
-package com.neki.domain.user.infra.security.session
+package com.neki.admin.auth.infra.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.core.api.dto.BaseResponse
@@ -6,7 +6,6 @@ import com.neki.core.code.ResultCode
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.dao.DataAccessException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.authentication.AuthenticationServiceException
@@ -20,7 +19,6 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnProperty(prefix = "admin.auth", name = ["enabled"], havingValue = "true")
 class SessionSecurityResponses(private val mapper: ObjectMapper) :
     AuthenticationEntryPoint,
     AccessDeniedHandler,

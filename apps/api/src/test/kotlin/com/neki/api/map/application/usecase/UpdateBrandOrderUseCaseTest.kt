@@ -93,6 +93,24 @@ class UpdateBrandOrderUseCaseTest :
             verify(exactly = 0) { userBrandOrderRepository.replaceOrder(any(), any()) }
         }
 
+        test("숨김 brandId 포함 - 앱이 숨김 전 목록으로 저장해도 거부하지 않는다") {
+            // Given
+            val brands = listOf(
+                aBrand(id = 1L, name = "인생네컷", code = "lifefour"),
+                aBrand(id = 3L, name = "포토이즘", code = "photoism", exposeToMap = false),
+            )
+            val command = MapCommand.UpdateBrandOrder(userId = userId, brandIds = listOf(3L, 1L))
+
+            every { brandRepository.findAll() } returns brands
+            every { userBrandOrderRepository.replaceOrder(userId, any()) } returns Unit
+
+            // When
+            useCase.execute(command)
+
+            // Then
+            verify(exactly = 1) { userBrandOrderRepository.replaceOrder(userId, any()) }
+        }
+
         test("빈 brandIds - 예외 없이 빈 리스트로 replaceOrder가 한 번 호출된다") {
             // Given
             val brands = listOf(
