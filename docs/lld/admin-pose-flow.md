@@ -4,7 +4,7 @@
 
 ## 구현 구조
 
-`pose/api`의 Controller·Dto·Mapper가 요청을 변환하고 `PoseAdminFacade`가 트랜잭션 경계를 잡아 `:domain`의 `PoseService`에 위임합니다. `PoseServiceConfig`는 `PoseService`만 명시적으로 등록하므로 브랜드 관리 기능 없이 기동할 수 있습니다. `pose/infra/persist`는 admin용 `PoseRepository` 구현과 JPA·QueryDSL 조회를 소유합니다.
+`pose/api/controller`의 Controller가 `pose/api/dto`의 `PoseAdminConverter`로 요청을 Command·Query로 바꾸고, `PoseAdminFacade`가 트랜잭션 경계를 잡아 `:domain`의 `PoseService`에 위임합니다. Facade는 `pose/application/dto`의 `PoseAdminResult`를 반환하고 Converter가 이를 응답으로 바꿉니다. `PoseService`는 `BrandService`와 함께 `DomainServiceConfig`에서 명시적으로 등록합니다. `pose/infra/persist`는 admin용 `PoseRepository` 구현과 JPA·QueryDSL 조회를 소유합니다.
 
 | Method | Path | 동작 |
 | --- | --- | --- |
@@ -12,13 +12,13 @@
 | POST | `/api/pose` | 일괄 등록 |
 | PATCH | `/api/pose/{poseId}` | 이미지 교체 |
 
-목록 조회는 `CountedPage`를 사용하며 전체 건수와 전체 페이지 수를 반환합니다. 사용자 컨텍스트(스크랩, 정렬)가 필요한 API 전용 조회는 admin 어댑터에서 지원하지 않습니다.
+목록 조회는 `CountedPage`를 사용하며 전체 건수와 전체 페이지 수를 반환합니다. 정렬은 `createdAt` 내림차순이고, 일괄 등록으로 `createdAt`이 같은 행은 `id` 내림차순으로 정합니다. 일괄 등록은 한 번에 10건까지 받습니다. 미디어마다 S3 객체를 확인하는 동안 트랜잭션을 잡으므로 업로드 티켓 발급 상한과 같게 둡니다. 사용자 컨텍스트(스크랩, 정렬)가 필요한 API 전용 조회는 admin 어댑터에서 지원하지 않습니다.
 
 관리자 공동 관리 포즈의 userId는 null로 저장합니다. 업로더는 `TB_MEDIA.owner_id`에 남습니다. `TB_POSE.user_id` NULL 허용 마이그레이션은 main의 `V30__alter_pose_user_id_nullable.sql`에 있으므로 중복 마이그레이션을 추가하지 않습니다.
 
 ## 이미지 변경
 
-`PATCH /api/pose/{poseId}`의 body는 `{ "mediaId": n }`이며 mediaId는 필수입니다. `PoseService.updatePoseMedia`가 포즈를 조회하고 `Pose.changeMedia`로 교체합니다. dirty checking과 `@DynamicUpdate`로 media_id 변경을 저장합니다.
+`PATCH /api/pose/{poseId}`의 body는 `{ "mediaId": n }`이며 mediaId는 필수입니다. `PoseService.updatePoseMedia`가 포즈를 조회하고 `Pose.changeMedia`로 교체합니다. dirty checking과 `@DynamicUpdate`로 media_id 변경을 저장합니다. 하나의 media는 한 포즈에만 연결합니다. 등록과 교체 모두 다른 포즈가 쓰는 mediaId면 400 `INVALID_PARAMETER`로 거부합니다. 지금 쓰는 mediaId를 그대로 보내면 이 검사를 하지 않습니다.
 
 이미지 바이너리는 admin 서버를 거치지 않습니다. 관리자 세션으로 admin의 업로드 티켓을 발급받아 S3에 직접 올린 뒤, 권한이 있는 관리자가 mediaId를 포즈에 연결합니다.
 
