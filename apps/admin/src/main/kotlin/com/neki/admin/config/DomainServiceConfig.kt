@@ -2,6 +2,8 @@ package com.neki.admin.config
 
 import com.neki.domain.map.repository.BrandRepository
 import com.neki.domain.map.service.BrandService
+import com.neki.domain.pose.repository.PoseRepository
+import com.neki.domain.pose.service.PoseService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -19,4 +21,7 @@ class DomainServiceConfig {
 
     @Bean
     fun brandService(brandRepository: BrandRepository): BrandService = BrandService(brandRepository)
+
+    @Bean
+    fun poseService(poseRepository: PoseRepository): PoseService = PoseService(poseRepository)
 }

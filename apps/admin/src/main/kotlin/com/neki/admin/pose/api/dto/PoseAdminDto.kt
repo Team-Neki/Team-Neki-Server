@@ -1,8 +1,6 @@
-package com.neki.admin.pose.api
+package com.neki.admin.pose.api.dto
 
-import com.neki.core.domain.vo.CountedPage
 import com.neki.domain.pose.models.HeadCount
-import com.neki.domain.pose.models.Pose
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -31,7 +29,15 @@ object PoseAdminDto {
             val size: Int = DEFAULT_SIZE,
         )
 
-        data class UploadPoses(@field:NotEmpty @field:Valid val uploads: List<Item>) {
+        /**
+         * 미디어마다 S3 객체를 확인하는 동안 트랜잭션을 잡고 있으므로 한 번에 올리는 건수를 업로드 티켓 발급 상한과 같게 제한한다.
+         */
+        data class UploadPoses(
+            @field:NotEmpty
+            @field:Size(max = MAX_UPLOADS, message = "uploads는 {max}개 이하여야 합니다.")
+            @field:Valid
+            val uploads: List<Item>,
+        ) {
             data class Item(
                 @field:NotNull(message = "mediaId는 필수 입력값입니다.")
                 val mediaId: Long?,
@@ -50,6 +56,7 @@ object PoseAdminDto {
             const val DEFAULT_PAGE = 0
             const val DEFAULT_SIZE = 10
             const val MAX_SIZE = 100L
+            const val MAX_UPLOADS = 10
         }
     }
 
@@ -70,23 +77,6 @@ object PoseAdminDto {
                 val memo: String?,
                 val updatedAt: LocalDateTime,
             )
-
-            companion object {
-                fun of(headCount: HeadCount?, page: CountedPage<Pose>): GetPoses = GetPoses(
-                    headCount = headCount,
-                    totalCount = page.totalCount,
-                    totalPages = page.totalPages,
-                    poses = page.items.map {
-                        PoseInfo(
-                            it.id!!,
-                            it.mediaId,
-                            it.headCount,
-                            it.memo,
-                            it.updatedAt!!,
-                        )
-                    },
-                )
-            }
         }
     }
 }
