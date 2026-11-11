@@ -24,7 +24,7 @@ admin은 API와 동일한 접속 정보와 도메인 엔티티를 사용합니�
 
 테이블 생성·변경은 API가 기존 `modules/postgres`의 Flyway 마이그레이션으로 수행합니다. admin의 `FlywayMigrationStrategy`는 `validate()`만 호출하므로 마이그레이션이나 이력 기록을 수행하지 않습니다. 새 마이그레이션이 있으면 API를 먼저 배포해야 하며, 초기 로컬 DB도 API로 먼저 준비합니다.
 
-DB 설정은 `modules/postgres/src/main/resources`에서 관리합니다. admin의 메인 YAML은 필요한 파일을 `spring.config.import`로 가져옵니다. 테스트 YAML은 H2 데이터소스·JPA·세션·OAuth2 설정을 직접 정의합니다. `local`/`staging`/`prod` 실행에는 기존 API와 동일한 `JASYPT_PASSWORD`를 제공합니다. H2 드라이버와 메모리 DB 설정은 테스트에서만 사용합니다.
+DB 설정은 `modules/postgres/src/main/resources`에서 관리합니다. admin의 메인 YAML은 필요한 파일을 `spring.config.import`로 가져옵니다. Google OAuth 클라이언트 등록은 kakao·apple 처럼 `modules/google`의 `application-google.yaml`에 둡니다. 테스트 YAML은 H2 데이터소스·JPA·세션·OAuth2 설정을 직접 정의합니다. `local`/`staging`/`prod` 실행에는 기존 API와 동일한 `JASYPT_PASSWORD`를 제공합니다. H2 드라이버와 메모리 DB 설정은 테스트에서만 사용합니다.
 
 ## 요청 처리 구조
 
