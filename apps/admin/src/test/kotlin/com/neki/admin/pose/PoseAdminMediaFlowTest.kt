@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.neki.admin.auth.AdminTestSession
 import com.neki.admin.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.core.code.ResultCode
+import com.neki.domain.media.external.MediaStorage
 import com.neki.domain.media.infra.persist.jpa.JpaMediaRepository
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaStatus
@@ -17,13 +18,17 @@ import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.doReturn
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.session.jdbc.JdbcIndexedSessionRepository
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -56,6 +61,10 @@ class PoseAdminMediaFlowTest {
 
     @Autowired
     lateinit var sessions: JdbcIndexedSessionRepository
+
+    // 테스트용 저장소는 항상 객체가 있다고 답하므로 S3 객체가 없는 경우만 덮어쓴다
+    @MockitoSpyBean
+    lateinit var mediaStorage: MediaStorage
 
     private lateinit var adminCookie: Cookie
     private lateinit var uploaderCookie: Cookie
@@ -96,7 +105,11 @@ class PoseAdminMediaFlowTest {
         return mediaRepository.findById(mediaId).orElseThrow()
     }
 
-    private fun seedPose(): Pose = poseRepository.save(Pose(userId = null, mediaId = 10L, headCount = HeadCount.ONE))
+    private fun seedPose(mediaId: Long = 10L, headCount: HeadCount = HeadCount.ONE): Pose =
+        poseRepository.save(Pose(userId = null, mediaId = mediaId, headCount = headCount))
+
+    private fun uploadsJson(vararg mediaIds: Long): String =
+        mediaIds.joinToString(prefix = """{"uploads":[""", postfix = "]}") { """{"mediaId":$it,"headCount":"ONE"}""" }
 
     @Test
     @DisplayName("일괄 등록 시 mediaId가 함께 저장된다")
@@ -249,5 +262,127 @@ class PoseAdminMediaFlowTest {
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.resultCode").value(ResultCode.NOT_FOUND.code))
+    }
+
+    @Test
+    @DisplayName("목록은 headCount 로 거르고 전체 건수·페이지 수를 함께 반환한다")
+    fun getPosesFiltersByHeadCountAndCountsAll() {
+        seedPose(mediaId = 1L)
+        val latest: Pose = seedPose(mediaId = 2L)
+        seedPose(mediaId = 3L, headCount = HeadCount.TWO)
+
+        mockMvc.perform(get("/api/pose").cookie(adminCookie).param("headCount", "ONE").param("size", "1"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.data.headCount").value("ONE"))
+            .andExpect(jsonPath("$.data.totalCount").value(2))
+            .andExpect(jsonPath("$.data.totalPages").value(2))
+            .andExpect(jsonPath("$.data.poses.length()").value(1))
+            .andExpect(jsonPath("$.data.poses[0].id").value(latest.id!!))
+    }
+
+    @Test
+    fun getPosesOverMaxSizeReturns400() {
+        mockMvc.perform(get("/api/pose").cookie(adminCookie).param("size", "101"))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
+    }
+
+    @Test
+    @DisplayName("비로그인은 401, ADMIN 이 아닌 사용자는 403 이다")
+    fun poseEndpointsRequireAdmin() {
+        mockMvc.perform(get("/api/pose")).andExpect(status().isUnauthorized)
+
+        val userCookie: Cookie = AdminTestSession.login(sessions, AdminTestSession.createUser(userRepository)).cookie
+        mockMvc.perform(get("/api/pose").cookie(userCookie)).andExpect(status().isForbidden)
+        mockMvc.perform(
+            post("/api/pose").cookie(userCookie).contentType(MediaType.APPLICATION_JSON).content(uploadsJson(1L)),
+        ).andExpect(status().isForbidden)
+        poseRepository.count() shouldBe 0L
+    }
+
+    @Test
+    @DisplayName("한 번에 10건을 넘겨 등록하면 400이다")
+    fun uploadOverMaxBatchReturns400() {
+        mockMvc.perform(
+            adminPost("/api/pose").contentType(MediaType.APPLICATION_JSON).content(
+                uploadsJson(
+                    *LongArray(11) {
+                        it + 1L
+                    },
+                ),
+            ),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
+        poseRepository.count() shouldBe 0L
+    }
+
+    @Test
+    @DisplayName("다른 포즈가 쓰는 media 로 등록하면 400이고 아무것도 저장되지 않는다")
+    fun uploadWithMediaInUseStoresNothing() {
+        val used: Media = seedMedia()
+        seedPose(mediaId = used.id!!)
+        val fresh: Media = seedMedia()
+
+        mockMvc.perform(
+            adminPost("/api/pose").contentType(MediaType.APPLICATION_JSON).content(uploadsJson(fresh.id!!, used.id!!)),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
+        poseRepository.count() shouldBe 1L
+        mediaRepository.findById(fresh.id!!).get().status shouldBe MediaStatus.INITIATED
+    }
+
+    @Test
+    @DisplayName("다른 포즈가 쓰는 media 로 교체하면 400이고 기존 이미지가 유지된다")
+    fun updateWithMediaInUseKeepsImage() {
+        val pose: Pose = seedPose()
+        seedPose(mediaId = 20L)
+
+        mockMvc.perform(
+            adminPatch(
+                "/api/pose/{poseId}",
+                pose.id!!,
+            ).contentType(MediaType.APPLICATION_JSON).content("""{"mediaId":20}"""),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.INVALID_PARAMETER.code))
+        poseRepository.findById(pose.id!!).get().mediaId shouldBe 10L
+    }
+
+    @Test
+    @DisplayName("교체할 media 의 S3 객체가 없으면 UPLOAD_FAILED 이고 기존 이미지가 유지된다")
+    fun updateWithMissingStorageObjectRollsBack() {
+        val pose: Pose = seedPose()
+        val media: Media = seedMedia()
+        doReturn(false).`when`(mediaStorage).exists(anyString())
+
+        mockMvc.perform(
+            adminPatch(
+                "/api/pose/{poseId}",
+                pose.id!!,
+            ).contentType(MediaType.APPLICATION_JSON).content("""{"mediaId":${media.id}}"""),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.UPLOAD_FAILED.code))
+        poseRepository.findById(pose.id!!).get().mediaId shouldBe 10L
+        mediaRepository.findById(media.id!!).get().status shouldBe MediaStatus.INITIATED
+    }
+
+    @Test
+    @DisplayName("POSE 가 아닌 media 로 교체하면 UPLOAD_FAILED 이고 기존 이미지가 유지된다")
+    fun updateWithNonPoseMediaRollsBack() {
+        val pose: Pose = seedPose()
+        val logo: Media = seedMedia(DomainMediaType.LOGO)
+
+        mockMvc.perform(
+            adminPatch(
+                "/api/pose/{poseId}",
+                pose.id!!,
+            ).contentType(MediaType.APPLICATION_JSON).content("""{"mediaId":${logo.id}}"""),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.resultCode").value(ResultCode.UPLOAD_FAILED.code))
+        poseRepository.findById(pose.id!!).get().mediaId shouldBe 10L
     }
 }
