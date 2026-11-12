@@ -361,7 +361,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
     }
 
     @Nested
-    @DisplayName("POST /api/poses/search filterGroup 테스트")
+    @DisplayName("POST /api/poses/filter filterGroup 테스트")
     inner class RelationFilterTests {
 
         private fun seed(): Map<String, Long> {
@@ -384,12 +384,12 @@ class GetPosesE2ETest : PoseE2ETestBase() {
             }
         }
 
-        private fun search(body: Any) = RestAssured.given()
+        private fun filter(body: Any) = RestAssured.given()
             .header("Authorization", "Bearer $accessToken")
             .contentType(ContentType.JSON)
             .body(body)
             .`when`()
-            .post("/api/poses/search")
+            .post("/api/poses/filter")
             .then()
 
         private fun filterGroup(headCount: HeadCount? = null, relation: PoseRelation? = null) = PoseRequest.FilterGroup(
@@ -402,7 +402,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         fun twoCouple() {
             val ids = seed()
 
-            search(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.TWO, PoseRelation.COUPLE)))
+            filter(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.TWO, PoseRelation.COUPLE)))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(1))
                 .body("data.items[0].poseId", equalTo(ids.getValue("TWO_COUPLE").toInt()))
@@ -414,7 +414,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         fun twoAll() {
             seed()
 
-            search(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.TWO)))
+            filter(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.TWO)))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(4))
                 .body("data.items.relation", containsInAnyOrder("FRIEND", "COUPLE", "SSUM", null))
@@ -425,7 +425,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         fun oneFriendEmpty() {
             seed()
 
-            search(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.ONE, PoseRelation.FRIEND)))
+            filter(PoseRequest.GetPoses(filterGroup = filterGroup(HeadCount.ONE, PoseRelation.FRIEND)))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
                 .body("data.hasNext", equalTo(false))
@@ -436,7 +436,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         fun relationOnly() {
             seed()
 
-            search(PoseRequest.GetPoses(filterGroup = filterGroup(relation = PoseRelation.FRIEND)))
+            filter(PoseRequest.GetPoses(filterGroup = filterGroup(relation = PoseRelation.FRIEND)))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(1))
                 .body("data.items[0].relation", equalTo("FRIEND"))
@@ -447,7 +447,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         fun emptyFilterGroup() {
             seed()
 
-            search("""{"filterGroup": {}}""")
+            filter("""{"filterGroup": {}}""")
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(5))
                 .body("data.hasNext", equalTo(false))
@@ -458,7 +458,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         fun paging() {
             seed()
 
-            search(PoseRequest.GetPoses(page = 1, size = 2, filterGroup = filterGroup()))
+            filter(PoseRequest.GetPoses(page = 1, size = 2, filterGroup = filterGroup()))
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(2))
                 .body("data.hasNext", equalTo(true))
@@ -467,7 +467,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         @Test
         @DisplayName("filterGroup 이 없으면 400 D-01")
         fun missingFilterGroup() {
-            search("""{"page": 0, "size": 20}""")
+            filter("""{"page": 0, "size": 20}""")
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
@@ -475,7 +475,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         @Test
         @DisplayName("relation 값이 잘못되면 400 D-01")
         fun invalidRelation() {
-            search("""{"filterGroup": {"relationFilter": {"relation": "LOVER"}}}""")
+            filter("""{"filterGroup": {"relationFilter": {"relation": "LOVER"}}}""")
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
@@ -483,7 +483,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         @Test
         @DisplayName("size 가 범위를 벗어나면 400 D-01")
         fun invalidSize() {
-            search(PoseRequest.GetPoses(size = 101, filterGroup = filterGroup()))
+            filter(PoseRequest.GetPoses(size = 101, filterGroup = filterGroup()))
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
@@ -495,7 +495,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .contentType(ContentType.JSON)
                 .body("""{"filterGroup": {}}""")
                 .`when`()
-                .post("/api/poses/search")
+                .post("/api/poses/filter")
                 .then()
                 .statusCode(HttpStatus.FORBIDDEN.value())
         }

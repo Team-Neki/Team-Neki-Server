@@ -41,7 +41,7 @@ object PoseConverter {
         )
 
         /**
-         * deprecated GET /api/poses 용. 관계 필터는 POST /api/poses/search 의 filterGroup 으로만 받는다.
+         * deprecated GET /api/poses 용. 관계 필터는 POST /api/poses/filter 의 filterGroup 으로만 받는다.
          */
         fun toGetPosesQuery(userId: Long, page: Int, size: Int, headCount: HeadCount?): PoseQuery.GetPoses =
             PoseQuery.GetPoses(

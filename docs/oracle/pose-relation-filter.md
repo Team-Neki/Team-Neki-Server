@@ -5,7 +5,7 @@
 - 명령은 저장소 루트에서 그대로 실행합니다.
 - 범위(v3)
   - V46 (relation, source_key 추가, 쓰지 않는 view_count 삭제)
-  - `POST /api/poses/search` 의 filterGroup(headCountFilter, relationFilter) 과 최신순 고정. 기존 `GET /api/poses` 는 deprecated 로 남기고 relation 필터는 받지 않는다
+  - `POST /api/poses/filter` 의 filterGroup(headCountFilter, relationFilter) 과 최신순 고정. 기존 `GET /api/poses` 는 deprecated 로 남기고 relation 필터는 받지 않는다
   - JSON `POST /api/poses/admin/upload` 의 relation, sourceKey(409 D-18)
   - PM 데이터 적재 스크립트 `scripts/pose/upload_poses.py`
 - multipart 일괄 업로드(v2)는 제거했습니다. 적재 절차는 `docs/runbook/pose-bulk-upload.md` 에 있습니다.
@@ -60,7 +60,7 @@ O-A-6 대상 파일
 | O-L-6b | ssum_029 1건을 지운 뒤 원장 없이 `--only 'ssum_02[89]_*'` : ssum_028 CONFLICT, ssum_029 REGISTERED, tb_pose 81 |
 | O-L-6c | curl : 같은 sourceKey 2개는 400 D-01, `"a b"` 는 400 D-01, ONE+relation 은 400 D-01, USER 토큰은 403, 이미 등록된 키는 409 D-18. 모두 DB 변화가 없다 |
 | O-L-6d | 고아 정리 : `status='INITIATED' AND media_type='POSE' AND NOT EXISTS(tb_pose 참조)` 조건으로 DB 를 먼저 지우고, 반환된 storage_key 만 S3 에서 지운다. 결과는 고아 0, POSE media 81, S3 81 |
-| O-L-7 | 목록 결과(`POST /api/poses/search`, filterGroup) : TWO+FRIEND size=100 → 51건, TWO+SSUM → 20건(hasNext=true), page=1 → 9건(false), TWO+COUPLE → 빈 목록, ONE+FRIEND → 빈 목록, ONE → 1건(relation=null), deprecated GET 의 sortOrder=ASC 결과 = 생략 결과(내림차순), SSUM 첫 항목 = 다시 등록한 ssum_029, imageUrl → `200 image/png` |
+| O-L-7 | 목록 결과(`POST /api/poses/filter`, filterGroup) : TWO+FRIEND size=100 → 51건, TWO+SSUM → 20건(hasNext=true), page=1 → 9건(false), TWO+COUPLE → 빈 목록, ONE+FRIEND → 빈 목록, ONE → 1건(relation=null), deprecated GET 의 sortOrder=ASC 결과 = 생략 결과(내림차순), SSUM 첫 항목 = 다시 등록한 ssum_029, imageUrl → `200 image/png` |
 
 ## O-D. 배포 전/후 (manual)
 

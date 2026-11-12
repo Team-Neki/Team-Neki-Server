@@ -93,8 +93,8 @@ class PoseController(
             정렬: 최신순(등록일 내림차순, 같으면 포즈 ID 내림차순) 고정입니다.
         """,
     )
-    @PostMapping("/search")
-    fun searchPoses(
+    @PostMapping("/filter")
+    fun filterPoses(
         @AuthenticationPrincipal(expression = "id") userId: Long,
         @Valid @RequestBody request: PoseRequest.GetPoses,
     ): BaseResponse<PoseResponse.GetPoses> {
@@ -111,7 +111,7 @@ class PoseController(
         summary = "포즈 목록 API (deprecated)",
         deprecated = true,
         description = """
-            POST /api/poses/search 를 사용하세요. 기존 앱 호환을 위해 남겨 둔 API 입니다.
+            POST /api/poses/filter 를 사용하세요. 기존 앱 호환을 위해 남겨 둔 API 입니다.
             관계 필터는 지원하지 않습니다. 정렬은 최신순 고정이며 sortOrder 는 무시합니다.
         """,
     )
