@@ -32,7 +32,8 @@ chore/BACKEND-271 API 배포 워크플로에 concurrency 추가
 
 ### 검증
 
-- 실행한 명령과 결과 (e.g. `./gradlew :apps:api:test` 692건 통과, 실패 0)
+- 실행한 명령과 결과 (e.g. `./gradlew :apps:api:test` N건 통과, 실패 0)
+- 실행하지 않은 검증과 실측하지 않은 수치는 쓰지 않음
 - 확인하지 못한 것과 배포 후 확인할 것을 숨기지 않고 적음
 - 머지 전에 리뷰어나 다른 팀의 결정이 필요하면 `**머지 전 확인:**`으로 시작하는 한 줄을 마지막에 둠
 
@@ -79,24 +80,15 @@ flowchart LR
 에이전트에게 PR 제목과 본문을 맡길 때 아래 블록을 그대로 프롬프트로 씁니다. `{base}`는 PR의 base 브랜치입니다.
 
 ```text
-현재 브랜치의 PR 제목과 본문을 docs/conventions/pull-request.md 기준으로 작성한다.
+현재 브랜치의 PR 제목과 본문을 작성한다.
+
+기준: docs/conventions/pull-request.md 의 제목, 본문 구성, 상세도, mermaid, 문체 절을 모두 따른다.
 
 입력
 - git log --oneline origin/{base}..HEAD
 - git diff origin/{base}...HEAD
 - 브랜치 이름의 Sprint 티켓 (BACKEND-번호). 대화 맥락에 없으면 sprint MCP get_ticket 으로 조회한다.
 
-제목
-- {type}/BACKEND-{번호} 설명. type 은 브랜치 prefix 와 같다.
-- 설명은 머지 후 달라지는 동작을 한 줄로 쓴다.
-
-본문
-- .github/PULL_REQUEST_TEMPLATE.md 의 세 절(배경, 변경 내용, 검증)만 쓰고 템플릿 주석은 지운다.
-- 배경: 무엇이 문제였고 왜 지금 고치는지 2~4문장. 영향 한 문장 이상. 티켓 링크 한 줄.
-- 변경 내용: 동작이 어떻게 달라지는지 3~5개 불릿. 파일 목록 금지. 설계 선택은 버린 대안과 함께 한 줄.
-- 흐름(요청 처리, 배치 step, CI/배포 workflow, 상태 전이)이 바뀌면 바뀐 구간만 mermaid 로 그린다. 노드 10개 이내. 흐름 변화가 없으면 넣지 않는다.
-- 검증: 실제로 실행한 명령과 결과 수치. 실행하지 않은 검증은 쓰지 않는다. 확인 못 한 것과 배포 후 확인할 것을 적는다.
-- 머지 전 결정이 필요하면 검증 끝에 "**머지 전 확인:**" 한 줄.
-- 다이어그램을 빼고 40줄 이내. 커밋별 작업 과정, 부수 변경(포맷팅, import, 이름 변경)은 쓰지 않는다.
-- 산문은 "~습니다"체, 불릿은 개조식. 이모지 금지 (도구가 붙이는 attribution 줄은 유지).
+출력
+- 제목 한 줄, 그리고 .github/PULL_REQUEST_TEMPLATE.md 의 세 절을 채운 본문. 템플릿 주석은 지운다.
 ```

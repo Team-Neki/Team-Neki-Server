@@ -15,9 +15,11 @@ description: Commit, push, and open a PR following project conventions. Use when
 
 ## Conventions
 
-PR 제목·본문 기준은 `docs/conventions/pull-request.md` 다. 제목은 `{type}/BACKEND-{번호} 설명`, 본문은 배경 -> 변경 내용 -> 검증이며, 흐름이 바뀌면 mermaid 다이어그램을 넣는다. 아래는 `gh pr create` 옵션 규칙만 다룬다.
+PR 제목·본문은 `docs/conventions/pull-request.md` 를 따른다. 아래는 `gh pr create` 옵션 규칙만 다룬다.
 
 ### Base Branch (PR Chaining)
+
+push 하기 전에 정한다. `git push -u` 가 upstream 을 자기 자신으로 바꾸기 때문이다.
 
 1. 현재 branch의 upstream tracking branch를 확인한다: `git rev-parse --abbrev-ref @{upstream}`
 2. Tracking branch의 remote prefix(`origin/`)를 제거한 이름을 base branch로 사용한다.
@@ -40,13 +42,14 @@ Branch prefix에 따라 label을 지정한다.
 
 ## Task
 
-1. Stage all changes and create a single commit with an appropriate message.
-2. Push the branch to origin (`git push -u origin <branch>`).
-3. `docs/conventions/pull-request.md` 의 "PR 작성 프롬프트" 기준으로 제목과 본문을 쓴다. base branch와의 diff(`git diff {base}...HEAD`)를 기준으로 **현재 branch의 변경 사항만** 반영한다. 티켓 정보가 대화 맥락에 없으면 sprint MCP `get_ticket` 으로 조회한다.
-4. Create a PR using `gh pr create` with:
+1. Base Branch 규칙으로 base branch를 정한다 (push 전).
+2. Stage all changes and create a single commit with an appropriate message.
+3. Push the branch to origin (`git push -u origin <branch>`).
+4. `docs/conventions/pull-request.md` 의 "PR 작성 프롬프트" 기준으로 제목과 본문을 쓴다. 1단계에서 정한 base와의 diff(`git diff {base}...HEAD`)를 기준으로 **현재 branch의 변경 사항만** 반영한다.
+5. Create a PR using `gh pr create` with:
    - `--title`: convention에 맞는 제목
-   - `--base`: PR Chaining 규칙에 따른 base branch
+   - `--base`: 1단계에서 정한 base branch
    - `--label`: branch prefix에 해당하는 label (매핑이 있는 경우만)
    - `--assignee @me`
    - `--body`: 작성한 본문 (HEREDOC 사용)
-5. 위 단계 외의 작업은 하지 않는다.
+6. 위 단계 외의 작업은 하지 않는다.

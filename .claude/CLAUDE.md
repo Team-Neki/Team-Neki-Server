@@ -119,7 +119,7 @@ command):
 
 ### Pull Request
 
-PR 을 만들거나 PR 제목·본문을 고칠 때는 먼저 `docs/conventions/pull-request.md` 를 읽고 그 기준으로 쓴다. 본문은 배경 -> 변경 내용 -> 검증 순서이고, 흐름이 바뀌면 mermaid 다이어그램을 넣는다. `/commit-push-pr` 도 같은 문서를 따른다.
+PR 을 만들거나 PR 제목·본문을 고칠 때는 먼저 `docs/conventions/pull-request.md` 를 읽고 따른다.
 
 ### Variable Type Declaration Convention
 
