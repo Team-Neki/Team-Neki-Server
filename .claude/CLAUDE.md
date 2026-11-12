@@ -66,7 +66,7 @@ command):
 | S3 uploads/Media    | `/presigned-url-flow` |
 | PR 리뷰 반영        | `/resolve-review`     |
 | Committing changes  | `/commit`             |
-| Committing + PR     | `/commit-push-pr`     |
+| Committing + PR     | `/commit-push-pr` + `docs/conventions/pull-request.md` |
 
 ---
 
@@ -116,6 +116,10 @@ command):
 3. **No new dependencies**: Unless explicitly requested
 4. **No reformatting**: Only modify relevant files
 5. **Test coverage**: Add E2E tests for new endpoints
+
+### Pull Request
+
+PR 을 만들거나 PR 제목·본문을 고칠 때는 먼저 `docs/conventions/pull-request.md` 를 읽고 따른다.
 
 ### Variable Type Declaration Convention
 
