@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional
 class SearchRegionsUseCase(
     private val regionSearchService: RegionSearchService,
     private val queryUnderstandingService: QueryUnderstandingService,
+    private val visibleBrandFilter: VisibleBrandFilter,
 ) {
 
     @Transactional(readOnly = true)
@@ -31,7 +32,7 @@ class SearchRegionsUseCase(
         )
 
         // 지역 검색에서 뺀 브랜드 낱말은 부스 목록 요청의 브랜드 필터로 내려준다
-        val brandIds: List<Long> = queryUnderstandingService.recognizeBrandIds(query.keyword)
+        val brandIds: List<Long> = visibleBrandFilter.filter(queryUnderstandingService.recognizeBrandIds(query.keyword))
 
         return SearchAssembler.toRegionCompletion(regions, brandIds)
     }

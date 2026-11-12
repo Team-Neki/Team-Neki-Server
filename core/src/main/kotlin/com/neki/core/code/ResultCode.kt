@@ -27,6 +27,7 @@ enum class ResultCode(val code: String, val message: String) {
     INVALID_PAGINATION("D-14", "페이지 조회 조건이 올바르지 않습니다."),
     LOG_SEND_FAILED("D-15", "로그 전송에 실패했습니다. 잠시 후 다시 시도해주세요."),
     LOG_PAYLOAD_TOO_LARGE("D-16", "로그 크기가 제한을 초과했습니다. 배치를 나눠 다시 보내주세요."),
+    BRAND_IN_USE("D-17", "지점이나 검색 색인이 참조 중인 브랜드라 삭제할 수 없습니다."),
 
     ACCESS_DENIED_ERROR("D-995", "토큰 권한이 없습니다."),
     MISSING_TOKEN_ERROR("D-996", "토큰이 존재하지 않습니다."),

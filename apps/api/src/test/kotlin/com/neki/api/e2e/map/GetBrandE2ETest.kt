@@ -2,6 +2,7 @@ package com.neki.api.e2e.map
 
 import com.neki.core.api.dto.BaseResponse
 import com.neki.core.code.ResultCode
+import com.neki.domain.map.infra.persist.jpa.PhotoBoothQueryRepository
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
@@ -9,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
@@ -23,6 +25,9 @@ import org.springframework.test.context.ActiveProfiles
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class GetBrandE2ETest : MapE2ETestBase() {
+
+    @Autowired
+    private lateinit var photoBooths: PhotoBoothQueryRepository
 
     @LocalServerPort
     private var port: Int = 0
@@ -83,5 +88,21 @@ class GetBrandE2ETest : MapE2ETestBase() {
 
         val baseResponse = response.`as`(BaseResponse::class.java)
         assertThat(baseResponse.resultCode).isEqualTo(ResultCode.SUCCESS.code)
+    }
+
+    @Test
+    fun hiddenBrandIsAbsentFromMapBrandsAndBooths() {
+        createBrand("포토이즘", "PHOTOISM")
+        val hidden = createBrand("숨긴 브랜드", "HIDDEN", exposeToMap = false)
+        val key = createEnrichedPhotoBooth(hidden, "hidden-1", "숨긴 지점")
+
+        val response = RestAssured.given()
+            .header("Authorization", "Bearer $accessToken")
+            .`when`().get("/api/photo-booths/brand")
+            .then().statusCode(200).extract()
+
+        assertThat(response.jsonPath().getList<Any>("data")).hasSize(1)
+        assertThat(photoBooths.existsByKey(key)).isFalse()
+        assertThat(photoBooths.findByKeys(listOf(key))).isEmpty()
     }
 }

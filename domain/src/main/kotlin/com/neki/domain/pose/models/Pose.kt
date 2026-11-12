@@ -30,7 +30,7 @@ class Pose(
     val userId: Long? = null,
 
     @Column(name = "media_id", nullable = false)
-    val mediaId: Long,
+    var mediaId: Long,
 
     @Column(name = "head_count", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -38,4 +38,8 @@ class Pose(
 
     @Column(name = "memo", nullable = true)
     var memo: String? = null,
-) : BaseTimeEntity()
+) : BaseTimeEntity() {
+    fun changeMedia(mediaId: Long) {
+        this.mediaId = mediaId
+    }
+}
