@@ -14,4 +14,5 @@ include(
     ":modules:jasypt",
     ":modules:apple",
     ":modules:firebase",
+    ":modules:google",
 )

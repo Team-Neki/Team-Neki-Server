@@ -9,6 +9,7 @@ import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseRelation
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 /**
@@ -27,6 +28,10 @@ class PoseRepositoryAdapter(
         queryRepository.findOwnedPoseWithScrap(userId, poseId)
 
     override fun saveAll(poses: List<Pose>): List<Pose> = jpaRepository.saveAll(poses)
+
+    override fun findById(poseId: Long): Pose? = jpaRepository.findByIdOrNull(poseId)
+
+    override fun existsByMediaIdIn(mediaIds: List<Long>): Boolean = jpaRepository.existsByMediaIdIn(mediaIds)
 
     override fun listPosesWithScrap(
         userId: Long,

@@ -31,7 +31,7 @@ class FavoritePhotoBoothQueryRepository(private val queryFactory: JPAQueryFactor
         .from(favoritePhotoBooth)
         .join(photoBoothLocation).on(sameSource())
         // 브랜드가 삭제된 위치는 브랜드명이 없으므로 뺀다
-        .join(brand).on(brand.id.eq(photoBoothLocation.brandId))
+        .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.exposeToMap.isTrue)
         .where(favoritePhotoBooth.id.userId.eq(userId))
         .fetch()
         .map { row ->

@@ -106,6 +106,18 @@ class SearchPhotoBoothsByKeywordE2ETest : SearchE2ETestBase() {
     inner class SuccessTests {
 
         @Test
+        fun hiddenBrandDisappearsFromCompletionAndFilter() {
+            photoGray.exposeToMap = false
+            brandRepository.saveAndFlush(photoGray)
+
+            get("keyword" to "포토그레이")
+                .statusCode(HttpStatus.OK.value())
+                .body("data.totalCount", equalTo(0))
+                .body("data.items", empty<Any>())
+                .body("data.filterGroup.brandFilter.brands", empty<Any>())
+        }
+
+        @Test
         @DisplayName("지점명 접두로 걸린 것이 브랜드명, 지점명 순으로 먼저 오고 지점명 중간·주소로 걸린 것이 뒤에 온다")
         fun givenBranchPrefix_whenSearch_thenPrefixMatchesComeFirst() {
             get("keyword" to "강남")

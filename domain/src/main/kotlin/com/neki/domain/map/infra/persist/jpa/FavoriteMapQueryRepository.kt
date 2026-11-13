@@ -35,7 +35,7 @@ class FavoriteMapQueryRepository(private val queryFactory: JPAQueryFactory) {
         )
         .from(favoriteMap)
         .join(photoBoothLocation).on(photoBoothLocation.id.eq(favoriteMap.id.locationId))
-        .leftJoin(brand).on(brand.id.eq(photoBoothLocation.brandId))
+        .join(brand).on(brand.id.eq(photoBoothLocation.brandId), brand.exposeToMap.isTrue)
         .where(favoriteMap.id.userId.eq(userId))
         .fetch()
         .map { row ->

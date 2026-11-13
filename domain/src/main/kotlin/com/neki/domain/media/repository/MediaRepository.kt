@@ -9,6 +9,7 @@ interface MediaRepository {
     fun getActiveMedias(ids: List<Long>): List<Media>
     fun getActiveMedias(ownerId: Long, ids: List<Long>): List<Media>
     fun getMediaForUploadConfirmation(ownerId: Long, ids: List<Long>): List<Media>
+    fun getMediaForUploadConfirmation(ids: List<Long>): List<Media>
 
     fun save(media: Media): Media
     fun saveAll(medias: List<Media>): List<Media>

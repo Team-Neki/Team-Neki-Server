@@ -1,0 +1,33 @@
+package com.neki.admin.auth.infra.security
+
+import com.neki.domain.user.dto.UserQuery
+import com.neki.domain.user.service.AdminAccountService
+import org.springframework.dao.DataAccessException
+import org.springframework.security.authentication.AuthenticationServiceException
+import org.springframework.security.authorization.AuthorizationDecision
+import org.springframework.security.authorization.AuthorizationManager
+import org.springframework.security.core.Authentication
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext
+import org.springframework.stereotype.Component
+import java.util.function.Supplier
+
+@Component
+class SessionAuthorizationManager(private val accounts: AdminAccountService) :
+    AuthorizationManager<RequestAuthorizationContext> {
+    override fun check(
+        authentication: Supplier<Authentication>,
+        context: RequestAuthorizationContext,
+    ): AuthorizationDecision {
+        val auth: Authentication = authentication.get()
+        val principal: SessionPrincipal = auth.principal as? SessionPrincipal
+            ?: return AuthorizationDecision(false)
+        if (!auth.isAuthenticated) return AuthorizationDecision(false)
+        return try {
+            AuthorizationDecision(
+                accounts.isAdmin(UserQuery.GetActiveAdminAccount(principal.userId)),
+            )
+        } catch (exception: DataAccessException) {
+            throw AuthenticationServiceException("Admin authorization database unavailable", exception)
+        }
+    }
+}

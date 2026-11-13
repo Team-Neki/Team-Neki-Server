@@ -30,7 +30,7 @@ class Pose(
     val userId: Long? = null,
 
     @Column(name = "media_id", nullable = false)
-    val mediaId: Long,
+    var mediaId: Long,
 
     @Column(name = "head_count", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -49,4 +49,8 @@ class Pose(
     // V46 의 컬럼 COMMENT 는 v2 기준 문구지만 checksum 때문에 마이그레이션은 고치지 않는다
     @Column(name = "source_key", nullable = true, length = 100)
     val sourceKey: String? = null,
-) : BaseTimeEntity()
+) : BaseTimeEntity() {
+    fun changeMedia(mediaId: Long) {
+        this.mediaId = mediaId
+    }
+}

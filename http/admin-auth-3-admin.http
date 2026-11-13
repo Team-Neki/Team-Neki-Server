@@ -1,0 +1,65 @@
+# admin 세션 인증 staging 검증 3단계: DB 에서 ADMIN 을 부여한 뒤, 같은 세션 (docs/oracle/admin-auth.md)
+
+### O-D-8 재로그인 없이 같은 세션에서 ADMIN 이 반영된다
+# @no-cookie-jar
+GET {{adminHost}}/api/auth/me
+Cookie: ADMINSESSION={{adminSession}}
+
+> {%
+    client.test("O-D-8 ADMIN 즉시 반영", () => {
+        client.assert(response.status === 200, "status=" + response.status);
+        client.assert(response.body.data.admin === true, "admin=" + response.body.data.admin + ". O-D-7 의 UPDATE 확인");
+    });
+%}
+
+### O-D-9 CSRF 헤더 없이 업로드 티켓을 발급받는다
+# @no-cookie-jar
+POST {{adminHost}}/api/media/upload
+Cookie: ADMINSESSION={{adminSession}}
+Content-Type: application/json
+
+{"items":[{"mediaType":"POSE","contentType":"image/png"}]}
+
+> {%
+    client.test("O-D-9 CSRF 없이 업로드 티켓 발급", () => {
+        client.assert(response.status === 200, "status=" + response.status + " resultCode=" + response.body.resultCode);
+        const item = response.body.data.items[0];
+        client.assert(item.mediaId > 0, "mediaId 없음");
+        client.assert(item.uploadTicket.includes("/pose/"), "uploadTicket=" + item.uploadTicket);
+    });
+    client.log("DB 대조용 mediaId = " + response.body.data.items[0].mediaId);
+%}
+
+### O-D-10 GET 으로는 로그아웃되지 않는다 (요청 후 세션이 그대로 쓰인다)
+# @no-cookie-jar
+# @no-redirect
+GET {{adminHost}}/api/auth/logout
+Cookie: ADMINSESSION={{adminSession}}
+
+> {%
+    client.test("O-D-10 GET 로그아웃 거부", () => {
+        client.assert(response.status !== 200, "GET 로그아웃이 200 을 반환함");
+    });
+%}
+
+### O-D-11 GET 로그아웃 시도 뒤에도 세션이 살아 있다
+# @no-cookie-jar
+GET {{adminHost}}/api/auth/me
+Cookie: ADMINSESSION={{adminSession}}
+
+> {%
+    client.test("O-D-11 세션 유지", () => {
+        client.assert(response.status === 200, "status=" + response.status + ". GET 요청으로 세션이 무효화됨");
+    });
+%}
+
+### O-D-12 /api 로 옮기기 전의 /admin 경로는 ADMIN 세션으로도 열리지 않는다 (기본 거부 403)
+# @no-cookie-jar
+GET {{adminHost}}/admin/auth/me
+Cookie: ADMINSESSION={{adminSession}}
+
+> {%
+    client.test("O-D-12 이전 /admin 경로 거부", () => {
+        client.assert(response.status === 403, "status=" + response.status);
+    });
+%}

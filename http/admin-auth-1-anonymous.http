@@ -1,0 +1,49 @@
+# admin 세션 인증 staging 검증 1단계: 로그인 없이 확인 (BACKEND-83, docs/oracle/admin-auth.md)
+#
+# adminHost 는 SSH 터널로 연 staging admin 주소다 (http-client.env.json 의 staging.adminHost).
+# 이 단계는 세션 쿠키가 필요 없다. 쿠키 저장소가 이전 실행의 쿠키를 붙이지 않도록 @no-cookie-jar 를 쓴다.
+
+### O-D-1 로그인하지 않은 me 는 401 D-999 이고 로그인 화면으로 보내지 않는다
+# @no-cookie-jar
+# @no-redirect
+GET {{adminHost}}/api/auth/me
+
+> {%
+    client.test("O-D-1 익명 me 401", () => {
+        client.assert(response.status === 401, "status=" + response.status);
+        client.assert(response.body.resultCode === "D-999", "resultCode=" + response.body.resultCode);
+    });
+%}
+
+### O-D-2 Google 로그인 시작은 state·nonce 와 staging 콜백 주소를 담아 Google 로 보낸다
+# @no-cookie-jar
+# @no-redirect
+GET {{adminHost}}/api/oauth2/authorization/google
+
+> {%
+    client.test("O-D-2 Google 로그인 시작", () => {
+        const location = response.headers.valueOf("Location") || "";
+        client.assert(response.status === 302, "status=" + response.status);
+        client.assert(location.startsWith("https://accounts.google.com/"), "Location=" + location);
+        client.assert(location.includes("state=") && location.includes("nonce="), "state/nonce 없음: " + location);
+        client.assert(
+            location.includes("redirect_uri=" + encodeURIComponent(request.environment.get("adminHost") + "/api/login/oauth2/code/google")),
+            "redirect_uri 가 터널 주소와 다름. staging Secret 의 ADMIN_OAUTH_REDIRECT_URI 확인: " + location,
+        );
+        client.assert((response.headers.valueOf("Set-Cookie") || "").includes("ADMINSESSION="), "ADMINSESSION 쿠키 없음");
+    });
+%}
+
+### O-D-3 로그인하지 않은 업로드 티켓 요청은 401
+# @no-cookie-jar
+POST {{adminHost}}/api/media/upload
+Content-Type: application/json
+
+{"items":[{"mediaType":"POSE","contentType":"image/png"}]}
+
+> {%
+    client.test("O-D-3 익명 업로드 401", () => {
+        client.assert(response.status === 401, "status=" + response.status);
+    });
+%}
+

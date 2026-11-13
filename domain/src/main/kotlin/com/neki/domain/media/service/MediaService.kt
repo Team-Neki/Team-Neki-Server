@@ -40,7 +40,9 @@ class MediaService(private val mediaRepository: MediaRepository, private val med
 
     fun issueUploadTickets(command: MediaCommand.GenerateUploadTicket): MediaUploadTickets {
         val tickets: List<MediaUploadTicket> = command.items.map { item ->
-            val storageKey: String = MediaKey.generate(item.mediaType, item.filename, item.contentType)
+            val storageKey: String = item.filename
+                ?.let { MediaKey.generate(item.mediaType, it, item.contentType) }
+                ?: MediaKey.generateFromContentType(item.mediaType, item.contentType)
 
             val media = Media(
                 storageKey = storageKey,
@@ -50,6 +52,7 @@ class MediaService(private val mediaRepository: MediaRepository, private val med
                 width = item.width,
                 height = item.height,
                 size = item.size,
+                adminManaged = command.adminManaged,
             )
             val savedMedia: Media = mediaRepository.save(media)
 

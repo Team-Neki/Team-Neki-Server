@@ -15,9 +15,8 @@
 - `modules:postgres`의 `application-postgres.yaml`: API와 동일한 PostgreSQL 연결·JPA·Flyway 설정 로드
 - `modules:jasypt`: API와 동일한 `JASYPT_PASSWORD`로 staging/prod의 암호화된 연결 정보 복호화
 - `ExceptionHandler`: `apps:api`와 같은 `ExceptionMsg` 응답 형식으로 예외 처리
-- `AdminMediaVerifier`: LOGO/POSE media의 존재·타입·상태를 확인하고 S3 객체가 있으면 UPLOADED로 전환
 - `local`/`staging`/`prod` 프로파일: API와 같은 DB·스키마의 기존 테이블 사용, 8081 포트
-- `test` 프로파일: postgres 모듈의 `application-h2.yaml`을 import해 H2 기반 컨텍스트 검증
+- `test` 프로파일: admin 테스트 설정의 H2로 인증·세션 컨텍스트 검증
 
 ## 공유 PostgreSQL 사용
 
@@ -25,7 +24,7 @@ admin은 API와 동일한 접속 정보와 도메인 엔티티를 사용합니�
 
 테이블 생성·변경은 API가 기존 `modules/postgres`의 Flyway 마이그레이션으로 수행합니다. admin의 `FlywayMigrationStrategy`는 `validate()`만 호출하므로 마이그레이션이나 이력 기록을 수행하지 않습니다. 새 마이그레이션이 있으면 API를 먼저 배포해야 하며, 초기 로컬 DB도 API로 먼저 준비합니다.
 
-DB 설정은 `modules/postgres/src/main/resources`에서 관리합니다. admin의 메인·테스트 YAML은 필요한 파일을 `spring.config.import`로 가져옵니다. `local`/`staging`/`prod` 실행에는 기존 API와 동일한 `JASYPT_PASSWORD`를 제공합니다. H2 드라이버와 메모리 DB 설정은 테스트에서만 사용합니다.
+DB 설정은 `modules/postgres/src/main/resources`에서 관리합니다. admin의 메인 YAML은 필요한 파일을 `spring.config.import`로 가져옵니다. Google OAuth 클라이언트 등록은 kakao·apple 처럼 `modules/google`의 `application-google.yaml`에 둡니다. 테스트 YAML은 H2 데이터소스·JPA·세션·OAuth2 설정을 직접 정의합니다. `local`/`staging`/`prod` 실행에는 기존 API와 동일한 `JASYPT_PASSWORD`를 제공합니다. H2 드라이버와 메모리 DB 설정은 테스트에서만 사용합니다.
 
 ## 요청 처리 구조
 
@@ -40,9 +39,9 @@ Request -> Controller -> Mapper(toCommand/toQuery) -> Facade -> 도메인 Servic
 
 | 항목 | apps:api | apps:admin |
 | --- | --- | --- |
-| application 계층 | `*UseCase` (기능 단위 클래스) | `*Facade` (도메인 단위 클래스) |
+| application 계층 | `*UseCase` (기능 단위 클래스, `@UseCase`) | `*Facade` (도메인 단위 클래스, `@Service`) |
 | DTO | `Request`/`Response`/`Converter` 분리 | `XxxAdminDto` object 하위 중첩 + Mapper 확장 함수 |
-| 인증 | JWT (`@AuthenticationPrincipal`) | 미구현 |
+| 인증 | JWT (`@AuthenticationPrincipal`) | Google OIDC 로그인·JDBC 세션, 요청마다 현재 DB ADMIN 권한 확인 |
 | media 검증 | `MediaClient.verifyMediasUploaded` 후 보상 롤백 | 공유 트랜잭션에서 S3 존재 확인·상태 전환 |
 
 admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade 하나에 조회·등록·수정·삭제를 위임합니다. 기능이 늘어나면 Facade가 비대해질 수 있습니다.
@@ -53,5 +52,4 @@ admin은 교차 도메인 오케스트레이션이 없어 도메인당 Facade �
 
 ## 현재 제한
 
-인증 도입 전까지 Spring Security 자동설정을 제외합니다. `AdminWriteGuard`가 test 외 프로필에서 `/admin/v1/` 변경 요청을 403으로 차단합니다. 인증 구현 시 이 임시 제한을 인증·인가 규칙으로 교체해야 합니다. 계획은 `docs/superpowers/plans/2026-08-16-admin-auth.md`에 있습니다.
-media 소유자와 관리자 계정의 연계 검증은 인증 도입 후 추가해야 합니다.
+Spring Security가 `/api/**` 요청을 인증·인가합니다. CSRF 토큰은 쓰지 않고 `SameSite=Lax` 세션 쿠키로 다른 사이트의 변경 요청을 막습니다. 임시 `AdminWriteGuard`는 제거했습니다. 관리자 업로드 티켓은 업로더의 ID를 `TB_MEDIA.owner_id`에 기록하고 공동 관리 대상으로 표시합니다. Brand/Pose는 이 표시가 있는 미디어만 연결하며, 현재 ADMIN 권한이 있는 다른 관리자도 등록·수정할 수 있습니다.

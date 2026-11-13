@@ -1,0 +1,106 @@
+# Admin 소셜 SSO 로그인과 세션 운영
+
+현재 admin은 Google OIDC만 사용하며 Google이 확인한 이메일로 사용자를 식별합니다. 계정은 `ADMIN_SSO` 타입과 이메일로 저장하고, 기존 `TB_USERS.role`의 `ROLE_ADMIN`을 매 관리 요청마다 조회합니다. 로그인 세션이 유효하면 DB의 권한 부여와 회수가 다음 요청에 반영됩니다. 세션은 Spring Session JDBC `ADMIN_SESSION`에 저장하며 유휴 만료는 30분입니다.
+
+## 로컬 실행
+
+1. API가 사용하는 PostgreSQL을 준비하고 API의 기존 Flyway 배포 경로로 V44까지 적용합니다. V42는 기존 Google 관리 계정을 `ADMIN_SSO`로 옮깁니다. V43은 관리자 업로드 미디어 표시 컬럼을 추가합니다. V44는 계정 식별을 이메일로 바꿔 `oid`를 비우고 `ADMIN_SSO` 이메일 고유 인덱스를 만든 뒤 이전 형식의 admin 세션을 삭제합니다. `apps/admin`은 Flyway validate만 수행하며 미적용 마이그레이션이 있으면 시작하지 않습니다.
+2. Google Console에 Web application 클라이언트를 만들고 redirect URI `http://localhost:8081/api/login/oauth2/code/google`을 등록합니다.
+3. 다음 환경변수를 제공하고 admin을 실행합니다. 로컬 DataSource 기본값은 `modules/postgres` 설정을 따릅니다. 다른 개발 DB를 쓸 때는 Spring DataSource 환경변수 세 개를 모두 지정합니다.
+
+   ```sh
+   export JASYPT_PASSWORD='기존 API 환경의 Jasypt 키'
+   export GOOGLE_CLIENT_ID='실제 Google Web client ID'
+   export GOOGLE_CLIENT_SECRET='실제 Google client secret'
+   export ADMIN_OAUTH_REDIRECT_URI='http://localhost:8081/api/login/oauth2/code/google'
+   ./gradlew :apps:admin:bootRun
+   ```
+
+4. 브라우저에서 `http://localhost:8081/api/oauth2/authorization/google`로 이동합니다. 인증 성공 후 `/api/auth/me` 본문에서 사용자·현재 권한을 확인합니다. 최초 Google 사용자는 ADMIN이 없습니다. 이메일이 같아도 카카오·애플 등 모바일 계정과 합치지 않습니다.
+
+운영에서는 `prod` 프로파일, HTTPS와 Secret의 실제 DataSource/OAuth 값을 사용합니다. 로컬 이외 프로파일은 Secure 쿠키를 사용합니다. 토큰·세션 쿠키를 로그나 URL에 넣지 않습니다.
+
+## 프론트 연결 계약
+
+`GET /api/auth/me`의 `data`는 다음 필드를 반환합니다.
+
+| 필드 | 의미 |
+|---|---|
+| `userId`, `email`, `name` | 현재 소셜 로그인에 연결된 기존 사용자 정보 |
+| `admin` | 현재 DB에 ADMIN 권한이 있는지 |
+
+변경 요청은 세션 쿠키만으로 인증하며 CSRF 토큰은 사용하지 않습니다. 다른 사이트의 변경 요청은 `SameSite=Lax` 세션 쿠키가 막습니다. 세션이 만료되면 다시 로그인합니다. `POST /api/auth/logout`은 세션을 무효화하고 HTTP 200 `BaseResponse`를 반환하며, GET 요청으로는 로그아웃하지 않습니다.
+
+관리자 이미지는 세션으로 `POST /api/media/upload`에 업로드 티켓을 요청합니다. 항목은 `mediaType`(`LOGO` 또는 `POSE`), `contentType`(`image/jpeg`, `image/png`, `image/webp`)과 선택적 크기 정보로 구성합니다. 반환된 URL에 해당 Content-Type으로 PUT한 뒤 Brand/Pose 등록·수정에 `mediaId`를 전달합니다. `TB_MEDIA.owner_id`는 티켓을 발급한 관리자의 사용자 ID이며, 관리자 경로에서 만든 미디어는 공동 관리 대상으로 표시합니다. 관리 권한이 있는 다른 사용자도 해당 미디어를 Brand/Pose에 연결할 수 있습니다. 일반 사용자 업로드 미디어는 관리자 콘텐츠에 연결할 수 없습니다.
+
+Next는 로그인 시작·콜백·me·관리 API를 같은 외부 origin으로 중계해야 합니다. 모든 `Set-Cookie`와 상대 `Location` 응답 헤더, 클라이언트가 전송한 Cookie 요청 헤더를 보존하고 서버 fetch가 OAuth 리다이렉트를 자동 추적하지 않게 합니다. 프록시 실제 경로와 성공 후 UI 이동은 Next 연결 시 확정합니다.
+
+redirect URI는 Spring의 `ADMIN_OAUTH_REDIRECT_URI` 설정값이 정본입니다. Spring은 이 값을 Google 인증 요청과 code 교환에 그대로 쓰고, 요청 헤더로 다시 계산하지 않습니다. 따라서 Next가 redirect URI를 만들거나 Spring이 Next 경로를 내려줄 필요는 없습니다. 운영에서는 `https://<어드민 웹 공개 도메인>/api/login/oauth2/code/google`로 설정하고 Google Console에 같은 값을 등록합니다. admin API는 로그인 시작(`/api/oauth2/authorization/google`)과 콜백(`/api/login/oauth2/code/google`)을 포함해 모두 `/api` 아래에 있습니다. Next는 `/api/**` 요청을 prefix를 떼지 않고 Spring의 같은 경로로 모두 중계하며, `/api` 아래에 자체 Route Handler를 두지 않습니다. 로그인 시작과 콜백이 같은 origin을 거쳐야 OAuth state를 담은 `ADMINSESSION` 쿠키가 콜백까지 이어집니다.
+
+## 수동 권한 부여
+
+아래는 psql 예시입니다. 운영자가 내부 사용자 ID와 `provider_type=ADMIN_SSO`, Google 이메일을 확인한 뒤 지정합니다. 일괄 승인하지 않습니다.
+
+```sql
+\set admin_user_id 123
+BEGIN;
+SELECT id, email, provider_type, oid, role
+FROM tb_users
+WHERE id = :'admin_user_id'::bigint AND provider_type = 'ADMIN_SSO'
+FOR UPDATE;
+
+UPDATE tb_users AS u
+SET role = CASE
+    WHEN EXISTS (
+        SELECT 1 FROM unnest(string_to_array(u.role, ',')) AS r(value)
+        WHERE btrim(r.value) = 'ROLE_ADMIN'
+    ) THEN u.role
+    ELSE concat_ws(',', nullif(u.role, ''), 'ROLE_ADMIN')
+END,
+updated_at = CURRENT_TIMESTAMP
+WHERE id = :'admin_user_id'::bigint AND provider_type = 'ADMIN_SSO'
+RETURNING id, email, role;
+-- 대상과 UPDATE 1 확인 후 COMMIT. 예상과 다르면 ROLLBACK.
+COMMIT;
+```
+
+권한을 부여받은 사용자는 기존 세션으로 me를 새로 조회하거나 관리 API를 호출하면 됩니다. 별도 승인 테이블이나 새 로그인이 필요하지 않습니다. 처리자·대상·시각·변경 전후 권한을 운영 기록에 남깁니다.
+
+## 권한 회수
+
+```sql
+\set admin_user_id 123
+BEGIN;
+SELECT id, email, role FROM tb_users
+WHERE id = :'admin_user_id'::bigint AND provider_type = 'ADMIN_SSO' FOR UPDATE;
+UPDATE tb_users AS u
+SET role = array_to_string(ARRAY(
+    SELECT btrim(r.value) FROM unnest(string_to_array(u.role, ',')) AS r(value)
+    WHERE btrim(r.value) <> 'ROLE_ADMIN'
+), ','),
+updated_at = CURRENT_TIMESTAMP
+WHERE id = :'admin_user_id'::bigint AND provider_type = 'ADMIN_SSO'
+RETURNING id, email, role;
+-- 대상과 UPDATE 1 확인 후 COMMIT. 예상과 다르면 ROLLBACK.
+COMMIT;
+```
+
+기존 다른 권한은 유지하고 ADMIN만 제거합니다. 회수 커밋 후 인가 조회를 시작하는 관리 요청부터 HTTP 403을 반환합니다. 이미 인가를 통과해 진행 중인 요청은 중단하지 않습니다.
+
+## 배포 순서
+
+1. 실행 모듈 #356과 이 인증 변경의 공유 V41~V44 마이그레이션을 main에 반영하고 기존 API 배포로 DB에 적용합니다. 이전 admin 인증 이미지가 실행 중이면 V42·V44 적용 전에 admin 요청을 중단하고, 새 이미지 배포 후 사용자가 다시 로그인하도록 합니다.
+2. workflow #357을 통해 인증 변경이 포함된 admin 이미지를 GHCR에 게시합니다.
+3. GitOps #43의 `overlays/admin-api/secret.example.yaml`을 기준으로 실제 Secret을 별도로 적용합니다. Google client ID/secret과 외부 redirect URI가 필요합니다. DB는 API와 같은 공통 설정을 쓰고 기존 `neki-secrets`의 Jasypt 키로 복호화합니다. 실제 Secret은 커밋하지 않습니다.
+4. GHCR 패키지 접근과 GitOps 이미지 태그를 확인한 뒤 `admin-api` Application을 등록합니다. `replicas: 1`, RollingUpdate, 내부 ClusterIP Service를 사용합니다.
+5. 미인증 me 401, Google 로그인, DB ADMIN 부여 후 같은 쿠키로 접근, 회수 후 403, POST 로그아웃을 확인합니다. Next UI 연결 전에는 Spring 직접 콜백 개발을 검증하고, 운영 브라우저 접근은 외부 HTTPS 경로 연결 후 확인합니다.
+
+DDL은 API가 소유하며 admin은 테이블을 생성·변경하지 않습니다. 세션을 메모리 저장소로 대체하지 않습니다. 데이터베이스 마이그레이션을 유지한 채 인증 이전의 H2 이미지로 되돌리는 것은 운영 롤백 절차로 사용하지 않습니다.
+
+## 테스트
+
+기본 `./gradlew :apps:admin:test`는 H2 JDBC 세션과 로컬 OIDC 서버를 사용합니다. 실제 Google 자격증명이나 외부 Google 호출이 필요하지 않습니다.
+
+PostgreSQL 검증은 `AdminProductionSchemaTest`가 맡습니다. Testcontainers로 새 PostGIS DB를 띄워 V1~V44 전체 마이그레이션을 적용한 뒤, prod 프로필의 Flyway validate·Hibernate validate 기동과 V44 이메일 partial unique 제약에 의존하는 동시 최초 가입을 확인합니다. 따라서 Docker가 필요하며 CI에서는 기본 실행에 포함됩니다. 별도 DB를 수동으로 준비할 필요는 없습니다.
+
+검증 범위는 동일 세션 권한 부여·회수, 정확한 ADMIN 매칭, 계정 삭제, POST 전용 로그아웃, 30분 만료, 같은 이메일 동시 최초 가입, 모바일 계정과의 분리, 실제 code 교환·RSA 서명·nonce 검증, 사용자 집계 분리입니다.

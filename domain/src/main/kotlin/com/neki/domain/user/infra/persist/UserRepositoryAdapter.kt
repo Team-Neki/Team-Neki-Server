@@ -21,7 +21,12 @@ class UserRepositoryAdapter(private val jpaRepository: JpaUserRepository) : User
     override fun findByOid(oid: String, providerType: ProviderType): User? =
         jpaRepository.findByOidAndProviderType(oid, providerType)
 
+    override fun findByEmail(email: String, providerType: ProviderType): User? =
+        jpaRepository.findByEmailAndProviderType(email, providerType)
+
     override fun findById(id: Long): User? = jpaRepository.findByIdOrNull(id)
 
-    override fun countByOidIsNotNull(): Long = jpaRepository.countByOidIsNotNull()
+    // 어드민 전용 SSO 계정은 모바일 서비스의 가입자 집계에 포함하지 않는다.
+    override fun countByOidIsNotNull(): Long =
+        jpaRepository.countByOidIsNotNullAndProviderTypeNot(ProviderType.ADMIN_SSO)
 }
