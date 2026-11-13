@@ -49,6 +49,7 @@ object ScrapPoseConverter {
                     width = it.width,
                     height = it.height,
                     createdAt = it.createdAt,
+                    relation = it.relation,
                 )
             },
             hasNext = result.hasNext,

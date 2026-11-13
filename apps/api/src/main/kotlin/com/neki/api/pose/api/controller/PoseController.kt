@@ -14,7 +14,9 @@ import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
+import com.neki.domain.pose.models.PoseRelation
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
@@ -53,6 +55,9 @@ class PoseController(
         description = """
             ADMIN 권한이 있는 사용자만 호출이 가능합니다.
             관리자가 포즈를 업로드할 때 해당 API를 사용합니다.
+            relation: 선택. headCount 가 TWO 일 때만 허용하며, 위반하면 요청 전체가 400 D-01 입니다.
+            sourceKey: 선택. 형식 ^[A-Za-z0-9._-]{1,100}$, 대소문자 구분. 요청 안에서 중복되면 400 D-01 입니다.
+            이미 등록된 sourceKey 가 하나라도 있으면 요청 전체가 409 D-18 입니다. 포즈는 만들지 않고 media 는 업로드 확인 전 상태로 남습니다.
             """,
     )
     @PostMapping("/admin/upload")
@@ -79,6 +84,15 @@ class PoseController(
             * THREE("3인")
             * FOUR("4인")
             * FIVE_OR_MORE("5인 이상")
+
+            relation (선택, 2인 탭의 관계 필터):
+            * 없이 보내면 전체 (관계 없는 기존 포즈 포함)
+            * FRIEND("친구")
+            * COUPLE("커플")
+            * SSUM("썸")
+            관계는 2인 포즈에만 있으므로 TWO 가 아닌 headCount 와 함께 보내면 빈 목록입니다.
+
+            정렬: 최신순(등록일 내림차순, 같으면 포즈 ID 내림차순) 고정입니다. sortOrder 는 무시합니다(deprecated).
         """,
     )
     @GetMapping
@@ -87,14 +101,18 @@ class PoseController(
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(required = false) headCount: HeadCount?,
-        @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
+        @RequestParam(required = false) relation: PoseRelation?,
+        @Parameter(deprecated = true, description = "무시합니다. 정렬은 최신순 고정")
+        @RequestParam(required = false)
+        @Suppress("UNUSED_PARAMETER")
+        sortOrder: SortOrder?,
     ): BaseResponse<PoseResponse.GetPoses> {
         val query: PoseQuery.GetPoses = requestConverter.toGetPosesQuery(
             userId = userId,
             page = page,
             size = size,
             headCount = headCount,
-            sortOrder = sortOrder,
+            relation = relation,
         )
 
         val result: PoseResult.GetPoses = getPosesUseCase.execute(query)

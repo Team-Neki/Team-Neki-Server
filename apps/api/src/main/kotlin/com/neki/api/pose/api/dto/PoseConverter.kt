@@ -2,11 +2,11 @@ package com.neki.api.pose.api.dto
 
 import com.neki.api.pose.application.dto.PoseResult
 import com.neki.core.domain.vo.Pagination
-import com.neki.core.domain.vo.SortOrder
 import com.neki.core.properties.AppProperties
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
+import com.neki.domain.pose.models.PoseRelation
 import org.springframework.stereotype.Component
 
 /**
@@ -25,20 +25,26 @@ object PoseConverter {
                     mediaId = item.mediaId!!,
                     headCount = item.headCount,
                     memo = item.memo,
+                    relation = item.relation,
+                    sourceKey = item.sourceKey,
                 )
             },
         )
 
+        /**
+         * 정렬은 최신순 고정이라 sortOrder 는 받지 않는다 (Pagination 기본값).
+         */
         fun toGetPosesQuery(
             userId: Long,
             page: Int,
             size: Int,
             headCount: HeadCount?,
-            sortOrder: SortOrder,
+            relation: PoseRelation?,
         ): PoseQuery.GetPoses = PoseQuery.GetPoses(
             userId = userId,
             headCount = headCount,
-            pagination = Pagination(page = page, size = size, sortOrder = sortOrder),
+            pagination = Pagination(page = page, size = size),
+            relation = relation,
         )
 
         fun toGetPoseQuery(userId: Long, poseId: Long): PoseQuery.GetPose =
@@ -69,6 +75,7 @@ object PoseConverter {
                     width = it.width,
                     height = it.height,
                     createdAt = it.createdAt,
+                    relation = it.relation,
                 )
             },
             hasNext = result.hasNext,
@@ -83,6 +90,7 @@ object PoseConverter {
             width = result.width,
             height = result.height,
             createdAt = result.createdAt,
+            relation = result.relation,
         )
 
         private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}${IMAGE_URL_PATH}$storageKey"

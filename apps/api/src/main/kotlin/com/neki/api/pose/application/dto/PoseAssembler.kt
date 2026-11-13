@@ -39,6 +39,7 @@ object PoseAssembler {
                 width = media.width,
                 height = media.height,
                 createdAt = pose.createdAt!!,
+                relation = pose.relation,
             )
         }
     }
