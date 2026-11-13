@@ -7,7 +7,9 @@ import com.neki.core.domain.vo.Pagination
 import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.client.MediaClient
 import com.neki.domain.pose.dto.PoseQuery
+import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.MediaMetadata
+import com.neki.domain.pose.models.PoseRelation
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
 import com.neki.domain.pose.service.PoseScrapService
@@ -73,7 +75,7 @@ class GetPosesUseCaseTest {
                 offset = 0,
                 limit = 3,
                 headCount = null,
-                sortOrder = SortOrder.DESC,
+                relation = null,
             )
         } returns poseList
 
@@ -112,7 +114,7 @@ class GetPosesUseCaseTest {
                 offset = 0,
                 limit = 3,
                 headCount = null,
-                sortOrder = SortOrder.DESC,
+                relation = null,
             )
         } returns poseList
 
@@ -146,7 +148,7 @@ class GetPosesUseCaseTest {
                 offset = 0,
                 limit = 6,
                 headCount = null,
-                sortOrder = SortOrder.DESC,
+                relation = null,
             )
         } returns poseList
 
@@ -175,7 +177,7 @@ class GetPosesUseCaseTest {
                 offset = 0,
                 limit = 11,
                 headCount = null,
-                sortOrder = SortOrder.DESC,
+                relation = null,
             )
         } returns emptyList()
 
@@ -203,7 +205,7 @@ class GetPosesUseCaseTest {
                 offset = 0,
                 limit = 4,
                 headCount = null,
-                sortOrder = SortOrder.DESC,
+                relation = null,
             )
         } returns poseList
 
@@ -236,7 +238,7 @@ class GetPosesUseCaseTest {
                 offset = 0,
                 limit = 3,
                 headCount = null,
-                sortOrder = SortOrder.DESC,
+                relation = null,
             )
         } returns poseList
 
@@ -248,5 +250,35 @@ class GetPosesUseCaseTest {
         // Then
         result.poses shouldBe emptyList()
         result.hasNext shouldBe false
+    }
+
+    @Test
+    @DisplayName("관계 필터 - relation 을 저장소에 넘기고 응답 항목에 relation 을 싣는다")
+    fun `관계 필터 - relation 을 저장소에 넘기고 응답 항목에 relation 을 싣는다`() {
+        // Given
+        val query = PoseQuery.GetPoses(
+            userId = 1L,
+            headCount = HeadCount.TWO,
+            pagination = Pagination(page = 0, size = 10),
+            relation = PoseRelation.FRIEND,
+        )
+        val pose = aPose(id = 7L, mediaId = 107L, relation = PoseRelation.FRIEND)
+        pose.createdAt = LocalDateTime.of(2026, 1, 1, 0, 0)
+        every {
+            poseRepository.listPosesWithScrap(
+                userId = 1L,
+                offset = 0,
+                limit = 11,
+                headCount = HeadCount.TWO,
+                relation = PoseRelation.FRIEND,
+            )
+        } returns listOf(PoseWithScrap(pose, false))
+        every { mediaClient.getMediaMetadata(listOf(107L)) } returns listOf(makeMediaMetadata(107L))
+
+        // When
+        val result = useCase.execute(query)
+
+        // Then
+        result.poses.map { it.relation } shouldBe listOf(PoseRelation.FRIEND)
     }
 }
