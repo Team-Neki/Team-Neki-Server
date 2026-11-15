@@ -10,13 +10,12 @@ import com.neki.api.pose.application.RandomPoseUseCase
 import com.neki.api.pose.application.UploadPosesUseCase
 import com.neki.api.pose.application.dto.PoseResult
 import com.neki.core.api.dto.BaseResponse
-import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
@@ -92,7 +91,10 @@ class PoseController(
             * SSUM("썸")
             관계는 2인 포즈에만 있으므로 TWO 가 아닌 headCount 와 함께 보내면 빈 목록입니다.
 
-            정렬: 최신순(등록일 내림차순, 같으면 포즈 ID 내림차순) 고정입니다. sortOrder 는 무시합니다(deprecated).
+            sort (선택, 기본값 LATEST):
+            * LATEST("최신순") : 등록일 내림차순, 같으면 포즈 ID 내림차순
+
+            예전 앱이 보내는 sortOrder 는 받지 않으며 보내도 무시됩니다.
         """,
     )
     @GetMapping
@@ -102,10 +104,7 @@ class PoseController(
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(required = false) headCount: HeadCount?,
         @RequestParam(required = false) relation: PoseRelation?,
-        @Parameter(deprecated = true, description = "무시합니다. 정렬은 최신순 고정")
-        @RequestParam(required = false)
-        @Suppress("UNUSED_PARAMETER")
-        sortOrder: SortOrder?,
+        @RequestParam(defaultValue = "LATEST") sort: PoseSort,
     ): BaseResponse<PoseResponse.GetPoses> {
         val query: PoseQuery.GetPoses = requestConverter.toGetPosesQuery(
             userId = userId,
@@ -113,6 +112,7 @@ class PoseController(
             size = size,
             headCount = headCount,
             relation = relation,
+            sort = sort,
         )
 
         val result: PoseResult.GetPoses = getPosesUseCase.execute(query)

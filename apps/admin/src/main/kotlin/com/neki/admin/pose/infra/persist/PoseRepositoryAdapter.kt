@@ -7,6 +7,7 @@ import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -42,9 +43,14 @@ class PoseRepositoryAdapter(
         limit: Int,
         headCount: HeadCount?,
         relation: PoseRelation?,
+        sort: PoseSort,
     ): List<PoseWithScrap> = unsupported()
 
     override fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String> = unsupported()
+
+    override fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long = unsupported()
+
+    override fun countOwnedScrapPoses(userId: Long): Long = unsupported()
 
     override fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> =
         unsupported()

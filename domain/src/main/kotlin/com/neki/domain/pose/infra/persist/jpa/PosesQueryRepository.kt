@@ -4,9 +4,11 @@ import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.models.QPose.pose
 import com.neki.domain.pose.models.QScrapPose.scrapPose
+import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -48,6 +50,7 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         limit: Int,
         headCount: HeadCount?,
         relation: PoseRelation?,
+        sort: PoseSort,
     ): List<PoseWithScrap> = queryFactory
         .select(
             Projections.constructor(
@@ -67,11 +70,26 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
             headCount?.let { pose.headCount.eq(it) },
             relation?.let { pose.relation.eq(it) },
         )
-        // 위키 8-1: 모든 탭 최신순 고정. 등록 시각이 같으면 나중에 들어온 포즈(id 가 큰 쪽)가 먼저다
-        .orderBy(pose.createdAt.desc(), pose.id.desc())
+        .orderBy(*orderOf(sort))
         .offset(offset.toLong())
         .limit(limit.toLong())
         .fetch()
+
+    fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long = queryFactory
+        .select(pose.count())
+        .from(pose)
+        .where(
+            headCount?.let { pose.headCount.eq(it) },
+            relation?.let { pose.relation.eq(it) },
+        )
+        .fetchOne() ?: 0L
+
+    /**
+     * 위키 8-1: 최신순은 등록 시각이 같으면 나중에 들어온 포즈(id 가 큰 쪽)가 먼저다.
+     */
+    private fun orderOf(sort: PoseSort): Array<OrderSpecifier<*>> = when (sort) {
+        PoseSort.LATEST -> arrayOf(pose.createdAt.desc(), pose.id.desc())
+    }
 
     fun findOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> = queryFactory
         .selectFrom(pose)
@@ -91,6 +109,18 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .offset(offset.toLong())
         .limit(limit.toLong())
         .fetch()
+
+    fun countOwnedScrapPoses(userId: Long): Long = queryFactory
+        .select(pose.count())
+        .from(pose)
+        .innerJoin(scrapPose)
+        .on(
+            scrapPose.id.poseId.eq(pose.id),
+        )
+        .where(
+            scrapPose.id.userId.eq(userId),
+        )
+        .fetchOne() ?: 0L
 
     fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String> {
         if (sourceKeys.isEmpty()) return emptySet()

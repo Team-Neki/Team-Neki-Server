@@ -10,6 +10,7 @@ import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.MediaMetadata
 import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
 import com.neki.domain.pose.service.PoseScrapService
@@ -33,6 +34,7 @@ class GetPosesUseCaseTest {
         poseRepository = mockk()
         mediaClient = mockk()
         transactionRunner = FakeTransactionRunner()
+        every { poseRepository.countFilteredPoses(any(), any()) } returns TOTAL_COUNT
         useCase = GetPosesUseCase(
             PoseScrapService(poseRepository, mockk()),
             mediaClient,
@@ -76,6 +78,7 @@ class GetPosesUseCaseTest {
                 limit = 3,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -90,6 +93,7 @@ class GetPosesUseCaseTest {
         // Then
         result.poses.size shouldBe 2
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses[0].poseId shouldBe 1L
         result.poses[0].storageKey shouldBe "pose/image-101.jpg"
         result.poses[0].scrap shouldBe false
@@ -115,6 +119,7 @@ class GetPosesUseCaseTest {
                 limit = 3,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -128,6 +133,7 @@ class GetPosesUseCaseTest {
 
         // Then
         result.hasNext shouldBe true
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses.size shouldBe 2
     }
 
@@ -149,6 +155,7 @@ class GetPosesUseCaseTest {
                 limit = 6,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -163,6 +170,7 @@ class GetPosesUseCaseTest {
 
         // Then
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses.size shouldBe 3
     }
 
@@ -178,6 +186,7 @@ class GetPosesUseCaseTest {
                 limit = 11,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns emptyList()
 
@@ -187,6 +196,7 @@ class GetPosesUseCaseTest {
         // Then
         result.poses shouldBe emptyList()
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
     }
 
     @Test
@@ -206,6 +216,7 @@ class GetPosesUseCaseTest {
                 limit = 4,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -239,6 +250,7 @@ class GetPosesUseCaseTest {
                 limit = 3,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -250,6 +262,7 @@ class GetPosesUseCaseTest {
         // Then
         result.poses shouldBe emptyList()
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
     }
 
     @Test
@@ -271,6 +284,7 @@ class GetPosesUseCaseTest {
                 limit = 11,
                 headCount = HeadCount.TWO,
                 relation = PoseRelation.FRIEND,
+                sort = PoseSort.LATEST,
             )
         } returns listOf(PoseWithScrap(pose, false))
         every { mediaClient.getMediaMetadata(listOf(107L)) } returns listOf(makeMediaMetadata(107L))
@@ -280,5 +294,9 @@ class GetPosesUseCaseTest {
 
         // Then
         result.poses.map { it.relation } shouldBe listOf(PoseRelation.FRIEND)
+    }
+
+    companion object {
+        private const val TOTAL_COUNT = 42L
     }
 }

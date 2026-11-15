@@ -31,6 +31,7 @@ class GetScrapPosesUseCaseTest {
         poseRepository = mockk()
         mediaClient = mockk()
         transactionRunner = FakeTransactionRunner()
+        every { poseRepository.countOwnedScrapPoses(any()) } returns TOTAL_COUNT
         useCase = GetScrapPosesUseCase(
             PoseScrapService(poseRepository, mockk()),
             mediaClient,
@@ -85,6 +86,7 @@ class GetScrapPosesUseCaseTest {
         // Then
         result.poses.size shouldBe 2
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses[0].poseId shouldBe 1L
         result.poses[0].scrap shouldBe true
         result.poses[0].storageKey shouldBe "pose/image-101.jpg"
@@ -121,6 +123,7 @@ class GetScrapPosesUseCaseTest {
 
         // Then
         result.hasNext shouldBe true
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses.size shouldBe 2
     }
 
@@ -150,6 +153,7 @@ class GetScrapPosesUseCaseTest {
 
         // Then
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses.size shouldBe 2
     }
 
@@ -173,5 +177,10 @@ class GetScrapPosesUseCaseTest {
         // Then
         result.poses shouldBe emptyList()
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
+    }
+
+    companion object {
+        private const val TOTAL_COUNT = 42L
     }
 }

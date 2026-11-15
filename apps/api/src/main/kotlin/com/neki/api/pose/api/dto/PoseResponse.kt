@@ -14,6 +14,8 @@ import java.time.LocalDateTime
 object PoseResponse {
     @Schema(name = "GetPosesResponse")
     data class GetPoses(
+        @field:Schema(description = "전체 개수 (현재 페이지가 아니라 조건에 맞는 전체 포즈 수)", example = "51")
+        val totalCount: Long,
         @field:Schema(description = "포즈 목록")
         val items: List<Item>,
         @field:Schema(description = "다음 페이지 존재 여부", example = "true")

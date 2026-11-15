@@ -3,6 +3,7 @@ package com.neki.domain.pose.dto
 import com.neki.core.domain.vo.Pagination
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 
 /**
  * fileName       : PoseQuery
@@ -12,13 +13,14 @@ import com.neki.domain.pose.models.PoseRelation
  */
 object PoseQuery {
     /**
-     * relation 은 null 이면 거르지 않는다(관계 없는 포즈 포함). 정렬은 최신순 고정이라 pagination.sortOrder 는 쓰지 않는다.
+     * relation 은 null 이면 거르지 않는다(관계 없는 포즈 포함). 정렬은 sort 만 보고 pagination.sortOrder 는 쓰지 않는다.
      */
     data class GetPoses(
         val userId: Long,
         val headCount: HeadCount?,
         val pagination: Pagination,
         val relation: PoseRelation? = null,
+        val sort: PoseSort = PoseSort.LATEST,
     )
 
     /**

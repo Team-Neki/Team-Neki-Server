@@ -286,7 +286,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - sortOrder=ASC 를 보내도 최신순이다 (deprecated, 무시)")
+        @DisplayName("포즈 목록 정렬 - 예전 앱이 보내는 sortOrder=ASC 는 받지 않으므로 최신순이다")
         fun givenMultiplePoses_whenGetWithAscSort_thenStillReturnsLatestFirst() {
             // given: 순서대로 3개의 포즈 생성
             val poses = (1..3).map {
@@ -308,6 +308,40 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .body("data.items[0].poseId", equalTo(poses[2].id!!.toInt()))
                 .body("data.items[1].poseId", equalTo(poses[1].id!!.toInt()))
                 .body("data.items[2].poseId", equalTo(poses[0].id!!.toInt()))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬 - sort=LATEST 는 최신순이다")
+        fun givenMultiplePoses_whenGetWithLatestSort_thenReturnsLatestFirst() {
+            // given
+            val poses = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPose(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sort", "LATEST")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.poseId", equalTo(poses.map { it.id!!.toInt() }.reversed()))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬 - sort 값이 잘못되면 400 D-01")
+        fun givenInvalidSort_whenGetPoses_thenReturnsInvalidParameter() {
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sort", "POPULAR")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
         }
 
         @Test
@@ -353,6 +387,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.items", hasSize<Int>(2))
                 .body("data.hasNext", equalTo(true))
+                .body("data.totalCount", equalTo(5))
                 .body("data.items[0].poseId", equalTo(poses[4].id!!.toInt()))
                 .body("data.items[1].poseId", equalTo(poses[3].id!!.toInt()))
         }
@@ -396,6 +431,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(1))
+                .body("data.totalCount", equalTo(1))
                 .body("data.items[0].poseId", equalTo(ids.getValue("TWO_COUPLE").toInt()))
                 .body("data.items[0].relation", equalTo("COUPLE"))
         }
@@ -413,6 +449,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(4))
+                .body("data.totalCount", equalTo(4))
                 .body("data.items.relation", containsInAnyOrder("FRIEND", "COUPLE", "SSUM", null))
         }
 
@@ -431,6 +468,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
                 .body("data.hasNext", equalTo(false))
+                .body("data.totalCount", equalTo(0))
         }
 
         @Test

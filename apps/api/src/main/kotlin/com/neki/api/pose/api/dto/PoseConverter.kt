@@ -7,6 +7,7 @@ import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import org.springframework.stereotype.Component
 
 /**
@@ -32,7 +33,7 @@ object PoseConverter {
         )
 
         /**
-         * 정렬은 최신순 고정이라 sortOrder 는 받지 않는다 (Pagination 기본값).
+         * 정렬은 sort 로만 받는다. Pagination 의 sortOrder 는 기본값으로 두며 쓰지 않는다.
          */
         fun toGetPosesQuery(
             userId: Long,
@@ -40,11 +41,13 @@ object PoseConverter {
             size: Int,
             headCount: HeadCount?,
             relation: PoseRelation?,
+            sort: PoseSort,
         ): PoseQuery.GetPoses = PoseQuery.GetPoses(
             userId = userId,
             headCount = headCount,
             pagination = Pagination(page = page, size = size),
             relation = relation,
+            sort = sort,
         )
 
         fun toGetPoseQuery(userId: Long, poseId: Long): PoseQuery.GetPose =
@@ -65,6 +68,7 @@ object PoseConverter {
         }
 
         fun toGetPosesResponse(result: PoseResult.GetPoses): PoseResponse.GetPoses = PoseResponse.GetPoses(
+            totalCount = result.totalCount,
             items = result.poses.map {
                 PoseResponse.GetPoses.Item(
                     poseId = it.poseId,
