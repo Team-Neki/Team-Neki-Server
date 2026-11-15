@@ -7,7 +7,7 @@ import com.neki.domain.pose.infra.persist.jpa.PosesQueryRepository
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseRelation
-import com.neki.domain.pose.models.PoseSort
+import com.neki.domain.pose.models.PoseSortType
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -40,8 +40,17 @@ class PoseRepositoryAdapter(
         limit: Int,
         headCount: HeadCount?,
         relation: PoseRelation?,
-        sort: PoseSort,
-    ): List<PoseWithScrap> = queryRepository.listPosesWithScrap(userId, offset, limit, headCount, relation, sort)
+        sortType: PoseSortType,
+        sortOrder: SortOrder,
+    ): List<PoseWithScrap> = queryRepository.listPosesWithScrap(
+        userId,
+        offset,
+        limit,
+        headCount,
+        relation,
+        sortType,
+        sortOrder,
+    )
 
     override fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long =
         queryRepository.countFilteredPoses(headCount, relation)

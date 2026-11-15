@@ -10,11 +10,12 @@ import com.neki.api.pose.application.RandomPoseUseCase
 import com.neki.api.pose.application.UploadPosesUseCase
 import com.neki.api.pose.application.dto.PoseResult
 import com.neki.core.api.dto.BaseResponse
+import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.PoseRelation
-import com.neki.domain.pose.models.PoseSort
+import com.neki.domain.pose.models.PoseSortType
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -91,10 +92,12 @@ class PoseController(
             * SSUM("썸")
             관계는 2인 포즈에만 있으므로 TWO 가 아닌 headCount 와 함께 보내면 빈 목록입니다.
 
-            sort (선택, 기본값 LATEST):
-            * LATEST("최신순") : 등록일 내림차순, 같으면 포즈 ID 내림차순
+            sortType (선택, 정렬 기준, 기본값 TIME):
+            * TIME("등록 시각") : 등록일 기준, 같으면 포즈 ID 기준
 
-            예전 앱이 보내는 sortOrder 는 받지 않으며 보내도 무시됩니다.
+            sortOrder (선택, 정렬 방향, 기본값 DESC):
+            * DESC : 최신순
+            * ASC : 오래된 순
         """,
     )
     @GetMapping
@@ -104,7 +107,8 @@ class PoseController(
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(required = false) headCount: HeadCount?,
         @RequestParam(required = false) relation: PoseRelation?,
-        @RequestParam(defaultValue = "LATEST") sort: PoseSort,
+        @RequestParam(defaultValue = "TIME") sortType: PoseSortType,
+        @RequestParam(defaultValue = "DESC") sortOrder: SortOrder,
     ): BaseResponse<PoseResponse.GetPoses> {
         val query: PoseQuery.GetPoses = requestConverter.toGetPosesQuery(
             userId = userId,
@@ -112,7 +116,8 @@ class PoseController(
             size = size,
             headCount = headCount,
             relation = relation,
-            sort = sort,
+            sortType = sortType,
+            sortOrder = sortOrder,
         )
 
         val result: PoseResult.GetPoses = getPosesUseCase.execute(query)

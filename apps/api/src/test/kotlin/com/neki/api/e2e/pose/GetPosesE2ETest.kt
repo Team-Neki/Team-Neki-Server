@@ -286,8 +286,8 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - 예전 앱이 보내는 sortOrder=ASC 는 받지 않으므로 최신순이다")
-        fun givenMultiplePoses_whenGetWithAscSort_thenStillReturnsLatestFirst() {
+        @DisplayName("포즈 목록 정렬 - sortOrder=ASC 면 오래된 순이다")
+        fun givenMultiplePoses_whenGetWithAscSort_thenReturnsOldestFirst() {
             // given: 순서대로 3개의 포즈 생성
             val poses = (1..3).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -295,7 +295,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 createPose(userId = testUser.id!!, mediaId = media.id!!)
             }
 
-            // when & then: ASC 를 보내도 최신 포즈가 먼저 나옴
+            // when & then: ASC 면 먼저 만든 포즈가 먼저 나옴
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
                 .queryParam("sortOrder", "ASC")
@@ -305,14 +305,14 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.items", hasSize<Int>(3))
-                .body("data.items[0].poseId", equalTo(poses[2].id!!.toInt()))
+                .body("data.items[0].poseId", equalTo(poses[0].id!!.toInt()))
                 .body("data.items[1].poseId", equalTo(poses[1].id!!.toInt()))
-                .body("data.items[2].poseId", equalTo(poses[0].id!!.toInt()))
+                .body("data.items[2].poseId", equalTo(poses[2].id!!.toInt()))
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - sort=LATEST 는 최신순이다")
-        fun givenMultiplePoses_whenGetWithLatestSort_thenReturnsLatestFirst() {
+        @DisplayName("포즈 목록 정렬 - sortType=TIME 만 보내면 기본 방향 DESC 로 최신순이다")
+        fun givenMultiplePoses_whenGetWithTimeSortType_thenReturnsLatestFirst() {
             // given
             val poses = (1..3).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -323,7 +323,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
             // when & then
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("sort", "LATEST")
+                .queryParam("sortType", "TIME")
                 .`when`()
                 .get("/api/poses")
                 .then()
@@ -332,11 +332,11 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - sort 값이 잘못되면 400 D-01")
-        fun givenInvalidSort_whenGetPoses_thenReturnsInvalidParameter() {
+        @DisplayName("포즈 목록 정렬 - sortType 값이 잘못되면 400 D-01")
+        fun givenInvalidSortType_whenGetPoses_thenReturnsInvalidParameter() {
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("sort", "POPULAR")
+                .queryParam("sortType", "POPULAR")
                 .`when`()
                 .get("/api/poses")
                 .then()
@@ -362,6 +362,27 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items.poseId", equalTo(poses.map { it.id!!.toInt() }.reversed()))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬 - ASC 이고 등록 시각이 같으면 포즈 ID 오름차순")
+        fun givenSameCreatedAt_whenGetPosesAsc_thenOrderedByIdAsc() {
+            // given
+            val poses = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                createPose(userId = testUser.id!!, mediaId = media.id!!)
+            }
+            jdbcTemplate.update("UPDATE tb_pose SET created_at = TIMESTAMP '2026-01-01 00:00:00'")
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sortOrder", "ASC")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.poseId", equalTo(poses.map { it.id!!.toInt() }))
         }
 
         @Test
