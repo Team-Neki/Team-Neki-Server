@@ -20,7 +20,13 @@ PM 이 준 `pose.csv`, `media.csv`, 이미지 폴더를 `scripts/pose/upload_pos
 - 입력 파일
   - `pose.csv`: 헤더 `media_key,head_count,tag`. `tag` 는 `friend`/`couple`/`ssum` 또는 빈 값이고, 관계는 `TWO` 에만 붙일 수 있습니다.
   - `media.csv`(선택): 헤더 `media_key,file_name` 이 필수이고, `width,height` 가 있으면 함께 보냅니다. 없으면 `media_key.png` 로 찾습니다.
-  - 이미지: PNG/JPEG. 확장자로 Content-Type 을 정합니다.
+  - 이미지: PNG/JPEG/WebP. 확장자로 Content-Type 을 정합니다.
+  - **PM 원본 PNG(장당 약 2MB)는 그대로 올리지 않습니다.** 이미지는 서버가 S3 에서 받아 프록시하므로, 큰 파일은 S3 커넥션 풀과 Tomcat 스레드를 고갈시킵니다(staging 2026-11-15 장애). 해상도는 유지하고 WebP 로 변환해 올립니다.
+    ```bash
+    # brew install webp
+    for f in neki_pose_*/*.png; do mkdir -p "webp/$(dirname "$f")"; cwebp -quiet -q 80 -m 6 -metadata none "$f" -o "webp/${f%.png}.webp"; done
+    ```
+    media.csv 의 `file_name` 을 `.webp` 로 바꾸고 `size` 를 새 파일 크기로 고칩니다. 1024×1536 기준 장당 평균 116KB 입니다.
 - `media_key` 는 CSV 에 적힌 그대로 씁니다. 영문, 숫자, `.`, `_`, `-` 로 1~100자이고 대소문자를 구분합니다. `Friend_001` 과 `friend_001` 은 다른 키로 등록되므로 대소문자를 바꾸지 않습니다.
 
 ## 환경별 서버

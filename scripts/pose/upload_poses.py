@@ -29,7 +29,7 @@ from pathlib import Path
 SOURCE_KEY_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,100}$")
 HEAD_COUNTS = {"ONE", "TWO", "THREE", "FOUR", "FIVE_OR_MORE"}
 RELATIONS = {"FRIEND", "COUPLE", "SSUM"}
-CONTENT_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
+CONTENT_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
 MAX_BATCH = 10  # /api/media/upload 의 @Size(max = 10)
 HTTP_TIMEOUT_SECONDS = 120
 
