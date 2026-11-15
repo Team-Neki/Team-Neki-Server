@@ -10,6 +10,7 @@ import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.MediaMetadata
 import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
 import com.neki.domain.pose.service.PoseScrapService
@@ -76,6 +77,7 @@ class GetPosesUseCaseTest {
                 limit = 3,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -115,6 +117,7 @@ class GetPosesUseCaseTest {
                 limit = 3,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -149,6 +152,7 @@ class GetPosesUseCaseTest {
                 limit = 6,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -178,6 +182,7 @@ class GetPosesUseCaseTest {
                 limit = 11,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns emptyList()
 
@@ -206,6 +211,7 @@ class GetPosesUseCaseTest {
                 limit = 4,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -239,6 +245,7 @@ class GetPosesUseCaseTest {
                 limit = 3,
                 headCount = null,
                 relation = null,
+                sort = PoseSort.LATEST,
             )
         } returns poseList
 
@@ -271,6 +278,7 @@ class GetPosesUseCaseTest {
                 limit = 11,
                 headCount = HeadCount.TWO,
                 relation = PoseRelation.FRIEND,
+                sort = PoseSort.LATEST,
             )
         } returns listOf(PoseWithScrap(pose, false))
         every { mediaClient.getMediaMetadata(listOf(107L)) } returns listOf(makeMediaMetadata(107L))
