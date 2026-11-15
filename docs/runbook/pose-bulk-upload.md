@@ -1,6 +1,7 @@
 # 포즈 일괄 적재 (PM 데이터, BACKEND-276)
 
-PM 이 준 `pose.csv`, `media.csv`, 이미지 폴더를 `scripts/pose/upload_poses.py` 로 적재하는 절차입니다.
+PM 이 준 `pose.csv`, `media.csv`, 이미지 폴더를 적재 스크립트 `upload_poses.py` 로 적재하는 절차입니다.
+스크립트는 레포에 두지 않고 서버 담당 로컬에 보관합니다.
 스크립트는 앱과 같은 presigned 흐름을 씁니다.
 
 1. `POST /api/media/upload` 로 업로드 티켓을 받습니다. 한 번에 최대 10개입니다.
@@ -44,7 +45,7 @@ export NEKI_ADMIN_TOKEN=...          # 출력하지 말 것
 LEDGER=~/neki-ledger/pose-prod.json  # 레포 밖, 환경별로 따로 둔다
 
 # 1) 계획만 확인 (네트워크 없음)
-python3 scripts/pose/upload_poses.py --server https://yapp.suitestudy.com:4641 \
+python3 <로컬 경로>/upload_poses.py --server https://yapp.suitestudy.com:4641 \
   --pose-csv ~/Downloads/pose.csv --media-csv ~/Downloads/media.csv \
   --images-dir ~/Downloads/neki_pose_all --images-dir "$HOME/Downloads/neki_pose_all 2" \
   --ledger "$LEDGER" --dry-run

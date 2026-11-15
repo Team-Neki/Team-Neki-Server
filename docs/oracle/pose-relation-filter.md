@@ -7,7 +7,7 @@
   - V46 (relation, source_key 추가, 쓰지 않는 view_count 삭제)
   - `GET /api/poses` 의 relation 쿼리 파라미터 필터와 정렬 기준 sortType(기본 TIME)과 방향 sortOrder(기본 DESC). 필터가 많아지면 그때 별도 엔드포인트를 만든다
   - JSON `POST /api/poses/admin/upload` 의 relation, sourceKey(409 D-18)
-  - PM 데이터 적재 스크립트 `scripts/pose/upload_poses.py`
+  - PM 데이터 적재 스크립트 `upload_poses.py` (레포에 두지 않고 로컬 보관)
 - multipart 일괄 업로드(v2)는 제거했습니다. 적재 절차는 `docs/runbook/pose-bulk-upload.md` 에 있습니다.
 
 ## 공통 (O-0)
@@ -18,7 +18,6 @@
 | O-0-2 | auto | 테스트 전부 통과 | `./gradlew test -q` 종료코드 0 |
 | O-0-3 | auto | api bootJar 빌드 성공 | `./gradlew :apps:api:bootJar -q` 종료코드 0 |
 | O-0-4 | auto | 코드 산출물에 이모지 없음 | `git diff origin/main...HEAD -- '*.kt' '*.kts' '*.yaml' '*.sql' '*.py' \| grep -cP "^\+.*[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]"` = 0 |
-| O-0-5 | auto | 적재 스크립트 문법 | `python3 -m py_compile scripts/pose/upload_poses.py` 종료코드 0 |
 
 ## O-A. 코드와 설정
 
