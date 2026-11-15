@@ -2,12 +2,13 @@ package com.neki.api.pose.api.dto
 
 import com.neki.api.pose.application.dto.PoseResult
 import com.neki.core.domain.vo.Pagination
+import com.neki.core.domain.vo.SortOrder
 import com.neki.core.properties.AppProperties
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.PoseRelation
-import com.neki.domain.pose.models.PoseSort
+import com.neki.domain.pose.models.PoseSortType
 import org.springframework.stereotype.Component
 
 /**
@@ -33,7 +34,7 @@ object PoseConverter {
         )
 
         /**
-         * 정렬은 sort 로만 받는다. Pagination 의 sortOrder 는 기본값으로 두며 쓰지 않는다.
+         * 정렬 기준은 sortType, 방향은 Pagination 의 sortOrder 로 넘긴다.
          */
         fun toGetPosesQuery(
             userId: Long,
@@ -41,13 +42,14 @@ object PoseConverter {
             size: Int,
             headCount: HeadCount?,
             relation: PoseRelation?,
-            sort: PoseSort,
+            sortType: PoseSortType,
+            sortOrder: SortOrder,
         ): PoseQuery.GetPoses = PoseQuery.GetPoses(
             userId = userId,
             headCount = headCount,
-            pagination = Pagination(page = page, size = size),
+            pagination = Pagination(page = page, size = size, sortOrder = sortOrder),
             relation = relation,
-            sort = sort,
+            sortType = sortType,
         )
 
         fun toGetPoseQuery(userId: Long, poseId: Long): PoseQuery.GetPose =
