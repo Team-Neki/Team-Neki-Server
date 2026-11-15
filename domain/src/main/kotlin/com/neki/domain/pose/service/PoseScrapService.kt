@@ -39,6 +39,11 @@ class PoseScrapService(
         ),
     )
 
+    fun countPoses(query: PoseQuery.GetPoses): Long =
+        poseRepository.countFilteredPoses(headCount = query.headCount, relation = query.relation)
+
+    fun countOwnedScrapPoses(query: PoseQuery.GetScrapPoses): Long = poseRepository.countOwnedScrapPoses(query.userId)
+
     fun listOwnedScrapPoses(query: PoseQuery.GetScrapPoses): Page<Pose> = query.pagination.slice(
         poseRepository.listOwnedScrapPoses(
             userId = query.userId,

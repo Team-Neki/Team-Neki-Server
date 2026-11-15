@@ -75,6 +75,15 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .limit(limit.toLong())
         .fetch()
 
+    fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long = queryFactory
+        .select(pose.count())
+        .from(pose)
+        .where(
+            headCount?.let { pose.headCount.eq(it) },
+            relation?.let { pose.relation.eq(it) },
+        )
+        .fetchOne() ?: 0L
+
     /**
      * 위키 8-1: 최신순은 등록 시각이 같으면 나중에 들어온 포즈(id 가 큰 쪽)가 먼저다.
      */
@@ -100,6 +109,18 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .offset(offset.toLong())
         .limit(limit.toLong())
         .fetch()
+
+    fun countOwnedScrapPoses(userId: Long): Long = queryFactory
+        .select(pose.count())
+        .from(pose)
+        .innerJoin(scrapPose)
+        .on(
+            scrapPose.id.poseId.eq(pose.id),
+        )
+        .where(
+            scrapPose.id.userId.eq(userId),
+        )
+        .fetchOne() ?: 0L
 
     fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String> {
         if (sourceKeys.isEmpty()) return emptySet()

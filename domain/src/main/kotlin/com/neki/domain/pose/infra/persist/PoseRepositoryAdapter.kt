@@ -43,6 +43,11 @@ class PoseRepositoryAdapter(
         sort: PoseSort,
     ): List<PoseWithScrap> = queryRepository.listPosesWithScrap(userId, offset, limit, headCount, relation, sort)
 
+    override fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long =
+        queryRepository.countFilteredPoses(headCount, relation)
+
+    override fun countOwnedScrapPoses(userId: Long): Long = queryRepository.countOwnedScrapPoses(userId)
+
     override fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String> =
         queryRepository.findExistingSourceKeys(sourceKeys)
 

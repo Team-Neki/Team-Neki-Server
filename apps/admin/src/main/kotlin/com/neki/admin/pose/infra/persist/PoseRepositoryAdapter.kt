@@ -48,6 +48,10 @@ class PoseRepositoryAdapter(
 
     override fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String> = unsupported()
 
+    override fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long = unsupported()
+
+    override fun countOwnedScrapPoses(userId: Long): Long = unsupported()
+
     override fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> =
         unsupported()
 

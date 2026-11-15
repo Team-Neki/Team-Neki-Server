@@ -41,7 +41,14 @@ interface PoseRepository {
      */
     fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String>
 
+    /**
+     * listPosesWithScrap 과 같은 조건의 전체 포즈 수. media 상태는 보지 않는다.
+     */
+    fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long
+
     fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose>
+
+    fun countOwnedScrapPoses(userId: Long): Long
 
     fun findAll(query: PoseQuery.GetAllPoses): List<Pose>
 

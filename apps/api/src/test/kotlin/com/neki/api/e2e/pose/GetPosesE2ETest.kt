@@ -387,6 +387,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.items", hasSize<Int>(2))
                 .body("data.hasNext", equalTo(true))
+                .body("data.totalCount", equalTo(5))
                 .body("data.items[0].poseId", equalTo(poses[4].id!!.toInt()))
                 .body("data.items[1].poseId", equalTo(poses[3].id!!.toInt()))
         }
@@ -430,6 +431,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(1))
+                .body("data.totalCount", equalTo(1))
                 .body("data.items[0].poseId", equalTo(ids.getValue("TWO_COUPLE").toInt()))
                 .body("data.items[0].relation", equalTo("COUPLE"))
         }
@@ -447,6 +449,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", hasSize<Int>(4))
+                .body("data.totalCount", equalTo(4))
                 .body("data.items.relation", containsInAnyOrder("FRIEND", "COUPLE", "SSUM", null))
         }
 
@@ -465,6 +468,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .statusCode(HttpStatus.OK.value())
                 .body("data.items", empty<Any>())
                 .body("data.hasNext", equalTo(false))
+                .body("data.totalCount", equalTo(0))
         }
 
         @Test

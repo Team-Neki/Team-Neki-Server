@@ -34,6 +34,7 @@ class GetPosesUseCaseTest {
         poseRepository = mockk()
         mediaClient = mockk()
         transactionRunner = FakeTransactionRunner()
+        every { poseRepository.countFilteredPoses(any(), any()) } returns TOTAL_COUNT
         useCase = GetPosesUseCase(
             PoseScrapService(poseRepository, mockk()),
             mediaClient,
@@ -92,6 +93,7 @@ class GetPosesUseCaseTest {
         // Then
         result.poses.size shouldBe 2
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses[0].poseId shouldBe 1L
         result.poses[0].storageKey shouldBe "pose/image-101.jpg"
         result.poses[0].scrap shouldBe false
@@ -131,6 +133,7 @@ class GetPosesUseCaseTest {
 
         // Then
         result.hasNext shouldBe true
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses.size shouldBe 2
     }
 
@@ -167,6 +170,7 @@ class GetPosesUseCaseTest {
 
         // Then
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
         result.poses.size shouldBe 3
     }
 
@@ -192,6 +196,7 @@ class GetPosesUseCaseTest {
         // Then
         result.poses shouldBe emptyList()
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
     }
 
     @Test
@@ -257,6 +262,7 @@ class GetPosesUseCaseTest {
         // Then
         result.poses shouldBe emptyList()
         result.hasNext shouldBe false
+        result.totalCount shouldBe TOTAL_COUNT
     }
 
     @Test
@@ -288,5 +294,9 @@ class GetPosesUseCaseTest {
 
         // Then
         result.poses.map { it.relation } shouldBe listOf(PoseRelation.FRIEND)
+    }
+
+    companion object {
+        private const val TOTAL_COUNT = 42L
     }
 }
