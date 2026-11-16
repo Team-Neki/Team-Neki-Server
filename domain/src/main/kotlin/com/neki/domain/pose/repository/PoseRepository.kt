@@ -5,7 +5,7 @@ import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseRelation
-import com.neki.domain.pose.models.PoseSortType
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 
 /**
@@ -25,7 +25,7 @@ interface PoseRepository {
     fun saveAll(poses: List<Pose>): List<Pose>
 
     /**
-     * sortType 기준, sortOrder 방향으로 정렬한다. headCount 와 relation 은 null 이면 거르지 않는다.
+     * sort 로 정렬한다. headCount 와 relation 은 null 이면 거르지 않는다.
      */
     fun listPosesWithScrap(
         userId: Long,
@@ -33,8 +33,7 @@ interface PoseRepository {
         limit: Int,
         headCount: HeadCount?,
         relation: PoseRelation?,
-        sortType: PoseSortType,
-        sortOrder: SortOrder,
+        sort: PoseSort,
     ): List<PoseWithScrap>
 
     /**
