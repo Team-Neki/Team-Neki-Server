@@ -4,7 +4,7 @@ import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseRelation
-import com.neki.domain.pose.models.PoseSortType
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.models.QPose.pose
 import com.neki.domain.pose.models.QScrapPose.scrapPose
@@ -51,8 +51,7 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         limit: Int,
         headCount: HeadCount?,
         relation: PoseRelation?,
-        sortType: PoseSortType,
-        sortOrder: SortOrder,
+        sort: PoseSort,
     ): List<PoseWithScrap> = queryFactory
         .select(
             Projections.constructor(
@@ -72,7 +71,7 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
             headCount?.let { pose.headCount.eq(it) },
             relation?.let { pose.relation.eq(it) },
         )
-        .orderBy(*orderOf(sortType, sortOrder))
+        .orderBy(*orderOf(sort))
         .offset(offset.toLong())
         .limit(limit.toLong())
         .fetch()
@@ -87,16 +86,14 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .fetchOne() ?: 0L
 
     /**
-     * 등록 시각이 같으면 id 로 같은 방향 정렬한다. 최신순(DESC)이면 나중에 들어온 포즈가 먼저다 (위키 8-1).
+     * 등록 시각이 같으면 id 로 같은 방향 정렬한다. 최신순이면 나중에 들어온 포즈가 먼저다 (위키 8-1).
      */
-    private fun orderOf(sortType: PoseSortType, sortOrder: SortOrder): Array<OrderSpecifier<*>> {
-        val direction: Order = when (sortOrder) {
-            SortOrder.ASC -> Order.ASC
-            SortOrder.DESC -> Order.DESC
+    private fun orderOf(sort: PoseSort): Array<OrderSpecifier<*>> {
+        val direction: Order = when (sort) {
+            PoseSort.LATEST -> Order.DESC
+            PoseSort.OLDEST -> Order.ASC
         }
-        return when (sortType) {
-            PoseSortType.TIME -> arrayOf(OrderSpecifier(direction, pose.createdAt), OrderSpecifier(direction, pose.id))
-        }
+        return arrayOf(OrderSpecifier(direction, pose.createdAt), OrderSpecifier(direction, pose.id))
     }
 
     fun findOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> = queryFactory

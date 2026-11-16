@@ -262,7 +262,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
     inner class SortingTests {
 
         @Test
-        @DisplayName("포즈 목록 정렬 - 최신순(DESC) 기본값")
+        @DisplayName("포즈 목록 정렬 - sort 를 생략하면 최신순(LATEST)")
         fun givenMultiplePoses_whenGetWithDefaultSort_thenReturnsDescOrder() {
             // given: 순서대로 3개의 포즈 생성 (생성 시간 차이 확보)
             val poses = (1..3).map {
@@ -271,7 +271,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 createPose(userId = testUser.id!!, mediaId = media.id!!)
             }
 
-            // when & then: 기본 정렬(DESC)로 조회 시 최신 포즈가 먼저 나옴
+            // when & then: 기본 정렬(LATEST)로 조회 시 최신 포즈가 먼저 나옴
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
                 .`when`()
@@ -286,8 +286,8 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - sortOrder=ASC 면 오래된 순이다")
-        fun givenMultiplePoses_whenGetWithAscSort_thenReturnsOldestFirst() {
+        @DisplayName("포즈 목록 정렬 - sort=OLDEST 면 오래된 순이다")
+        fun givenMultiplePoses_whenGetWithOldestSort_thenReturnsOldestFirst() {
             // given: 순서대로 3개의 포즈 생성
             val poses = (1..3).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -295,10 +295,10 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 createPose(userId = testUser.id!!, mediaId = media.id!!)
             }
 
-            // when & then: ASC 면 먼저 만든 포즈가 먼저 나옴
+            // when & then: OLDEST 면 먼저 만든 포즈가 먼저 나옴
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("sortOrder", "ASC")
+                .queryParam("sort", "OLDEST")
                 .`when`()
                 .get("/api/poses")
                 .then()
@@ -311,8 +311,8 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - sortType=TIME 만 보내면 기본 방향 DESC 로 최신순이다")
-        fun givenMultiplePoses_whenGetWithTimeSortType_thenReturnsLatestFirst() {
+        @DisplayName("포즈 목록 정렬 - sort=LATEST 는 최신순이다")
+        fun givenMultiplePoses_whenGetWithLatestSort_thenReturnsLatestFirst() {
             // given
             val poses = (1..3).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -323,7 +323,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
             // when & then
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("sortType", "TIME")
+                .queryParam("sort", "LATEST")
                 .`when`()
                 .get("/api/poses")
                 .then()
@@ -332,11 +332,11 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - sortType 값이 잘못되면 400 D-01")
-        fun givenInvalidSortType_whenGetPoses_thenReturnsInvalidParameter() {
+        @DisplayName("포즈 목록 정렬 - sort 값이 잘못되면 400 D-01")
+        fun givenInvalidSort_whenGetPoses_thenReturnsInvalidParameter() {
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("sortType", "POPULAR")
+                .queryParam("sort", "POPULAR")
                 .`when`()
                 .get("/api/poses")
                 .then()
@@ -365,8 +365,8 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - ASC 이고 등록 시각이 같으면 포즈 ID 오름차순")
-        fun givenSameCreatedAt_whenGetPosesAsc_thenOrderedByIdAsc() {
+        @DisplayName("포즈 목록 정렬 - OLDEST 이고 등록 시각이 같으면 포즈 ID 오름차순")
+        fun givenSameCreatedAt_whenGetPosesOldest_thenOrderedByIdAsc() {
             // given
             val poses = (1..3).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -377,7 +377,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
             // when & then
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("sortOrder", "ASC")
+                .queryParam("sort", "OLDEST")
                 .`when`()
                 .get("/api/poses")
                 .then()
@@ -386,8 +386,29 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬과 페이징 조합 - DESC + 첫 페이지")
-        fun givenMultiplePoses_whenGetFirstPageWithDescSort_thenReturnsPagedDescOrder() {
+        @DisplayName("포즈 목록 정렬 - 예전 앱이 보내는 sortOrder=ASC 는 받지 않으므로 최신순이다")
+        fun givenMultiplePoses_whenGetWithLegacySortOrder_thenStillReturnsLatestFirst() {
+            // given
+            val poses = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPose(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sortOrder", "ASC")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.poseId", equalTo(poses.map { it.id!!.toInt() }.reversed()))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬과 페이징 조합 - LATEST + 첫 페이지")
+        fun givenMultiplePoses_whenGetFirstPageWithLatestSort_thenReturnsPagedLatestOrder() {
             // given: 5개의 포즈 생성
             val poses = (1..5).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -395,12 +416,12 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 createPose(userId = testUser.id!!, mediaId = media.id!!)
             }
 
-            // when & then: page=0, size=2, DESC 조회 시 최신 2개 반환
+            // when & then: page=0, size=2, LATEST 조회 시 최신 2개 반환
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
                 .queryParam("page", 0)
                 .queryParam("size", 2)
-                .queryParam("sortOrder", "DESC")
+                .queryParam("sort", "LATEST")
                 .`when`()
                 .get("/api/poses")
                 .then()

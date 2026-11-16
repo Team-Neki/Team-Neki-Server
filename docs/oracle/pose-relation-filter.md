@@ -5,9 +5,9 @@
 - 명령은 저장소 루트에서 그대로 실행합니다.
 - 범위(v3)
   - V46 (relation, source_key 추가, 쓰지 않는 view_count 삭제)
-  - `GET /api/poses` 의 relation 쿼리 파라미터 필터와 정렬 기준 sortType(기본 TIME)과 방향 sortOrder(기본 DESC). 필터가 많아지면 그때 별도 엔드포인트를 만든다
+  - `GET /api/poses` 의 relation 쿼리 파라미터 필터와 sort(LATEST 최신순·OLDEST 오래된 순, 기본 LATEST). 예전 앱의 sortOrder 는 받지 않는다. 필터가 많아지면 그때 별도 엔드포인트를 만든다
   - JSON `POST /api/poses/admin/upload` 의 relation, sourceKey(409 D-18)
-  - PM 데이터 적재 스크립트 `scripts/pose/upload_poses.py`
+  - PM 데이터 적재 스크립트 `upload_poses.py` (레포에 두지 않고 로컬 보관)
 - multipart 일괄 업로드(v2)는 제거했습니다. 적재 절차는 `docs/runbook/pose-bulk-upload.md` 에 있습니다.
 
 ## 공통 (O-0)
@@ -18,7 +18,6 @@
 | O-0-2 | auto | 테스트 전부 통과 | `./gradlew test -q` 종료코드 0 |
 | O-0-3 | auto | api bootJar 빌드 성공 | `./gradlew :apps:api:bootJar -q` 종료코드 0 |
 | O-0-4 | auto | 코드 산출물에 이모지 없음 | `git diff origin/main...HEAD -- '*.kt' '*.kts' '*.yaml' '*.sql' '*.py' \| grep -cP "^\+.*[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}]"` = 0 |
-| O-0-5 | auto | 적재 스크립트 문법 | `python3 -m py_compile scripts/pose/upload_poses.py` 종료코드 0 |
 
 ## O-A. 코드와 설정
 
@@ -60,7 +59,7 @@ O-A-6 대상 파일
 | O-L-6b | ssum_029 1건을 지운 뒤 원장 없이 `--only 'ssum_02[89]_*'` : ssum_028 CONFLICT, ssum_029 REGISTERED, tb_pose 81 |
 | O-L-6c | curl : 같은 sourceKey 2개는 400 D-01, `"a b"` 는 400 D-01, ONE+relation 은 400 D-01, USER 토큰은 403, 이미 등록된 키는 409 D-18. 모두 DB 변화가 없다 |
 | O-L-6d | 고아 정리 : `status='INITIATED' AND media_type='POSE' AND NOT EXISTS(tb_pose 참조)` 조건으로 DB 를 먼저 지우고, 반환된 storage_key 만 S3 에서 지운다. 결과는 고아 0, POSE media 81, S3 81 |
-| O-L-7 | 목록 결과(`GET /api/poses`) : TWO+FRIEND size=100 → 51건, TWO+SSUM → 20건(hasNext=true), page=1 → 9건(false), TWO+COUPLE → 빈 목록, ONE+FRIEND → 빈 목록, ONE → 1건(relation=null), 생략 결과 = 최신순, sortOrder=ASC = 오래된 순, sortType=TIME 결과 = 생략 결과, sortType=POPULAR → 400 D-01, SSUM 첫 항목 = 다시 등록한 ssum_029, imageUrl → `200 image/png` |
+| O-L-7 | 목록 결과(`GET /api/poses`) : TWO+FRIEND size=100 → 51건, TWO+SSUM → 20건(hasNext=true), page=1 → 9건(false), TWO+COUPLE → 빈 목록, ONE+FRIEND → 빈 목록, ONE → 1건(relation=null), 생략 결과 = 최신순, sort=LATEST 결과 = 생략 결과, sort=OLDEST = 오래된 순, sortOrder=ASC 결과 = 생략 결과, sort=POPULAR → 400 D-01, SSUM 첫 항목 = 다시 등록한 ssum_029, imageUrl → `200 image/png` |
 
 ## O-D. 배포 전/후 (manual)
 
@@ -69,7 +68,7 @@ O-A-6 대상 파일
 | O-D-1 | admin 계열(V41~V45)이 이 브랜치보다 **먼저** main 에 머지된다. 그래서 마이그레이션은 V46 이다. V45 가 main 에 들어오기 전에는 이 브랜치를 머지하지 않는다 |
 | O-D-2 | 머지 직전 main 의 마지막 마이그레이션이 V45 다 (`git ls-tree --name-only origin/main modules/postgres/src/main/resources/db/migration/ \| xargs -n1 basename \| sort -V \| tail -1` 이 `V45__` 로 시작). ResultCode 의 D-18 이 main 의 다른 코드와 겹치지 않는다 |
 | O-D-3 | 배포 전 staging `select version, description, checksum from flyway_schema_history order by installed_rank;` 에 main 의 V41~V45 가 있고 V46 은 없다. 이 브랜치의 이전 버전(V41 로 번호를 매겼던 때)이 적용된 기록이 있으면 먼저 정리한다 |
-| O-D-4 | 클라이언트 담당에게 `sortType`(기본 TIME)·`sortOrder`(기본 DESC, ASC 는 오래된 순) 정렬 계약와 응답 `relation` 추가를 공유했다 |
+| O-D-4 | 클라이언트 담당에게 `sort`(LATEST·OLDEST, 기본 LATEST) 정렬 계약과 `sortOrder` 무시와 응답 `relation` 추가를 공유했다 |
 | O-D-5 | 배포 후 staging 에서 스크립트로 소량(`--only`)을 적재해 registered 를 확인하고, 같은 원장으로 재실행해 already_in_ledger 를 확인한다 |
 
 ## 검증 기록
