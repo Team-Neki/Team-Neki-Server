@@ -16,7 +16,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/neki-prod
+  # batch·admin-api 와 같이 GHCR 를 쓴다. prod/staging 이 같은 패키지를 쓰고 환경 태그(:prod/:stg)로 구분한다.
+  # 클러스터에 pull secret 이 없으므로 GHCR 패키지 neki-api 는 public 이어야 한다.
+  DOCKER_IMAGE: ghcr.io/team-neki/neki-api
   GITOPS_REPO: Team-Neki/Team-Neki-GitOps
   GITOPS_PATH: overlays/prod/deployment.yaml
 
@@ -24,6 +26,9 @@ jobs:
   build-and-deploy:
     name: Build and Deploy via GitOps
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
@@ -45,11 +50,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract version
         id: version
@@ -65,7 +71,7 @@ jobs:
           push: true
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.version.outputs.short_sha }}
-            ${{ env.DOCKER_IMAGE }}:latest
+            ${{ env.DOCKER_IMAGE }}:prod
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -129,7 +135,9 @@ jobs:
           echo "📦 Updating image to: $NEW_IMAGE"
 
           # deployment.yaml의 이미지 태그 업데이트
-          sed -i "s|image: .*neki-prod:.*|image: $NEW_IMAGE|g" ${{ env.GITOPS_PATH }}
+          # Docker Hub(neki-prod) -> GHCR(neki-api) 전환 첫 배포도 바꿀 수 있도록 두 이름을 모두 매칭한다
+          sed -i -E "s#image: .*/(neki-prod|neki-api):.*#image: $NEW_IMAGE#g" ${{ env.GITOPS_PATH }}
+          grep -q "image: $NEW_IMAGE" ${{ env.GITOPS_PATH }} || { echo "image 줄을 바꾸지 못했다"; exit 1; }
 
           # 변경사항 확인
           echo "📄 Updated deployment.yaml:"
