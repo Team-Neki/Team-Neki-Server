@@ -12,6 +12,7 @@ import com.neki.domain.photo.models.PhotoImageFolder
 import com.neki.domain.photo.models.UploadMethod
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
+import com.neki.domain.pose.models.PoseRelation
 import com.neki.domain.pose.models.ScrapPose
 import com.neki.domain.support.models.AppVersion
 import com.neki.domain.support.models.Platform
@@ -171,12 +172,16 @@ fun aPose(
     mediaId: Long = 1L,
     headCount: HeadCount = HeadCount.TWO,
     memo: String? = null,
+    relation: PoseRelation? = null,
+    sourceKey: String? = null,
 ): Pose = Pose(
     id = id,
     userId = userId,
     mediaId = mediaId,
     headCount = headCount,
     memo = memo,
+    relation = relation,
+    sourceKey = sourceKey,
 )
 
 // ── ScrapPose ─────────────────────────────────────────────────────────────────

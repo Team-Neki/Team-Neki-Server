@@ -3,9 +3,13 @@ package com.neki.domain.pose.infra.persist.jpa
 import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
+import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.models.QPose.pose
 import com.neki.domain.pose.models.QScrapPose.scrapPose
+import com.querydsl.core.types.Order
+import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
@@ -46,7 +50,8 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         offset: Int,
         limit: Int,
         headCount: HeadCount?,
-        sortOrder: SortOrder,
+        relation: PoseRelation?,
+        sort: PoseSort,
     ): List<PoseWithScrap> = queryFactory
         .select(
             Projections.constructor(
@@ -62,16 +67,34 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
             scrapPose.id.poseId.eq(pose.id),
             scrapPose.id.userId.eq(userId),
         )
-        .where(headCount?.let { pose.headCount.eq(it) })
-        .orderBy(
-            when (sortOrder) {
-                SortOrder.ASC -> pose.createdAt.asc()
-                SortOrder.DESC -> pose.createdAt.desc()
-            },
+        .where(
+            headCount?.let { pose.headCount.eq(it) },
+            relation?.let { pose.relation.eq(it) },
         )
+        .orderBy(*orderOf(sort))
         .offset(offset.toLong())
         .limit(limit.toLong())
         .fetch()
+
+    fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long = queryFactory
+        .select(pose.count())
+        .from(pose)
+        .where(
+            headCount?.let { pose.headCount.eq(it) },
+            relation?.let { pose.relation.eq(it) },
+        )
+        .fetchOne() ?: 0L
+
+    /**
+     * 등록 시각이 같으면 id 로 같은 방향 정렬한다. 최신순이면 나중에 들어온 포즈가 먼저다 (위키 8-1).
+     */
+    private fun orderOf(sort: PoseSort): Array<OrderSpecifier<*>> {
+        val direction: Order = when (sort) {
+            PoseSort.LATEST -> Order.DESC
+            PoseSort.OLDEST -> Order.ASC
+        }
+        return arrayOf(OrderSpecifier(direction, pose.createdAt), OrderSpecifier(direction, pose.id))
+    }
 
     fun findOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> = queryFactory
         .selectFrom(pose)
@@ -91,6 +114,30 @@ class PosesQueryRepository(private val queryFactory: JPAQueryFactory) {
         .offset(offset.toLong())
         .limit(limit.toLong())
         .fetch()
+
+    fun countOwnedScrapPoses(userId: Long): Long = queryFactory
+        .select(pose.count())
+        .from(pose)
+        .innerJoin(scrapPose)
+        .on(
+            scrapPose.id.poseId.eq(pose.id),
+        )
+        .where(
+            scrapPose.id.userId.eq(userId),
+        )
+        .fetchOne() ?: 0L
+
+    fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String> {
+        if (sourceKeys.isEmpty()) return emptySet()
+
+        return queryFactory
+            .select(pose.sourceKey)
+            .from(pose)
+            .where(pose.sourceKey.`in`(sourceKeys))
+            .fetch()
+            .filterNotNull()
+            .toSet()
+    }
 
     fun countPoses(headCount: HeadCount, excludeIds: List<Long>): Long = queryFactory
         .select(pose.count())

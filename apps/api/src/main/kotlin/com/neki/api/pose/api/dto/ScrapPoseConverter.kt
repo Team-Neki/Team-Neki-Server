@@ -39,6 +39,7 @@ object ScrapPoseConverter {
         }
 
         fun toGetPosesResponse(result: PoseResult.GetPoses): PoseResponse.GetPoses = PoseResponse.GetPoses(
+            totalCount = result.totalCount,
             items = result.poses.map {
                 PoseResponse.GetPoses.Item(
                     poseId = it.poseId,
@@ -49,6 +50,7 @@ object ScrapPoseConverter {
                     width = it.width,
                     height = it.height,
                     createdAt = it.createdAt,
+                    relation = it.relation,
                 )
             },
             hasNext = result.hasNext,

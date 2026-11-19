@@ -6,6 +6,8 @@ import com.neki.domain.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.domain.pose.infra.persist.jpa.PosesQueryRepository
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
+import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 import com.neki.domain.pose.repository.PoseRepository
 import org.springframework.data.repository.findByIdOrNull
@@ -37,8 +39,17 @@ class PoseRepositoryAdapter(
         offset: Int,
         limit: Int,
         headCount: HeadCount?,
-        sortOrder: SortOrder,
-    ): List<PoseWithScrap> = queryRepository.listPosesWithScrap(userId, offset, limit, headCount, sortOrder)
+        relation: PoseRelation?,
+        sort: PoseSort,
+    ): List<PoseWithScrap> = queryRepository.listPosesWithScrap(userId, offset, limit, headCount, relation, sort)
+
+    override fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long =
+        queryRepository.countFilteredPoses(headCount, relation)
+
+    override fun countOwnedScrapPoses(userId: Long): Long = queryRepository.countOwnedScrapPoses(userId)
+
+    override fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String> =
+        queryRepository.findExistingSourceKeys(sourceKeys)
 
     override fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose> =
         queryRepository.findOwnedScrapPoses(userId, offset, limit, sortOrder)

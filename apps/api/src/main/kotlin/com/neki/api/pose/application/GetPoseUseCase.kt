@@ -24,6 +24,7 @@ class GetPoseUseCase(private val poseScrapService: PoseScrapService, private val
             width = mediaInfo.width,
             height = mediaInfo.height,
             createdAt = pose.createdAt!!,
+            relation = pose.relation,
         )
     }
 }

@@ -25,12 +25,12 @@ class GetPosesUseCase(
 ) {
 
     fun execute(query: PoseQuery.GetPoses): PoseResult.GetPoses {
-        val page: Page<PoseWithScrap> = transactionRunner.readOnly {
-            poseScrapService.listPosesWithScrap(query)
+        val (page: Page<PoseWithScrap>, totalCount: Long) = transactionRunner.readOnly {
+            poseScrapService.listPosesWithScrap(query) to poseScrapService.countPoses(query)
         }
 
         if (page.items.isEmpty()) {
-            return PoseResult.GetPoses(poses = emptyList(), hasNext = false)
+            return PoseResult.GetPoses(poses = emptyList(), hasNext = false, totalCount = totalCount)
         }
 
         // storageKey 조회 (페이징된 결과에 대해서만)
@@ -38,6 +38,6 @@ class GetPosesUseCase(
             page.items.map { it.pose.mediaId },
         )
 
-        return PoseResult.GetPoses(PoseAssembler.toItems(page.items, medias), page.hasNext)
+        return PoseResult.GetPoses(PoseAssembler.toItems(page.items, medias), page.hasNext, totalCount)
     }
 }

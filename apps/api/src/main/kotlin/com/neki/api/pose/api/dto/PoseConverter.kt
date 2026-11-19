@@ -2,11 +2,12 @@ package com.neki.api.pose.api.dto
 
 import com.neki.api.pose.application.dto.PoseResult
 import com.neki.core.domain.vo.Pagination
-import com.neki.core.domain.vo.SortOrder
 import com.neki.core.properties.AppProperties
 import com.neki.domain.pose.dto.PoseCommand
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
+import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import org.springframework.stereotype.Component
 
 /**
@@ -25,20 +26,28 @@ object PoseConverter {
                     mediaId = item.mediaId!!,
                     headCount = item.headCount,
                     memo = item.memo,
+                    relation = item.relation,
+                    sourceKey = item.sourceKey,
                 )
             },
         )
 
+        /**
+         * 정렬은 sort 로만 넘긴다. Pagination 의 sortOrder 는 기본값으로 두며 쓰지 않는다.
+         */
         fun toGetPosesQuery(
             userId: Long,
             page: Int,
             size: Int,
             headCount: HeadCount?,
-            sortOrder: SortOrder,
+            relation: PoseRelation?,
+            sort: PoseSort,
         ): PoseQuery.GetPoses = PoseQuery.GetPoses(
             userId = userId,
             headCount = headCount,
-            pagination = Pagination(page = page, size = size, sortOrder = sortOrder),
+            pagination = Pagination(page = page, size = size),
+            relation = relation,
+            sort = sort,
         )
 
         fun toGetPoseQuery(userId: Long, poseId: Long): PoseQuery.GetPose =
@@ -59,6 +68,7 @@ object PoseConverter {
         }
 
         fun toGetPosesResponse(result: PoseResult.GetPoses): PoseResponse.GetPoses = PoseResponse.GetPoses(
+            totalCount = result.totalCount,
             items = result.poses.map {
                 PoseResponse.GetPoses.Item(
                     poseId = it.poseId,
@@ -69,6 +79,7 @@ object PoseConverter {
                     width = it.width,
                     height = it.height,
                     createdAt = it.createdAt,
+                    relation = it.relation,
                 )
             },
             hasNext = result.hasNext,
@@ -83,6 +94,7 @@ object PoseConverter {
             width = result.width,
             height = result.height,
             createdAt = result.createdAt,
+            relation = result.relation,
         )
 
         private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}${IMAGE_URL_PATH}$storageKey"

@@ -1,6 +1,7 @@
 package com.neki.api.pose.api.dto
 
 import com.neki.domain.pose.models.HeadCount
+import com.neki.domain.pose.models.PoseRelation
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 
@@ -13,6 +14,8 @@ import java.time.LocalDateTime
 object PoseResponse {
     @Schema(name = "GetPosesResponse")
     data class GetPoses(
+        @field:Schema(description = "전체 개수 (현재 페이지가 아니라 조건에 맞는 전체 포즈 수)", example = "51")
+        val totalCount: Long,
         @field:Schema(description = "포즈 목록")
         val items: List<Item>,
         @field:Schema(description = "다음 페이지 존재 여부", example = "true")
@@ -36,6 +39,12 @@ object PoseResponse {
             val height: Int? = null,
             @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
             val createdAt: LocalDateTime,
+            @field:Schema(
+                description = "2인 포즈 관계 (FRIEND/COUPLE/SSUM). 관계 없는 포즈는 null",
+                example = "FRIEND",
+                nullable = true,
+            )
+            val relation: PoseRelation? = null,
         )
     }
 
@@ -57,5 +66,11 @@ object PoseResponse {
         val height: Int? = null,
         @field:Schema(description = "업로드 날짜", example = "2025-12-23T07:09:00")
         val createdAt: LocalDateTime,
+        @field:Schema(
+            description = "2인 포즈 관계 (FRIEND/COUPLE/SSUM). 관계 없는 포즈는 null",
+            example = "FRIEND",
+            nullable = true,
+        )
+        val relation: PoseRelation? = null,
     )
 }

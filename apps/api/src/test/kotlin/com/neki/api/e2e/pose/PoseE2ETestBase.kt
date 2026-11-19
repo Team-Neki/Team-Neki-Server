@@ -9,6 +9,7 @@ import com.neki.domain.pose.infra.persist.jpa.JpaPoseRepository
 import com.neki.domain.pose.infra.persist.jpa.JpaScrapPoseRepository
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
+import com.neki.domain.pose.models.PoseRelation
 import com.neki.domain.pose.models.ScrapPose
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -58,12 +59,16 @@ abstract class PoseE2ETestBase : E2ETestBase() {
         mediaId: Long,
         headCount: HeadCount = HeadCount.ONE,
         memo: String? = null,
+        relation: PoseRelation? = null,
+        sourceKey: String? = null,
     ): Pose = poseRepository.save(
         Pose(
             userId = userId,
             mediaId = mediaId,
             headCount = headCount,
             memo = memo,
+            relation = relation,
+            sourceKey = sourceKey,
         ),
     )
 

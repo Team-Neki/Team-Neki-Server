@@ -44,6 +44,7 @@ class ExceptionHandler {
             ResultCode.INVALID_TOKEN_ERROR -> HttpStatus.FORBIDDEN
             ResultCode.LOG_SEND_FAILED -> HttpStatus.SERVICE_UNAVAILABLE
             ResultCode.LOG_PAYLOAD_TOO_LARGE -> HttpStatus.PAYLOAD_TOO_LARGE
+            ResultCode.CONFLICT_POSE_SOURCE_KEY -> HttpStatus.CONFLICT
             else -> HttpStatus.BAD_REQUEST
         }
 

@@ -4,6 +4,8 @@ import com.neki.core.domain.vo.SortOrder
 import com.neki.domain.pose.dto.PoseQuery
 import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
+import com.neki.domain.pose.models.PoseRelation
+import com.neki.domain.pose.models.PoseSort
 import com.neki.domain.pose.models.PoseWithScrap
 
 /**
@@ -22,15 +24,31 @@ interface PoseRepository {
 
     fun saveAll(poses: List<Pose>): List<Pose>
 
+    /**
+     * sort 로 정렬한다. headCount 와 relation 은 null 이면 거르지 않는다.
+     */
     fun listPosesWithScrap(
         userId: Long,
         offset: Int,
         limit: Int,
         headCount: HeadCount?,
-        sortOrder: SortOrder,
+        relation: PoseRelation?,
+        sort: PoseSort,
     ): List<PoseWithScrap>
 
+    /**
+     * 주어진 source_key 중 이미 포즈로 등록된 것만 돌려준다.
+     */
+    fun findExistingSourceKeys(sourceKeys: Collection<String>): Set<String>
+
+    /**
+     * listPosesWithScrap 과 같은 조건의 전체 포즈 수. media 상태는 보지 않는다.
+     */
+    fun countFilteredPoses(headCount: HeadCount?, relation: PoseRelation?): Long
+
     fun listOwnedScrapPoses(userId: Long, offset: Int, limit: Int, sortOrder: SortOrder): List<Pose>
+
+    fun countOwnedScrapPoses(userId: Long): Long
 
     fun findAll(query: PoseQuery.GetAllPoses): List<Pose>
 

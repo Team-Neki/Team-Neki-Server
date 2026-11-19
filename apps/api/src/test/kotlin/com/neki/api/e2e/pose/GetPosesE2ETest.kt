@@ -3,8 +3,10 @@ package com.neki.api.e2e.pose
 import com.neki.core.code.ResultCode
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.pose.models.HeadCount
+import com.neki.domain.pose.models.PoseRelation
 import com.neki.domain.user.models.User
 import io.restassured.RestAssured
+import org.hamcrest.Matchers.containsInAnyOrder
 import org.hamcrest.Matchers.empty
 import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.hasSize
@@ -260,7 +262,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
     inner class SortingTests {
 
         @Test
-        @DisplayName("포즈 목록 정렬 - 최신순(DESC) 기본값")
+        @DisplayName("포즈 목록 정렬 - sort 를 생략하면 최신순(LATEST)")
         fun givenMultiplePoses_whenGetWithDefaultSort_thenReturnsDescOrder() {
             // given: 순서대로 3개의 포즈 생성 (생성 시간 차이 확보)
             val poses = (1..3).map {
@@ -269,7 +271,7 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 createPose(userId = testUser.id!!, mediaId = media.id!!)
             }
 
-            // when & then: 기본 정렬(DESC)로 조회 시 최신 포즈가 먼저 나옴
+            // when & then: 기본 정렬(LATEST)로 조회 시 최신 포즈가 먼저 나옴
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
                 .`when`()
@@ -284,8 +286,8 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬 - 오래된순(ASC)")
-        fun givenMultiplePoses_whenGetWithAscSort_thenReturnsAscOrder() {
+        @DisplayName("포즈 목록 정렬 - sort=OLDEST 면 오래된 순이다")
+        fun givenMultiplePoses_whenGetWithOldestSort_thenReturnsOldestFirst() {
             // given: 순서대로 3개의 포즈 생성
             val poses = (1..3).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -293,10 +295,10 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 createPose(userId = testUser.id!!, mediaId = media.id!!)
             }
 
-            // when & then: ASC 정렬로 조회 시 오래된 포즈가 먼저 나옴
+            // when & then: OLDEST 면 먼저 만든 포즈가 먼저 나옴
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
-                .queryParam("sortOrder", "ASC")
+                .queryParam("sort", "OLDEST")
                 .`when`()
                 .get("/api/poses")
                 .then()
@@ -309,8 +311,104 @@ class GetPosesE2ETest : PoseE2ETestBase() {
         }
 
         @Test
-        @DisplayName("포즈 목록 정렬과 페이징 조합 - DESC + 첫 페이지")
-        fun givenMultiplePoses_whenGetFirstPageWithDescSort_thenReturnsPagedDescOrder() {
+        @DisplayName("포즈 목록 정렬 - sort=LATEST 는 최신순이다")
+        fun givenMultiplePoses_whenGetWithLatestSort_thenReturnsLatestFirst() {
+            // given
+            val poses = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPose(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sort", "LATEST")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.poseId", equalTo(poses.map { it.id!!.toInt() }.reversed()))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬 - sort 값이 잘못되면 400 D-01")
+        fun givenInvalidSort_whenGetPoses_thenReturnsInvalidParameter() {
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sort", "POPULAR")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬 - 등록 시각이 같으면 포즈 ID 내림차순")
+        fun givenSameCreatedAt_whenGetPoses_thenOrderedByIdDesc() {
+            // given
+            val poses = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                createPose(userId = testUser.id!!, mediaId = media.id!!)
+            }
+            jdbcTemplate.update("UPDATE tb_pose SET created_at = TIMESTAMP '2026-01-01 00:00:00'")
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.poseId", equalTo(poses.map { it.id!!.toInt() }.reversed()))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬 - OLDEST 이고 등록 시각이 같으면 포즈 ID 오름차순")
+        fun givenSameCreatedAt_whenGetPosesOldest_thenOrderedByIdAsc() {
+            // given
+            val poses = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                createPose(userId = testUser.id!!, mediaId = media.id!!)
+            }
+            jdbcTemplate.update("UPDATE tb_pose SET created_at = TIMESTAMP '2026-01-01 00:00:00'")
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sort", "OLDEST")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.poseId", equalTo(poses.map { it.id!!.toInt() }))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬 - 예전 앱이 보내는 sortOrder=ASC 는 받지 않으므로 최신순이다")
+        fun givenMultiplePoses_whenGetWithLegacySortOrder_thenStillReturnsLatestFirst() {
+            // given
+            val poses = (1..3).map {
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                Thread.sleep(10)
+                createPose(userId = testUser.id!!, mediaId = media.id!!)
+            }
+
+            // when & then
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("sortOrder", "ASC")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items.poseId", equalTo(poses.map { it.id!!.toInt() }.reversed()))
+        }
+
+        @Test
+        @DisplayName("포즈 목록 정렬과 페이징 조합 - LATEST + 첫 페이지")
+        fun givenMultiplePoses_whenGetFirstPageWithLatestSort_thenReturnsPagedLatestOrder() {
             // given: 5개의 포즈 생성
             val poses = (1..5).map {
                 val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
@@ -318,12 +416,12 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 createPose(userId = testUser.id!!, mediaId = media.id!!)
             }
 
-            // when & then: page=0, size=2, DESC 조회 시 최신 2개 반환
+            // when & then: page=0, size=2, LATEST 조회 시 최신 2개 반환
             RestAssured.given()
                 .header("Authorization", "Bearer $accessToken")
                 .queryParam("page", 0)
                 .queryParam("size", 2)
-                .queryParam("sortOrder", "DESC")
+                .queryParam("sort", "LATEST")
                 .`when`()
                 .get("/api/poses")
                 .then()
@@ -331,8 +429,131 @@ class GetPosesE2ETest : PoseE2ETestBase() {
                 .body("resultCode", equalTo(ResultCode.SUCCESS.code))
                 .body("data.items", hasSize<Int>(2))
                 .body("data.hasNext", equalTo(true))
+                .body("data.totalCount", equalTo(5))
                 .body("data.items[0].poseId", equalTo(poses[4].id!!.toInt()))
                 .body("data.items[1].poseId", equalTo(poses[3].id!!.toInt()))
+        }
+    }
+
+    @Nested
+    @DisplayName("관계(relation) 필터 테스트")
+    inner class RelationFilterTests {
+
+        private fun seed(): Map<String, Long> {
+            val specs: List<Pair<HeadCount, PoseRelation?>> = listOf(
+                HeadCount.TWO to PoseRelation.FRIEND,
+                HeadCount.TWO to PoseRelation.COUPLE,
+                HeadCount.TWO to PoseRelation.SSUM,
+                HeadCount.TWO to null,
+                HeadCount.ONE to null,
+            )
+            return specs.associate { (headCount, relation) ->
+                val media = createMedia(ownerId = testUser.id!!, status = MediaStatus.UPLOADED)
+                val pose = createPose(
+                    userId = testUser.id!!,
+                    mediaId = media.id!!,
+                    headCount = headCount,
+                    relation = relation,
+                )
+                "${headCount.name}_${relation?.name ?: "NONE"}" to pose.id!!
+            }
+        }
+
+        @Test
+        @DisplayName("headCount=TWO&relation=COUPLE - COUPLE 만 나온다")
+        fun twoCouple() {
+            val ids = seed()
+
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "TWO")
+                .queryParam("relation", "COUPLE")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", hasSize<Int>(1))
+                .body("data.totalCount", equalTo(1))
+                .body("data.items[0].poseId", equalTo(ids.getValue("TWO_COUPLE").toInt()))
+                .body("data.items[0].relation", equalTo("COUPLE"))
+        }
+
+        @Test
+        @DisplayName("headCount=TWO (relation 없음) - 관계 없는 2인 포즈까지 전부 나온다")
+        fun twoAll() {
+            seed()
+
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "TWO")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", hasSize<Int>(4))
+                .body("data.totalCount", equalTo(4))
+                .body("data.items.relation", containsInAnyOrder("FRIEND", "COUPLE", "SSUM", null))
+        }
+
+        @Test
+        @DisplayName("headCount=ONE&relation=FRIEND - 빈 목록, hasNext=false (400 아님)")
+        fun oneFriendEmpty() {
+            seed()
+
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("headCount", "ONE")
+                .queryParam("relation", "FRIEND")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", empty<Any>())
+                .body("data.hasNext", equalTo(false))
+                .body("data.totalCount", equalTo(0))
+        }
+
+        @Test
+        @DisplayName("relation 만 보내도 거른다 - FRIEND 1건")
+        fun relationOnly() {
+            seed()
+
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("relation", "FRIEND")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.items", hasSize<Int>(1))
+                .body("data.items[0].relation", equalTo("FRIEND"))
+        }
+
+        @Test
+        @DisplayName("relation 값이 잘못되면 400 D-01")
+        fun invalidRelation() {
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .queryParam("relation", "LOVER")
+                .`when`()
+                .get("/api/poses")
+                .then()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .body("resultCode", equalTo(ResultCode.INVALID_PARAMETER.code))
+        }
+
+        @Test
+        @DisplayName("상세 조회 응답에도 relation 이 실린다")
+        fun detailHasRelation() {
+            val ids = seed()
+
+            RestAssured.given()
+                .header("Authorization", "Bearer $accessToken")
+                .`when`()
+                .get("/api/poses/${ids.getValue("TWO_SSUM")}")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .body("data.relation", equalTo("SSUM"))
         }
     }
 

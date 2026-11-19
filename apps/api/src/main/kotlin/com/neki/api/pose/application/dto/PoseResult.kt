@@ -1,6 +1,7 @@
 package com.neki.api.pose.application.dto
 
 import com.neki.domain.pose.models.HeadCount
+import com.neki.domain.pose.models.PoseRelation
 import java.time.LocalDateTime
 
 /**
@@ -10,7 +11,7 @@ import java.time.LocalDateTime
  * description    : Pose domain result
  */
 object PoseResult {
-    data class GetPoses(val poses: List<Item>, val hasNext: Boolean) {
+    data class GetPoses(val poses: List<Item>, val hasNext: Boolean, val totalCount: Long) {
         data class Item(
             val poseId: Long,
             val headCount: HeadCount,
@@ -20,6 +21,7 @@ object PoseResult {
             val width: Int? = null,
             val height: Int? = null,
             val createdAt: LocalDateTime,
+            val relation: PoseRelation? = null,
         )
     }
 
@@ -32,5 +34,6 @@ object PoseResult {
         val width: Int? = null,
         val height: Int? = null,
         val createdAt: LocalDateTime,
+        val relation: PoseRelation? = null,
     )
 }
