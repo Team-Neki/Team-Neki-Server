@@ -1,23 +1,20 @@
-## Summary
+<!-- 작성 기준: docs/conventions/pull-request.md -->
 
-<!-- 변경 사항을 간결하게 설명해주세요 -->
+## 배경
 
-## Changes
+<!-- 왜 이 작업이 필요한지. 문제 상황과 영향을 2~4문장으로 쓴다 -->
 
-<!-- 주요 변경 내용을 bullet point로 작성해주세요 -->
+Sprint: [BACKEND-000](https://sprint.suitestudy.com:4641/tasks/<ticket-id>)
+
+## 변경 내용
+
+<!-- 리뷰어가 알아야 할 핵심 변경만 3~5개. 변경 파일 목록을 옮겨 적지 않는다 -->
+<!-- 요청 처리, 배치, CI/배포처럼 흐름이 바뀌면 mermaid 다이어그램을 넣는다 -->
 
 -
 
-## Related Issue
+## 검증
 
-<!-- #{이슈번호} 또는 closes #{이슈번호} -->
+<!-- 실행한 명령과 결과. 확인하지 못한 것과 배포 후 확인할 것도 적는다 -->
 
-## Sub-issue Progress
-
-<!-- 현재 issue가 sub-issue인 경우, parent issue의 진행 상황을 작성해주세요 (아니면 섹션 삭제) -->
-<!-- | Sub-issue | Title | Status | -->
-<!-- |-----------|-------|--------| -->
-
-## Notes
-
-<!-- 리뷰어가 알아야 할 사항이 있다면 작성해주세요 (없으면 섹션 삭제) -->
+-
