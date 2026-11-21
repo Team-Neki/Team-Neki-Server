@@ -3,6 +3,7 @@ package com.neki.domain.media.service
 import com.neki.domain.media.dto.MediaQuery
 import com.neki.domain.media.external.DistributedLock
 import com.neki.domain.media.external.MediaBinaryCache
+import com.neki.domain.media.external.MediaBinaryCacheMetrics
 import com.neki.domain.media.external.MediaStorage
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaType
@@ -22,6 +23,7 @@ class MediaBinaryService(
     private val binaryCache: MediaBinaryCache,
     private val mediaStorage: MediaStorage,
     private val distributedLock: DistributedLock,
+    private val cacheMetrics: MediaBinaryCacheMetrics = MediaBinaryCacheMetrics.NOOP,
 ) {
     private val log: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -43,13 +45,17 @@ class MediaBinaryService(
      */
     private fun getBinary(objectKey: String, mediaType: MediaType?): ByteArray {
         // 캐싱 대상이 아닌 타입은 스토리지에서 직접 조회
-        val cacheTtl: Duration = mediaType?.cacheTtl ?: return mediaStorage.fetchBinaryByKey(objectKey)
+        val type: MediaType = mediaType ?: return mediaStorage.fetchBinaryByKey(objectKey)
+        val cacheTtl: Duration = type.cacheTtl ?: return mediaStorage.fetchBinaryByKey(objectKey)
 
         // cache를 조회하고 있다면 바로 반환
         binaryCache.get(objectKey)?.let {
             log.debug("[GetImage] Cache hit for key: $objectKey")
+            cacheMetrics.recordLookup(type, hit = true)
             return it
         }
+        // hit율은 요청당 첫 조회 기준이다. 락 대기 뒤 재확인에서 찾은 경우도 miss 로 센다
+        cacheMetrics.recordLookup(type, hit = false)
 
         // cache가 없다면 lock을 획득하여 스토리지에서 데이터를 가져오고 캐싱
         return distributedLock.executeWithLock(objectKey) {

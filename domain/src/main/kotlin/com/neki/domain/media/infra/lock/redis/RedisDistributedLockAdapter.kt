@@ -81,8 +81,10 @@ class RedisDistributedLockAdapter(private val redisTemplate: RedisTemplate<Strin
                     ).toLong()
                 }
             } catch (e: Exception) {
-                log.warn("[DistributedLock] Redis operation failed (attempt ${attempt + 1}), key: $key", e)
-                // Graceful degradation: continue to next retry or return null
+                // false(다른 요청이 보유 중)는 기다릴 이유가 있지만, 예외는 Redis 가 대답을 못 한 것이라 다시 물어도 같은 시간만 더 쓴다.
+                // 재시도하지 않고 null 을 돌려 호출자가 바로 스토리지 폴백으로 가게 한다
+                log.warn("[DistributedLock] Redis error, giving up lock, key: $key", e)
+                return null
             }
         }
 

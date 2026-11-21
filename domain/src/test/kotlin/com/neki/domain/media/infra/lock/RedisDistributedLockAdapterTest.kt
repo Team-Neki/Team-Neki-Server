@@ -89,10 +89,11 @@ class RedisDistributedLockAdapterTest :
             attemptCount shouldBe 6 // Initial + 5 retries (default)
         }
 
-        test("Redis exception - should return null (graceful degradation)") {
+        test("Redis exception - should give up immediately without retry") {
             // Given
             val objectKey = "test/image.jpg"
             val lockKey = "lock:media:fetch:$objectKey"
+            val actionExecuted = AtomicInteger(0)
 
             every {
                 mockValueOps.setIfAbsent(lockKey, any(), any<Duration>())
@@ -101,11 +102,34 @@ class RedisDistributedLockAdapterTest :
             // When
             val result =
                 adapter.executeWithLock(objectKey) {
+                    actionExecuted.incrementAndGet()
+                    "should not execute"
+                }
+
+            // Then: 예외는 Redis 가 대답을 못 한 것이므로 재시도하지 않는다 (재시도마다 command timeout 만큼 스레드를 더 붙잡는다)
+            result shouldBe null
+            actionExecuted.get() shouldBe 0
+            verify(exactly = 1) { mockValueOps.setIfAbsent(lockKey, any(), any<Duration>()) }
+        }
+
+        test("Lock not acquired then Redis exception - should stop retrying at the exception") {
+            // Given: 첫 시도는 다른 요청이 보유 중(false), 두 번째 시도에서 Redis 오류
+            val objectKey = "test/image.jpg"
+            val lockKey = "lock:media:fetch:$objectKey"
+
+            every {
+                mockValueOps.setIfAbsent(lockKey, any(), any<Duration>())
+            } returns false andThenThrows RuntimeException("Redis connection failed")
+
+            // When
+            val result =
+                adapter.executeWithLock(objectKey) {
                     "should not execute"
                 }
 
             // Then
-            result shouldBe null // Graceful degradation
+            result shouldBe null
+            verify(exactly = 2) { mockValueOps.setIfAbsent(lockKey, any(), any<Duration>()) }
         }
 
         test("Action throws exception - should return null and release lock") {
