@@ -156,7 +156,7 @@ class PhotoMediaClient(private val getMediaMetadataListUseCase: GetMediaMetadata
 ## Interface Naming
 
 - 도메인 인터페이스에 `port` 패키지와 `Port` 접미사를 쓰지 않는다. 역할별로 `repository/`, `client/`, `external/` 에 나눠 둔다
-- `client/` 는 도메인 간 호출 전용이다. `MapApiClient` 처럼 `Client` 접미사가 붙어도 외부 API 면 `external/` 에 둔다
+- `client/` 는 도메인 간 호출 전용이다. `Client` 접미사가 붙어도 외부 API 면 `external/` 에 둔다
 - 기술 구현 어댑터는 `*Adapter`, 다른 도메인 호출 어댑터는 `<소비도메인><Provider>Client` (e.g. `PhotoMediaClient`)
 - Spring Data JPA 는 `Jpa*Repository`, QueryDSL 은 `*QueryRepository`
 - infra 내부에서만 쓰이는 인터페이스는 이 규칙 밖이다 (e.g. `user/infra/cache/AuthCachePort`)

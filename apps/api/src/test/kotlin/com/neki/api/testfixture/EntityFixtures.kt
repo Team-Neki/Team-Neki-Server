@@ -1,7 +1,6 @@
 package com.neki.api.testfixture
 
 import com.neki.domain.map.models.Brand
-import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.media.models.Media
 import com.neki.domain.media.models.MediaStatus
 import com.neki.domain.media.models.MediaType
@@ -22,9 +21,6 @@ import com.neki.domain.support.models.UserTermAgreement
 import com.neki.domain.user.models.ProviderType
 import com.neki.domain.user.models.RoleType
 import com.neki.domain.user.models.User
-import org.locationtech.jts.geom.Coordinate
-import org.locationtech.jts.geom.GeometryFactory
-import org.locationtech.jts.geom.PrecisionModel
 import java.time.LocalDateTime
 
 // ── User ─────────────────────────────────────────────────────────────────────
@@ -206,27 +202,3 @@ fun aBrand(
     mediaId = mediaId,
     exposeToMap = exposeToMap,
 )
-
-// ── PhotoBoothLocation ────────────────────────────────────────────────────────
-
-private val GEOMETRY_FACTORY = GeometryFactory(PrecisionModel(), 4326)
-
-fun aPhotoBoothLocation(
-    id: Long = 1L,
-    mapId: String = "map-$id",
-    brandId: Long = 1L,
-    branchName: String = "강남점",
-    address: String = "서울특별시 강남구 테헤란로 123",
-    longitude: Double = 127.0276,
-    latitude: Double = 37.4979,
-): PhotoBoothLocation {
-    val point = GEOMETRY_FACTORY.createPoint(Coordinate(longitude, latitude))
-    return PhotoBoothLocation(
-        id = id,
-        mapId = mapId,
-        brandId = brandId,
-        branchName = branchName,
-        address = address,
-        location = point,
-    )
-}

@@ -9,8 +9,6 @@ import com.neki.domain.map.models.PhotoBoothKey
  * description    : Map domain command
  */
 object MapCommand {
-    data class CollectPhotoBooth(val keyword: String, val brandCode: String)
-
     data class UpdatePhotoBoothFavorite(val userId: Long, val key: PhotoBoothKey, val favorite: Boolean)
 
     data class UpdateBrandOrder(val userId: Long, val brandIds: List<Long>)

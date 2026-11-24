@@ -3,7 +3,6 @@ package com.neki.api.e2e.map
 import com.neki.api.e2e.E2ETestBase
 import com.neki.domain.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.domain.map.infra.persist.jpa.JpaFavoritePhotoBoothRepository
-import com.neki.domain.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.domain.map.infra.persist.jpa.JpaUserBrandOrderRepository
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.models.FavoritePhotoBooth
@@ -30,9 +29,6 @@ abstract class MapE2ETestBase : E2ETestBase() {
     protected lateinit var brandRepository: JpaBrandRepository
 
     @Autowired
-    protected lateinit var photoBoothLocationRepository: JpaPhotoBoothLocationRepository
-
-    @Autowired
     protected lateinit var userBrandOrderRepository: JpaUserBrandOrderRepository
 
     @Autowired
@@ -48,7 +44,6 @@ abstract class MapE2ETestBase : E2ETestBase() {
         userBrandOrderRepository.deleteAllInBatch()
         favoritePhotoBoothRepository.deleteAllInBatch()
         photoBoothEnrichedRepository.deleteAllInBatch()
-        photoBoothLocationRepository.deleteAllInBatch()
         brandRepository.deleteAllInBatch()
         super.tearDown()
     }

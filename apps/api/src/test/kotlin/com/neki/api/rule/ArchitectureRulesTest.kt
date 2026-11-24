@@ -327,7 +327,7 @@ class ArchitectureRulesTest {
         /**
          * :modules:* 의 연결 설정(com.neki.config..)은 infra 어댑터에서만 참조할 수 있다.
          * api/application 이 모듈 설정을 직접 알면 인프라 교체 시 영향이 계층을 넘어 번진다.
-         * (S3Properties, KakaoApiRateLimitProperties 등은 어댑터 와이어링 용도로만 쓰인다)
+         * (S3Properties 등은 어댑터 와이어링 용도로만 쓰인다)
          */
         @Test
         fun `api·application 레이어는 모듈 연결설정을 의존할 수 없다`() {

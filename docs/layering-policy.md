@@ -100,9 +100,9 @@ admin의 Google OIDC 로그인·인가·보안 응답은 `apps/admin`의 `auth/i
 | --- | --- | --- |
 | `repository/` | 자기 도메인 영속성 | `MediaRepository`, `FolderRepository` |
 | `client/` | 다른 도메인 호출 | `photo/client/MediaClient`, `user/client/TermClient` |
-| `external/` | 외부 시스템 연동 | `MediaStorage`, `DistributedLock`, `MapApiClient` |
+| `external/` | 외부 시스템 연동 | `MediaStorage`, `DistributedLock`, `PushNotificationSender` |
 
-`client/`는 도메인 간 호출 전용입니다. `MapApiClient`, `MapSearch`는 `Client` 접미사가 붙어 있지만 Kakao 외부 API이므로 `external/`에 둡니다. 패키지만 보고 도메인 경계를 넘는 호출인지 판별할 수 있게 하는 것이 목적입니다.
+`client/`는 도메인 간 호출 전용입니다. 외부 API 연동은 이름에 `Client` 접미사가 붙더라도 `external/`에 둡니다. 패키지만 보고 도메인 경계를 넘는 호출인지 판별할 수 있게 하는 것이 목적입니다.
 
 인터페이스가 아닌 순수 도메인 규칙(`BrandOrderPolicy` 같은 object)은 도메인 루트에 둡니다.
 
