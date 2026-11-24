@@ -7,7 +7,7 @@
 - 대상 API : `POST /api/search/photo-booths`, `POST /api/search/filter`. keyword 는 쿼리 파라미터가 아니라 body 로 받음(`keyword`, `filterGroup`, 목록만 `userLocation`). 필터 body 에 `userLocation` 처럼 모르는 필드를 넣으면 D-01
 - keyword 해석 : QU(정규화 -> NER -> Intent)가 메모리 사전으로 지역·역·지점·브랜드를 먼저 뽑음. 사전은 자동완성 keyword(`서울특별시 강남구`, `강남역 2호선`, `모노맨션 강남역점`)와 브랜드만 알아 고른 keyword 는 그 하나가 되고, `강남`·`강남역` 같은 이름 조각은 범위가 되지 않음(BACKEND-212). 범위(지역·역·지점)를 하나도 못 찾았을 때만 DB 에서 자동완성 keyword 를 정확 일치로 찾음
 - 조회 범위 : 지역은 `region_ids` 배열 포함(GIN), 역은 1km 연결 테이블(`_station`). 지역·역끼리는 합집합, 검색어의 브랜드와 요청의 브랜드 필터는 교집합
-- 응답 id·favorite : 검색 색인 행의 원천 키 (platform, idx) 로 찾은 지금 세대 지도 부스(`tb_photo_booth_enriched`) 값. id 는 `source:<브랜드 코드>:<idx>` 문자열로 지도 V2 API 와 같고, favorite 은 `TB_FAVORITE_PHOTO_BOOTH` 와 기존 `TB_FAVORITE_MAP` 을 합친 값. 색인 이후 enriched 에서 빠진 부스는 목록과 필터 모두에서 빠짐 (지점 마스터 `admin_hidden` 은 더 보지 않음)
+- 응답 id·favorite : 검색 색인 행의 원천 키 (platform, idx) 로 찾은 지금 세대 지도 부스(`tb_photo_booth_enriched`) 값. id 는 `source:<브랜드 코드>:<idx>` 문자열로 지도 V2 API 와 같고, favorite 은 `TB_FAVORITE_PHOTO_BOOTH` 값 (기존 `TB_FAVORITE_MAP` 은 V47 에서 옮김). 색인 이후 enriched 에서 빠진 부스는 목록과 필터 모두에서 빠짐 (지점 마스터 `admin_hidden` 은 더 보지 않음)
 - 정렬 : 사용자 위치가 있으면 거리 -> 지점명, 없으면 브랜드 -> 지점명 (검색 정책 12장)
 - 결과 없음 : 지역·역을 찾지 못한 검색어도 D-04 가 아니라 빈 목록 (검색 정책 20장)
 - NER 사전 : 앱이 뜰 때 메모리에 올리고 10분마다 다시 만듦 (`SearchDictionaryRefresher`)

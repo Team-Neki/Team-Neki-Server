@@ -5,6 +5,7 @@ import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.BranchName
 import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.MapCommand
+import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.PhotoBoothKey
 import org.springframework.stereotype.Component
 
@@ -27,6 +28,9 @@ object MapV2Converter {
             key = PhotoBoothKey.fromBoothId(photoBoothId) ?: throw BusinessException(ResultCode.INVALID_PARAMETER),
             favorite = request.favorite!!,
         )
+
+        fun toGetFavoritePhotoBoothsQuery(userId: Long): MapQuery.GetFavoriteMaps =
+            MapQuery.GetFavoriteMaps(userId = userId)
     }
 
     @Component

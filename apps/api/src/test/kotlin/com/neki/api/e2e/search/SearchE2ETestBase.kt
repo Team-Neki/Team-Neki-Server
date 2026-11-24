@@ -2,15 +2,12 @@ package com.neki.api.e2e.search
 
 import com.neki.api.e2e.E2ETestBase
 import com.neki.domain.map.infra.persist.jpa.JpaBrandRepository
-import com.neki.domain.map.infra.persist.jpa.JpaFavoriteMapRepository
 import com.neki.domain.map.infra.persist.jpa.JpaFavoritePhotoBoothRepository
 import com.neki.domain.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.domain.map.infra.persist.jpa.JpaUserBrandOrderRepository
 import com.neki.domain.map.models.Brand
-import com.neki.domain.map.models.FavoriteMap
 import com.neki.domain.map.models.FavoritePhotoBooth
 import com.neki.domain.map.models.PhotoBoothKey
-import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.map.models.UserBrandOrder
 import com.neki.domain.search.infra.persist.jpa.JpaLegalDongRepository
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothEnrichedRepository
@@ -58,9 +55,6 @@ abstract class SearchE2ETestBase : E2ETestBase() {
     protected lateinit var photoBoothLocationRepository: JpaPhotoBoothLocationRepository
 
     @Autowired
-    protected lateinit var favoriteMapRepository: JpaFavoriteMapRepository
-
-    @Autowired
     protected lateinit var favoritePhotoBoothRepository: JpaFavoritePhotoBoothRepository
 
     @Autowired
@@ -76,7 +70,6 @@ abstract class SearchE2ETestBase : E2ETestBase() {
 
     @AfterEach
     override fun tearDown() {
-        favoriteMapRepository.deleteAllInBatch()
         favoritePhotoBoothRepository.deleteAllInBatch()
         userBrandOrderRepository.deleteAllInBatch()
         photoBoothLocationRepository.deleteAllInBatch()
@@ -166,21 +159,6 @@ abstract class SearchE2ETestBase : E2ETestBase() {
     protected fun favorite(userId: Long, boothId: String): FavoritePhotoBooth = favoritePhotoBoothRepository.save(
         FavoritePhotoBooth(userId = userId, key = PhotoBoothKey.fromBoothId(boothId)!!),
     )
-
-    /** 지도 V1 즐겨찾기 (TB_FAVORITE_MAP). 원천 키가 같은 지점 마스터 위치를 만들어 그 id 로 즐겨찾기한다 */
-    protected fun favoriteByLocation(userId: Long, booth: PhotoBoothSearch): FavoriteMap {
-        val location: PhotoBoothLocation = photoBoothLocationRepository.save(
-            PhotoBoothLocation(
-                mapId = keyOf(booth).toBoothId(),
-                brandId = booth.brandId,
-                branchName = booth.branchName,
-                address = booth.address!!,
-                location = booth.location,
-            ),
-        )
-        markCollectedLocation(location.id!!, booth.platform, booth.idx)
-        return favoriteMapRepository.save(FavoriteMap(userId = userId, locationId = location.id!!))
-    }
 
     private fun keyOf(booth: PhotoBoothSearch) = PhotoBoothKey(platform = booth.platform, idx = booth.idx)
 

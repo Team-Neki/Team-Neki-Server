@@ -5,7 +5,6 @@ import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.FavoritedPhotoBooth
 import com.neki.domain.map.models.PhotoBoothKey
 import com.neki.domain.map.models.PhotoBoothView
-import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.FavoritePhotoBoothRepository
 import com.neki.domain.map.repository.PhotoBoothRepository
 import com.neki.domain.map.service.MapService
@@ -22,7 +21,7 @@ import java.time.LocalDateTime
 
 /**
  * fileName       : GetFavoritePhotoBoothsUseCaseTest
- * description    : GetFavoritePhotoBoothsUseCase(지도 V2) 단위 테스트. 두 즐겨찾기 테이블을 키로 합친다
+ * description    : GetFavoritePhotoBoothsUseCase(지도 V2) 단위 테스트
  */
 class GetFavoritePhotoBoothsUseCaseTest :
     FunSpec({
@@ -45,26 +44,22 @@ class GetFavoritePhotoBoothsUseCaseTest :
             location = geometryFactory.createPoint(Coordinate(127.02, 37.49)),
         )
 
-        lateinit var favoriteMapRepository: FavoriteMapRepository
         lateinit var favoritePhotoBoothRepository: FavoritePhotoBoothRepository
         lateinit var photoBoothRepository: PhotoBoothRepository
         lateinit var useCase: GetFavoritePhotoBoothsUseCase
 
         beforeTest {
-            favoriteMapRepository = mockk()
             favoritePhotoBoothRepository = mockk()
             photoBoothRepository = mockk()
             useCase = GetFavoritePhotoBoothsUseCase(
-                MapService(favoriteMapRepository, favoritePhotoBoothRepository, mockk(), photoBoothRepository),
+                MapService(favoritePhotoBoothRepository, photoBoothRepository),
             )
         }
 
-        test("두 테이블의 즐겨찾기를 키로 합쳐 최근 순으로 반환하고, 같은 부스는 한 번만 최근 시각 기준이다") {
-            // Given: 새 테이블 a(10분), b(20분) / 기존 테이블 a(30분), c(5분)
+        test("최근 즐겨찾기한 순으로 반환한다") {
+            // Given: a(30분), b(20분), c(5분)
             every { favoritePhotoBoothRepository.findFavoritesByUserId(userId) } returns
-                listOf(favorited(keyA, 10), favorited(keyB, 20))
-            every { favoriteMapRepository.findFavoritedPhotoBooths(userId) } returns
-                listOf(favorited(keyA, 30), favorited(keyC, 5))
+                listOf(favorited(keyC, 5), favorited(keyA, 30), favorited(keyB, 20))
             every { photoBoothRepository.findByKeys(listOf(keyA, keyB, keyC)) } returns
                 listOf(view(keyC), view(keyB), view(keyA))
 
@@ -79,7 +74,6 @@ class GetFavoritePhotoBoothsUseCaseTest :
             // Given
             every { favoritePhotoBoothRepository.findFavoritesByUserId(userId) } returns
                 listOf(favorited(keyA, 10), favorited(keyB, 20))
-            every { favoriteMapRepository.findFavoritedPhotoBooths(userId) } returns emptyList()
             every { photoBoothRepository.findByKeys(listOf(keyB, keyA)) } returns listOf(view(keyA))
 
             // When
@@ -92,7 +86,6 @@ class GetFavoritePhotoBoothsUseCaseTest :
         test("즐겨찾기가 없으면 부스를 조회하지 않고 빈 리스트를 반환한다") {
             // Given
             every { favoritePhotoBoothRepository.findFavoritesByUserId(userId) } returns emptyList()
-            every { favoriteMapRepository.findFavoritedPhotoBooths(userId) } returns emptyList()
 
             // When
             val result = useCase.execute(query)

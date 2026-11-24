@@ -1,9 +1,6 @@
 package com.neki.domain.map.repository
 
 import com.neki.domain.map.models.PhotoBoothLocation
-import com.neki.domain.map.models.PhotoBoothLocationView
-import com.neki.domain.map.models.PhotoBoothLocationWithDistance
-import org.locationtech.jts.geom.Coordinate
 
 /**
  * fileName       : PhotoBoothLocationRepositoryPort
@@ -18,14 +15,4 @@ interface PhotoBoothLocationRepository {
     fun deleteAll(photoBoothLocations: Collection<PhotoBoothLocation>)
 
     fun getPhotoBoothLocations(brandId: Long): List<PhotoBoothLocation>
-
-    fun findById(locationId: Long): PhotoBoothLocation?
-
-    fun listPolygonLocations(coordinates: List<Coordinate>, brandIds: List<Long>?): List<PhotoBoothLocationView>
-
-    fun listPointLocations(
-        coordinate: Coordinate,
-        radiusInMeters: Int,
-        brandIds: List<Long>?,
-    ): List<PhotoBoothLocationWithDistance>
 }

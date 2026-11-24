@@ -1,8 +1,6 @@
 package com.neki.api.map.application.dto
 
 import com.neki.domain.map.models.PhotoBoothKey
-import com.neki.domain.map.models.PhotoBoothLocationView
-import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 import com.neki.domain.map.models.PhotoBoothView
 import com.neki.domain.map.models.PhotoBoothWithDistance
 
@@ -18,15 +16,6 @@ object MapResult {
     data class CollectPhotoBooth(val collectedCount: Int, val duplicatedCount: Int, val totalProcessed: Int)
 
     data class PhotoBooth(val x1: Double, val y1: Double, val x2: Double, val y2: Double)
-
-    data class GetPolygonLocation(val locations: List<PhotoBoothLocationView>, val favoriteLocationIds: Set<Long>)
-
-    data class GetPointLocation(
-        val locations: List<PhotoBoothLocationWithDistance>,
-        val favoriteLocationIds: Set<Long>,
-    )
-
-    data class GetFavoriteMap(val locations: List<PhotoBoothLocationView>)
 
     // ── 지도 V2 (포토부스 키) ─────────────────────────────────────────────────
 

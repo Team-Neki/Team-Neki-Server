@@ -2,15 +2,12 @@ package com.neki.api.e2e.map
 
 import com.neki.api.e2e.E2ETestBase
 import com.neki.domain.map.infra.persist.jpa.JpaBrandRepository
-import com.neki.domain.map.infra.persist.jpa.JpaFavoriteMapRepository
 import com.neki.domain.map.infra.persist.jpa.JpaFavoritePhotoBoothRepository
 import com.neki.domain.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.domain.map.infra.persist.jpa.JpaUserBrandOrderRepository
 import com.neki.domain.map.models.Brand
-import com.neki.domain.map.models.FavoriteMap
 import com.neki.domain.map.models.FavoritePhotoBooth
 import com.neki.domain.map.models.PhotoBoothKey
-import com.neki.domain.map.models.PhotoBoothLocation
 import com.neki.domain.search.infra.persist.jpa.JpaPhotoBoothEnrichedRepository
 import com.neki.domain.search.models.PhotoBoothEnriched
 import com.neki.domain.search.models.PhotoBoothEnrichedId
@@ -36,9 +33,6 @@ abstract class MapE2ETestBase : E2ETestBase() {
     protected lateinit var photoBoothLocationRepository: JpaPhotoBoothLocationRepository
 
     @Autowired
-    protected lateinit var favoriteMapRepository: JpaFavoriteMapRepository
-
-    @Autowired
     protected lateinit var userBrandOrderRepository: JpaUserBrandOrderRepository
 
     @Autowired
@@ -52,7 +46,6 @@ abstract class MapE2ETestBase : E2ETestBase() {
     @AfterEach
     override fun tearDown() {
         userBrandOrderRepository.deleteAllInBatch()
-        favoriteMapRepository.deleteAllInBatch()
         favoritePhotoBoothRepository.deleteAllInBatch()
         photoBoothEnrichedRepository.deleteAllInBatch()
         photoBoothLocationRepository.deleteAllInBatch()
@@ -60,28 +53,8 @@ abstract class MapE2ETestBase : E2ETestBase() {
         super.tearDown()
     }
 
-    protected fun favoriteMap(userId: Long, locationId: Long): FavoriteMap = favoriteMapRepository.save(
-        FavoriteMap(userId = userId, locationId = locationId),
-    )
-
     protected fun createBrand(name: String, code: String, exposeToMap: Boolean = true): Brand = brandRepository.save(
         Brand(name = name, code = code, exposeToMap = exposeToMap),
-    )
-
-    protected fun createPhotoBoothLocation(
-        brandId: Long,
-        name: String,
-        address: String,
-        longitude: Double,
-        latitude: Double,
-    ): PhotoBoothLocation = photoBoothLocationRepository.save(
-        PhotoBoothLocation(
-            mapId = "test-map-id-${System.currentTimeMillis()}",
-            brandId = brandId,
-            branchName = name,
-            address = address,
-            location = geometryFactory.createPoint(Coordinate(longitude, latitude)),
-        ),
     )
 
     protected fun favoritePhotoBooth(userId: Long, key: PhotoBoothKey): FavoritePhotoBooth =
@@ -109,22 +82,5 @@ abstract class MapE2ETestBase : E2ETestBase() {
             ),
         )
         return PhotoBoothKey(platform = brand.code, idx = idx)
-    }
-
-    /**
-     * stores-sync 가 만든 것과 같은 지점 마스터 위치. 원천 키가 key 와 같다
-     */
-    protected fun createSourcedPhotoBoothLocation(brand: Brand, key: PhotoBoothKey, name: String): PhotoBoothLocation {
-        val saved = photoBoothLocationRepository.save(
-            PhotoBoothLocation(
-                mapId = key.toBoothId(),
-                brandId = brand.id!!,
-                branchName = name,
-                address = "서울 강남구 $name",
-                location = geometryFactory.createPoint(Coordinate(127.027456, 37.497946)),
-            ),
-        )
-        markCollectedLocation(saved.id!!, key.platform, key.idx)
-        return photoBoothLocationRepository.findById(saved.id!!).orElseThrow()
     }
 }

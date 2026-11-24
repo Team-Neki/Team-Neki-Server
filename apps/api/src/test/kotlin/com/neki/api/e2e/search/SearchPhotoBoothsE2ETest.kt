@@ -104,9 +104,9 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
         }
 
         @Test
-        @DisplayName("부스 id 는 source:<브랜드 코드>:<지점 ID> 이고, 지도 V1 에서 한 즐겨찾기(지점 마스터 id)도 즐겨찾기로 나온다")
-        fun givenV1Favorite_whenSearch_thenIdIsBoothKeyAndFavoriteIsTrue() {
-            val v1Favorited = createIndexedBooth(
+        @DisplayName("부스 id 는 source:<브랜드 코드>:<지점 ID> 이고, 즐겨찾기한 부스는 즐겨찾기로 나온다")
+        fun givenFavorite_whenSearch_thenIdIsBoothKeyAndFavoriteIsTrue() {
+            val favorited = createIndexedBooth(
                 booths.lifeFourCut,
                 "l3",
                 "가로수점",
@@ -114,8 +114,7 @@ class SearchPhotoBoothsE2ETest : SearchE2ETestBase() {
                 37.4967118,
                 listOf("1100000000", "1168000000"),
             )
-            createMapBooth(v1Favorited)
-            favoriteByLocation(userId, v1Favorited)
+            favorite(userId, createMapBooth(favorited))
 
             post("서울특별시 강남구", brandFilter(booths.lifeFourCut.id!!))
                 .statusCode(HttpStatus.OK.value())

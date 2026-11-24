@@ -38,11 +38,10 @@ class MapV2Controller(
     @Operation(
         summary = "다각형 영역 내 포토부스 조회 API V2",
         description = """
-            다각형 영역 내의 포토부스 위치 정보를 조회합니다. 요청은 V1(POST /api/photo-booths/polygon) 과 같습니다.
+            다각형 영역 내의 포토부스 위치 정보를 조회합니다.
             coordinates의 첫 좌표와 마지막 좌표는 동일해야 합니다 (다각형을 닫기 위함).
 
             * id 는 `source:<브랜드 코드>:<지점 ID>` 문자열입니다. V2 즐겨찾기 API 와 검색 부스 목록의 id 와 같은 값입니다
-            * favorite 은 V1 에서 한 즐겨찾기도 포함합니다
 
             example에 있는 위치는 강남역 기준
             """,
@@ -64,12 +63,11 @@ class MapV2Controller(
     @Operation(
         summary = "특정 좌표 기준 반경 내 포토부스 조회 API V2",
         description = """
-            특정 좌표를 기준으로 반경(radiusInMeters) 내의 포토부스를 거리순으로 조회합니다. 요청은 V1(POST /api/photo-booths/point) 과 같습니다.
+            특정 좌표를 기준으로 반경(radiusInMeters) 내의 포토부스를 거리순으로 조회합니다.
             거리는 미터 단위 정수로 반환됩니다.
             radiusInMeters = 1000 (1KM)
 
             * id 는 `source:<브랜드 코드>:<지점 ID>` 문자열입니다. V2 즐겨찾기 API 와 검색 부스 목록의 id 와 같은 값입니다
-            * favorite 은 V1 에서 한 즐겨찾기도 포함합니다
 
             example에 있는 위치는 강남역 기준
             """,
