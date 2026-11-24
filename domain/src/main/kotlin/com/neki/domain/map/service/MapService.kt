@@ -18,6 +18,9 @@ import org.springframework.stereotype.Component
  * date           : 2026. 8. 3. 오전 12:31
  * description    : 포토부스 즐겨찾기. 포토부스 키(원천 키 (platform, idx)) 기준 TB_FAVORITE_PHOTO_BOOTH 만 본다.
  *   지도 V1 제거와 함께 기존 TB_FAVORITE_MAP(지점 마스터 id) 즐겨찾기는 V47 에서 이 테이블로 옮겼다.
+ *   해제는 TB_FAVORITE_PHOTO_BOOTH 에서만 지우고 TB_FAVORITE_MAP 은 건드리지 않는다. 그래서 V47 적용 이후 V47 의 INSERT 를
+ *   다시 돌리거나 두 테이블을 합쳐 읽던 이전 이미지로 롤백하면, 그 사이 해제한 즐겨찾기가 되살아난다.
+ *   롤백이 필요하면 원천 키가 있는 TB_FAVORITE_MAP 행을 먼저 정리한다.
  */
 @Component
 class MapService(

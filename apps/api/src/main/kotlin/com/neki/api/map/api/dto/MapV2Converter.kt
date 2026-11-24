@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
  * fileName       : MapV2Converter
  * author         : darren
  * date           : 2026. 10. 13.
- * description    : 지도 V2 api layer converter. 조회 요청은 V1 과 같아 [MapConverter.RequestConverter] 를 쓴다
+ * description    : 지도 V2 api layer converter. 조회 요청 변환은 [MapConverter.RequestConverter] 를 쓴다
  */
 object MapV2Converter {
     @Component
