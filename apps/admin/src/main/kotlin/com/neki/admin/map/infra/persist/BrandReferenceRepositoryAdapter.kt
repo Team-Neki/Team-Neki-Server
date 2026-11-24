@@ -8,18 +8,14 @@ import org.springframework.stereotype.Repository
 /**
  * fileName       : BrandReferenceRepositoryAdapter
  * description    : Workflow·검색 색인이 소유한 테이블이라 엔티티 없이 존재 여부만 읽는다.
- * 즐겨찾기(tb_favorite_photo_booth)는 지점 마스터와 조인해야 보이므로, 지점 참조가 없으면 남아 있어도 노출되지 않아 검사하지 않는다.
+ * 즐겨찾기(tb_favorite_photo_booth)는 지금 세대(tb_photo_booth_enriched)와 조인해야 보이므로, 보강 참조가 없으면 남아 있어도 노출되지 않아 검사하지 않는다.
+ * 지점 마스터(tb_photo_booth_location)는 서버·Workflow 모두 더 이상 읽고 쓰지 않아 검사하지 않는다.
  */
 @Repository
 class BrandReferenceRepositoryAdapter(private val jdbc: JdbcTemplate) : BrandReferenceRepository {
 
     override fun isReferenced(brand: Brand): Boolean =
         exists("SELECT EXISTS (SELECT 1 FROM tb_photo_booth_enriched WHERE platform = ?)", brand.code) ||
-            exists(
-                "SELECT EXISTS (SELECT 1 FROM tb_photo_booth_location WHERE brand_id = ? OR source_platform = ?)",
-                brand.id,
-                brand.code,
-            ) ||
             exists(
                 "SELECT EXISTS (SELECT 1 FROM tb_photo_booth_manual WHERE brand_id = ? AND deleted_at IS NULL)",
                 brand.id,
