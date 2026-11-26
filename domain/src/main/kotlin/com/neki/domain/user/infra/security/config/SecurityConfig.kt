@@ -50,11 +50,12 @@ class SecurityConfig(private val corsConfigurationSource: CorsConfigurationSourc
             .build()
 
     /**
-     * 정적 파일 (이미지) 엔드포인트 보안 설정
+     * 정적 파일 (이미지) 및 공유 링크(/share/{token}) 공개 엔드포인트 보안 설정
      */
     @Bean
     @Order(2)
-    fun staticFileSecurityFilterChain(http: HttpSecurity): SecurityFilterChain = http.securityMatcher("/file/**")
+    fun staticFileSecurityFilterChain(http: HttpSecurity): SecurityFilterChain = http
+        .securityMatcher("/file/**", "/share/**")
         .csrf { it.disable() }
         .cors { it.configurationSource(corsConfigurationSource) }
         .authorizeHttpRequests { it.anyRequest().permitAll() }

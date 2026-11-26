@@ -21,6 +21,10 @@ class RequestMdcFilter : OncePerRequestFilter() {
         const val REQUEST_URI = "requestUri"
         const val REQUEST_METHOD = "requestMethod"
         const val CLIENT_IP = "clientIp"
+
+        private const val SHARE_PATH_PREFIX = "/share/"
+        private const val MASKED_SHARE_PATH = "/share/{token}"
+        private val SHARE_TOKEN_SEGMENT = Regex("^/share/[^/]+")
     }
 
     override fun doFilterInternal(
@@ -34,7 +38,7 @@ class RequestMdcFilter : OncePerRequestFilter() {
             MDC.put(REQUEST_ID, requestId)
 
             // 요청 정보 설정
-            MDC.put(REQUEST_URI, request.requestURI)
+            MDC.put(REQUEST_URI, maskSensitiveUri(request))
             MDC.put(REQUEST_METHOD, request.method)
             MDC.put(CLIENT_IP, getClientIp(request))
 
@@ -47,6 +51,19 @@ class RequestMdcFilter : OncePerRequestFilter() {
             // 가장 먼저 실행되고 가장 마지막에 종료되므로 여기서 전체 MDC 정리
             MDC.clear()
         }
+    }
+
+    /**
+     * 공유 링크 토큰이 로그에 원문으로 남지 않게 /share/{token} 으로 바꾼다.
+     * 인코딩 우회(/%73hare/...)를 막기 위해 디코딩된 servletPath 로 판정한다 (ClientLogLimitFilter 와 같은 방식).
+     * 그 외 요청은 지금처럼 requestURI 를 그대로 기록한다.
+     */
+    private fun maskSensitiveUri(request: HttpServletRequest): String {
+        val servletPath: String = request.servletPath
+        if (!servletPath.startsWith(SHARE_PATH_PREFIX)) {
+            return request.requestURI
+        }
+        return SHARE_TOKEN_SEGMENT.replace(servletPath, MASKED_SHARE_PATH)
     }
 
     /**

@@ -29,6 +29,8 @@ enum class ResultCode(val code: String, val message: String) {
     LOG_PAYLOAD_TOO_LARGE("D-16", "로그 크기가 제한을 초과했습니다. 배치를 나눠 다시 보내주세요."),
     BRAND_IN_USE("D-17", "지점이나 검색 색인이 참조 중인 브랜드라 삭제할 수 없습니다."),
     CONFLICT_POSE_SOURCE_KEY("D-18", "이미 등록된 포즈 원본 키(sourceKey)가 포함되어 있습니다."),
+    SHARE_NOT_FOUND("D-19", "공유 링크를 찾을 수 없습니다."),
+    SHARE_EXPIRED("D-20", "만료되었거나 더 이상 볼 수 없는 공유 링크입니다."),
 
     ACCESS_DENIED_ERROR("D-995", "토큰 권한이 없습니다."),
     MISSING_TOKEN_ERROR("D-996", "토큰이 존재하지 않습니다."),

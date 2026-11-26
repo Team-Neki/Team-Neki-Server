@@ -34,6 +34,14 @@ app:
       - http://127.0.0.1:63342
       - https://dev-yapp-admin.suitestudy.com
       - https://yapp-admin.suitestudy.com/
+  # 사진 공유 링크. 만료 기간, 이미지(/share/{token}) 응답 Cache-Control max-age 상한,
+  # 발급 응답 url 로 내보낼 공유 웹페이지 origin ({web-url}/s/{token}[?{web-url-query}]).
+  # 웹은 운영 하나뿐이라 web-url 은 공통이고, 개발 백엔드는 staging/local 에서 web-url-query(env=dev)로 고른다
+  share:
+    expiration: 7d
+    cache-max-age: 1h
+    web-url: https://neki-share.suitestudy.com
+    web-url-query: ""
 
 # Spring Boot Actuator 설정 (Health Check for Kubernetes)
 management:
@@ -71,6 +79,9 @@ spring:
 app:
   server:
     url: http://localhost:8080
+  # 공유 웹페이지가 개발 백엔드를 호출하게 한다 (?env=dev)
+  share:
+    web-url-query: env=dev
   auth:
     accessTokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
     accessTokenExpiry: 3600000 #1시간 1분(60000)
@@ -84,6 +95,9 @@ spring:
 app:
   server:
     url: https://dev-yapp.suitestudy.com:4641
+  # 공유 웹페이지가 개발 백엔드를 호출하게 한다 (?env=dev)
+  share:
+    web-url-query: env=dev
   auth:
     accessTokenSecret: ENC(LCqGofuONtTzkgq2ly/BDrRSoZT/cwZILTQZSXJtYf2ui5sDDdINUw+CWzb+GYmnk/yZ2RcSD9dvI1V5wMVjVyM3cwAEmX84CWqvvo602W3CLmfCnFnMIRjV2vvWiDJosuKMb7o7FJT/bPx0kuG2KOYhovDFYdgOMHxLtefhrWE=)
     accessTokenExpiry: 3600000 #1시간
