@@ -166,6 +166,78 @@ class RequestMdcFilterTest {
         assertThat(response.getHeader("X-Request-ID")).isNotNull()
     }
 
+    @Test
+    @DisplayName("공유 링크 경로는 토큰을 마스킹해 MDC에 설정한다")
+    fun givenSharePath_whenFilterExecutes_thenMasksToken() {
+        // Given
+        val token = "q3Zb9Yx0vP2mK7tR1sW8nL4cF6hJ5dG0aE2uI9oB3xQ"
+        val request = MockHttpServletRequest().apply {
+            requestURI = "/share/$token"
+            servletPath = "/share/$token"
+        }
+        val filterChain = TestFilterChain()
+
+        // When
+        filter.doFilter(request, MockHttpServletResponse(), filterChain)
+
+        // Then
+        assertThat(filterChain.capturedRequestUri).isEqualTo("/share/{token}")
+    }
+
+    @Test
+    @DisplayName("공유 링크 하위 경로는 토큰만 마스킹하고 나머지 경로는 유지한다")
+    fun givenShareSubPath_whenFilterExecutes_thenMasksOnlyTokenSegment() {
+        // Given
+        val token = "q3Zb9Yx0vP2mK7tR1sW8nL4cF6hJ5dG0aE2uI9oB3xQ"
+        val request = MockHttpServletRequest().apply {
+            requestURI = "/share/$token/image"
+            servletPath = "/share/$token/image"
+        }
+        val filterChain = TestFilterChain()
+
+        // When
+        filter.doFilter(request, MockHttpServletResponse(), filterChain)
+
+        // Then
+        assertThat(filterChain.capturedRequestUri).isEqualTo("/share/{token}/image")
+    }
+
+    @Test
+    @DisplayName("인코딩으로 우회한 공유 링크 경로도 servletPath 기준으로 마스킹한다")
+    fun givenEncodedSharePath_whenFilterExecutes_thenMasksByServletPath() {
+        // Given
+        val token = "q3Zb9Yx0vP2mK7tR1sW8nL4cF6hJ5dG0aE2uI9oB3xQ"
+        val request = MockHttpServletRequest().apply {
+            requestURI = "/%73hare/$token"
+            servletPath = "/share/$token"
+        }
+        val filterChain = TestFilterChain()
+
+        // When
+        filter.doFilter(request, MockHttpServletResponse(), filterChain)
+
+        // Then
+        assertThat(filterChain.capturedRequestUri).isEqualTo("/share/{token}")
+        assertThat(filterChain.capturedRequestUri).doesNotContain(token)
+    }
+
+    @Test
+    @DisplayName("공유 링크가 아닌 경로는 requestURI 를 그대로 기록한다")
+    fun givenNonSharePath_whenFilterExecutes_thenKeepsRequestUri() {
+        // Given
+        val request = MockHttpServletRequest().apply {
+            requestURI = "/api/photos"
+            servletPath = "/api/photos"
+        }
+        val filterChain = TestFilterChain()
+
+        // When
+        filter.doFilter(request, MockHttpServletResponse(), filterChain)
+
+        // Then
+        assertThat(filterChain.capturedRequestUri).isEqualTo("/api/photos")
+    }
+
     /**
      * FilterChain 실행 중 MDC 값을 캡처하는 테스트용 FilterChain
      */

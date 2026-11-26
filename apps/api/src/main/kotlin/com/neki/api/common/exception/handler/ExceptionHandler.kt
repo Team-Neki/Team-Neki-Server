@@ -8,6 +8,7 @@ import org.apache.catalina.connector.ClientAbortException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.validation.FieldError
@@ -45,16 +46,21 @@ class ExceptionHandler {
             ResultCode.LOG_SEND_FAILED -> HttpStatus.SERVICE_UNAVAILABLE
             ResultCode.LOG_PAYLOAD_TOO_LARGE -> HttpStatus.PAYLOAD_TOO_LARGE
             ResultCode.CONFLICT_POSE_SOURCE_KEY -> HttpStatus.CONFLICT
+            ResultCode.SHARE_NOT_FOUND -> HttpStatus.NOT_FOUND
+            ResultCode.SHARE_EXPIRED -> HttpStatus.GONE
             else -> HttpStatus.BAD_REQUEST
         }
 
-        return ResponseEntity(
-            ExceptionMsg(
-                resultCode = ex.resultCode.code,
-                message = ex.resultCode.message,
-            ),
-            status,
-        )
+        // Content-Type 을 고정해 Accept 협상을 건너뛴다.
+        // <img> 나 크롤러가 Accept: image/* 만 보내도 406 이나 /error 로 빠지지 않고 같은 상태코드가 나간다.
+        return ResponseEntity.status(status)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                ExceptionMsg(
+                    resultCode = ex.resultCode.code,
+                    message = ex.resultCode.message,
+                ),
+            )
     }
 
     @ExceptionHandler(ClientAbortException::class, AsyncRequestNotUsableException::class)

@@ -14,6 +14,7 @@ import com.neki.domain.pose.models.HeadCount
 import com.neki.domain.pose.models.Pose
 import com.neki.domain.pose.models.PoseRelation
 import com.neki.domain.pose.models.ScrapPose
+import com.neki.domain.share.models.ShareLink
 import com.neki.domain.support.models.AppVersion
 import com.neki.domain.support.models.Platform
 import com.neki.domain.support.models.Term
@@ -26,6 +27,7 @@ import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.PrecisionModel
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 // ── User ─────────────────────────────────────────────────────────────────────
 
@@ -230,3 +232,22 @@ fun aPhotoBoothLocation(
         location = point,
     )
 }
+
+// ── ShareLink ─────────────────────────────────────────────────────────────────
+
+/** expiresAt 은 ShareLink.issue() 와 같이 초 단위로 자른다 (X-Share-Expires-At 은 소수 초 없이 나간다) */
+fun aShareLink(
+    id: Long? = null,
+    token: String = "a".repeat(43),
+    userId: Long = 1L,
+    photoId: Long = 1L,
+    expiresAt: LocalDateTime = LocalDateTime.now().plusDays(7),
+    deletedAt: LocalDateTime? = null,
+): ShareLink = ShareLink(
+    id = id,
+    token = token,
+    userId = userId,
+    photoId = photoId,
+    expiresAt = expiresAt.truncatedTo(ChronoUnit.SECONDS),
+    deletedAt = deletedAt,
+)
