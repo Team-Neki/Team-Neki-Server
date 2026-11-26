@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
  * fileName       : MapV2Response
  * author         : darren
  * date           : 2026. 10. 13.
- * description    : 지도 V2 응답 DTO. V1 과 모양이 같고 부스 id 만 포토부스 키 문자열이다
+ * description    : 지도 V2 응답 DTO. 부스 id 는 포토부스 키 문자열(`source:<브랜드 코드>:<지점 ID>`)이다
  */
 object MapV2Response {
     private const val PHOTO_BOOTH_ID_DESCRIPTION =

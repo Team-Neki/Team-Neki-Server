@@ -30,11 +30,6 @@ data class PhotoBoothWithDistance(
 )
 
 /**
- * 즐겨찾기한 부스와 즐겨찾기한 시각. 두 즐겨찾기 테이블을 합칠 때 순서를 정하는 데 쓴다
+ * 즐겨찾기한 부스와 즐겨찾기한 시각. 최근 즐겨찾기한 순서를 정하는 데 쓴다
  */
 data class FavoritedPhotoBooth(val key: PhotoBoothKey, val favoritedAt: LocalDateTime)
-
-/**
- * 즐겨찾기한 지점 마스터 위치와 즐겨찾기한 시각. 지도 V1 이 두 즐겨찾기 테이블을 합칠 때 쓴다
- */
-data class FavoritedLocation(val location: PhotoBoothLocationView, val favoritedAt: LocalDateTime)

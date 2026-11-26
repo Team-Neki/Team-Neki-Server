@@ -3,7 +3,6 @@ package com.neki.api.e2e.map
 import com.neki.api.map.api.dto.MapRequest
 import com.neki.core.code.ResultCode
 import com.neki.domain.map.models.Brand
-import com.neki.domain.map.models.FavoriteMapId
 import com.neki.domain.map.models.FavoritePhotoBoothId
 import com.neki.domain.map.models.PhotoBoothKey
 import com.neki.domain.search.models.PhotoBoothEnriched
@@ -92,37 +91,20 @@ class UpdatePhotoBoothFavoriteV2E2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @DisplayName("즐겨찾기를 해제하면 V1 에서 한 같은 부스의 즐겨찾기도 함께 지워진다")
-    fun givenFavoritesFromV1AndV2_whenUnmark_thenBothRemoved() {
-        // given: 같은 부스를 V2(새 테이블)와 V1(지점 마스터 id, 기존 테이블)에서 즐겨찾기
-        val key = createEnrichedPhotoBooth(testBrand, "1", "브룸스튜디오 강남점")
-        val location = createSourcedPhotoBoothLocation(testBrand, key, "브룸스튜디오 강남점")
-        favoritePhotoBooth(testUser.id!!, key)
-        favoriteMap(testUser.id!!, location.id!!)
-
-        // when & then
-        patchFavorite(key.toBoothId(), false)
-            .statusCode(HttpStatus.OK.value())
-            .body("resultCode", equalTo(ResultCode.SUCCESS.code))
-
-        assertThat(favoritePhotoBoothRepository.existsById(favoriteId(key))).isFalse()
-        assertThat(favoriteMapRepository.existsById(FavoriteMapId(testUser.id!!, location.id!!))).isFalse()
-    }
-
-    @Test
     @DisplayName("다른 사용자의 즐겨찾기는 해제되지 않는다")
     fun givenOtherUserFavorite_whenUnmark_thenOtherUserFavoriteRemains() {
         // given
         val (otherUser, _) = createTestUserAndToken()
         val key = createEnrichedPhotoBooth(testBrand, "1", "브룸스튜디오 강남점")
-        val location = createSourcedPhotoBoothLocation(testBrand, key, "브룸스튜디오 강남점")
-        favoriteMap(otherUser.id!!, location.id!!)
+        favoritePhotoBooth(otherUser.id!!, key)
 
         // when
         patchFavorite(key.toBoothId(), false).statusCode(HttpStatus.OK.value())
 
         // then
-        assertThat(favoriteMapRepository.existsById(FavoriteMapId(otherUser.id!!, location.id!!))).isTrue()
+        assertThat(
+            favoritePhotoBoothRepository.existsById(FavoritePhotoBoothId(otherUser.id!!, key.platform, key.idx)),
+        ).isTrue()
     }
 
     @Test

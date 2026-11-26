@@ -78,44 +78,16 @@ class GetFavoritePhotoBoothsV2E2ETest : MapE2ETestBase() {
     }
 
     @Test
-    @DisplayName("V1 에서 한 즐겨찾기(지점 마스터 id)도 원천 키로 바꿔 함께 반환한다")
-    fun givenV1Favorite_whenGet_thenIncluded() {
-        // given
-        val key: PhotoBoothKey = createEnrichedPhotoBooth(testBrand, "1", "포토이즘 강남점")
-        val location = createSourcedPhotoBoothLocation(testBrand, key, "포토이즘 강남점")
-        favoriteMap(testUser.id!!, location.id!!)
-
-        // when & then
-        getFavorites()
-            .body("data.items", hasSize<Int>(1))
-            .body("data.items[0].id", equalTo(key.toBoothId()))
-    }
-
-    @Test
-    @DisplayName("같은 부스를 V1 과 V2 에서 모두 즐겨찾기했으면 한 번만 반환한다")
-    fun givenSameBoothFavoritedTwice_whenGet_thenReturnedOnce() {
-        // given
-        val key: PhotoBoothKey = createEnrichedPhotoBooth(testBrand, "1", "포토이즘 강남점")
-        val location = createSourcedPhotoBoothLocation(testBrand, key, "포토이즘 강남점")
-        favoriteMap(testUser.id!!, location.id!!)
-        favoritePhotoBooth(testUser.id!!, key)
-
-        // when & then
-        getFavorites().body("data.items", hasSize<Int>(1))
-    }
-
-    @Test
-    @DisplayName("최근 즐겨찾기한 순서대로 반환한다 (V1, V2 즐겨찾기를 섞어서)")
+    @DisplayName("최근 즐겨찾기한 순서대로 반환한다")
     fun givenFavoritesInOrder_whenGet_thenReturnsInRecentFavoritedOrder() {
-        // given: B(V2) → A(V1) → C(V2) 순으로 즐겨찾기
+        // given: B → A → C 순으로 즐겨찾기
         val keyA: PhotoBoothKey = createEnrichedPhotoBooth(testBrand, "a", "포토이즘 A점")
         val keyB: PhotoBoothKey = createEnrichedPhotoBooth(testBrand, "b", "포토이즘 B점")
         val keyC: PhotoBoothKey = createEnrichedPhotoBooth(testBrand, "c", "포토이즘 C점")
-        val locationA = createSourcedPhotoBoothLocation(testBrand, keyA, "포토이즘 A점")
 
         favoritePhotoBooth(testUser.id!!, keyB)
         Thread.sleep(10) // 즐겨찾기 시간 차이 확보
-        favoriteMap(testUser.id!!, locationA.id!!)
+        favoritePhotoBooth(testUser.id!!, keyA)
         Thread.sleep(10)
         favoritePhotoBooth(testUser.id!!, keyC)
 

@@ -16,7 +16,7 @@ import java.time.LocalDateTime
  * author         : darren
  * date           : 2026. 10. 13.
  * description    : 포토부스 즐겨찾기 (V40). 지점 마스터 id 대신 enriched 의 원천 키 (platform, idx) 로 부스를 가리킨다.
- *   기존 TB_FAVORITE_MAP(지점 마스터 id) 은 옮기지 않고 남겨 두며, 조회는 두 테이블을 합쳐서 본다 (MapService).
+ *   기존 TB_FAVORITE_MAP(지점 마스터 id) 즐겨찾기는 지도 V1 제거와 함께 V47 에서 이 테이블로 옮겼다.
  */
 @Entity
 @Table(name = "TB_FAVORITE_PHOTO_BOOTH")

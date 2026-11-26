@@ -254,7 +254,7 @@ flowchart TB
 |---|---|---|---|
 | `tb_photo_booth_search_read` | Server (색인 잡) | 매일 05:30 KST 교체 | 범위 조회, 부스 표시 정보, 사전의 지점·브랜드, 지점 정확 일치(범위가 없을 때) |
 | `TB_PHOTO_BOOTH_LOCATION` (원천 키, `admin_hidden`) | Server 스키마, Workflow `stores-sync` 가 적재 | stores-sync 주기 | 응답 id, 숨김 제외 |
-| `TB_FAVORITE_MAP`, `TB_USER_BRAND_ORDER` | Server (map) | 사용자 요청 즉시 | 즐겨찾기, 칩 순서 |
+| `TB_FAVORITE_PHOTO_BOOTH`, `TB_USER_BRAND_ORDER` | Server (map) | 사용자 요청 즉시 | 즐겨찾기, 칩 순서 |
 | `tb_legal_dong`, `tb_subway_station` | Workflow | 매월 1일 | 자동완성, 사전, 정확 일치(범위가 없을 때) |
 | NER 사전 (메모리) | apps/api | 기동 시 + 10분 | NER |
 
@@ -316,7 +316,7 @@ failure isolation 단위는 요청입니다. 결과를 캐시하지 않으므로
 | 검색 동작 정책 | Sprint 위키 "검색 정책" |
 | 완료 판정, staging 검증 절차 | `docs/oracle/search-api.md`, `http/search.http` |
 | 검색 색인 구조 | 색인 HLD, Flyway V33 |
-| 부스 id·즐겨찾기·브랜드 순서 | map 도메인 (`TB_PHOTO_BOOTH_LOCATION`, `TB_FAVORITE_MAP`, `TB_USER_BRAND_ORDER`) |
+| 부스 id·즐겨찾기·브랜드 순서 | map 도메인 (`TB_PHOTO_BOOTH_LOCATION`, `TB_FAVORITE_PHOTO_BOOTH`, `TB_USER_BRAND_ORDER`) |
 
 ## Appendix B. Decision History
 

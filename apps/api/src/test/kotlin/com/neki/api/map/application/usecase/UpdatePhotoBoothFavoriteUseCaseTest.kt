@@ -6,7 +6,6 @@ import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.models.FavoritePhotoBooth
 import com.neki.domain.map.models.PhotoBoothKey
-import com.neki.domain.map.repository.FavoriteMapRepository
 import com.neki.domain.map.repository.FavoritePhotoBoothRepository
 import com.neki.domain.map.repository.PhotoBoothRepository
 import com.neki.domain.map.service.MapService
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.Test
  */
 class UpdatePhotoBoothFavoriteUseCaseTest {
 
-    lateinit var favoriteMapRepository: FavoriteMapRepository
     lateinit var favoritePhotoBoothRepository: FavoritePhotoBoothRepository
     lateinit var photoBoothRepository: PhotoBoothRepository
     lateinit var useCase: UpdatePhotoBoothFavoriteUseCase
@@ -37,17 +35,16 @@ class UpdatePhotoBoothFavoriteUseCaseTest {
 
     @BeforeEach
     fun setUp() {
-        favoriteMapRepository = mockk()
         favoritePhotoBoothRepository = mockk()
         photoBoothRepository = mockk()
         useCase = UpdatePhotoBoothFavoriteUseCase(
-            MapService(favoriteMapRepository, favoritePhotoBoothRepository, mockk(), photoBoothRepository),
+            MapService(favoritePhotoBoothRepository, photoBoothRepository),
         )
     }
 
     @Test
-    @DisplayName("즐겨찾기 추가 요청 시 새 테이블에 쌓는다")
-    fun `즐겨찾기 추가 요청 시 새 테이블에 쌓는다`() {
+    @DisplayName("즐겨찾기 추가 요청 시 포토부스 키로 쌓는다")
+    fun `즐겨찾기 추가 요청 시 포토부스 키로 쌓는다`() {
         // Given
         val command = MapCommand.UpdatePhotoBoothFavorite(userId = 1L, key = key, favorite = true)
 
@@ -61,24 +58,21 @@ class UpdatePhotoBoothFavoriteUseCaseTest {
         // Then
         favoriteSlot.captured.id.userId shouldBe 1L
         favoriteSlot.captured.id.key() shouldBe key
-        verify(exactly = 0) { favoriteMapRepository.add(any()) }
     }
 
     @Test
-    @DisplayName("즐겨찾기 해제 요청 시 기존 테이블의 같은 원천 키 즐겨찾기도 함께 지운다. 지금 세대에 없는 부스여도 지운다")
-    fun `즐겨찾기 해제 요청 시 기존 테이블의 같은 원천 키 즐겨찾기도 함께 지운다`() {
+    @DisplayName("즐겨찾기 해제 요청 시 지운다. 지금 세대에 없는 부스여도 지운다")
+    fun `즐겨찾기 해제 요청 시 지금 세대에 없는 부스여도 지운다`() {
         // Given
         val command = MapCommand.UpdatePhotoBoothFavorite(userId = 1L, key = key, favorite = false)
 
         every { favoritePhotoBoothRepository.delete(1L, key) } just Runs
-        every { favoriteMapRepository.deleteByPhotoBoothKey(1L, key) } just Runs
 
         // When
         useCase.execute(command)
 
         // Then
         verify(exactly = 1) { favoritePhotoBoothRepository.delete(1L, key) }
-        verify(exactly = 1) { favoriteMapRepository.deleteByPhotoBoothKey(1L, key) }
         verify(exactly = 0) { favoritePhotoBoothRepository.add(any()) }
         verify(exactly = 0) { photoBoothRepository.existsByKey(any()) }
     }

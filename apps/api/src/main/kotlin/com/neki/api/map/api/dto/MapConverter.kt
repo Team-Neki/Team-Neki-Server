@@ -1,7 +1,6 @@
 package com.neki.api.map.api.dto
 
 import com.neki.api.map.application.dto.MapResult
-import com.neki.core.domain.vo.BranchName
 import com.neki.core.properties.AppProperties
 import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.dto.MapQuery
@@ -75,50 +74,5 @@ object MapConverter {
                 duplicatedCount = result.duplicatedCount,
                 totalProcessed = result.totalProcessed,
             )
-
-        fun toGetPolygonLocationResponse(result: MapResult.GetPolygonLocation): MapResponse.GetPolygonLocation {
-            val items: List<MapResponse.GetPolygonLocation.Item> = result.locations.map {
-                MapResponse.GetPolygonLocation.Item(
-                    id = it.id,
-                    brandName = it.brandName,
-                    branchName = BranchName.of(it.brandName, it.branchName),
-                    address = it.address,
-                    longitude = it.location.x,
-                    latitude = it.location.y,
-                    favorite = it.id in result.favoriteLocationIds,
-                )
-            }
-            return MapResponse.GetPolygonLocation(items = items)
-        }
-
-        fun toGetFavoriteMapResponse(result: MapResult.GetFavoriteMap): MapResponse.GetFavoriteMap {
-            val items: List<MapResponse.GetFavoriteMap.Item> = result.locations.map {
-                MapResponse.GetFavoriteMap.Item(
-                    id = it.id,
-                    brandName = it.brandName,
-                    branchName = BranchName.of(it.brandName, it.branchName),
-                    address = it.address,
-                    longitude = it.location.x,
-                    latitude = it.location.y,
-                )
-            }
-            return MapResponse.GetFavoriteMap(items = items)
-        }
-
-        fun toGetPointLocationResponse(result: MapResult.GetPointLocation): MapResponse.GetPointLocation {
-            val items: List<MapResponse.GetPointLocation.Item> = result.locations.map {
-                MapResponse.GetPointLocation.Item(
-                    id = it.id,
-                    brandName = it.brandName,
-                    branchName = BranchName.of(it.brandName, it.branchName),
-                    address = it.address,
-                    longitude = it.location.x,
-                    latitude = it.location.y,
-                    distance = it.distance,
-                    favorite = it.id in result.favoriteLocationIds,
-                )
-            }
-            return MapResponse.GetPointLocation(items = items)
-        }
     }
 }

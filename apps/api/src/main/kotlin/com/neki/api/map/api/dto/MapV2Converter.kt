@@ -5,6 +5,7 @@ import com.neki.core.code.ResultCode
 import com.neki.core.domain.vo.BranchName
 import com.neki.core.exception.BusinessException
 import com.neki.domain.map.dto.MapCommand
+import com.neki.domain.map.dto.MapQuery
 import com.neki.domain.map.models.PhotoBoothKey
 import org.springframework.stereotype.Component
 
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component
  * fileName       : MapV2Converter
  * author         : darren
  * date           : 2026. 10. 13.
- * description    : 지도 V2 api layer converter. 조회 요청은 V1 과 같아 [MapConverter.RequestConverter] 를 쓴다
+ * description    : 지도 V2 api layer converter. 조회 요청 변환은 [MapConverter.RequestConverter] 를 쓴다
  */
 object MapV2Converter {
     @Component
@@ -27,6 +28,9 @@ object MapV2Converter {
             key = PhotoBoothKey.fromBoothId(photoBoothId) ?: throw BusinessException(ResultCode.INVALID_PARAMETER),
             favorite = request.favorite!!,
         )
+
+        fun toGetFavoritePhotoBoothsQuery(userId: Long): MapQuery.GetFavoriteMaps =
+            MapQuery.GetFavoriteMaps(userId = userId)
     }
 
     @Component

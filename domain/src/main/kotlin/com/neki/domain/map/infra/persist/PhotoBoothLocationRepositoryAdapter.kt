@@ -1,13 +1,8 @@
 package com.neki.domain.map.infra.persist
 
 import com.neki.domain.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
-import com.neki.domain.map.infra.persist.jpa.PhotoBoothLocationQueryRepository
 import com.neki.domain.map.models.PhotoBoothLocation
-import com.neki.domain.map.models.PhotoBoothLocationView
-import com.neki.domain.map.models.PhotoBoothLocationWithDistance
 import com.neki.domain.map.repository.PhotoBoothLocationRepository
-import org.locationtech.jts.geom.Coordinate
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 /**
@@ -17,10 +12,8 @@ import org.springframework.stereotype.Repository
  * description    : PhotoBoothLocation 영속성에 대한 Adapter (query + query)
  */
 @Repository
-class PhotoBoothLocationRepositoryAdapter(
-    private val jpaRepository: JpaPhotoBoothLocationRepository,
-    private val queryRepository: PhotoBoothLocationQueryRepository,
-) : PhotoBoothLocationRepository {
+class PhotoBoothLocationRepositoryAdapter(private val jpaRepository: JpaPhotoBoothLocationRepository) :
+    PhotoBoothLocationRepository {
 
     override fun saveAll(photoBoothLocations: Collection<PhotoBoothLocation>): Collection<PhotoBoothLocation> =
         jpaRepository.saveAll(photoBoothLocations)
@@ -30,18 +23,4 @@ class PhotoBoothLocationRepositoryAdapter(
 
     override fun getPhotoBoothLocations(brandId: Long): List<PhotoBoothLocation> =
         jpaRepository.findAllByBrandId(brandId)
-
-    override fun findById(locationId: Long): PhotoBoothLocation? = jpaRepository.findByIdOrNull(locationId)
-
-    override fun listPolygonLocations(
-        coordinates: List<Coordinate>,
-        brandIds: List<Long>?,
-    ): List<PhotoBoothLocationView> = queryRepository.findByPolygon(coordinates, brandIds)
-
-    override fun listPointLocations(
-        coordinate: Coordinate,
-        radiusInMeters: Int,
-        brandIds: List<Long>?,
-    ): List<PhotoBoothLocationWithDistance> =
-        queryRepository.findByDistanceFromPoint(coordinate, radiusInMeters, brandIds)
 }
