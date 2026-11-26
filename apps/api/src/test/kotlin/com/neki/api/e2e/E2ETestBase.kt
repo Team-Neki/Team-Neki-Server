@@ -27,27 +27,6 @@ abstract class E2ETestBase {
     @Autowired
     protected lateinit var jdbcTemplate: JdbcTemplate
 
-    /** V34의 COLLECTED 제약에 맞춰 JPA가 매핑하지 않는 수집 원본 필드를 채운다. */
-    protected fun markCollectedLocation(id: Long, platform: String, idx: String) {
-        jdbcTemplate.update(
-            """
-            UPDATE tb_photo_booth_location
-            SET source_type = 'COLLECTED',
-                source_platform = ?,
-                source_idx = ?,
-                source_name = branch_name,
-                source_address = address,
-                source_location = location,
-                source_dt = CURRENT_DATE,
-                source_collected_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-            """.trimIndent(),
-            platform,
-            idx,
-            id,
-        )
-    }
-
     /**
      * 모든 테스트 컨텍스트가 같은 postgis 컨테이너(TC_DAEMON)를 쓰므로, 매 테스트 전에 데이터를 전부 비운다.
      * Flyway 초기 데이터(V3 브랜드, V5 앱 버전, V7/V19 약관 등)와 다른 테스트 클래스가 남긴 행이

@@ -9,7 +9,7 @@ dependencies {
     api("com.querydsl:querydsl-jpa:5.0.0:jakarta")
 
     // Hibernate 가 dialect 로 로드하는 런타임 SPI 라 소비자 컴파일에 필요하지 않다.
-    // 공간 엔티티(PhotoBoothLocation)는 :domain 에 있고 거기서 따로 선언한다.
+    // 공간 엔티티(PhotoBoothEnriched 등)는 :domain 에 있고 거기서 따로 선언한다.
     implementation("org.hibernate.orm:hibernate-spatial")
     implementation("org.locationtech.jts:jts-core:1.19.0")
     runtimeOnly("org.postgresql:postgresql")

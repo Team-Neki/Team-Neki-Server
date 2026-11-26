@@ -3,7 +3,6 @@ package com.neki.api.e2e.search
 import com.neki.api.e2e.E2ETestBase
 import com.neki.domain.map.infra.persist.jpa.JpaBrandRepository
 import com.neki.domain.map.infra.persist.jpa.JpaFavoritePhotoBoothRepository
-import com.neki.domain.map.infra.persist.jpa.JpaPhotoBoothLocationRepository
 import com.neki.domain.map.infra.persist.jpa.JpaUserBrandOrderRepository
 import com.neki.domain.map.models.Brand
 import com.neki.domain.map.models.FavoritePhotoBooth
@@ -52,9 +51,6 @@ abstract class SearchE2ETestBase : E2ETestBase() {
     protected lateinit var brandRepository: JpaBrandRepository
 
     @Autowired
-    protected lateinit var photoBoothLocationRepository: JpaPhotoBoothLocationRepository
-
-    @Autowired
     protected lateinit var favoritePhotoBoothRepository: JpaFavoritePhotoBoothRepository
 
     @Autowired
@@ -72,7 +68,6 @@ abstract class SearchE2ETestBase : E2ETestBase() {
     override fun tearDown() {
         favoritePhotoBoothRepository.deleteAllInBatch()
         userBrandOrderRepository.deleteAllInBatch()
-        photoBoothLocationRepository.deleteAllInBatch()
         photoBoothEnrichedRepository.deleteAllInBatch()
         // 역 연결 테이블(ElementCollection)까지 지우려면 배치 삭제가 아니라 엔티티 단위로 지워야 한다
         photoBoothSearchRepository.deleteAll()

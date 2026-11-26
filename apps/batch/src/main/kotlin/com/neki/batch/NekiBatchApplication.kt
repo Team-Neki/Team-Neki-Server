@@ -24,7 +24,6 @@ import kotlin.system.exitProcess
 // apps/api 에만 있는 CorsConfigurationSource 를 요구하고, modules 의 aws/redis/firebase 연결 설정이
 // 각자의 yaml 과 외부 시스템을 요구해 기동이 깨진다.
 // searchIndexJob 이 쓰는 search 도메인과 map 의 persist 어댑터(BrandRepository)만 더 스캔한다.
-// map 의 kakao/infra 는 외부 API 설정을 요구하므로 일부러 넣지 않는다.
 @SpringBootApplication(
     scanBasePackages = [
         "com.neki.batch",

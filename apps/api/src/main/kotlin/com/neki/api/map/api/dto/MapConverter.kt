@@ -21,9 +21,6 @@ object MapConverter {
             const val GANGNAM_LATITUDE = 37.4979
         }
 
-        fun toCollectPhotoBoothCommand(request: MapRequest.CollectPhotoBooth): MapCommand.CollectPhotoBooth =
-            MapCommand.CollectPhotoBooth(keyword = request.keyword!!, brandCode = request.brandCode!!)
-
         fun toGetPolygonLocationQuery(
             userId: Long,
             request: MapRequest.GetPolygonLocation,
@@ -67,12 +64,5 @@ object MapConverter {
         }
 
         private fun toImageUrl(storageKey: String): String = "${appProperties.server.url}$IMAGE_URL_PATH$storageKey"
-
-        fun toCollectPhotoBoothResponse(result: MapResult.CollectPhotoBooth): MapResponse.CollectPhotoBooth =
-            MapResponse.CollectPhotoBooth(
-                collectedCount = result.collectedCount,
-                duplicatedCount = result.duplicatedCount,
-                totalProcessed = result.totalProcessed,
-            )
     }
 }

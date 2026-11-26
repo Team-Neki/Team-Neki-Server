@@ -4,20 +4,17 @@ import com.neki.api.common.api.document.RequiresSecurity
 import com.neki.api.map.api.dto.MapConverter
 import com.neki.api.map.api.dto.MapRequest
 import com.neki.api.map.api.dto.MapResponse
-import com.neki.api.map.application.CollectPhotoBoothLocationUseCase
 import com.neki.api.map.application.GetBrandUseCase
 import com.neki.api.map.application.UpdateBrandOrderUseCase
 import com.neki.api.map.application.dto.MapResult
 import com.neki.core.api.dto.BaseResponse
 import com.neki.domain.map.dto.MapCommand
 import com.neki.domain.map.dto.MapQuery
-import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -36,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController
 class MapController(
     private val getBrandUseCase: GetBrandUseCase,
     private val updateBrandOrderUseCase: UpdateBrandOrderUseCase,
-    private val collectPhotoBoothLocationUseCase: CollectPhotoBoothLocationUseCase,
     private val requestConverter: MapConverter.RequestConverter,
     private val responseConverter: MapConverter.ResponseConverter,
 ) {
@@ -76,28 +72,5 @@ class MapController(
         updateBrandOrderUseCase.execute(command)
 
         return BaseResponse()
-    }
-
-    @Operation(
-        summary = "포토부스 위치 수집 API",
-        description = """
-            Kakao Local API를 통해 포토부스 위치 정보를 수집하여 DB에 저장합니다.
-            첫 페이지 조회 후 meta.pageable_count를 기반으로 자동으로 모든 페이지를 순회합니다.
-            """,
-        deprecated = true,
-    )
-    @Deprecated("Prefect 배치로 이관 예정. 이관 완료 후 제거한다")
-    @Hidden
-    @PostMapping("/collect")
-    fun collectPhotoBooths(
-        @Valid @RequestBody request: MapRequest.CollectPhotoBooth,
-    ): BaseResponse<MapResponse.CollectPhotoBooth> {
-        val command: MapCommand.CollectPhotoBooth = requestConverter.toCollectPhotoBoothCommand(request)
-
-        val result: MapResult.CollectPhotoBooth = collectPhotoBoothLocationUseCase.execute(command)
-
-        val response: MapResponse.CollectPhotoBooth = responseConverter.toCollectPhotoBoothResponse(result)
-
-        return BaseResponse(data = response)
     }
 }

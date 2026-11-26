@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 
@@ -15,17 +14,6 @@ import jakarta.validation.constraints.NotNull
  * description    : Map 관련 요청 DTO
  */
 object MapRequest {
-    @Schema(name = "CollectPhotoBoothRequest")
-    data class CollectPhotoBooth(
-        @field:Schema(description = "검색 키워드", example = "포토이즘박스")
-        @field:NotBlank
-        val keyword: String?,
-
-        @field:Schema(description = "브랜드 코드", example = "PHOTOISM")
-        @field:NotBlank
-        val brandCode: String?,
-    )
-
     @Schema(
         name = "GetPolygonLocationRequest",
         description = "다각형 영역 내 포토부스 조회 요청",

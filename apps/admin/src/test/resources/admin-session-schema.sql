@@ -25,3 +25,10 @@ CREATE TABLE IF NOT EXISTS TB_PHOTO_BOOTH_MANUAL (
     brand_id BIGINT NOT NULL,
     deleted_at TIMESTAMP
 );
+-- 지점 마스터. Workflow stores-sync 가 적재하고 서버는 브랜드 참조 여부만 읽어 엔티티가 없다.
+-- 브랜드 참조 검사(BrandReferenceRepositoryAdapter)가 쓰는 컬럼만 둔다. 운영에서는 V3·V34 마이그레이션이 만든다.
+CREATE TABLE IF NOT EXISTS TB_PHOTO_BOOTH_LOCATION (
+    id BIGINT PRIMARY KEY,
+    brand_id BIGINT NOT NULL,
+    source_platform VARCHAR(32)
+);

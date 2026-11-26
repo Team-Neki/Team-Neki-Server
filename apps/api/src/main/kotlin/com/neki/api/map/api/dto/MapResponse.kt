@@ -23,16 +23,4 @@ object MapResponse {
         @field:Schema(description = "브랜드 이미지", example = "https://domain/file/image/xxx.png")
         val imageUrl: String?,
     )
-
-    @Schema(name = "CollectPhotoBoothResponse")
-    data class CollectPhotoBooth(
-        @field:Schema(description = "수집된 포토부스 수", example = "45")
-        val collectedCount: Int,
-
-        @field:Schema(description = "중복으로 스킵된 수", example = "5")
-        val duplicatedCount: Int,
-
-        @field:Schema(description = "총 처리된 수", example = "50")
-        val totalProcessed: Int,
-    )
 }
